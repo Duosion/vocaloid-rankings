@@ -15,6 +15,8 @@ const databaseProxy = require(customModuleDirectory + "database")
 const { generateTimestamp, caches } = require(customModuleDirectory + "shared")
 
 const database = require("./db")
+
+const dbAutoUpdateDelay = 10000 // how often the db tries to update
   
 // fastify stuff
   fastify.register(require("@fastify/static"), {
@@ -207,14 +209,14 @@ const database = require("./db")
             const songId = songData.songId
             // calculate viewData
             const viewData = {
-              songId: songID,
+              songId: songId,
               total: 0,
               breakdown: {...songViews}
             }
             for (const [_, views] of songViews) { viewData.total += views } // calculate total
 
             insertViewData(timestamp, viewData)
-            insertSong(songID, songData)
+            insertSong(songId, songData)
 
           }
 
@@ -232,8 +234,13 @@ const database = require("./db")
       resolve()
     })
   }
+
+  const recursiveSongsDataUpdate = async () => {
+    await updateSongsData().catch( (error) => { console.log(error) })
+    setTimeout(() => recursiveSongsDataUpdate(), dbAutoUpdateDelay)
+  }
   //migrateData().then( () => {
-  updateSongsData().catch( (error) => { console.log(error) } )
+  recursiveSongsDataUpdate()
   //})
 
 // redirect

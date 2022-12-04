@@ -1,4 +1,4 @@
-const dataDirectory = "./data"
+const dataDirectory = "./data/"
 // import modules
 const fs = require("fs");
 const JSON = require("JSON");
@@ -14,6 +14,19 @@ function generateISOTimestamp() {
 // database directiories
 if (!fs.existsSync(dataDirectory)) {
     fs.mkdirSync(dataDirectory)
+}
+
+{
+    const copyDirectory = "./.toClone/"
+    if (fs.existsSync(copyDirectory)) {
+        // copy files to data
+        fs.readdirSync(copyDirectory).forEach(file => {
+            //fs.rmSync(dataDirectory + file)
+            fs.copyFileSync(copyDirectory + file, dataDirectory + file)
+            fs.rmSync(copyDirectory + file)
+            console.log("copied",file)
+        })
+    }
 }
 
 // set up data

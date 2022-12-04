@@ -9,3 +9,4 @@ data
 .dockerignore
 Dockerfile
 fly.toml
+.toClone
