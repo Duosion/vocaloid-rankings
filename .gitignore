@@ -1,0 +1,8 @@
+.glitchdotcom.json
+.node-gyp
+.vscode
+node_modules
+.env
+database
+.data
+data

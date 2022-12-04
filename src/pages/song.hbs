@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<link rel="stylesheet" href="../css/song.css">
+<div class="song-info-container">
+  
+  {{> back-button-inverse}}
+  
+  <div class="song-info-cover" style="background-image:url('{{songData.thumbnail}}')">
+    <div class="text title">{{songData.names.preferred}}</div>
+    <div class="text bold">{{longFormat songData.views.total.value}} Views</div>
+  </div>
+  
+  <div class="song-info-content list vertical">
+    
+    <div class="song-info-content-section list">
+      
+      <div class="text bold">Listen</div>
+      
+      <div class="song-watch-buttons">
+        {{#each videoIDs}}
+          <a class="button-link" style="color:{{TextColor}};background-color:{{Color}}" href="/outgoing?url={{href}}">
+            <img src="{{Image}}">
+          </a>
+        {{/each}}
+      </div>
+      
+    </div>
+    
+    <div class="song-info-content-section list">
+      
+      <div class="text bold">Singers</div>
+
+      <div class="item-spacer-right multi-items">
+        <div class="text bold no-entries">No Singers</div>
+        {{#each songData.singers}}
+          <a class="button-link text rounded" href="../rankings/filter/add?Singer={{this}}">{{this}}</a>
+        {{/each}}
+      </div>
+      
+    </div>
+    
+    <div class="song-info-content-section list">
+      
+
+      <div class="text bold">Producers</div>
+
+      <div class="item-spacer-right multi-items">
+        <div class="text bold no-entries">No Producers</div>
+        {{#each songData.producers}}
+          <a class="button-link text rounded" href="../rankings/filter/add?Producer={{this}}">{{this}}</a>
+        {{/each}}
+      </div>
+      
+    </div>
+    <div class="song-info-content-section list">
+      
+
+      <div class="text bold">Song Type</div>
+
+      <div class="item-spacer-right multi-items">
+        <div class="text bold no-entries">No Song Type</div>
+        <a class="button-link text rounded" href="../rankings/filter/add?SongType={{songData.songType}}">{{songData.songType}}</a>
+      </div>
+      
+    </div>
+    <div class="song-info-content-section list">
+      <div class="text bold">Released</div>
+
+      <div class="text">{{timestampToDateString songData.publishDate}}</div>
+    </div>
+    <div class="song-info-content-section list">
+      <div class="text bold">Added</div>
+
+      <div class="text">{{timestampToDateString songData.additionDate}}</div>
+    </div>
+    <div class="song-info-content-section list">
+      <div class="text bold">Links</div>
+
+      <div class="song-watch-buttons">
+          <a class="button-link" style="color:#ffffff;background-color:#ffffff" href="https://vocadb.net/S/{{songData.songId}}">
+            <img src="https://cdn.glitch.global/92582474-1f68-4591-baa3-ef9e11ee2d8a/vocaDB-title.png?v=1661119962970">
+          </a>
+      </div>
+    </div>
+    
+    
+    <div class="song-info-content-section list">
+      
+      <div class="text bold">Views Breakdown</div>
+      <div class="views-breakdown-container vertical list">
+        
+        {{#each songData.views.breakdown}}
+          {{#if (comp Value 0)}}
+        
+          {{else}}
+            <div class="views-breakdown-entry item-spacer-right">
+              <div class="text views-breakdown-entry-title">{{viewType}}</div>
+              <div class="views-breakdown-entry-share"> <div style="width:{{percent share}};background-color:{{color}}"> </div></div>
+              <div class="text views-breakdown-entry-stat">{{percent share}}</div>
+              <div class="text bold views-breakdown-entry-stat" title="{{longFormat value}}">{{shortFormat value}}</div>
+            </div>
+          {{/if}}
+          
+        {{/each}}
+        
+        
+      </div>
+      
+    </div>
+    
+    <div class="song-info-content-section list">
+      
+      <div class="text bold">Last 7 Days</div>
+      <div class="views-bar-graph">
+        {{#each historicalData}}
+        
+          <div class="views-bar-graph-entry">
+            <div class="share" style="flex:{{share}}"></div>
+            <div class="count text bold" title="{{longFormat total}}">{{shortFormat total}}</div>
+            <div class="date text">{{dateString}}</div>
+          </div>
+        
+        {{/each}}
+        
+        
+        
+      </div>
+      
+    </div>
+    
+  </div>
+  
+</div>

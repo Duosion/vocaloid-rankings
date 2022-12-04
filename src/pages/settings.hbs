@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<link rel="stylesheet" href="../css/rankingsFilter.css">
+<div class="page-card-container">
+  
+  {{> back-button}}
+  
+  <div class="text title">Settings</div>
+  
+  <form id="filter-form" action="/settings" method="post" target="_self" class="filter-content list vertical">
+    
+    {{#each filterOptions}}
+      <div class="form-section list">
+
+        <div class="text bold">{{DisplayName}}</div>
+
+        <div class="form-radio-container">
+          {{#each Values}}
+            <input type="radio" id="{{@key}}" name="{{@../key}}" value="{{@key}}" {{#if (comp @key (get ../../cookies @../key))}}checked{{/if}}>
+          
+            <label class="text" for="{{@key}}">{{DisplayName}}</label>
+          
+          {{/each}}
+        </div>
+
+      </div>
+    {{/each}}
+    
+    {{> default-hr}}
+    
+    <div class="submit-container">
+      <button class="rounded-button">Save</button>
+    </div>
+    
+  </form>
+  
+</div>

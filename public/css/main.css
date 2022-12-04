@@ -1,0 +1,516 @@
+/* material symbols */
+.material-symbols-rounded {
+  font-variation-settings:
+  'FILL' 1,
+  'wght' 400,
+  'GRAD' 0,
+  'opsz' 48
+}
+
+html {
+
+  --transition-duration: 0.15s;
+  
+  --cubic-tween: cubic-bezier(.4,0,.6,1);
+  
+  --font-family: "Roboto", "Kosugi Maru"
+
+}
+
+html.light-theme {
+
+  --body-color: rgb(240, 240, 240);
+  --body-color-2: #ffffff;
+  --text-color: #3d3d3d;
+
+  --bg-color: #ffffff;
+  --hover-color: rgba(0,0,0,0.1);
+  
+  --odd-element-color: rgba(0,0,0,0.03);
+
+  --accent-color: #34bf55;
+  
+  --box-shadow: 0 2px 20px rgba(49,49,49,.09);
+
+}
+
+html.dark-theme {
+
+  --body-color: #141414;
+  --body-color-2: #222222;
+  --text-color: #ffffff;
+  --hover-color: rgba(255,255,255,0.1);
+
+  --bg-color: #3d3d3d;
+    
+  --odd-element-color: rgba(255,255,255,0.03);
+  
+  --accent-color: #34bf55;
+  
+  --box-shadow: initial;
+
+}
+
+@media (prefers-color-scheme: dark) {
+  html.device-theme {
+    --body-color: #141414;
+    --body-color-2: #222222;
+    --text-color: #ffffff;
+    --hover-color: rgba(255,255,255,0.1);
+
+    --bg-color: #3d3d3d;
+    
+    --odd-element-color: rgba(255,255,255,0.03);
+  
+    --accent-color: #34bf55;
+    
+    --box-shadow: initial;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  html.device-theme {
+    --body-color: rgb(240, 240, 240);
+    --body-color-2: #ffffff;
+    --text-color: #3d3d3d;
+
+    --bg-color: #ffffff;
+    --hover-color: rgba(0,0,0,0.1);
+  
+    --odd-element-color: rgba(0,0,0,0.03);
+
+    --accent-color: #34bf55;
+    
+    --box-shadow: 0 2px 20px rgba(49,49,49,.09);
+
+  }
+}
+
+body {
+  
+  margin: 0px;
+  
+  background-color: var(--body-color);
+  
+}
+
+#page-content {
+  
+  margin: 5px 10px;
+    
+  min-height: 100vh;
+  
+}
+
+/* footer */
+#footer-main {
+  
+  background-color: var(--hover-color);
+  
+  width: 100%;
+  height: 100px;
+  margin-top: 15px;
+  
+}
+
+.footer-link-container {
+  
+  height: 100%;
+  width: 100%;
+  
+  display: flex;
+  
+  justify-content: center;
+  align-items: center;
+  
+  margin: auto;
+  
+}
+
+.footer-link-container > * {
+  margin-right: 25px;
+}
+
+.footer-link-container > *:last-child {
+  margin-right: 0px;
+}
+
+.footer-link {
+  
+  text-decoration: none;
+  
+  filter: opacity(0.8);
+  
+}
+
+.footer-link:hover {
+ 
+  filter: none;
+  
+}
+
+/* flexes */
+.centering-flex {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.flex-divider {
+    flex-grow: 1;
+    padding:   0;
+    margin:    0;
+}
+
+/* item spacers */
+ .item-spacer-right > * {
+    margin-right: 10px;
+ }
+ .item-spacer-right > *:last-child {
+    margin-right: 0px;
+ }
+
+/* text stuff */
+  .text {
+
+      font-size: 1.2em;
+      font-family: var(--font-family);
+      color: var(--text-color);
+
+  }
+
+  .text.sub {
+    font-size: 1em;
+  }
+
+  .text.rounded {
+    
+    padding: 4px 15px;
+    border-radius: 10px;
+    border: 1px solid var(--hover-color);
+    color: var(--text-color);
+    background-color: var(--body-color-2);
+    width: fit-content;
+    height: fit-content;
+
+  }
+
+  .text.centered {
+      text-align: center;
+  }
+
+  .text.title,
+  .text.rounded,
+  .text.bold {
+      font-weight: bold;
+  }
+
+  .text.nowrap {
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+  }
+
+  .text.title {
+
+      font-size: 2em;
+
+  }
+
+  .text.sub-title {
+
+      font-size: 1.5em;
+
+      font-weight: 400;
+
+  }
+
+
+  .text.error {
+    
+    color: rgb(255,0,0)
+    
+  }  
+
+/* lists */
+  .list {
+
+      display: flex;
+      justify-content: flex-start;
+
+  }
+
+  .list.centered {
+      justify-content: center;
+  }
+
+  .list.vertical {
+
+      flex-direction: column;
+
+  }
+
+  .list.horizontal {
+
+      flex-direction: row;
+
+
+  }
+
+  .list.sub-section {
+
+      margin-left: 10px;
+
+  }
+
+  .list.vertical > * {
+      margin-bottom: 10px;
+  }
+
+  .list.vertical > *:last-child {
+      margin-bottom: 0px;
+  }
+
+/* buttons */
+button, a.button-link {
+  
+  color: var(--text-color);
+  font-size: 1.1em;
+  font-weight: bold;
+  font-family: var(--font-family);
+  
+  transition-property: filter, color, background-color;
+  transition-duration: var(--transition-duration);
+  
+}
+
+button.rounded-button, 
+a.button-link.rounded-button {
+  
+  border: none;
+  
+  background-color: var(--text-color);
+  color: var(--body-color-2);
+  
+  padding: 5px 5px;
+  
+  border-radius: 50px;
+  
+}
+
+button.rounded-button:hover, 
+a.button-link.rounded-button:hover {
+  
+  filter: brightness(0.8);
+  cursor: pointer;
+  
+}
+
+
+a.button-link {
+  text-decoration: none;
+  text-align: center;
+}
+
+button.selection-button, a.button-link.selection-button {
+  
+  border: 1px solid var(--hover-color);
+  padding: 5px;
+  
+  background-color: var(--body-color-2);
+  color: var(--text-color)
+  
+}
+
+button.selection-button.active, a.button-link.selection-button.active {
+  
+  background-color: var(--text-color);
+  color: var(--body-color-2)
+  
+}
+
+button:hover:not(.active):not(.rounded-button), 
+a.button-link:hover:not(.active):not(.rounded-button) {
+  background-color: var(--hover-color);
+  cursor: pointer
+  
+}
+
+  /* floating button */
+  button.floating, 
+  a.button-link.floating {
+    
+    z-index: 2;
+    
+    position: absolute;
+    display: flex;
+    
+    height: 40px;
+    width: 40px;
+    
+    font-size: 1.2em
+    
+  }
+
+  button.floating .material-symbols-rounded, 
+  a.button-link.floating .material-symbols-rounded {
+    
+    margin: auto;
+    
+    color: var(--text-color);
+    
+    font-size: 1.8em
+
+  }
+
+  button.floating.inverse .material-symbols-rounded,
+  a.button-link.floating.inverse .material-symbols-rounded {
+
+    color: #ffffff
+
+  }
+
+  button.floating.top,
+  a.button-link.floating.top {
+    
+    top: 5px;
+    
+  }
+
+  button.floating.left,
+  a.button-link.floating.left {
+    
+    left: 5px;
+    
+  }
+  
+  button.floating:hover,
+  a.button-link.floating:hover {
+
+    background-color: initial !important;
+
+  }
+
+  button.floating::before,
+  a.button-link.floating::before {
+    
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50px;
+    background-color: var(--text-color);
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    
+    opacity: 0;
+    transition-property: opacity;
+    transition-timing-function: var(--cubic-tween);
+    transition-duration: var(--transition-duration)
+      
+  }
+
+  button.floating.inverse::before,
+  a.button-link.floating.inverse::before {
+    
+    background-color: #ffffff;
+    
+  }
+
+  button.floating:hover::before,
+  a.button-link.floating:hover::before {
+
+    opacity: 0.1;
+
+  }
+
+/* input */
+input[type="url"] {
+  
+  border: 1px solid var(--hover-color);
+  border-radius: 10px;
+  
+  background-color: var(--body-color-2);
+  
+  padding: 10px 10px;
+  
+  box-sizing: border-box;
+  
+  font-size: 1.2em;
+}
+
+input.login-input[type="text"],
+input.login-input[type="password"] {
+  border: 1px solid var(--hover-color);
+  border-radius: 10px;
+  background-color: var(--body-color-2);
+  
+  padding: 10px 10px;
+  
+  box-sizing: border-box;
+
+  color: var(--text-color);
+  
+  font-size: 1.2em;
+}
+
+/* details */
+details {
+  border: 1px solid var(--hover-color);
+  border-radius: 10px;
+  list-style: outside;
+}
+
+details > summary {
+  text-align: center;
+  padding: 5px;
+}
+
+details > summary:hover {
+  cursor: pointer;
+}
+
+details > *:not(summary) {
+  padding: 0px 10px 10px 10px;
+}
+
+/* line breaks */
+hr {
+  width: 100%;
+}
+
+hr.default {
+  
+  color: var(--hover-color)
+
+}
+
+/* containers */
+.page-card-container {
+  max-width: 500px;
+  box-sizing: border-box;
+  width: 100%;
+  
+  position: relative;
+  
+  background-color: var(--body-color-2);
+  border-radius: 10px;
+  
+  box-shadow: var(--box-shadow);
+  
+  margin: 50px auto auto auto;
+}
+
+.page-card-container .text.title,
+.page-card-container .text.sub-title {
+  text-align: center;
+  padding: 5px;
+}
+
+
+/* misc */
+.noselect {
+  user-select: none;
+}

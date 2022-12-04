@@ -1,0 +1,107 @@
+<!DOCTYPE html> 
+  <link rel="stylesheet" href="../css/rankings_new.css">
+    <div class="list vertical"> 
+      
+      <div id="page-title" class="text title centered">Year in Review</div>
+      <div class="text centered">The top Vocaloid songs released in {{year}}.</div>
+      
+      <div id="midpage" class="centering-flex">
+        
+        <div id="top-container">
+          <div id="top-controls-container">
+            <div id="applied-filters-container">
+              <a class="top-controls-button button-link" href="/rankings" title="Go Back">
+                <span class="material-symbols-rounded">home</span>
+              </a>
+            </div>
+            {{#if databaseUpdating}}      
+              <div id="rankings-refresh-label" class="top-controls-button" title="Rankings Refreshing">
+                <div id="rankings-refresh-label-background" style="width:{{percent databaseUpdating.progress}}"></div>
+                <span class="material-symbols-rounded noselect">autorenew</span>
+                <div id="rankings-refresh-label-progress" class="text bold">{{percent databaseUpdating.progress}}</div>
+              </div>
+              <script src="../js/rankings_refresh.js" defer></script>
+            {{/if}}
+            <a class="top-controls-button button-link" href="/settings" title="Settings">
+              <span class="material-symbols-rounded">settings</span>
+            </a>
+          </div>
+        </div>
+
+        <div id="rankings-list">
+          
+          <div class="rankings-list-header">
+            <div class="rankings-list-entry-item rank"></div>
+            <div class="rankings-list-entry-item cover"></div>
+            <div class="rankings-list-entry-item title">Song Name</div>
+            <div class="rankings-list-entry-item views">Views</div>
+          </div>
+          
+          {{#each list}}
+
+            <div class="rankings-list-entry">
+              
+              <div class="rankings-list-entry-item rank">
+                <div class="text bold">{{inc @index (inc 1 ../filterParams.StartAt)}}</div>
+              </div>
+              
+              <div class="rankings-list-entry-item cover" style='background-image:url("{{thumbnail}}")'></div>
+              
+              {{#if (notcomp change.status "SAME") }}
+                <div class="rankings-list-entry-item change {{change.status}}">
+                  <span class="material-symbols-rounded">
+                    {{#if (comp change.status "UP")}}
+                      arrow_upward
+                    {{else if (comp change.status "DOWN")}}
+                      arrow_downward
+                    {{/if}}
+                  </span>
+                </div>
+              {{/if}}
+
+              <div class="rankings-list-entry-item title">
+                <a href="/song/{{songId}}">{{name}}</a>
+              </div>
+              <div class="rankings-list-entry-item views">{{longFormat total}}</div>
+              
+            </div> 
+
+          {{/each}}
+          
+        </div>
+        
+        <div id="page-selector-container">
+          {{#if previousPage}}
+            <a class="page-change-button button-link" href="{{previousPage}}">
+              <span class="material-symbols-rounded">arrow_back</span>
+            </a>
+          {{/if}}
+          {{#if firstPage}}
+            <a class="page-jump-button button-link" href="{{firstPage}}">
+              <div class="text bold">1</div>
+            </a>
+            <span class="material-symbols-rounded">more_horiz</span>
+          {{/if}}
+          {{#each surroundingPages}}
+            <a class="page-jump-button button-link {{#if (comp @index ../currentPageNumber)}}active{{/if}}" href="{{this}}">
+              <div class="text bold">{{inc @index 1}}</div>
+            </a>
+          {{/each}}
+          {{#if lastPage}}
+            <span class="material-symbols-rounded">more_horiz</span>
+            <a class="page-jump-button button-link" href="{{lastPage}}">
+              <div class="text bold">{{lastPageNumber}}</div>
+            </a>
+          {{/if}}
+          {{#if nextPage}}
+            <a class="page-change-button button-link" href="{{nextPage}}">
+              <span class="material-symbols-rounded">arrow_forward</span>
+            </a>
+          {{/if}}
+        </div>
+
+      </div>
+      
+      
+    
+    </div>

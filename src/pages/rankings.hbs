@@ -1,0 +1,78 @@
+<!DOCTYPE html> 
+  <link rel="stylesheet" href="../css/rankings.css">
+    <div class="list vertical"> 
+      
+      <div id="page-title" class="text title centered">Top Vocaloid Rankings</div>
+      <div class="text centered">As of {{date}}</div>
+      
+      <div id="midpage" class="centering-flex">
+        
+        <div id="top-controls-container">
+          
+          {{#if isFiltered}}
+          <a class="top-controls-button button-link rounded-button filter-button" href="/rankings">
+            <span class="material-icons">remove_circle_outline</span>
+            <div class="text bold">Clear Filter</div>
+          </a>
+          {{/if}}
+          <a class="top-controls-button button-link rounded-button filter-button" href="/rankings/filter?{{#each uniqueFilterParams}}{{@key}}={{this}}&{{/each}}">
+            <span class="material-icons">filter_alt</span>
+            <div class="text bold">Filter</div>
+          </a>
+          <a class="top-controls-button button-link rounded-button filter-button" href="/settings">
+            <span class="material-icons">settings</span>
+            <div class="text bold">Settings</div>
+          </a>
+          
+        </div>
+        
+        <div id="rankings-list">
+          
+          <div class="rankings-list-header">
+            <div class="rankings-list-entry-item rank"></div>
+            <div class="rankings-list-entry-item change"></div>
+            <div class="rankings-list-entry-item cover"></div>
+            <div class="rankings-list-entry-item title">Song Name</div>
+            <div class="rankings-list-entry-item views">Views</div>
+          </div>
+          
+          {{#each list}}
+
+            <div class="rankings-list-entry">
+              
+              <div class="rankings-list-entry-item rank">
+                <div class="text bold">{{inc @index (inc 1 ../filterParams.StartAt)}}</div>
+              </div>
+              
+              <div class="rankings-list-entry-item change {{Change.Status}}">
+                <span class="material-icons">
+                  {{#if (comp Change.Status "UP")}}
+                    arrow_upward
+                  {{else if (comp Change.Status "DOWN")}}
+                    arrow_downward
+                  {{else}}
+                    arrow_forward
+                  {{/if}}
+                </span>
+              </div>
+              
+              <div class="rankings-list-entry-item cover">
+                <img src="{{SongData.Thumbnail}}">
+              </div>
+              
+              <div class="rankings-list-entry-item title">
+                <a href="/song/{{Name}}">{{DisplayName}}</a>
+              </div>
+              <div class="rankings-list-entry-item views">{{longFormat Total}}</div>
+              
+            </div> 
+
+          {{/each}}
+          
+        </div>
+
+      </div>
+      
+      
+    
+    </div>
