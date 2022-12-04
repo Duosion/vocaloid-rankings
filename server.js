@@ -16,7 +16,7 @@ const { generateTimestamp, caches } = require(customModuleDirectory + "shared")
 
 const database = require("./db")
 
-const dbAutoUpdateDelay = 10000 // how often the db tries to update
+const dbAutoUpdateDelay = 600000 // how often the db tries to update
   
 // fastify stuff
   fastify.register(require("@fastify/static"), {
