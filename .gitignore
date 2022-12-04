@@ -6,3 +6,6 @@ node_modules
 database
 .data
 data
+.dockerignore
+Dockerfile
+fly.toml
