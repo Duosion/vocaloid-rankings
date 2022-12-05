@@ -143,6 +143,7 @@ const dbAutoUpdateDelay = 600000 // how often the db tries to update
       const timestampData = generateTimestamp()
       const timestamp = timestampData.Name
 
+      console.log("Trying to update db for timestamp:", timestamp)
       if (await database.views.timestampExists(timestamp)) { reject("Database can only be updated once per day."); return; } // only update once per day
 
       databaseProxy.setUpdating(true)
@@ -255,6 +256,25 @@ fastify.get("/about", async (request, reply) => {
   const viewParams = { seo: seo, cookies: parsedCookies, scrapeDomains: scraper.scrapeDomains, pageTitle: "About"};
   
   return reply.view("pages/about.hbs", viewParams)
+})
+
+// download db
+
+fastify.get("/download-db", (request, reply) => {
+  const fs = require("fs");
+  const archiver = require("archiver")
+
+  const directory = "data/"
+
+  if (fs.existsSync(directory)) {
+      const archive = archiver("zip")
+
+      archive.directory(directory)
+  
+      archive.finalize()
+
+      reply.type("application/zip").send(archive)
+  }
 })
 
 // run the server

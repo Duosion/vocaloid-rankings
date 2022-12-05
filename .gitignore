@@ -10,3 +10,4 @@ data
 Dockerfile
 fly.toml
 .toClone
+package-lock.json
