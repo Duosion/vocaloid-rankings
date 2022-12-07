@@ -190,7 +190,7 @@ exports.register =  (fastify, opts, done) => {
   
   // api key validation
   fastify.addHook("preValidation", (req, reply, done) => {
-    const config = req.context.config
+    const config = req.routeConfig
 
     if (config['authenticate']) { // authenticate only if required
 

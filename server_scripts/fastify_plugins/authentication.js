@@ -103,7 +103,7 @@ const createAccount = async (request, reply) => {
 const plugin = (fastify, options, done) => {
 
     fastify.addHook("preParsing", async (req, reply, _) => {
-        const config = req.context.config
+        const config = req.routeConfig
 
         const requiredAuthLevel = config["authLevel"] || 0
         const sessionCookie = req.cookies["session"]

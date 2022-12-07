@@ -240,7 +240,7 @@ const getAddFilter = async (request, reply) => {
 
     // set analytics
     {
-      const params = request.context.config["analyticsParams"]
+      const params = request.routeConfig["analyticsParams"]
 
       params['name'] = analyticsFilterNames
       params['value'] = analyticsFilterValues

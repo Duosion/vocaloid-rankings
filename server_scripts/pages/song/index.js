@@ -288,7 +288,7 @@ const getSong = async (request, reply) => {
     // set page title
     params.pageTitle = songData.names.Original
     // update analytics
-    request.context.config.analyticsParams['page_name'] = songID
+    request.routeConfig.analyticsParams['page_name'] = songID
     
     return reply.view("pages/song.hbs", params)
 }

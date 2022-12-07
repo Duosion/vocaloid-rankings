@@ -1,238 +1,9 @@
-const dataDirectory = "./data/"
-// import modules
-const fs = require("fs");
 const JSON = require("JSON");
-const sqlite3 = require("sqlite3").verbose();
-const sqlite = require("sqlite");
 const { generateTimestamp } = require("../server_scripts/shared")
+const databases = require("./init.js").databases
 
-// functions
 function generateISOTimestamp() {
     return new Date().toISOString()
-}
-
-// database directiories
-if (!fs.existsSync(dataDirectory)) {
-    fs.mkdirSync(dataDirectory)
-}
-
-{
-    const copyDirectory = "./.toClone/"
-    if (fs.existsSync(copyDirectory)) {
-        // copy files to data
-        fs.readdirSync(copyDirectory).forEach(file => {
-            //fs.rmSync(dataDirectory + file)
-            fs.copyFileSync(copyDirectory + file, dataDirectory + file)
-            fs.rmSync(copyDirectory + file)
-            console.log("copied",file)
-        })
-    }
-}
-
-// set up data
-    // viewsDb
-    const viewsDbDirectory = dataDirectory + "views.db"
-    const viewsDbFileExists = fs.existsSync(viewsDbDirectory)
-
-    const viewsDb = sqlite.open({
-        filename: viewsDbDirectory,
-        driver: sqlite3.Database
-    }).then( async db => {
-
-        if (viewsDbFileExists) { return db }
-
-        try {
-
-            await db.run(
-                "CREATE TABLE metadata (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp TEXT NOT NULL, updated TEXT NOT NULL)"
-            );
-
-        } catch(err) {
-            console.log(err)
-        }
-
-        return db
-
-    })
-
-    // songs db
-    const songsDbDirectory = dataDirectory + "songs.db"
-    const songsDbFileExists = fs.existsSync(songsDbDirectory)
-
-    const songsDb = sqlite.open({
-        filename: songsDbDirectory,
-        driver: sqlite3.Database
-    }).then( async db => {
-        if (songsDbFileExists) { return db }
-
-        try {
-
-            await db.run(
-                "CREATE TABLE songs (songId TEXT PRIMARY KEY NOT NULL, songType TEXT NOT NULL, singers TEXT NOT NULL, producers TEXT NOT NULL, publishDate TEXT NOT NULL, additionDate TEXT NOT NULL, thumbnail TEXT NOT NULL, names TEXT NOT NULL, videoIds TEXT NOT NULL, fandomURL TEXT)"
-            );
-
-        } catch(err) {
-            console.log(err)
-        }
-
-        return db
-
-    })
-
-    // songsViewsDb
-    const songsViewsDbDirectory = dataDirectory + "songsViews.db"
-    const songsViewsDbExists = fs.existsSync(songsViewsDbDirectory)
-
-    const songsViewsDb = sqlite.open({
-        filename: songsViewsDbDirectory,
-        driver: sqlite3.Database
-    }).then(async db => {
-        // initialize the database
-        if (songsViewsDbExists) { return db }
-
-        try {
-
-            // create metadata table
-            await db.run(
-                "CREATE TABLE viewsMetadata (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp TEXT NOT NULL, updated TEXT NOT NULL)"
-            )
-
-            // create songs table
-            await db.run(
-                "CREATE TABLE songsData (songId TEXT PRIMARY KEY NOT NULL, songType TEXT NOT NULL, singers JSON NOT NULL, producers JSON NOT NULL, publishDate TEXT NOT NULL, additionDate TEXT NOT NULL, thumbnail TEXT NOT NULL, names JSON NOT NULL, videoIds JSON NOT NULL, fandomURL TEXT)"
-            );
-
-            Promise.all([songsDb, viewsDb, songsViewsDb]).then(async result => {
-                const songsDatabase      = result[0]
-                const viewsDatabase      = result[1]
-                const songsViewsDatabase = result[2]
-        
-                // add songs to songsViews
-                console.log("Merging Songs Data")
-                const toMergeSongs = await songsDatabase.all("SELECT * FROM songs")
-                for (const [_, songData] of toMergeSongs.entries()) {
-                    await songsViewsDatabase.run(`REPLACE INTO songsData (songId, songType, singers, producers, publishDate, additionDate, thumbnail, names, videoIds, fandomURL) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,[
-                        songData.songId,
-                        songData.songType,
-                        songData.singers,
-                        songData.producers,
-                        songData.publishDate,
-                        songData.additionDate,
-                        songData.thumbnail,
-                        songData.names,
-                        songData.videoIds,
-                        songData.fandomURL
-                    ])
-                }
-        
-                // merge views & metadata
-                console.log("Merging Views Data")
-                const toMergeMetadata = await viewsDatabase.all("SELECT * FROM metadata")
-                const metadataCount = toMergeMetadata.length
-        
-                for (const [n, metadata] of toMergeMetadata.entries()) {
-                    const timestamp = metadata.timestamp
-                    console.log(`${timestamp} ${n}/${metadataCount}`)
-                    // add metadata to new metadata table
-                    await songsViewsDatabase.run(`REPLACE INTO viewsMetadata (id, timestamp, updated) VALUES (?, ?, ?)`, [
-                        metadata.id,
-                        timestamp,
-                        metadata.updated
-                    ])
-        
-                    // merge views
-                    const toMergeViewsData = await viewsDatabase.all(`SELECT * FROM '${timestamp}'`)
-                    // create new table
-                    {
-        
-                        // create the new table
-                        await songsViewsDatabase.run(
-                            `CREATE TABLE IF NOT EXISTS '${timestamp}' (songId TEXT PRIMARY KEY NOT NULL, total INTEGER NOT NULL, breakdown JSON NOT NULL, `
-                            + "FOREIGN KEY (songId) REFERENCES songs (songId))",
-                        )
-                    }
-        
-                    for (const [_, viewsData] of toMergeViewsData.entries()) {
-                        await songsViewsDatabase.run(`REPLACE INTO '${timestamp}' (songId, total, breakdown) VALUES (?, ?, ?)`, [
-                            viewsData.songId,
-                            viewsData.total,
-                            viewsData.breakdown
-                        ])
-                    }
-        
-                }
-                
-                console.log("Databases Merged")
-            })
-
-        } catch(err) {
-            console.log(err)
-        }
-
-        return db
-    })
-
-    // analytics db
-    const analyticsDbDirectory = dataDirectory + "analytics.db"
-    const analyticsDbFileExists = fs.existsSync(analyticsDbDirectory)
-
-    const analyticsDb = sqlite.open({
-        filename: analyticsDbDirectory,
-        driver: sqlite3.Database
-    }).then( async db => {
-        if (analyticsDbFileExists) { return db }
-
-        try {
-
-            await db.run(
-                "CREATE TABLE analytics (eventName TEXT PRIMARY KEY NOT NULL)"
-            )
-
-        } catch(err) {
-            console.log(err)
-        }
-
-        return db
-    })
-
-    // authentication db
-    const authDbDirectory = dataDirectory + "authentication.db"
-    const authDbFileExists = fs.existsSync(authDbDirectory)
-
-    const authDb = sqlite.open({
-        filename: authDbDirectory,
-        driver: sqlite3.Database
-    }).then( async db => {
-        if (authDbFileExists) { return db }
-
-        try {
-            // create accounts table
-            await db.run(
-                "CREATE TABLE users (username STRING PRIMARY KEY NOT NULL UNIQUE, passwordHash STRING NOT NULL, created STRING NOT NULL, authLevel INTEGER NOT NULL)"
-            )
-
-            //create sessions table
-            await db.run(
-                "CREATE TABLE sessions (id STRING PRIMARY KEY NOT NULL, username STRING NOT NULL, created STRING NOT NULL, expires STRING)"
-            )
-        } catch(err) {
-            console.log(err)
-        }
-
-        return db
-    })
-
-// functions
-
-//mergeSongsViews()
-
-// exports
-exports.databases = {
-
-    views: viewsDb,
-    songs: songsDb,
-    analytics: analyticsDb
-
 }
 
 // songs
@@ -241,12 +12,9 @@ const songsProxy = {
         return new Promise(async (resolve, reject) => {
             try {
               
-                const db = await songsViewsDb
+                const db = databases.songsViews
 
-                resolve((await db.get(
-                    "SELECT songId FROM songsData WHERE songId = ?",
-                    songId
-                )) ? true : false)
+                resolve(db.prepare('SELECT songId FROM songsData WHERE songId = ?').get(songId) ? true : false)
                 
             } catch (error) {
                reject(error) 
@@ -258,11 +26,9 @@ const songsProxy = {
         return new Promise(async (resolve, reject) => {
             try {
               
-                const db = await songsViewsDb
+                const db = databases.songsViews
 
-                resolve(await db.all(
-                    "SELECT * FROM songsData"
-                ))
+                resolve(db.prepare('SELECT * FROM songsData').all())
                 
             } catch (error) {
                reject(error) 
@@ -274,15 +40,11 @@ const songsProxy = {
         return new Promise( async (resolve, reject) => {
             try {
 
-                const db = await songsViewsDb
+                const db = databases.songsViews
 
-                const songData = await db.get(
-                    "SELECT * FROM songsData WHERE songId = ?",
-                    songID
-                )
+                const songData = db.prepare('SELECT * FROM songsData WHERE songId = ?').get(songID)
 
                 if (!songData) { resolve(null); return } 
-
 
                 const jsonParse = JSON.parse
                 
@@ -326,36 +88,22 @@ const songsProxy = {
         return new Promise( async (resolve, reject) => {
             try {
 
-                const db = await songsViewsDb
+                const db = databases.songsViews
 
-                // make sure that the song doesn't already exist
-                /*const exists = await db.get(
-                    "SELECT songId FROM songs WHERE songId = ?",
-                    songID
-                )
-                if (exists) { reject(`Song with ID ${songID} already exists.`); return }
-                */
                 const stringify = JSON.stringify
-                // add to table
-                
 
-                resolve(await db.run(
-                    "REPLACE INTO songsData (songId, songType, singers, producers, publishDate, additionDate, thumbnail, names, videoIds, fandomURL)"
-                    + " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    [
-                        songID,
-                        songData.songType,
-                        stringify(songData.singers),
-                        stringify(songData.producers),
-                        songData.publishDate,
-                        songData.additionDate,
-                        songData.thumbnail,
-                        stringify(songData.names),
-                        stringify(songData.videoIds),
-                        songData.fandomURL
-                    ]
-                ))
-
+                resolve(db.prepare('REPLACE INTO songsData (songId, songType, singers, producers, publishDate, additionDate, thumbnail, names, videoIds, fandomURL)'
+                + ' VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(songID,
+                    songData.songType,
+                    stringify(songData.singers),
+                    stringify(songData.producers),
+                    songData.publishDate,
+                    songData.additionDate,
+                    songData.thumbnail,
+                    stringify(songData.names),
+                    stringify(songData.videoIds),
+                    songData.fandomURL))
+                    
             } catch(err) {
                 reject(err)
             }
@@ -372,41 +120,31 @@ const viewsProxy = {
     createViewsTable: (timestamp) => {
         return new Promise( async (resolve, reject) => {
             try {
-                
-                const db = await songsViewsDb
+                const db = databases.songsViews
 
                 if (await viewsProxy.timestampExists(timestamp)) { reject(`Row with timestamp ${timestamp} already exists.`); return }
-            
+
                 // create the new table
-                await db.run(
-                    `CREATE TABLE IF NOT EXISTS '${timestamp}' (songId TEXT PRIMARY KEY NOT NULL, total INTEGER NOT NULL, breakdown JSON NOT NULL, `
-                    + "FOREIGN KEY (songId) REFERENCES songsData (songId))",
-                )
-
+                db.prepare(`CREATE TABLE IF NOT EXISTS '${timestamp}' (songId TEXT PRIMARY KEY NOT NULL, total INTEGER NOT NULL, breakdown JSON NOT NULL, `
+                + "FOREIGN KEY (songId) REFERENCES songsData (songId))").run()
+            
                 resolve(true)
-
             } catch (error) {
                 reject(error)
             }
         })
     },
-    createMetadata: (timestamp, isoString) => {
+    createMetadata: (timestamp, isoString = new Date().toISOString()) => {
         return new Promise(async (resolve, reject) => {
             try {
-
-                const db = await songsViewsDb
+                const db = databases.songsViews
 
                 if (await viewsProxy.timestampExists(timestamp)) { reject(`Row with timestamp ${timestamp} already exists.`); return }
 
-                // create the new row
-                await db.run("INSERT INTO viewsMetadata (timestamp, updated) VALUES (?, ?)", [
-                    timestamp,
-                    isoString || new Date().toISOString()
-                ])
+                db.prepare('INSERT INTO viewsMetadata (timestamp, updated) VALUES (?, ?)').run(timestamp, isoString)
 
                 // resolve
                 resolve(true)
-
             } catch (error) {
                 reject(error)
             }
@@ -416,13 +154,11 @@ const viewsProxy = {
         // creates a views table if it doesn't exist
         return new Promise(async (resolve, reject) => {
             try {
-                
                 if (await viewsProxy.timestampExists(timestamp)) { resolve(true); return }
                 
                 await viewsProxy.createViewsTable(timestamp)
 
                 resolve(true)
-
             } catch (error) {
                 reject(error)
             }
@@ -431,21 +167,16 @@ const viewsProxy = {
     insertViewData: (timestamp, viewData) => {
         return new Promise( async (resolve, reject) => {
             try {
-                
-                const db = await songsViewsDb
+                const db = databases.songsViews
 
                 // make sure that the table exists
                 viewsProxy.createViewsTableIfNotExists(timestamp)
 
-                resolve(await db.run(
-                    `REPLACE INTO '${timestamp}' (songId, total, breakdown) VALUES(?, ?, ?)`,
-                    [
-                        viewData.songId,
-                        viewData.total,
-                        JSON.stringify(viewData.breakdown),
-                    ]
-                ))
-
+                resolve(db.prepare(`REPLACE INTO '${timestamp}' (songId, total, breakdown) VALUES(?, ?, ?)`).run(
+                    viewData.songId,
+                    viewData.total,
+                    JSON.stringify(viewData.breakdown)
+                    ))
             } catch (error) {
                 reject(error)
             }
@@ -455,16 +186,14 @@ const viewsProxy = {
         return new Promise( async (resolve, reject) => {
             try {
 
-                const db = await songsViewsDb
+                const db = databases.songsViews
 
                 // make sure that the table exists
                 viewsProxy.createViewsTableIfNotExists(timestamp)
 
                 // get data
-                const viewData = await db.get(
-                    `SELECT * FROM '${timestamp}' WHERE songId = ?`,
-                    songId
-                )
+                const viewData = db.prepare(`SELECT * FROM '${timestamp}' WHERE songId = ?`).get(songId)
+
                 if (!viewData) { reject(null); return }
 
                 // parse json
@@ -480,56 +209,26 @@ const viewsProxy = {
     getViewsData: (timestamp) => {
         return new Promise(async (resolve, reject) => {
             try {
-                const db = await songsViewsDb
+                const db = databases.songsViews
 
                 // make sure that the table exists
                 viewsProxy.createViewsTableIfNotExists(timestamp)
 
                 // get data
-                resolve(db.all(
-                    `SELECT * FROM '${timestamp}'`
-                ))
+                resolve(db.prepare(`SELECT * FROM '${timestamp}'`).all())
             } catch (error) {
                 reject(error)
             }
         })
     },
 
-    /*
-        const rankingsFilterQueryTemplate = {
-    
-            MaxEntries: 50, // the maximum # of entries to return [x]
-            StartAt: 0, // the maximum # of entries to return [x]
-            
-            Date: "", []
-            DaysOffset: 0, []
-
-            ViewType: "Combined", [x]
-
-            Producer: "", [x]
-            Singer: "", [x]
-            SongType: "All", [x]
-
-            TimePeriod: "AllTime",
-            Direction: "Descending", [x]
-            SortBy: "Views", []
-
-            Language: "Original", [x]
-
-            PublishYear: "", [x]
-
-        }
-    */
-
     getViewsLength: (timestamp) => {
         return new Promise(async (resolve, reject) => {
             try {
                 
-                const db = await songsViewsDb
+                const db = databases.songsViews
 
-                const result = await db.get(
-                    `SELECT COUNT(*) AS length FROM '${timestamp}'`
-                )
+                const result = db.prepare(`SELECT COUNT(*) AS length FROM '${timestamp}'`).get()
 
                 resolve(result.length)
 
@@ -542,7 +241,7 @@ const viewsProxy = {
     filterRankings: (filterParams, timestamp, timePeriodTimestamp) => {
         return new Promise(async (resolve, reject) => {
             try {
-                const db = await songsViewsDb
+                const db = databases.songsViews
 
                 const filterViewType = filterParams.ViewType
                 const orderDirection = filterParams.Direction == "Descending" ? "DESC" : "ASC"
@@ -641,10 +340,7 @@ const viewsProxy = {
                 ${whereExpression} ${orderByQuery}
                 LIMIT ${filterParams.MaxEntries} OFFSET ${filterParams.StartAt}`
 
-                resolve(await db.all(
-                    query
-                ))
-
+                resolve(db.prepare(query).all())
             } catch (error) {
                 reject(error)
             }
@@ -657,13 +353,11 @@ const viewsProxy = {
         offset = offset || 0
         return new Promise(async (resolve, reject) => {
             try {
-                const db = await songsViewsDb
+                const db = databases.songsViews
 
-                resolve(await db.get(
-                    `SELECT id, timestamp
-                    FROM viewsMetadata
-                    WHERE id = MAX(1, (IFNULL((SELECT id FROM viewsMetadata WHERE timestamp = '${timestamp}'), (SELECT COUNT(*) FROM viewsMetadata)) - ${offset}) )`
-                ))
+                resolve(db.prepare(`SELECT id, timestamp
+                FROM viewsMetadata
+                WHERE id = MAX(1, (IFNULL((SELECT id FROM viewsMetadata WHERE timestamp = '${timestamp}'), (SELECT COUNT(*) FROM viewsMetadata)) - ${offset}) )`).get())
             } catch (error) {
                 reject(error)
             }      
@@ -673,13 +367,9 @@ const viewsProxy = {
     getMetadata: () => {
         return new Promise(async (resolve, reject) => {
             try {
+                const db = databases.songsViews
 
-                const db = await songsViewsDb
-
-                resolve(await db.all(
-                    "SELECT * FROM viewsMetadata"
-                ))
-                
+                resolve(db.prepare('SELECT * FROM viewsMetadata').all())
             } catch (error) {
                 reject(error)
             }
@@ -690,16 +380,11 @@ const viewsProxy = {
     timestampExists: (timestamp) => {
         return new Promise( async(resolve, reject) => {
             try {
-                
-                const db = await songsViewsDb
+                const db = databases.songsViews
 
-                const exists = await db.get(
-                    "SELECT id FROM viewsMetadata WHERE timestamp = ?",
-                    timestamp
-                )
+                const exists = db.prepare("SELECT id FROM viewsMetadata WHERE timestamp = ?").get(timestamp)
 
                 resolve(exists ? true : false)
-
             } catch (error) {
                 reject(error)
             }
@@ -714,13 +399,10 @@ const analyticsProxy = {
     eventExists: (eventName) => {
         return new Promise(async (resolve, reject) => {
             try {
-                const db = await analyticsDb
+                const db = databases.analytics
 
-                const exists = await db.get(
-                    "SELECT eventName FROM analytics WHERE eventName = ?",
-                    eventName
-                )
-                
+                const exists = db.prepare("SELECT eventName FROM analytics WHERE eventName = ?").get(eventName)
+
                 resolve(exists ? true : false) // resolve
             } catch (error) {
                 reject(error)
@@ -730,7 +412,7 @@ const analyticsProxy = {
     createEventTable: (eventName, params) => {
         return new Promise(async (resolve, reject) => {
             try {
-                const db = await analyticsDb
+                const db = databases.analytics
 
                 // build columns from params
                     var columns = ", uid STRING NOT NULL, timestamp STRING NOT NULL, date STRING NOT NULL" // UID column is always there
@@ -739,15 +421,11 @@ const analyticsProxy = {
                     }
 
                 // create the new table
-                await db.run(
-                    `CREATE TABLE IF NOT EXISTS ${eventName} (id INTEGER PRIMARY KEY AUTOINCREMENT${columns})`
-                )
+                db.prepare(`CREATE TABLE IF NOT EXISTS ${eventName} (id INTEGER PRIMARY KEY AUTOINCREMENT${columns})`).run()
                 
                 // add to analytics table
-                await db.run(
-                    `INSERT INTO analytics (eventName) VALUES (?)`,
-                    eventName
-                )
+                console.log("query: INSERT INTO analytics (eventName) VALUES (?)",eventName)
+                db.prepare(`INSERT INTO analytics (eventName) VALUES (?)`).run(eventName)
                 
                 resolve() // resolve
             } catch (error) {
@@ -758,24 +436,22 @@ const analyticsProxy = {
     insertEvent: (eventName, uid, params) => {
         return new Promise(async (resolve, reject) => {
             try {
-                const db = await analyticsDb
+                const db = databases.analytics
 
                 if (!(await analyticsProxy.eventExists(eventName))) {
                     await analyticsProxy.createEventTable(eventName, params)
                 }
 
                 var columnKeys = `uid, timestamp, date`
-                var columnValues = `"${uid}", "${generateISOTimestamp()}", "${generateTimestamp().Name}"`
+                var columnValues = `'${uid}', '${generateISOTimestamp()}', '${generateTimestamp().Name}'`
 
                 for (const [key, value] of Object.entries(params)) {
                     columnKeys+= `, ${key}`
-                    columnValues+= `, "${value}"`
+                    columnValues+= `, '${value}'`
                 }
 
                 // create the new row
-                await db.run(
-                    `INSERT INTO ${eventName} (${columnKeys}) VALUES (${columnValues})`
-                )
+                db.prepare(`INSERT INTO ${eventName} (${columnKeys}) VALUES (${columnValues})`).run()
 
                 resolve()
             } catch (error) {
@@ -791,13 +467,11 @@ const authProxy = {
     getUser: (username) => {
         return new Promise( async (resolve, reject) => {
             try {
-                const db = await authDb
+                const db = databases.authentication
 
                 // get data
-                const userData = await db.get(
-                    `SELECT * FROM users WHERE username = ?`,
-                    username
-                )
+                const userData = db.prepare('SELECT * FROM users WHERE username = ?').get(username)
+
                 if (!userData) { reject(null); return }
 
                 resolve(userData)
@@ -809,13 +483,9 @@ const authProxy = {
     getSession: (sessionId) => {
         return new Promise( async (resolve, reject) => {
             try {
-                const db = await authDb
-
+                const db = databases.authentication
                 // get data
-                const sessionData = await db.get(
-                    `SELECT * FROM sessions WHERE id = ?`,
-                    sessionId
-                )
+                const sessionData = db.prepare('SELECT * FROM sessions WHERE id = ?').get(sessionId)
                 if (!sessionData) { reject(null); return }
 
                 resolve(sessionData)
@@ -827,15 +497,14 @@ const authProxy = {
     insertUser: (username, passwordHash, authLevel) => {
         return new Promise(async (resolve, reject) => {
             try {
-                const db = await authDb
+                const db = databases.authentication
 
                 // insert user
-                await db.run(
-                    'INSERT INTO users (username, passwordHash, created, authLevel) VALUES (?, ?, ?, ?)',
+                db.prepare('INSERT INTO users (username, passwordHash, created, authLevel) VALUES (?, ?, ?, ?)').run(
                     username,
                     passwordHash,
                     generateISOTimestamp(),
-                    authLevel || 1, // default auth level is 1 (User)
+                    authLevel || 1 // default auth level is 1 (User)
                 )
 
                 resolve()
@@ -847,15 +516,14 @@ const authProxy = {
     insertSession: (sessionId, username, expires) => {
         return new Promise(async (resolve, reject) => {
             try {
-                const db = await authDb
+                const db = databases.authentication
 
-                // insert user
-                await db.run(
-                    'INSERT INTO sessions (id, username, created, expires) VALUES (?, ?, ?, ?)',
+                // insert session
+                db.prepare('INSERT INTO sessions (id, username, created, expires) VALUES (?, ?, ?, ?)').run(
                     sessionId,
                     username,
                     generateISOTimestamp(),
-                    expires,
+                    expires
                 )
 
                 resolve()
@@ -867,12 +535,9 @@ const authProxy = {
     sessionExists: (sessionId) => {
         return new Promise(async (resolve, reject) => {
             try {
-                const db = await authDb
+                const db = databases.authentication
 
-                const exists = await db.get(
-                    "SELECT id FROM sessions WHERE id = ?",
-                    sessionId
-                )
+                const exists = db.prepare('SELECT id FROM sessions WHERE id = ?').get(sessionId)
 
                 resolve(exists ? true : false) // resolve
             } catch (error) {

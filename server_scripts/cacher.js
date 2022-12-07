@@ -56,7 +56,7 @@ class Cacher {
   
   remove(cachedItemID) {
     // removes the cached item with the provided id
-    if (!this.get(cachedItemID)) { throw("Cached item with ID '" + cachedItemID + "' does not exists.'") }
+    if (!this.get(cachedItemID)) { return }//throw("Cached item with ID '" + cachedItemID + "' does not exists.'") }
     
     delete this.#cache[cachedItemID]
     

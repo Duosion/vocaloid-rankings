@@ -24,14 +24,14 @@ const getUniqueId = async (request) => {
 const plugin = (fastify, options, done) => {
 
     fastify.decorateRequest("setAnalyticsParam", function(name, value) {
-        const config = this.context.config
+        const config = this.routeConfig
         if (config != null) {
             config["analyticsParams"][name] = value
         }
     })
 
     fastify.addHook("onResponse", (req, reply, done) => {
-        const config = req.context.config
+        const config = req.routeConfig
 
         const eventName = config["analyticsEvent"]
         const eventParams = config["analyticsParams"]

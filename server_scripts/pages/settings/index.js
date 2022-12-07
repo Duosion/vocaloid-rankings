@@ -57,7 +57,7 @@ const postSettings = (request, reply) => {
 
     // set analytics
     {
-        const params = request.context.config["analyticsParams"]
+        const params = request.routeConfig["analyticsParams"]
         params["name"] = analyticsNames
         params["value"] = analyticsValues
     }
