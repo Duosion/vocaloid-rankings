@@ -40,10 +40,14 @@ const nicoNicoVideoDomain = "https://www.nicovideo.jp/watch/"
 const bilibiliVideoDomain = "https://www.bilibili.com/video/"
 
 const vocaDBApiUrl = "https://vocadb.net/api/";
+
+const msInDay = 24 * 60 * 60 * 1000 // one day in ms
+
 // entries api
 const vocaDBRecentSongsApiUrl = "https://vocadb.net/api/songs?sort=AdditionDate&onlyWithPVs=true&status=Finished&fields=Names,PVs,Artists"
 const vocaDBRecentSongsViewsThreshold = 10000 // how many views a recent song must have to be entered into this database
-const vocaDBRecentSongsUploadDateThreshold = 24 * 60 * 60 * 1000 * 3 // (in ms) the minimum age in days of a song to be entered into this database
+const vocaDBRecentSongsUploadDateThreshold = msInDay * 3 // (in ms) the minimum age in days of a song to be entered into this database
+const vocaDBRecentSongsSearchDateThreshold = msInDay * 1 // (in ms) how many days back the getRecentSongs function searches.
 const vocaDBDefaultMaxResults = 10
 // song api
 const vocaDBSongApiUrl = vocaDBApiUrl + "songs/"
@@ -472,6 +476,7 @@ const niconicoThumbnailRegExp = /&quot;thumbnail&quot;:{&quot;url&quot;:&quot;([
         var yearNow = null;
         var monthNow = null;
         var dayNow = null;
+        var maxAgeDate = null;
 
         const recentSongs = [] // songs to return
 
@@ -487,6 +492,8 @@ const niconicoThumbnailRegExp = /&quot;thumbnail&quot;:{&quot;url&quot;:&quot;([
 
             if (timeNow == null) {
               timeNow = new Date(entryData.createDate)
+              maxAgeDate = new Date()
+              maxAgeDate.setTime(timeNow.getTime() - vocaDBRecentSongsSearchDateThreshold)
               yearNow = timeNow.getFullYear()
               monthNow = timeNow.getMonth()
               dayNow = timeNow.getDate()
@@ -514,10 +521,7 @@ const niconicoThumbnailRegExp = /&quot;thumbnail&quot;:{&quot;url&quot;:&quot;([
 
           // repeat until the entry's date is no longer today
           const createDate = new Date(apiResponse[apiResponse.length - 1]["createDate"])
-
-          continueFetching = createDate.getFullYear() == yearNow &&
-            createDate.getMonth() == monthNow &&
-            createDate.getDate() == dayNow;
+          continueFetching = createDate >= maxAgeDate 
 
           offset += vocaDBDefaultMaxResults
         }
