@@ -13,9 +13,6 @@ const databaseViewsMetadataFilePath = workingDirectory + "/database/viewsMetadat
     // create caches
       const apiSongsCache = new cacher()
     
-  // jsonwriter
-    const jsonWriter = require(modulePath + "jsonWriter")
-    
   // database proxy
     const databaseProxy = require(modulePath + "database")
 

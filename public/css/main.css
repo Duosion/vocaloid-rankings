@@ -96,7 +96,7 @@ body {
 
 #page-content {
   
-  margin: 5px 10px;
+  margin: 15px 10px;
     
   min-height: 100vh;
   
@@ -119,6 +119,7 @@ body {
   width: 100%;
   
   display: flex;
+  flex-wrap: wrap;
   
   justify-content: center;
   align-items: center;

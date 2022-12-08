@@ -261,7 +261,7 @@ const getYearReview = async (request, reply) => {
   const locale = (request.headers["accept-language"] || "").split(",")[0]
   
   // get date
-  const year = new Date().getFullYear()
+  const year = 2022
   params.year = year
   
   // construct filter params
