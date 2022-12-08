@@ -334,7 +334,7 @@ const viewsProxy = {
                     }
                 }
 
-                const query = `SELECT '${timestamp}'.songId, songType, publishDate, additionDate, thumbnail, json_extract(names, '$.${filterParams.Language}') AS name, videoIds, fandomURL, ${totalSelectQuery}, '${timestamp}'.breakdown 
+                const query = `SELECT '${timestamp}'.songId, songType, publishDate, additionDate, thumbnail, IFNULL(json_extract(names, '$.${filterParams.Language}'), json_extract(names, '$.Original')) AS name, videoIds, fandomURL, ${totalSelectQuery}, '${timestamp}'.breakdown 
                 FROM '${timestamp}'${fromExpression}
                 INNER JOIN songsData on songsData.songId = '${timestamp}'.songId${timePeriodTimestamp != null ? ` INNER JOIN '${timePeriodTimestamp}' ON '${timePeriodTimestamp}'.songId = '${timestamp}'.songId` : ""}
                 ${whereExpression} ${orderByQuery}

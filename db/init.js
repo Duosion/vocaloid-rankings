@@ -2,7 +2,10 @@ const sqlite3 = require("better-sqlite3")
 const fs = require("fs");
 
 // variables
-const dataDirectory = "./data/"
+const dataDirectory = process.cwd() + "/data/"
+if (!fs.existsSync(dataDirectory)) {
+    fs.mkdirSync(dataDirectory)
+}
 
 const dbPragmas = {
     "default": "journal_mode = WAL"
