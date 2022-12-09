@@ -13,7 +13,6 @@
     "@fastify/static": "^6.4.0",
     "@fastify/view": "^7.0.0",
     "@fastify/cookie": "^7.0.0",
-    "JSON": "^1.0.0",
     "node-fetch": "2.6.7",
     "linkedom": "^0.14.11",
     "xxhash-wasm": "^1.0.1",

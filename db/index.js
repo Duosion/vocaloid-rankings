@@ -1,4 +1,3 @@
-const JSON = require("JSON");
 const { generateTimestamp } = require("../server_scripts/shared")
 const databases = require("./init.js").databases
 
