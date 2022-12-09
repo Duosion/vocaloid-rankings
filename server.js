@@ -5,6 +5,7 @@ const fastify = require("fastify")({
   // Set this to true for detailed logging:
   logger: false,
 });
+const schedule = require('node-schedule')
   
 // import custom modules
 const customModuleDirectory = "./server_scripts/"
@@ -236,13 +237,12 @@ const dbAutoUpdateDelay = 600000 // how often the db tries to update
     })
   }
 
-  const recursiveSongsDataUpdate = async () => {
-    await updateSongsData().catch( (error) => { console.log(error) })
-    setTimeout(() => recursiveSongsDataUpdate(), dbAutoUpdateDelay)
-  }
-  //migrateData().then( () => {
-  recursiveSongsDataUpdate()
-  //})
+  updateSongsData()
+  schedule.scheduleJob('0 0 * * *', () => {
+    updateSongsData().catch( (error) => { 
+      console.log("Error occured when updating songs data:" ,error) 
+    })
+  })
 
 // redirect
 fastify.get("/", async function (request, reply) {
