@@ -237,12 +237,14 @@ const dbAutoUpdateDelay = 600000 // how often the db tries to update
     })
   }
 
-  updateSongsData()
-  schedule.scheduleJob('0 0 * * *', () => {
+  const updateSongsDataSafe = () => {
     updateSongsData().catch( (error) => { 
       console.log("Error occured when updating songs data:" ,error) 
     })
-  })
+  }
+
+  updateSongsDataSafe()
+  schedule.scheduleJob('0 0 * * *', () => updateSongsDataSafe)
 
 // redirect
 fastify.get("/", async function (request, reply) {
