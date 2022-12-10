@@ -244,7 +244,9 @@ const dbAutoUpdateDelay = 600000 // how often the db tries to update
   }
 
   updateSongsDataSafe()
-  schedule.scheduleJob('0 0 * * *', () => updateSongsDataSafe)
+  schedule.scheduleJob('0 0 * * *', () => {
+    updateSongsDataSafe()
+  })
 
 // redirect
 fastify.get("/", async function (request, reply) {
