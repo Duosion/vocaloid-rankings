@@ -209,17 +209,18 @@ const dbAutoUpdateDelay = 600000 // how often the db tries to update
           for (const [_, songData] of recentSongs.entries()) {
             const songViews = songData.views
             const songId = songData.songId
-            // calculate viewData
-            const viewData = {
-              songId: songId,
-              total: 0,
-              breakdown: {...songViews}
+            if (!songsDataExcludeIDs[songId]) {
+              // calculate viewData
+              const viewData = {
+                songId: songId,
+                total: 0,
+                breakdown: {...songViews}
+              }
+              for (const [_, views] of Object.entries(songViews)) { viewData.total += views } // calculate total
+
+              insertSong(songId, songData)
+              insertViewData(timestamp, viewData)
             }
-            for (const [_, views] of Object.entries(songViews)) { viewData.total += views } // calculate total
-
-            insertSong(songId, songData)
-            insertViewData(timestamp, viewData)
-
           }
 
       }
