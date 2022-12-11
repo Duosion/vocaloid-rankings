@@ -16,7 +16,6 @@
     "node-fetch": "2.6.7",
     "linkedom": "^0.14.11",
     "xxhash-wasm": "^1.0.1",
-    "jsonfile": "^6.1.0",
     "better-sqlite3": "^8.0.1",
     "fastify-plugin": "^4.2.1",
     "crypto-js": "^4.1.1",
