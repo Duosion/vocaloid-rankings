@@ -217,8 +217,8 @@ const dbAutoUpdateDelay = 600000 // how often the db tries to update
             }
             for (const [_, views] of Object.entries(songViews)) { viewData.total += views } // calculate total
 
-            insertViewData(timestamp, viewData)
             insertSong(songId, songData)
+            insertViewData(timestamp, viewData)
 
           }
 
