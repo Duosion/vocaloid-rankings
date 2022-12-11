@@ -333,13 +333,21 @@ const viewsProxy = {
                     }
                 }
 
-                const query = `SELECT '${timestamp}'.songId, songType, publishDate, additionDate, thumbnail, IFNULL(json_extract(names, '$.${filterParams.Language}'), json_extract(names, '$.Original')) AS name, ${totalSelectQuery} 
-                FROM '${timestamp}'${fromExpression}
+                const mainSelectQuery = `SELECT '${timestamp}'.songId, songType, publishDate, additionDate, thumbnail, IFNULL(json_extract(names, '$.${filterParams.Language}'), json_extract(names, '$.Original')) AS name, ${totalSelectQuery} `
+                const countSelectQuery = `SELECT COUNT(*) AS count `
+
+                const paramQuery = `FROM '${timestamp}'${fromExpression}
                 INNER JOIN songsData on songsData.songId = '${timestamp}'.songId${timePeriodTimestamp != null ? ` INNER JOIN '${timePeriodTimestamp}' ON '${timePeriodTimestamp}'.songId = '${timestamp}'.songId` : ""}
                 ${whereExpression} ${orderByQuery}
                 LIMIT ${filterParams.MaxEntries} OFFSET ${filterParams.StartAt}`
+                
+                const mainQueryResult = db.prepare(mainSelectQuery + paramQuery).all()
+                const countQueryResult = db.prepare(countSelectQuery + paramQuery).get()
 
-                resolve(db.prepare(query).all())
+                resolve({
+                    'length': countQueryResult.count,
+                    'data': mainQueryResult
+                })
             } catch (error) {
                 reject(error)
             }

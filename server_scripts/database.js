@@ -292,8 +292,8 @@ const filterRankingsSQL = (queryData, offset) => {
       resolve({
         QueryData: queryData,
         Timestamp: primaryTimestamp,
-        Data: rankings || [],
-        Length: await database.views.getViewsLength(primaryTimestamp),
+        Data: rankings.data || [],
+        Length: rankings.length,
       })
 
     } catch (error) {
