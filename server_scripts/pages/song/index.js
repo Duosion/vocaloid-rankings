@@ -55,8 +55,8 @@ const addSong = (vocaDBURL) => {
       songData.additionDate = new Date().toISOString()
 
       // write to files
-      await database.views.insertViewData(mostRecentViewsMetadata.timestamp, viewData)
       await database.songs.insertSong(songID, songData)
+      await database.views.insertViewData(mostRecentViewsMetadata.timestamp, viewData)
 
       resolve(songData)
       
