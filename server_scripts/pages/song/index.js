@@ -129,7 +129,7 @@ const querySongsDatabaseAsync = (queryData) => {
   
         // set preferred name
           const names = songData.names
-          names.preferred = getPreferredLanguageName(names, queryData.Language || rankingsFilterQueryTemplate.Language)
+          names.preferred = getPreferredLanguageName(names, queryData.Language || rankingsFilterQueryTemplate.Language.default)
   
         // cache return data
           songsDataCache.set(queryHash, songData)

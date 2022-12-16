@@ -17,7 +17,6 @@ const databaseViewsMetadataFilePath = workingDirectory + "/database/viewsMetadat
     const databaseProxy = require(modulePath + "database")
 
 // tables
-  const rankingsFilterQueryTemplate = databaseProxy.rankingsFilterQueryTemplate
   const historicalDataQueryTemplate = databaseProxy.historicalDataQueryTemplate
     
 // functions
@@ -94,18 +93,8 @@ const rankings = async (request, reply) => {
   
   // validate query
   const requestQuery = request.query
-  const requestBody = request.body || {}
   
-  // construct filter from params
-  const filterParams = {}
-  
-  for ( let [filterName, defaultValue] of Object.entries(rankingsFilterQueryTemplate) ) {
-
-    filterParams[filterName] = requestQuery[filterName] || requestBody[filterName] || defaultValue
-    
-  }
-  
-  await databaseProxy.filterRankingsWithChange(filterParams)
+  await databaseProxy.filterRankingsWithChange(requestQuery)
     .then(rankingsData => {
 
       const body = buildApiResponse(rankingsData.Data)
@@ -124,18 +113,8 @@ const historical = async (request, reply) => {
   
   // validate query
   const requestQuery = request.query
-  const requestBody = request.body || {}
   
-  // construct filter from params
-  const queryParams = {}
-  
-  for ( let [filterName, defaultValue] of Object.entries(historicalDataQueryTemplate) ) {
-
-    queryParams[filterName] = requestQuery[filterName] || requestBody[filterName] || defaultValue
-    
-  }
-  
-  await databaseProxy.getHistoricalData(queryParams)
+  await databaseProxy.getHistoricalData(requestQuery)
     .then(historicalData => {
 
       apiResponse(reply, historicalData)

@@ -4,7 +4,7 @@
 //const jsonWriter = require("./jsonWriter")
 const localeTools = require("./locale")
 const database = require("../db")
-const { generateTimestamp } = require("./shared")
+const { generateTimestamp, verifyParams, rankingsFilterQueryTemplate, historicalDataQueryTemplate } = require("./shared")
 
 // file locations
 const databaseFilePath = process.cwd() + "/database"
@@ -14,39 +14,7 @@ const databaseSongsDataFilePath = databaseFilePath + "/songsData.txt"
 const databaseViewsMetadataFilePath = databaseFilePath + "/viewsMetadata.txt"
 
 // tables
-  const rankingsFilterQueryTemplate = {
   
-    MaxEntries: 50, // the maximum # of entries to return
-    StartAt: 0, // the maximum # of entries to return
-    
-    Date: "",
-    DaysOffset: 0,
-
-    ViewType: "Combined",
-
-    Producer: "",
-    Singer: "",
-    SongType: "All",
-
-    TimePeriod: "AllTime",
-    Direction: "Descending",
-    SortBy: "Views",
-
-    Language: "Original",
-
-    PublishYear: "",
-
-  }
-  
-  const historicalDataQueryTemplate = {
-    
-    Range: 7, // the default range (how many data points will exist)
-    
-    TimePeriod: "Daily", // the time period
-    
-    SongId: "",
-    
-  }
   
   const viewsDataSortByFunctions = {
     
@@ -268,15 +236,27 @@ const getSongData = (songID) => {
   
 }
 
-const filterRankingsSQL = (queryData, offset) => {
+/**
+ * Filters rankings using SQLite
+ * 
+ * @param {Object} queryData The query data to filter with.
+ * @param {Object} options The options to provide to the function. Template: {offset: Number, limitResult = Boolean}
+ * @returns 
+ */
+const filterRankingsSQL = (queryData, options = {}) => {
   return new Promise( async (resolve, reject) => {
     try {
 
       // merge queryData
-      queryData = {...rankingsFilterQueryTemplate, ...(queryData || {})}
+      queryData = verifyParams(queryData || {}, rankingsFilterQueryTemplate)
+
+      // handle options
+      if (options.limitResult == false) {
+        delete queryData.MaxEntries
+      }
 
       // get the days offset and queryDate
-      const daysOffset = Math.max(0, offset || Number(queryData.DaysOffset) || 0)
+      const daysOffset = Math.max(0, options.offset || Number(queryData.DaysOffset) || 0)
       const queryDate = queryData.Date
       const filterDate = queryDate == "" ? null : queryDate
 
@@ -287,7 +267,7 @@ const filterRankingsSQL = (queryData, offset) => {
       const primaryTimestamp = await getViewsDataTimestamp(filterDate, daysOffset)
       const timePeriodTimestamp = timePeriodOffset ? await getViewsDataTimestamp(filterDate, daysOffset + timePeriodOffset) : null
 
-      const rankings = await database.views.filterRankings(queryData, primaryTimestamp, timePeriodTimestamp)
+      const rankings = await database.views.filterRankings(queryData, primaryTimestamp, timePeriodTimestamp, options)
 
       resolve({
         QueryData: queryData,
@@ -302,18 +282,14 @@ const filterRankingsSQL = (queryData, offset) => {
   })
 }
 
-const filterRankingsWithChange = (queryData, offset) => {
+const filterRankingsWithChange = (queryData, options = {}) => {
   // filters rankings, but gets the current day & the previous day, comparing placements between them
   return new Promise( async (resolve, reject) => {
-    
-    
-    const daysOffset = offset || Number(queryData.DaysOffset) || 0
-    
-    //const sqlData = filterRankingsSQL(queryData, daysOffset)
+    const daysOffset = options.offset || Number(queryData.DaysOffset) || 0
 
-    const currentData = filterRankingsSQL(queryData, daysOffset)
+    const currentData = filterRankingsSQL(queryData, {offset: daysOffset, ...options})
                         .catch(error => reject(error))
-    const previousData = filterRankingsSQL(queryData, daysOffset + 1)
+    const previousData = filterRankingsSQL(queryData, {offset: daysOffset + 1, ...options})
                         .catch(error => reject(error))
     
     const promiseData = await Promise.allSettled([currentData, previousData])
@@ -349,14 +325,14 @@ const filterRankingsWithChange = (queryData, offset) => {
 const getHistoricalData = (queryData) => {
   return new Promise( async (resolve, reject) => {
     // merge queryData
-    queryData = {...historicalDataQueryTemplate, ...(queryData || {})}
+    queryData = verifyParams(queryData || {}, historicalDataQueryTemplate)
     
     // get metadata
     const viewsMetadata = await database.views.getMetadata()
     const metadataLength = viewsMetadata.length - 1
     
     // parse queryData
-    const queryRange = Math.min(historicalDataQueryTemplate.Range, queryData.Range)
+    const queryRange = queryData.Range
     const queryTimePeriodOffset = rankingsFilterTimePeriodOffsets[queryData.TimePeriod]
     const querySongID = queryData.SongId
     
@@ -465,13 +441,12 @@ const setUpdatingProgress = (newProgress) => {
 
 // export variables
 exports.viewsDataSortingFunctions = viewsDataSortingFunctions
-exports.rankingsFilterQueryTemplate = rankingsFilterQueryTemplate
-exports.historicalDataQueryTemplate = historicalDataQueryTemplate
 
 
 // export functions
 exports.getSongData = getSongData
 exports.getHistoricalData = getHistoricalData
+exports.filterRankings = filterRankingsSQL
 exports.filterRankingsWithChange = filterRankingsWithChange
 
 exports.getUpdating = getUpdating

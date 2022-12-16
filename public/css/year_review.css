@@ -1,0 +1,75 @@
+.section-title {
+    margin-bottom: 15px;
+    width: 100%;
+}
+
+.rankings-list-entry-item.title {
+    display: flex;
+    gap: 8px;
+    flex-direction: column;
+    flex-wrap: wrap;
+}
+.rankings-list-entry-item.title .producer {
+    font-size: 0.8em;
+    opacity: 0.8;
+}
+
+#see-all-button {
+    font-size: 1.4em !important;
+    padding: 5px 10px;
+}
+
+.cover {
+    height: 45px !important;
+    min-width: 45px !important;
+    max-width: 45px !important;
+    background-size: auto 65px !important;
+}
+
+/* highlights */
+#highlights-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: flex-start;
+    align-items: flex-start;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.highlights-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px;
+    border-radius: 10px;
+    box-sizing: border-box;
+
+    min-width: 300px;
+    flex: 1;
+    min-height: 80px;
+}
+
+.highlights-item .thumbnail {
+    min-width: 80px;
+    min-height: 80px;
+    box-sizing: border-box;
+    border-radius: 10px;
+    background-size: auto 110px;
+    background-position: center;
+    border: 1px solid var(--hover-color);
+}
+
+.highlights-item .text {
+    flex: 1;
+    color: #ffffff
+}
+
+.highlights-item-title {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.highlights-item-description {
+    font-size: 1em
+}

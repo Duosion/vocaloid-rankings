@@ -21,7 +21,8 @@
     "crypto-js": "^4.1.1",
     "bcrypt": "^5.0.1",
     "archiver":"^5.3.1",
-    "node-schedule": "^2.1.0"
+    "node-schedule": "^2.1.0",
+    "fast-average-color-node": "^2.4.0"
   },
   "engines": {
     "node": "16.x"
