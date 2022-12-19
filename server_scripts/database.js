@@ -5,6 +5,7 @@
 const localeTools = require("./locale")
 const database = require("../db")
 const { generateTimestamp, verifyParams, rankingsFilterQueryTemplate, historicalDataQueryTemplate } = require("./shared")
+const scraper = require("./scraper")
 
 // file locations
 const databaseFilePath = process.cwd() + "/database"
@@ -439,6 +440,80 @@ const setUpdatingProgress = (newProgress) => {
 
 }
 
+// add song stuff
+const addSongFromScraperData  = (timestamp, songData = {}, viewData = {}, artistsData) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (artistsData == undefined) {
+        // load artists data from songData
+        await addArtistsFromIds([...songData.singers, ...songData.producers])
+      } else {
+        await database.artists.addArtists(artistsData)
+      }
+
+      await database.songs.insertSong(songData.songId, songData)
+      await database.views.insertViewData(timestamp, viewData)
+
+      resolve()
+    } catch (error) {
+      reject(error)
+    }
+  })
+}
+
+// artists stuff
+const addArtistsFromIds = (ids = []) => {
+  return new Promise(async (resolve, reject) => {
+      try {
+          const artistsProxy = database.artists
+          const artistExists = artistsProxy.artistExists
+          const addArtist = artistsProxy.addArtist
+
+          for (const [_, id] of ids.entries()) {
+              // check if artist is already in database
+              if (!(await artistExists(id))) {
+                  // scrape
+                  await scraper.scrapeVocaDBArtist(id).then(artistData => {
+                    // if the row doesn't exist already create it.
+                    return addArtist(artistData)
+                  }).catch(error => console.error(`Error when trying to import artist with id "${id}" Error: ${error}`))
+              }
+          }
+          resolve(ids)
+      } catch (error) {
+        console.log(error)
+          reject(error)
+      }
+  })
+}
+
+const populateArtists = () => {
+  return new Promise(async (resolve, reject) => {
+      try {
+          const jsonStringify = JSON.stringify
+
+          const songs = db.prepare('SELECT * FROM songsData').all()
+          const length = songs.length - 1
+          for (const [n, songData] of songs.entries()) {
+              const songId = songData.songId
+              console.log(`${songData.songId} [${n}/${length}]`)
+
+              // get song data from scraper
+              await scraper.scrapeVocaDB(Number(songId)).then(async newSongData => {
+                await database.songs.updateSong(songId, ["singers", "producers"], [
+                  jsonStringify(await addArtistsFromIds(scraper, newSongData.singers)),
+                  jsonStringify(await addArtistsFromIds(scraper, newSongData.producers))
+                ])
+              }).catch(error => console.error(`Error when trying to get data from song with id "${songId}" Error: ${error}`))
+          }
+
+          resolve()
+      } catch (error) {
+          reject(error)
+      }
+  })
+}
+
 // export variables
 exports.viewsDataSortingFunctions = viewsDataSortingFunctions
 
@@ -449,6 +524,12 @@ exports.getHistoricalData = getHistoricalData
 exports.filterRankings = filterRankingsSQL
 exports.filterRankingsWithChange = filterRankingsWithChange
 
+exports.addSongFromScraperData = addSongFromScraperData
+
 exports.getUpdating = getUpdating
 exports.setUpdating = setUpdating
 exports.setUpdatingProgress = setUpdatingProgress
+
+//artists functions
+exports.addArtistsFromIds = addArtistsFromIds
+exports.populateArtists = populateArtists

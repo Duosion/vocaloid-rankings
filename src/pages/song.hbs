@@ -32,7 +32,7 @@
       <div class="item-spacer-right multi-items">
         <div class="text bold no-entries">No Singers</div>
         {{#each songData.singers}}
-          <a class="button-link text rounded" href="../rankings/filter/add?Singer={{this}}">{{this}}</a>
+          <a class="button-link text rounded" href="../rankings/filter/add?Singer={{this.artistId}}">{{this.names.preferred}}</a>
         {{/each}}
       </div>
       
@@ -46,7 +46,7 @@
       <div class="item-spacer-right multi-items">
         <div class="text bold no-entries">No Producers</div>
         {{#each songData.producers}}
-          <a class="button-link text rounded" href="../rankings/filter/add?Producer={{this}}">{{this}}</a>
+          <a class="button-link text rounded" href="../rankings/filter/add?Producer={{this.artistId}}">{{this.names.preferred}}</a>
         {{/each}}
       </div>
       

@@ -5,6 +5,8 @@ function generateISOTimestamp() {
     return new Date().toISOString()
 }
 
+const proxies = {}
+
 // songs
 const songsProxy = {
     songExists: (songId) => {
@@ -35,21 +37,22 @@ const songsProxy = {
         })
     },
     getSong: (songID) => {
-
-        return new Promise( async (resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
             try {
 
                 const db = databases.songsViews
 
-                const songData = db.prepare('SELECT * FROM songsData WHERE songId = ?').get(songID)
-
+                const songData = db.prepare('SELECT songId, songType, singers, producers, publishDate, additionDate, thumbnail, names, videoIds, fandomURL FROM songsData WHERE songId = ?').get(songID)
                 if (!songData) { resolve(null); return } 
 
                 const jsonParse = JSON.parse
+                const getArtists = proxies.artists.getArtistsFromIds
+
+                // import singers & producers
+                songData.singers = await getArtists(jsonParse(songData.singers))
+                songData.producers = await getArtists(jsonParse(songData.producers))
                 
                 // parse json
-                songData.singers = jsonParse(songData.singers)
-                songData.producers = jsonParse(songData.producers)
                 songData.names = jsonParse(songData.names)
                 songData.videoIds = jsonParse(songData.videoIds)
 
@@ -59,9 +62,25 @@ const songsProxy = {
                 reject(error)
             }
         })
-
     },
+    updateSong: (songId, toUpdate = [], updateValues = []) => {
+        return new Promise((resolve, reject) => {
+            try {
+                // build toUpdate string
+                var setString = ""
+                {
+                    const length = toUpdate.length
+                    for (const [n, value] of toUpdate.entries()) {
+                        setString += value + (n == length - 1 ? "" : ", ")
+                    }
+                }
 
+                resolve(db.prepare(`UPDATE songsData SET ${setString} WHERE songId = ${songId}`).run(...updateValues))
+            } catch (error) {
+                reject(error)
+            }
+        })
+    },
     // addition
     insertSongs: (songsToAdd) => {
         return new Promise( async (resolve, reject) => {
@@ -111,6 +130,7 @@ const songsProxy = {
     }
 }
 exports.songs = songsProxy
+proxies["songs"] = songsProxy
 
 // views
 const viewsProxy = {
@@ -361,7 +381,7 @@ const viewsProxy = {
                     })
                 }
 
-                const mainSelectQuery = `SELECT ${extraSelectArgumentsQuery}'${timestamp}'.songId, songType, publishDate, additionDate, thumbnail, IFNULL(json_extract(names, '$.${filterParams.Language}'), json_extract(names, '$.Original')) AS name, ${totalSelectQuery} `
+                const mainSelectQuery = `SELECT ${extraSelectArgumentsQuery}'${timestamp}'.songId, songType, publishDate, additionDate, thumbnail, names, ${totalSelectQuery} `
                 const countSelectQuery = `SELECT COUNT(*) AS count `
 
                 const fromQuery = `FROM '${timestamp}'${fromExpression}`
@@ -438,6 +458,7 @@ const viewsProxy = {
     },
 }
 exports.views = viewsProxy
+proxies["views"] = viewsProxy
 
 // analytics
 const analyticsProxy = {
@@ -469,7 +490,6 @@ const analyticsProxy = {
                 db.prepare(`CREATE TABLE IF NOT EXISTS ${eventName} (id INTEGER PRIMARY KEY AUTOINCREMENT${columns})`).run()
                 
                 // add to analytics table
-                console.log("query: INSERT INTO analytics (eventName) VALUES (?)",eventName)
                 db.prepare(`INSERT INTO analytics (eventName) VALUES (?)`).run(eventName)
                 
                 resolve() // resolve
@@ -506,6 +526,96 @@ const analyticsProxy = {
     }
 }
 exports.analytics = analyticsProxy
+proxies["analytics"] = analyticsProxy
+
+// artists
+const artistsProxy = {
+    artistExists: (artistId) => {
+        return new Promise(async (resolve, reject) => {
+            const db = await databases.songsViews
+            try {
+                resolve(db.prepare(`SELECT artistId FROM artistData where artistId = ${artistId}`).get() != undefined)
+            } catch (error) {
+                reject(error)
+            }
+        })
+    },
+    getArtist: (artistId) => {
+      return new Promise(async (resolve, reject) => {
+        try {
+            const db = await databases.songsViews
+
+            const artistData = db.prepare("SELECT artistId, artistType, publishDate, additionDate, names, thumbnails FROM artistData WHERE artistId = ?").get(artistId)
+            // ensure that the data exists
+            if (!artistData) { reject(`No artist with ID "${artistId}".`); return }
+
+            // parse data
+            const jsonParse = JSON.parse
+
+            artistData.names = jsonParse(artistData.names)
+            artistData.thumbnails = jsonParse(artistData.thumbnails)
+
+            // resolve
+            resolve(artistData)
+        } catch (error) {
+            reject(error)
+        }
+      })  
+    },
+    getArtistsFromIds: (ids = []) => {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const artistsData = []
+                
+                const promises = []
+                ids.forEach(id => {
+                    promises.push(artistsProxy.getArtist(id)
+                    .then(data => artistsData.push(data))
+                    .catch(error => console.log(`Error when getting artist with ID ${id}. Error: ${error}.`)))
+                })
+                await Promise.all(promises)
+                resolve(artistsData)
+            } catch (error) {
+                reject(error)
+            }
+        })
+    },
+    addArtist: (artistData) => {
+        return new Promise(async (resolve, reject) => {
+            const db = await databases.songsViews
+            const jsonStringify = JSON.stringify
+
+            try {
+                // if the row doesn't exist already create it.
+                resolve(db.prepare('INSERT INTO artistData (artistId, artistType, publishDate, additionDate, names, thumbnails) VALUES (?, ?, ?, ?, ?, ?)').run(
+                    artistData.id.toString(),
+                    artistData.type,
+                    artistData.publishDate,
+                    artistData.additionDate,
+                    jsonStringify(artistData.names),
+                    jsonStringify(artistData.thumbnails)
+                ))
+            } catch (error) {
+                reject(error)
+            }
+        })
+    },
+    addArtists: (artistsData = []) => {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const promises = []
+                artistsData.forEach(artistData => {
+                    promises.push(artistsProxy.addArtist(artistData))
+                })
+                resolve(Promise.all(promises))
+            } catch (error) {
+                reject(error)
+            }
+        })
+    }
+}
+exports.artists = artistsProxy
+proxies["artists"] = artistsProxy
 
 // authentication
 const authProxy = {
@@ -592,3 +702,4 @@ const authProxy = {
     }
 }
 exports.authentication = authProxy
+proxies["authentication"] = authProxy

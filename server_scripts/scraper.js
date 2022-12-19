@@ -1,6 +1,5 @@
 // scrapes the vocaloid wiki
 const fetch = require("node-fetch")
-const database = require("../db")
 const { viewRegExps } = require("./shared")
 //const jsdom = require("jsdom")
   //const { JSDOM } = jsdom;// jsdom constructor
@@ -52,6 +51,9 @@ const vocaDBDefaultMaxResults = 10
 // song api
 const vocaDBSongApiUrl = vocaDBApiUrl + "songs/"
 const vocaDBSongApiParams = "?fields=Artists,Names,PVs&lang=Default"
+// artists api
+const vocaDBArtistsApiUrl = vocaDBApiUrl + "artists/"
+const vocaDBArtistsApiParams = "?fields=Names,MainPicture"
 
 
 // reg expressions
@@ -300,6 +302,54 @@ const niconicoThumbnailRegExp = /&quot;thumbnail&quot;:{&quot;url&quot;:&quot;([
     return null;
   }
   
+  const processVocaDBArtistData = (artistData) => {
+    return new Promise((resolve, reject) => {
+      try {
+        
+        // process names
+        const names = {
+          Original: artistData.name
+        }
+        artistData.names.forEach(nameData => {
+          const language = vocaDBLanguageMap[nameData.language]
+          const exists = names[language] ? true : false
+          if (language && !exists) {
+            names[language] = nameData.value
+          }
+        })
+
+        // process images
+        var thumbnails
+        {
+          const artistImages = artistData.mainPicture
+          if (artistImages) {
+            thumbnails = {
+              original: artistImages.urlOriginal,
+              medium: artistImages.urlThumb,
+              small: artistImages.urlSmallThumb,
+              tiny: artistImages.urlTinyThumb
+            }
+          } else {
+            thumbnails = {}
+          }
+        }
+        
+        resolve({
+          type: artistData.artistType,
+          id: artistData.id,
+          
+          publishDate: artistData.releaseDate || artistData.createDate,
+          additionDate: new Date().toISOString(),
+
+          names: names,
+          thumbnails: thumbnails
+        })
+      } catch (error) {
+        reject(error)
+      }
+    })
+  }
+
   const processVocaDBSongData = (songData) => {
     return new Promise(async (resolve, reject) => {
 
@@ -326,12 +376,17 @@ const niconicoThumbnailRegExp = /&quot;thumbnail&quot;:{&quot;url&quot;:&quot;([
             
             switch (category) {
               case "Producer": {
-                producers.push(artist.name.trim())
+                const artistData = artist.artist
+                if (artistData) {
+                  producers.push(artistData.id.toString())
+                }
                 break;
               }
               case "Vocalist": {
-                singers.push(artist.name.trim())
-                
+                const artistData = artist.artist
+                if (artistData) {
+                  singers.push(artistData.id.toString())
+                }
                 // update the songType
                 const singerData = artist.artist
                 const artistType = singerData ? singerData.artistType : null
@@ -464,6 +519,41 @@ const niconicoThumbnailRegExp = /&quot;thumbnail&quot;:{&quot;url&quot;:&quot;([
     
   }
 
+  const scrapeVocaDBArtist = (artistId) => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        
+      // fetch the data from the vocaDB API
+      const serverResponse = await fetch(`${vocaDBArtistsApiUrl}${artistId}${vocaDBArtistsApiParams}`)
+        .then(response => response.json())
+        .catch(error => { reject(error); return })
+      if (!serverResponse) { reject("No server response."); return; }
+
+      resolve(processVocaDBArtistData(serverResponse))
+      } catch (error) {
+        reject(error)
+      }
+    })
+  }
+
+  const scrapeVocaDBArtistFromName = (artistName) => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        // fetch the data from the vocaDB API
+        const serverResponse = await fetch(`${vocaDBArtistsApiUrl}?query=${artistName}`)
+          .then(response => response.json())
+          .catch(error => { reject(error); return })
+        if (!serverResponse) { reject("No server response."); return; }
+
+        const firstItem = serverResponse.items[0]
+
+        resolve(scrapeVocaDBArtist(firstItem.id))
+      } catch (error) {
+        reject(error)
+      }
+    })
+  }
+
   const getRecentSongs = () => {
     return new Promise(async (resolve, reject) => {
       try {
@@ -594,6 +684,8 @@ const niconicoThumbnailRegExp = /&quot;thumbnail&quot;:{&quot;url&quot;:&quot;([
       excludeURLs = excludeURLs || {} // make sure it's not null
       excludeIDs = excludeIDs || {}
 
+      const returnData = []
+
       for (let [songType, URLs] of Object.entries(songURLs)) {
         for (let [n, URL] of URLs.entries()) {
           
@@ -630,8 +722,10 @@ const niconicoThumbnailRegExp = /&quot;thumbnail&quot;:{&quot;url&quot;:&quot;([
                 console.log(`[${songType}]`, n+1, "out of", URLs.length)
 
                 if (viewData.total > 0) {
-                  database.songs.insertSong(songID, songData)
-                  database.views.insertViewData(timestamp, viewData)
+                  returnData.push(
+                    songData = songData,
+                    viewData = viewData
+                  )
                 }
                 
                 excludeIDs[songID] = true
@@ -645,8 +739,7 @@ const niconicoThumbnailRegExp = /&quot;thumbnail&quot;:{&quot;url&quot;:&quot;([
         }
       }
 
-      resolve()
-
+      resolve(returnData)
     })
   }
   
@@ -655,6 +748,9 @@ exports.scrapeDomains = scrapeDomains
 exports.getVideoViewsAsync = getVideoViewsAsync
 exports.getSongURLs = getSongURLs
 exports.getSongData = getSongData
-exports.scrapeVocaDB = scrapeVocaDB
 exports.getSongsData = getSongsData
 exports.getRecentSongs = getRecentSongs
+
+exports.scrapeVocaDB = scrapeVocaDB
+exports.scrapeVocaDBArtist = scrapeVocaDBArtist
+exports.scrapeVocaDBArtistFromName = scrapeVocaDBArtistFromName

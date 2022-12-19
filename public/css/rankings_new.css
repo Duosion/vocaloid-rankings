@@ -9,7 +9,7 @@
 }
 
 
-#rankings-list, .top-controls-button, .applied-filter {
+#rankings-list, .rankings-list, .top-controls-button, .applied-filter {
   
   background-color: var(--body-color-2);
   
@@ -23,16 +23,18 @@
   
 }
 
-#rankings-list {
+#rankings-list, .rankings-list {
   
   width: 100%;
   display: flex;
   flex-direction: column;
   
   border-radius: 10px;
-  
-  margin-bottom: 15px;
 
+}
+
+#rankings-list {
+  margin-bottom: 15px;
 }
 
 #rankings-list > *:last-child {

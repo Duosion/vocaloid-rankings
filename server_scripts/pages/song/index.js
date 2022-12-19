@@ -55,8 +55,7 @@ const addSong = (vocaDBURL) => {
       songData.additionDate = new Date().toISOString()
 
       // write to files
-      await database.songs.insertSong(songID, songData)
-      await database.views.insertViewData(mostRecentViewsMetadata.timestamp, viewData)
+      await databaseProxy.addSongFromScraperData(mostRecentViewsMetadata.timestamp, songData, viewData)
 
       resolve(songData)
       
@@ -126,11 +125,22 @@ const querySongsDatabaseAsync = (queryData) => {
         }
       
         songData.views = formatViewData(songData.views)
-  
-        // set preferred name
-          const names = songData.names
+        
+        const setPreferredName = (names) => {
           names.preferred = getPreferredLanguageName(names, queryData.Language || rankingsFilterQueryTemplate.Language.default)
-  
+        } 
+
+        // set preferred name
+          setPreferredName(songData.names)
+        
+        // get artists names
+        {
+          const artists = [...songData.singers, ...songData.producers]
+          artists.forEach(artist => {
+            setPreferredName(artist.names)
+          })
+        }
+
         // cache return data
           songsDataCache.set(queryHash, songData)
 
@@ -256,7 +266,7 @@ const getSong = async (request, reply) => {
       return;                   
     })
     params.songData = songData
-    
+
     //construct viewdata table
     const newVideoIDs = {}
     for (let [viewType, videoID] of Object.entries(songData.videoIds) ) {

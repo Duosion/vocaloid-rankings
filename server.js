@@ -16,6 +16,7 @@ const databaseProxy = require(customModuleDirectory + "database")
 const { generateTimestamp, caches } = require(customModuleDirectory + "shared")
 
 const database = require("./db")
+const { addSongFromScraperData } = require(customModuleDirectory + "database")
   
 // fastify stuff
   fastify.register(require("@fastify/static"), {
@@ -153,7 +154,6 @@ const database = require("./db")
         const parseJson = JSON.parse
 
         const insertViewData = database.views.insertViewData
-        const insertSong = database.songs.insertSong
 
       const updateStartTime = new Date()
       console.log("Updating database.")
@@ -161,7 +161,6 @@ const database = require("./db")
       // generate exclude urls list
       const songsDataExcludeURLs = {}
       const songsDataExcludeIDs = {}
-
       {
 
         const songs = await database.songs.getSongs()
@@ -195,10 +194,16 @@ const database = require("./db")
 
       }
 
-      await scraper.getSongsData(timestamp, songsDataExcludeURLs, songsDataExcludeIDs)
-
       // create metadata
       await database.views.createMetadata(timestamp)
+
+      // get scraper songs
+      {
+        const scraperSongs = await scraper.getSongsData(timestamp, songsDataExcludeURLs, songsDataExcludeIDs)
+        for (const [_, scraperData] of scraperSongs.entries()) {
+          await addSongFromScraperData(timestamp, scraperData.songData, scraperData.viewData)
+        }
+      }
 
       // get recent songs
       {
@@ -216,8 +221,7 @@ const database = require("./db")
               }
               for (const [_, views] of Object.entries(songViews)) { viewData.total += views } // calculate total
 
-              insertSong(songId, songData)
-              insertViewData(timestamp, viewData)
+              await addSongFromScraperData(timestamp, songData, viewData)
             }
           }
 
@@ -246,6 +250,8 @@ const database = require("./db")
   schedule.scheduleJob('0 0 * * *', () => {
     updateSongsDataSafe()
   })
+
+  //database.artists.populateArtists(scraper)
 
 // redirect
 fastify.get("/", async function (request, reply) {

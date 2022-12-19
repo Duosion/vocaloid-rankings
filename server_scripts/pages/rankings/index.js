@@ -8,7 +8,8 @@ const database = require(workingDirectory + "/db")
 const databaseProxy = require(modulePath + "/database")
 
 const { longFormat } = require(modulePath + "/unitConverter")
-const { generateTimestamp, viewTypes, getHasherAsync, caches, rankingsFilterQueryTemplate, getRandomInt } = require(modulePath + "shared") // shared functions
+const { viewTypes, getHasherAsync, caches, rankingsFilterQueryTemplate, getRandomInt } = require(modulePath + "shared") // shared functions
+const { getPreferredLanguageName } = require(modulePath + "/locale")
 
 // implement caches
 const rankingsCache = caches.rankingsCache // initialize rankings cache with a 120 second lifespan
@@ -124,7 +125,20 @@ const queryViewsDatabaseAsync = (queryData, options = {}) => {
         
       }
 
+      const preferredLanguage = queryData.Language || rankingsFilterQueryTemplate.Language.default
+
+      const setPreferredLanguageName = (names) => {
+        names.preferred = getPreferredLanguageName(names, preferredLanguage)
+      }
+
+      const jsonParse = JSON.parse
+
       onFinish = (returnData) => {
+        returnData.Data.forEach(viewData => {
+          const names = jsonParse(viewData.names)
+          setPreferredLanguageName(names)
+          viewData.names = names
+        })
         // cache return data
         rankingsCache.set(queryHash, returnData)
       
@@ -139,6 +153,98 @@ const queryViewsDatabaseAsync = (queryData, options = {}) => {
 
       
     })
+}
+
+const getYearReviewTopSongsByType = (defaultFilterParams) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const lists = []
+      const key = "yearReview"
+
+      for (const [viewType, typeData] of Object.entries(viewTypes)) {
+        if (viewType != "") {
+
+          const queryData = {
+            ViewType: viewType,
+            MaxEntries: 10,
+            ...defaultFilterParams
+          }
+          // check if cached
+          const queryHash = key + viewType + (await getHasherAsync())(JSON.stringify({queryData}))
+          const cachedData = rankingsCache.get(queryHash)
+          if (cachedData) {
+            lists.push(cachedData.getData())
+          } else {
+            // generate
+            const returnData = await databaseProxy.filterRankings(queryData, {extraArguments: ["producer", "producers", "singers"]}).catch( error => reject(error) )
+            
+            const data = {
+              name: viewType,
+              data: returnData.Data
+            }
+            lists.push(data)
+            rankingsCache.set(queryHash, data)
+          }
+        }
+      }
+
+      resolve(lists)
+
+    } catch (error) {
+      reject(error)
+    }
+  })
+}
+
+const getTopSingers = (rankingsData) => {
+  return new Promise((resolve, reject) => {
+    try {
+      {
+        // check for cache
+        const cachedData = highlightsCache.get("topSingers")
+
+        if (cachedData) {
+          resolve(cachedData.getData())
+          return;
+        }
+      }
+
+      // if not cached, get the top singers
+      const topSingers = []
+      const references = {}
+      const jsonParse = JSON.parse
+
+      for (const [n, songData] of rankingsData.entries()) {
+        const singers = jsonParse(songData.singers)
+        const totalViews = songData.total
+
+        singers.forEach(singer => {
+          var reference = references[singer]
+          if (!reference) {
+            // create new reference
+            reference = {
+              name: singer,
+              views: 0,
+              songCount: 0
+            }
+            topSingers.push(reference)
+            references[singer] = reference
+          }
+          reference.views += totalViews
+          reference.songCount += 1
+        })
+      }
+
+      // sort topSingers
+      topSingers.sort((a, b) => {
+        return b.views - a.views
+      })
+
+      resolve(topSingers)
+    } catch (error) {
+      reject(error)
+    }
+  })
 }
 
 const getYearReviewHighlights = (rankingsData) => {
@@ -393,22 +499,10 @@ const getAddFilter = async (request, reply) => {
 const getYearReview = async (request, reply) => {
 
   const parsedCookies = request.parsedCookies || {}
-
   const params = { 
     seo: request.seo, 
     cookies: parsedCookies,
   }
-
-  /* 
-  highlights = [
-    {
-      title: "This is a title",
-      description: "This is a description",
-      thumbnail: "This is a thumbnail",
-      color: "5f1233"
-    }
-  ]
-  */
 
   // parse locale
   const locale = (request.headers["accept-language"] || "").split(",")[0]
@@ -427,18 +521,36 @@ const getYearReview = async (request, reply) => {
   // query database
   const databaseQueryResult = await queryViewsDatabaseAsync(filterParams, {limitResult: false, extraArguments: ["producer", "producers", "singers"]})
   const databaseQueryData = databaseQueryResult.Data
-  params.list = databaseQueryData.slice(0,10) // add result to params
+
+  // load view lists
+  {
+    const songTypesData = await getYearReviewTopSongsByType(filterParams)
+    const lists = [
+      {
+        name: "Combined",
+        data: databaseQueryData.slice(0,10)
+      },
+      ...songTypesData
+    ]
+  
+    params.lists = lists
+  }
   
   // get highlights
   {
     params.highlights = await getYearReviewHighlights(databaseQueryData).catch(err => { return [] })
   }
 
+  // get top singers
+  {
+    const topSingers = await getTopSingers(databaseQueryData)
+  }
+
   // see if the database is updating
   {
     params.databaseUpdating = databaseProxy.getUpdating()
   }
-
+  
   // add view data to params
     const paramsViewTypesData = {}
     {
@@ -569,34 +681,19 @@ const getRankings = async (request, reply) => {
       
       Locale: locale,
       Language: parsedCookies.displayLanguage,
+      ...requestQuery
       
     }
     
     var uniqueFilterParams = {} // filter params taht aren't default
     
     for ( let [filterName, paramData] of Object.entries(rankingsFilterQueryTemplate) ) {
-      
       const filterValue = requestQuery[filterName]
-      
-      var defaultValue = paramData.default
 
-      // make the default value for the date filter the current date
-      if (filterName == "Date") {
-        defaultValue = generateTimestamp().Name
-      }
-      
-      if (!filterValue) {
-        filterParams[filterName] = filterParams[filterName] || defaultValue
-      } else {
-        
-        if (filterValue != defaultValue) {
+      if (filterValue && filterValue != paramData.default) {
           isFiltered = true
           
           uniqueFilterParams[filterName] = filterValue
-          
-        }
-        
-        filterParams[filterName] = filterValue
       }
       
     }
@@ -608,18 +705,19 @@ const getRankings = async (request, reply) => {
     // query database
     const databaseQueryResult = await queryViewsDatabaseAsync(filterParams, {withChange: true})
     params.list = databaseQueryResult.Data // add result to params
-  
+
+    const parsedFilterParams = databaseQueryResult.QueryData
+
     // calculate pages
     {
-      
+
       const listLength = databaseQueryResult.Length
-      const currentPosition = filterParams.StartAt
-      const pageLength = filterParams.MaxEntries
+      const currentPosition = parsedFilterParams.StartAt
+      const pageLength = parsedFilterParams.MaxEntries
       
       const totalPages = Math.floor(listLength/pageLength)
       const currentPage = Math.ceil(currentPosition/pageLength)
-  
-          
+      
       const surroundingPages = []
         
       for (let i = Math.max(0, currentPage - 1); i <= Math.min(totalPages, currentPage + 1); i++) {
@@ -670,7 +768,7 @@ const getRankings = async (request, reply) => {
     // add view data to params
       const paramsViewTypesData = {}
       {
-        const viewTypeQuery = filterParams["ViewType"] || ""
+        const viewTypeQuery = parsedFilterParams["ViewType"] || ""
         for (let [viewType, viewData] of Object.entries(viewTypes)) {
           paramsViewTypesData[viewType] = {
             

@@ -32,7 +32,7 @@
         <div class="text sub-title section-title">Highlights</div>
         <div id="highlights-list">
           {{#each highlights}}
-            <div class="highlights-item" style="background-color:{{color}};box-shadow: inset 0 0 50px {{shadowColor}};">
+            <div class="highlights-item">
               <div class="thumbnail" style='background-image:url("{{thumbnail}}")'></div>
               <div class="text">
                 <div class="highlights-item-title">{{title}}</div>
@@ -42,40 +42,53 @@
           {{/each}}
         </div>
 
-        <div class="text sub-title section-title">Top 10</div>
-        <div id="rankings-list">
-          
-          <div class="rankings-list-header">
-            <div class="rankings-list-entry-item rank"></div>
-            <div class="rankings-list-entry-item cover"></div>
-            <div class="rankings-list-entry-item title">Song Name</div>
-            <div class="rankings-list-entry-item views">Views</div>
-          </div>
-          
-          {{#each list}}
-
-            <div class="rankings-list-entry">
-              
-              <div class="rankings-list-entry-item rank">
-                <div class="text bold">{{inc @index (inc 1 ../filterParams.StartAt)}}</div>
-              </div>
-              
-              <div class="rankings-list-entry-item cover" style='background-image:url("{{thumbnail}}")'></div>
-
-              <div class="rankings-list-entry-item title">
-                <a href="/song/{{songId}}">{{name}}</a>
-                <div class="producer">{{producer}}</div>
-              </div>
-              <div class="rankings-list-entry-item views">{{longFormat total}}</div>
-              
-            </div> 
-
+        <style>
+          {{#each lists}} 
+            .radio-tab.{{name}}:checked ~ .radio-tab-content.{{name}} { display: flex !important; }
           {{/each}}
-          
+        </style>
+        <div class="section-title centering-flex tab-container">
+          <div class="text sub-title">Top 10 Songs</div>
+          <div class="flex-divider"></div>
+          {{#each lists}}
+            <input class="radio-tab {{name}}" type="radio" name="rankings-tab" id="radio-views-{{name}}" {{#if (comp @index 0)}}checked{{/if}}>
+            <label class="text" for="radio-views-{{name}}">{{name}}</label>
+          {{/each}}
+          {{#each lists}}
+          <div class="rankings-list radio-tab-content {{name}}">
+            
+            <div class="rankings-list-header">
+              <div class="rankings-list-entry-item rank"></div>
+              <div class="rankings-list-entry-item cover"></div>
+              <div class="rankings-list-entry-item title">Song Name</div>
+              <div class="rankings-list-entry-item views">Views</div>
+            </div>
+            
+            {{#each data}}
+
+              <div class="rankings-list-entry">
+                
+                <div class="rankings-list-entry-item rank">
+                  <div class="text bold">{{inc @index (inc 1 ../filterParams.StartAt)}}</div>
+                </div>
+                
+                <div class="rankings-list-entry-item cover" style='background-image:url("{{thumbnail}}")'></div>
+
+                <div class="rankings-list-entry-item title">
+                  <a href="/song/{{songId}}">{{name}}</a>
+                  <div class="producer">{{producer}}</div>
+                </div>
+                <div class="rankings-list-entry-item views">{{longFormat total}}</div>
+                
+              </div> 
+
+            {{/each}}
+            
+          </div>
+        {{/each}}
+
         </div>
-
-        <a id="see-all-button" class="top-controls-button button-link" href="year-review/full" title="See All">See Full List</a>
-
+         <a id="see-all-button" class="top-controls-button button-link" href="year-review/full" title="See All">See Full List</a>
       </div>
       
       

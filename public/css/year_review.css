@@ -44,6 +44,9 @@
     padding: 10px;
     border-radius: 10px;
     box-sizing: border-box;
+    position: relative;
+    overflow: clip;
+    box-shadow: inset 0 0 150px #2f3133;
 
     min-width: 300px;
     flex: 1;
@@ -51,18 +54,21 @@
 }
 
 .highlights-item .thumbnail {
-    min-width: 80px;
-    min-height: 80px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    filter: blur(20px);
     box-sizing: border-box;
     border-radius: 10px;
-    background-size: auto 110px;
     background-position: center;
-    border: 1px solid var(--hover-color);
 }
 
 .highlights-item .text {
     flex: 1;
-    color: #ffffff
+    color: #ffffff;
+    z-index: 2;
 }
 
 .highlights-item-title {

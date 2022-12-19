@@ -428,6 +428,54 @@ a.button-link:hover:not(.active):not(.rounded-button) {
   }
 
 /* input */
+
+.tab-items {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+input.radio-tab {
+  display: none;
+}
+
+.tab-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 15px 5px
+}
+
+.radio-tab-content {
+  display: none !important;
+  width: 100%;
+}
+
+
+input.radio-tab + label {
+  font-size: 1.2em;
+  box-shadow: var(--box-shadow);
+  padding: 4px 15px;
+  box-sizing: border-box;
+  background-color: var(--body-color-2);
+  color: var(--text-color);
+  border-radius: 10px;
+  transition-property: filter, color, background-color;
+  transition-duration: var(--transition-duration);
+}
+
+input.radio-tab:checked + label {
+  background-color: var(--text-color);
+  color: var(--body-color-2);
+}
+
+input.radio-tab:not(:checked) + label:hover {
+  background-color: var(--hover-color);
+  cursor: pointer;
+}
+
 input[type="url"] {
   
   border: 1px solid var(--hover-color);

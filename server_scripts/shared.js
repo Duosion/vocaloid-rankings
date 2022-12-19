@@ -33,9 +33,9 @@ exports.viewTypes = {
   }
 
 exports.caches = {
-  rankingsCache: new cacher(600), // initialize rankings cache with a 120 second lifespan
-  songsDataCache: new cacher(600),
-  historicalCache: new cacher(600),
+  rankingsCache: new cacher(3600), // initialize rankings cache with a 120 second lifespan
+  songsDataCache: new cacher(3600),
+  historicalCache: new cacher(3600),
   highlightsCache: new cacher(3600)
 }
 
