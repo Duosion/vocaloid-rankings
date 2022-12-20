@@ -46,6 +46,7 @@ const plugin = (fastify, options, done) => {
                     case "page_visit": {
                         // page_visit event
                         params['page_url'] = req.url
+                        reply.setParamCookie("previousPage", req.url)
                         break
                     }
                     case "setting_change":

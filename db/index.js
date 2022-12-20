@@ -542,7 +542,7 @@ const artistsProxy = {
 
             const artistData = db.prepare("SELECT artistId, artistType, publishDate, additionDate, names, thumbnails FROM artistData WHERE artistId = ?").get(artistId)
             // ensure that the data exists
-            if (!artistData) { reject(`No artist with ID "${artistId}".`); return }
+            if (!artistData) { resolve(null); return }
 
             // parse data
             const jsonParse = JSON.parse
@@ -565,7 +565,11 @@ const artistsProxy = {
                 const promises = []
                 ids.forEach(id => {
                     promises.push(artistsProxy.getArtist(id)
-                    .then(data => artistsData.push(data))
+                    .then(data => {
+                        if (data) { // ensure that data isn't null
+                            artistsData.push(data)
+                        }
+                    })
                     .catch(error => console.log(`Error when getting artist with ID ${id}. Error: ${error}.`)))
                 })
                 await Promise.all(promises)

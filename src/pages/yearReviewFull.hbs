@@ -2,7 +2,7 @@
   <link rel="stylesheet" href="/css/rankings_new.css">
     <div class="list vertical"> 
       
-      <div id="page-title" class="text title centered">Year in Review</div>
+      <div id="page-title" class="text title centered">{{year}} in Review</div>
       <div class="text centered">The top Vocaloid songs released in {{year}}.</div>
       
       <div id="midpage" class="centering-flex">
@@ -60,7 +60,7 @@
               {{/if}}
 
               <div class="rankings-list-entry-item title">
-                <a href="/song/{{songId}}">{{name}}</a>
+                <a href="/song/{{songId}}">{{names.preferred}}</a>
               </div>
               <div class="rankings-list-entry-item views">{{longFormat total}}</div>
               

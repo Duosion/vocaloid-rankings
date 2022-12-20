@@ -40,9 +40,9 @@ const parseParamCookies = (request) => {
       }
       
       // make sure value is valid
-      const allowedValues = cookieData.AllowedValues || []
+      const allowedValues = cookieData.AllowedValues
       
-      {
+      if (allowedValues) {
         
         let allowed = false
         
@@ -123,9 +123,9 @@ const setParamCookie = (reply, cookieName, cookieValue) => {
     const cookieData = paramCookies[cookieName]
     if (!cookieData) { return; }
     
-    const allowedValues = cookieData.AllowedValues || []
+    const allowedValues = cookieData.AllowedValues
     
-    {
+    if (allowedValues) {
       
       let allowed = false;
       

@@ -412,10 +412,8 @@ const getFilterPage = async (request, reply) => {
         
       } else {
         
-        filterDefaults[paramData.default] = true
-        
+        filterDefaults[paramData.default] = true 
       }
-      
     }
     
     // get date bounds
@@ -509,7 +507,6 @@ const getAddFilter = async (request, reply) => {
 }
 
 const getYearReview = async (request, reply) => {
-
   const parsedCookies = request.parsedCookies || {}
   const params = { 
     seo: request.seo, 
@@ -533,7 +530,7 @@ const getYearReview = async (request, reply) => {
   const queryOptions = {
     limitResult: false, 
     extraArguments: ["producers", "singers"],
-    artistConvertLimit: 10, // only convert the first 10 songs' artists
+    //artistConvertLimit: 10, // only convert the first 10 songs' artists
   }
 
   // query database
@@ -603,23 +600,24 @@ const getYearReviewFull = async (request, reply) => {
   
   // construct filter params
   var filterParams = {
-    
     Locale: locale,
     Language: parsedCookies.displayLanguage,
-    PublishYear: year
-    
+    PublishYear: year,
+    StartAt: request.query.StartAt || 0
   }
 
   // query database
   const databaseQueryResult = await queryViewsDatabaseAsync(filterParams, {withChange: true})
   params.list = databaseQueryResult.Data // add result to params
 
+  const parsedFilterParams = databaseQueryResult.QueryData
+
   // calculate pages
   {
     
     const listLength = databaseQueryResult.Length
-    const currentPosition = filterParams.StartAt
-    const pageLength = filterParams.MaxEntries
+    const currentPosition = parsedFilterParams.StartAt
+    const pageLength = parsedFilterParams.MaxEntries
     
     const totalPages = Math.floor(listLength/pageLength)
     const currentPage = Math.ceil(currentPosition/pageLength)
@@ -627,7 +625,7 @@ const getYearReviewFull = async (request, reply) => {
     const surroundingPages = []
       
     for (let i = Math.max(0, currentPage - 1); i <= Math.min(totalPages, currentPage + 1); i++) {
-      surroundingPages[i] = `/rankings?StartAt=${i*pageLength}`
+      surroundingPages[i] = `?StartAt=${i*pageLength}`
     }
     
     params.surroundingPages = surroundingPages
@@ -635,20 +633,20 @@ const getYearReviewFull = async (request, reply) => {
     
     // jump to last page and first page buttons
     if (currentPage - 1 > 0) {
-      params.firstPage = `/rankings`
+      params.firstPage = ``
     }
     
     if (totalPages > currentPage + 1) {
-      params.lastPage = `/rankings?StartAt=${totalPages*pageLength}`
+      params.lastPage = `?StartAt=${totalPages*pageLength}`
       params.lastPageNumber = totalPages + 1
     }
     
     // next/previous page buttons
     if (currentPage > 0) {
-      params.previousPage = `/rankings?StartAt=${(currentPage-1)*pageLength}`
+      params.previousPage = `?StartAt=${(currentPage-1)*pageLength}`
     }
     if (totalPages > currentPage) {
-      params.nextPage = `/rankings?StartAt=${(currentPage+1)*pageLength}`
+      params.nextPage = `?StartAt=${(currentPage+1)*pageLength}`
     }
     
   }
@@ -739,7 +737,7 @@ const getRankings = async (request, reply) => {
       const surroundingPages = []
         
       for (let i = Math.max(0, currentPage - 1); i <= Math.min(totalPages, currentPage + 1); i++) {
-        surroundingPages[i] = `/rankings?StartAt=${i*pageLength}`
+        surroundingPages[i] = `?StartAt=${i*pageLength}`
       }
       
       params.surroundingPages = surroundingPages
@@ -747,20 +745,20 @@ const getRankings = async (request, reply) => {
       
       // jump to last page and first page buttons
       if (currentPage - 1 > 0) {
-        params.firstPage = `/rankings`
+        params.firstPage = ``
       }
       
       if (totalPages > currentPage + 1) {
-        params.lastPage = `/rankings?StartAt=${totalPages*pageLength}`
+        params.lastPage = `?StartAt=${totalPages*pageLength}`
         params.lastPageNumber = totalPages + 1
       }
       
       // next/previous page buttons
       if (currentPage > 0) {
-        params.previousPage = `/rankings?StartAt=${(currentPage-1)*pageLength}`
+        params.previousPage = `?StartAt=${(currentPage-1)*pageLength}`
       }
       if (totalPages > currentPage) {
-        params.nextPage = `/rankings?StartAt=${(currentPage+1)*pageLength}`
+        params.nextPage = `?StartAt=${(currentPage+1)*pageLength}`
       }
       
     }
