@@ -9,6 +9,14 @@
     flex-direction: column;
     flex-wrap: wrap;
 }
+
+
+.rankings-list-entry-item-producers {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
 .rankings-list-entry-item.title .producer {
     font-size: 0.8em;
     opacity: 0.8;

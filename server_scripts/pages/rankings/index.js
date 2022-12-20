@@ -131,20 +131,45 @@ const queryViewsDatabaseAsync = (queryData, options = {}) => {
         names.preferred = getPreferredLanguageName(names, preferredLanguage)
       }
 
+      const getArtistsFromIds = async (ids) => {
+        const artists = await database.artists.getArtistsFromIds(ids)
+        artists.forEach(artist => {
+          setPreferredLanguageName(artist.names)
+        })
+        return artists
+      }
+
       const jsonParse = JSON.parse
 
-      onFinish = (returnData) => {
-        returnData.Data.forEach(viewData => {
+      const artistConvertLimit = options.artistConvertLimit
+
+      onFinish = async (returnData) => {
+        for (const [n, viewData] of returnData.Data.entries()) {
+          // convert names
           const names = jsonParse(viewData.names)
           setPreferredLanguageName(names)
           viewData.names = names
-        })
+
+          // convert artists
+          if (artistConvertLimit && (artistConvertLimit > n) || !artistConvertLimit) {
+            const producers = viewData.producers
+            if (producers) {
+              viewData.producers = await getArtistsFromIds(jsonParse(producers))
+            }
+            const singers = viewData.singers
+            if (singers) {
+              viewData.singers = await getArtistsFromIds(jsonParse(singers))
+            }
+        }
+          
+        }
+
         // cache return data
         rankingsCache.set(queryHash, returnData)
       
         resolve(returnData)
       }
-      
+
       if (options.withChange) {
         databaseProxy.filterRankingsWithChange(queryData, options).then( returnData => onFinish(returnData) ).catch(error => reject(error))
       } else {
@@ -155,41 +180,28 @@ const queryViewsDatabaseAsync = (queryData, options = {}) => {
     })
 }
 
-const getYearReviewTopSongsByType = (defaultFilterParams) => {
+const getYearReviewTopSongsByType = (defaultFilterParams, options) => {
   return new Promise(async (resolve, reject) => {
     try {
       const lists = []
-      const key = "yearReview"
 
       for (const [viewType, typeData] of Object.entries(viewTypes)) {
         if (viewType != "") {
-
-          const queryData = {
-            ViewType: viewType,
-            MaxEntries: 10,
-            ...defaultFilterParams
-          }
-          // check if cached
-          const queryHash = key + viewType + (await getHasherAsync())(JSON.stringify({queryData}))
-          const cachedData = rankingsCache.get(queryHash)
-          if (cachedData) {
-            lists.push(cachedData.getData())
-          } else {
-            // generate
-            const returnData = await databaseProxy.filterRankings(queryData, {extraArguments: ["producer", "producers", "singers"]}).catch( error => reject(error) )
-            
-            const data = {
-              name: viewType,
-              data: returnData.Data
-            }
-            lists.push(data)
-            rankingsCache.set(queryHash, data)
-          }
+          lists.push({
+            name: viewType,
+            data: await queryViewsDatabaseAsync({
+              ViewType: viewType,
+              MaxEntries: 10,
+              ...defaultFilterParams
+            }, {
+              ...options,
+              limitResult: true
+            }).then(data => data.Data)
+        })
         }
       }
 
       resolve(lists)
-
     } catch (error) {
       reject(error)
     }
@@ -271,8 +283,8 @@ const getYearReviewHighlights = (rankingsData) => {
       const allSingers = {}
       {
         for (const [n, songData] of rankingsData.entries()) {
-          const producers = jsonParse(songData.producers)
-          const singers = jsonParse(songData.singers)
+          const producers = songData.producers
+          const singers = songData.singers
           const totalViews = songData.total
   
           producers.forEach(producer => {
@@ -518,13 +530,19 @@ const getYearReview = async (request, reply) => {
     PublishYear: year
   }
 
+  const queryOptions = {
+    limitResult: false, 
+    extraArguments: ["producers", "singers"],
+    artistConvertLimit: 10, // only convert the first 10 songs' artists
+  }
+
   // query database
-  const databaseQueryResult = await queryViewsDatabaseAsync(filterParams, {limitResult: false, extraArguments: ["producer", "producers", "singers"]})
+  const databaseQueryResult = await queryViewsDatabaseAsync(filterParams, queryOptions)
   const databaseQueryData = databaseQueryResult.Data
 
   // load view lists
   {
-    const songTypesData = await getYearReviewTopSongsByType(filterParams)
+    const songTypesData = await getYearReviewTopSongsByType(filterParams, queryOptions)
     const lists = [
       {
         name: "Combined",
@@ -538,12 +556,12 @@ const getYearReview = async (request, reply) => {
   
   // get highlights
   {
-    params.highlights = await getYearReviewHighlights(databaseQueryData).catch(err => { return [] })
+    params.highlights = []// await getYearReviewHighlights(databaseQueryData).catch(err => { return [] })
   }
 
   // get top singers
   {
-    const topSingers = await getTopSingers(databaseQueryData)
+    //const topSingers = await getTopSingers(databaseQueryData)
   }
 
   // see if the database is updating

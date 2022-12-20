@@ -37,13 +37,13 @@
   margin-bottom: 15px;
 }
 
-#rankings-list > *:last-child {
+#rankings-list > *:last-child, .rankings-list > *:last-child {
   
   border-radius: 0px 0px 10px 10px;
   
 }
 
-#rankings-list > *:nth-child(odd):not(.rankings-list-header) {
+#rankings-list > *:nth-child(odd):not(.rankings-list-header), .rankings-list > *:nth-child(odd):not(.rankings-list-header) {
   
   background: var(--odd-element-color)
   

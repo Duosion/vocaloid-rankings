@@ -368,9 +368,9 @@ const viewsProxy = {
                     const expressions = []
                     extraArguments.forEach(argument => {
                         switch(argument) {
-                            case "producer":
+                            /*case "producer":
                                 expressions.push("json_extract(songsData.producers, '$[0]') AS producer")
-                                break;
+                                break;*/
                             default:
                                 expressions.push(`songsData.${argument}`)
                         }
@@ -387,11 +387,6 @@ const viewsProxy = {
                 const fromQuery = `FROM '${timestamp}'${fromExpression}`
                 const innerJoinQuery = `INNER JOIN songsData on songsData.songId = '${timestamp}'.songId${timePeriodTimestamp != null ? ` INNER JOIN '${timePeriodTimestamp}' ON '${timePeriodTimestamp}'.songId = '${timestamp}'.songId` : ""}`
 
-                /*const paramQuery = `FROM '${timestamp}'${fromExpression}
-                INNER JOIN songsData on songsData.songId = '${timestamp}'.songId${timePeriodTimestamp != null ? ` INNER JOIN '${timePeriodTimestamp}' ON '${timePeriodTimestamp}'.songId = '${timestamp}'.songId` : ""}
-                ${whereExpression} ${orderByQuery}
-                LIMIT ${filterParams.MaxEntries} OFFSET ${filterParams.StartAt}`*/
-
                 const mainQueryResult = db.prepare(`${mainSelectQuery}
                 ${fromQuery}
                 ${innerJoinQuery}
@@ -403,8 +398,8 @@ const viewsProxy = {
                 ${whereExpression}`).get()
 
                 resolve({
-                    'length': countQueryResult.count,
-                    'data': mainQueryResult
+                    length: countQueryResult.count,
+                    data: mainQueryResult
                 })
             } catch (error) {
                 reject(error)
