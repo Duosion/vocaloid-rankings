@@ -251,6 +251,9 @@ const { addSongFromScraperData } = require(customModuleDirectory + "database")
     updateSongsDataSafe()
   })
 
+  // populate artists
+  databaseProxy.populateArtists()
+
   //database.artists.populateArtists(scraper)
 
 // redirect

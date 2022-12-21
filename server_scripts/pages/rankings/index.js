@@ -208,12 +208,13 @@ const getYearReviewTopSongsByType = (defaultFilterParams, options) => {
   })
 }
 
-const getTopSingers = (rankingsData) => {
-  return new Promise((resolve, reject) => {
+const getTopArtists = (rankingsData, locale) => {
+  return new Promise(async (resolve, reject) => {
     try {
+      const cacheKey = "topArtists" + locale
       {
         // check for cache
-        const cachedData = highlightsCache.get("topSingers")
+        const cachedData = highlightsCache.get(cacheKey)
 
         if (cachedData) {
           resolve(cachedData.getData())
@@ -223,28 +224,33 @@ const getTopSingers = (rankingsData) => {
 
       // if not cached, get the top singers
       const topSingers = []
+      const topProducers = []
       const references = {}
-      const jsonParse = JSON.parse
 
-      for (const [n, songData] of rankingsData.entries()) {
-        const singers = jsonParse(songData.singers)
-        const totalViews = songData.total
-
-        singers.forEach(singer => {
-          var reference = references[singer]
+      const addArtistViews = (artist, views, addToArray) => {
+        const artistId = artist.artistId
+        var reference = references[artistId]
           if (!reference) {
             // create new reference
             reference = {
-              name: singer,
+              data: artist,
               views: 0,
               songCount: 0
             }
-            topSingers.push(reference)
-            references[singer] = reference
+            addToArray.push(reference)
+            references[artistId] = reference
           }
-          reference.views += totalViews
+          reference.views += views
           reference.songCount += 1
-        })
+      }
+
+      for (const [n, songData] of rankingsData.entries()) {
+        const singers = songData.singers
+        const producers = songData.producers
+        const totalViews = songData.total
+
+        singers.forEach(singer => addArtistViews(singer, totalViews, topSingers))
+        producers.forEach(producer => addArtistViews(producer, totalViews, topProducers))
       }
 
       // sort topSingers
@@ -252,140 +258,20 @@ const getTopSingers = (rankingsData) => {
         return b.views - a.views
       })
 
-      resolve(topSingers)
-    } catch (error) {
-      reject(error)
-    }
-  })
-}
+      // sort top producers
+      topProducers.sort((a, b) => {
+        return b.views - a.views
+      })
 
-const getYearReviewHighlights = (rankingsData) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      {
-        // check for cache
-        const cachedData = highlightsCache.get("highlights")
-
-        if (cachedData) {
-          resolve(cachedData.getData())
-          return;
-        }
+      const returnData = {
+        singers: topSingers,
+        producers: topProducers
       }
-      
-      // variables
-      const highlights = []
-      const jsonParse = JSON.parse
 
-      // process rankings data
-      var mostViewedProducer = null
-      var mostViewedSinger = null
-      const allProducers = {}
-      const allSingers = {}
-      {
-        for (const [n, songData] of rankingsData.entries()) {
-          const producers = songData.producers
-          const singers = songData.singers
-          const totalViews = songData.total
-  
-          producers.forEach(producer => {
-            var producerData = allProducers[producer]
-            if (!producerData) {
-              // create data
-              producerData = {
-                total: 0,
-                songs: []
-              }
-              allProducers[producer] = producerData
-            }
-            // add data
-            const newTotal = producerData.total + totalViews
-            if (!mostViewedProducer || newTotal > mostViewedProducer.total) {
-              mostViewedProducer = {
-                name: producer,
-                total: newTotal
-              }
-            }
-            producerData.total = newTotal
-
-            producerData.songs.push(n)
-          })
-          singers.forEach(singer => {
-            var singerData = allSingers[singer]
-            if (!singerData) {
-              // create data
-              singerData = {
-                total: 0,
-                songs: []
-              }
-              allSingers[singer] = singerData
-            }
-            // add data
-            const newTotal = singerData.total + totalViews
-            if (!mostViewedSinger || newTotal > mostViewedSinger.total) {
-              mostViewedSinger = {
-                name: singer,
-                total: newTotal
-              }
-            }
-            singerData.total = newTotal
-
-            singerData.songs.push(n)
-          })
-        }
-      }
-      // get new highlights
-        // most viewed producer
-        {
-          const name = mostViewedProducer.name
-          const mostViewedProducerData = allProducers[name]
-          const songs = mostViewedProducerData.songs
-          const mostViewedProducerSong = rankingsData[songs[getRandomInt(songs.length)]]
-          const total = mostViewedProducerData.total
-
-          const thumbnail = mostViewedProducerSong.thumbnail
-          // get average color
-          const avgColor = await getAverageColor(thumbnail)
-          const avgColorValues = avgColor.value
-          const darker = `rgb(${avgColorValues[0] - 30}, ${avgColorValues[1] - 30}, ${avgColorValues[2] - 30})`
-
-          highlights.push({
-            title: "Most Viewed Producer",
-            description: `${name} is the most viewed producer with a combined ${longFormat(total)} views.`,
-            thumbnail: thumbnail,
-            color: avgColor.hex,
-            shadowColor: darker
-          })
-        }
-        // most viewed singer
-        {
-          const name = mostViewedSinger.name
-          const mostViewedSingerData = allSingers[name]
-          // pick a random song
-          const songs = mostViewedSingerData.songs
-          const mostViewedSingerSong = rankingsData[songs[getRandomInt(songs.length)]]
-          const total = mostViewedSingerData.total
-
-          const thumbnail = mostViewedSingerSong.thumbnail
-          // get average color
-          const avgColor = await getAverageColor(thumbnail)
-          const avgColorValues = avgColor.value
-          const darker = `rgb(${avgColorValues[0] - 30}, ${avgColorValues[1] - 30}, ${avgColorValues[2] - 30})`
-
-          highlights.push({
-            title: "Most Viewed Singer",
-            description: `${name} is the most viewed singer with a combined ${longFormat(total)} views.`,
-            thumbnail: mostViewedSingerSong.thumbnail,
-            color: avgColor.hex,
-            shadowColor: darker
-          })
-        }
-      
-      //cache highlights
-      highlightsCache.set("highlights", highlights)
-
-      resolve(highlights)
+      // set cache
+      highlightsCache.set(cacheKey, returnData)
+      resolve(returnData)
     } catch (error) {
-      console.log(error)
       reject(error)
     }
   })
@@ -550,15 +436,27 @@ const getYearReview = async (request, reply) => {
   
     params.lists = lists
   }
-  
-  // get highlights
-  {
-    params.highlights = []// await getYearReviewHighlights(databaseQueryData).catch(err => { return [] })
-  }
 
   // get top singers
   {
-    //const topSingers = await getTopSingers(databaseQueryData)
+    const topArtists = await getTopArtists(databaseQueryData, filterParams.Language)
+    const singers = topArtists.singers
+    const producers = topArtists.producers
+    params.topArtists = [
+      {
+        type: "Singer",
+        title: "Top 10 Singers",
+        topFour: singers.slice(0,4),
+        data: singers.slice(4,10)
+      },
+      {
+        type: "Producer",
+        title: "Top 10 Producers",
+        topFour: producers.slice(0,4),
+        data: producers.slice(4,10)
+      },
+      
+    ]
   }
 
   // see if the database is updating

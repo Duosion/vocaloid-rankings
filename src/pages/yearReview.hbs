@@ -4,7 +4,7 @@
     <div class="list vertical"> 
       
       <div id="page-title" class="text title centered">{{year}} in Review</div>
-      <div class="text centered">The biggest songs from {{year}}.</div>
+      <div class="text centered">The biggest songs, singers, and producers in {{year}}.</div>
       
       <div id="midpage" class="centering-flex">
         
@@ -28,8 +28,8 @@
             </a>
           </div>
         </div>
-
-        <div class="text sub-title section-title">Highlights</div>
+        
+        <!--<div class="text sub-title section-title">Highlights</div>
         <div id="highlights-list">
           {{#each highlights}}
             <div class="highlights-item">
@@ -40,7 +40,7 @@
               </div>
             </div>
           {{/each}}
-        </div>
+        </div>-->
 
         <style>
           {{#each lists}} 
@@ -78,7 +78,7 @@
                   <a href="/song/{{songId}}">{{names.preferred}}</a>
                   <div class="rankings-list-entry-item-producers">
                     {{#each producers}}
-                      <div class="producer">{{names.preferred}}</div>
+                      <a href="/rankings/filter/add?Producer={{artistId}}" class="producer">{{names.preferred}}</a>
                     {{/each}}
                   </div>
                 </div>
@@ -92,9 +92,49 @@
         {{/each}}
 
         </div>
-         <a id="see-all-button" class="top-controls-button button-link" href="year-review/full" title="See All">See Full List</a>
+
+        <a id="see-all-button" class="top-controls-button button-link" href="year-review/full" title="See All">See Full List</a>
+
+        {{#each topArtists}}
+          <div class="text sub-title section-title">{{title}}</div>
+          <div class="artist-list">
+            {{#each topFour}}
+              <div class="artist-card">
+                <div class="artist-card-bg" style='background-image:url("{{data.thumbnails.medium}}")'></div>
+                <div class="artist-card-info">
+                  <a class="text bold" href="/rankings/filter/add?Singer={{data.artistId}}">{{data.names.preferred}}</a>
+                  <div class="text">{{longFormat views}} Views</div>
+                </div>
+                <div class="artist-card-ranking text bold">#{{inc @index (inc 1 ../filterParams.StartAt)}}</div>
+              </div> 
+            {{/each}}
+          </div>
+          <div class="rankings-list">  
+            <div class="rankings-list-header">
+              <div class="rankings-list-entry-item rank"></div>
+              <div class="rankings-list-entry-item cover"></div>
+              <div class="rankings-list-entry-item title">Artist Name</div>
+              <div class="rankings-list-entry-item views">Views</div>
+            </div>
+              
+            {{#each data}}
+
+              <div class="rankings-list-entry">
+                <div class="rankings-list-entry-item rank">
+                  <div class="text bold">{{inc @index (inc 5 ../filterParams.StartAt)}}</div>
+                </div>
+                  
+                <div class="rankings-list-entry-item cover {{../type}}" style='background-image:url("{{data.thumbnails.medium}}")'></div>
+
+                <div class="rankings-list-entry-item title">
+                  <a href="/rankings/filter/add?{{../type}}={{data.artistId}}">{{data.names.preferred}}</a>
+                </div>
+                <div class="rankings-list-entry-item views">{{longFormat views}}</div>
+              </div> 
+
+            {{/each}}
+          </div>
+        {{/each}}
+
       </div>
-      
-      
-    
     </div>

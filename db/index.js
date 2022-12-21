@@ -67,11 +67,13 @@ const songsProxy = {
         return new Promise((resolve, reject) => {
             try {
                 // build toUpdate string
+                const db = databases.songsViews
+
                 var setString = ""
                 {
                     const length = toUpdate.length
                     for (const [n, value] of toUpdate.entries()) {
-                        setString += value + (n == length - 1 ? "" : ", ")
+                        setString += `${value} = ?${n == length - 1 ? "" : ", "}`
                     }
                 }
 

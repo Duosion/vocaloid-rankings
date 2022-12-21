@@ -492,7 +492,7 @@ const populateArtists = () => {
       try {
           const jsonStringify = JSON.stringify
 
-          const songs = db.prepare('SELECT * FROM songsData').all()
+          const songs = await database.songs.getSongs()
           const length = songs.length - 1
           for (const [n, songData] of songs.entries()) {
               const songId = songData.songId
@@ -501,8 +501,8 @@ const populateArtists = () => {
               // get song data from scraper
               await scraper.scrapeVocaDB(Number(songId)).then(async newSongData => {
                 await database.songs.updateSong(songId, ["singers", "producers"], [
-                  jsonStringify(await addArtistsFromIds(scraper, newSongData.singers)),
-                  jsonStringify(await addArtistsFromIds(scraper, newSongData.producers))
+                  jsonStringify(await addArtistsFromIds(newSongData.singers)),
+                  jsonStringify(await addArtistsFromIds(newSongData.producers))
                 ])
               }).catch(error => console.error(`Error when trying to get data from song with id "${songId}" Error: ${error}`))
           }
