@@ -251,11 +251,6 @@ const { addSongFromScraperData } = require(customModuleDirectory + "database")
     updateSongsDataSafe()
   })
 
-  // populate artists
-  databaseProxy.populateArtists()
-
-  //database.artists.populateArtists(scraper)
-
 // redirect
 fastify.get("/", async function (request, reply) {
   reply.redirect("/rankings")
