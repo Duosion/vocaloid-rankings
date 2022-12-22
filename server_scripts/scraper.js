@@ -722,10 +722,10 @@ const niconicoThumbnailRegExp = /&quot;thumbnail&quot;:{&quot;url&quot;:&quot;([
                 console.log(`[${songType}]`, n+1, "out of", URLs.length)
 
                 if (viewData.total > 0) {
-                  returnData.push(
-                    songData = songData,
-                    viewData = viewData
-                  )
+                  returnData.push({
+                    songData: songData,
+                    viewData: viewData
+                  })
                 }
                 
                 excludeIDs[songID] = true
