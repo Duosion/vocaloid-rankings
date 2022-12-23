@@ -65,8 +65,8 @@ const apiResponse = (reply, body) => {
 // api endpoints
 const song = async (request, reply) => {
   
-  const songName = request.params.songName
-  if (!songName) { apiError(reply, 404, "Invalid song name provided."); return; }
+  const songName = request.params.songId
+  if (!songName) { apiError(reply, 404, "Invalid song id provided."); return; }
 
     // check for cache
     const cachedData = apiSongsCache.get(songName)
@@ -150,7 +150,7 @@ const routes = [
   {
     route: "/historical",
     handler: historical,
-    authenticate: true
+    //authenticate: true
   },
   {
     route: "/updating",
