@@ -251,6 +251,8 @@ const { addSongFromScraperData } = require(customModuleDirectory + "database")
     updateSongsDataSafe()
   })
 
+databaseProxy.repairSongThumbnails()
+
 // redirect
 fastify.get("/", async function (request, reply) {
   reply.redirect("/rankings")

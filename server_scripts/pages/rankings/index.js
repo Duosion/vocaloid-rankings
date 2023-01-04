@@ -208,10 +208,10 @@ const getYearReviewTopSongsByType = (defaultFilterParams, options) => {
   })
 }
 
-const getTopArtists = (rankingsData, locale) => {
+const getTopArtists = (rankingsData, UID) => {
   return new Promise(async (resolve, reject) => {
     try {
-      const cacheKey = "topArtists" + locale
+      const cacheKey = "topArtists" + UID
       {
         // check for cache
         const cachedData = highlightsCache.get(cacheKey)
@@ -392,6 +392,11 @@ const getAddFilter = async (request, reply) => {
     reply.redirect("/rankings?" + encodeURI(newQuery))
 }
 
+const getCurrentYearReview = async(request, reply) => {
+  const year = new Date().getFullYear()
+  reply.redirect(`${exports.prefix}/year-review/${year}`)
+}
+
 const getYearReview = async (request, reply) => {
   const parsedCookies = request.parsedCookies || {}
   const params = { 
@@ -403,7 +408,7 @@ const getYearReview = async (request, reply) => {
   const locale = (request.headers["accept-language"] || "").split(",")[0]
   
   // get date
-  const year = 2022
+  const year = request.params.year
   params.year = year
   
   // construct filter params
@@ -439,7 +444,7 @@ const getYearReview = async (request, reply) => {
 
   // get top singers
   {
-    const topArtists = await getTopArtists(databaseQueryData, filterParams.Language)
+    const topArtists = await getTopArtists(databaseQueryData, filterParams.Language + year)
     const singers = topArtists.singers
     const producers = topArtists.producers
     params.topArtists = [
@@ -493,7 +498,7 @@ const getYearReviewFull = async (request, reply) => {
   const locale = (request.headers["accept-language"] || "").split(",")[0]
   
   // get date
-  const year = 2022
+  const year = request.params.year
   params.year = year
   
   // construct filter params
@@ -696,7 +701,7 @@ const getRankings = async (request, reply) => {
       params.viewTypes = paramsViewTypesData
       
     // The Handlebars code will be able to access the parameter values and build them into the page
-    return reply.view("pages/rankings_new.hbs", params);
+    return reply.view("pages/rankings.hbs", params);
   }
 
 exports.prefix = "/rankings"
@@ -725,18 +730,18 @@ exports.register = (fastify, options, done) => {
     fastify.get("/filter/remove-all", getRemoveAllFilters)
 
     // year review endpoints
-    fastify.get("/year-review", {
+    fastify.get("/year-review/:year", {
       config: {
         analyticsEvent: "page_visit",
         analyticsParams: {'page_name': "rankings/year-review"}
       }
     }, getYearReview)
-    fastify.get("/year-review/full", {
+    fastify.get("/year-review/:year/full", {
       config: {
         analyticsEvent: "page_visit",
         analyticsParams: {'page_name': "rankings/year-review/full"}
       }
     }, getYearReviewFull)
-
+    fastify.get("/year-review", getCurrentYearReview)
     done();
 }

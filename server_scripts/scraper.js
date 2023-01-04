@@ -55,16 +55,10 @@ const vocaDBSongApiParams = "?fields=Artists,Names,PVs&lang=Default"
 const vocaDBArtistsApiUrl = vocaDBApiUrl + "artists/"
 const vocaDBArtistsApiParams = "?fields=Names,MainPicture"
 
-
 // reg expressions
 const vocaDbIDMatches = [
   /https:\/\/vocadb\.net\/S\/(\d+)/,
 ]
-
-const listEntryRegExp = /<a href="(.+)" class="category-page__member-link"/g
-
-const niconicoViewsRegExp = /&quot;view&quot;:(\d+),/i
-const niconicoThumbnailRegExp = /&quot;thumbnail&quot;:{&quot;url&quot;:&quot;([^,]+)&quot;/i ///&quot;middleUrl&quot;:([^,]+),/i
 
 // functions
 
@@ -92,7 +86,7 @@ const niconicoThumbnailRegExp = /&quot;thumbnail&quot;:{&quot;url&quot;:&quot;([
       
       Views: Number(views),
       
-      Thumbnail: thumbnailElement.getAttribute("content"),
+      Thumbnail: "https:" + thumbnailElement.getAttribute("content"),
       
     }
     
@@ -742,7 +736,7 @@ const niconicoThumbnailRegExp = /&quot;thumbnail&quot;:{&quot;url&quot;:&quot;([
       resolve(returnData)
     })
   }
-  
+
 exports.scrapeDomains = scrapeDomains
   
 exports.getVideoViewsAsync = getVideoViewsAsync

@@ -514,6 +514,30 @@ const populateArtists = () => {
   })
 }
 
+const repairSongThumbnails = () => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      console.log("Repairing song thumbnails...")
+
+      const songs = await database.songs.getSongs()
+      const length = songs.length
+
+      for (const [n, song] of songs.entries()) {
+        const songId = song.songId
+        const thumbnail = song.thumbnail
+        if (thumbnail.startsWith("//")) {
+          console.log(`[${n}/${length}] Repairing ${songId}...`)
+          await database.songs.updateSong(songId, ["thumbnail"], ["https:" + thumbnail])
+        }
+      }
+      console.log("Song thumbnails repaired.")
+      resolve()
+    } catch (error) {
+      reject(error)
+    }
+  })
+}
+
 // export variables
 exports.viewsDataSortingFunctions = viewsDataSortingFunctions
 
@@ -525,6 +549,7 @@ exports.filterRankings = filterRankingsSQL
 exports.filterRankingsWithChange = filterRankingsWithChange
 
 exports.addSongFromScraperData = addSongFromScraperData
+exports.repairSongThumbnails = repairSongThumbnails
 
 exports.getUpdating = getUpdating
 exports.setUpdating = setUpdating
