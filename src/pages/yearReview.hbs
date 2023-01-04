@@ -1,5 +1,5 @@
 <!DOCTYPE html> 
-  <link rel="stylesheet" href="../css/rankings_new.css">
+  <link rel="stylesheet" href="../css/rankings.css">
   <link rel="stylesheet" href="../css/year_review.css">
     <div class="list vertical"> 
       
@@ -28,19 +28,6 @@
             </a>
           </div>
         </div>
-        
-        <!--<div class="text sub-title section-title">Highlights</div>
-        <div id="highlights-list">
-          {{#each highlights}}
-            <div class="highlights-item">
-              <div class="thumbnail" style='background-image:url("{{thumbnail}}")'></div>
-              <div class="text">
-                <div class="highlights-item-title">{{title}}</div>
-                <div class="highlights-item-description">{{description}}</div>
-              </div>
-            </div>
-          {{/each}}
-        </div>-->
 
         <style>
           {{#each lists}} 
@@ -102,7 +89,7 @@
               <div class="artist-card">
                 <div class="artist-card-bg" style='background-image:url("{{data.thumbnails.medium}}")'></div>
                 <div class="artist-card-info">
-                  <a class="text bold" href="/rankings/filter/add?Singer={{data.artistId}}">{{data.names.preferred}}</a>
+                  <a class="text bold" href="/rankings/filter/add?{{../type}}={{data.artistId}}">{{data.names.preferred}}</a>
                   <div class="text">{{longFormat views}} Views</div>
                 </div>
                 <div class="artist-card-ranking text bold">#{{inc @index (inc 1 ../filterParams.StartAt)}}</div>
