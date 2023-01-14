@@ -13,11 +13,11 @@ html {
   
   --cubic-tween: cubic-bezier(.4,0,.6,1);
   
-  --font-family: "Roboto", "Kosugi Maru"
+  /*--font-family: "Roboto", "Kosugi Maru"*/
 
 }
 
-html.light-theme {
+/*html.light-theme {
 
   --body-color: rgb(240, 240, 240);
   --body-color-2: #ffffff;
@@ -84,7 +84,7 @@ html.dark-theme {
     --box-shadow: 0 2px 20px rgba(49,49,49,.09);
 
   }
-}
+}*/
 
 body {
   
@@ -96,7 +96,7 @@ body {
 
 #page-content {
   
-  margin: 15px 10px;
+  /*margin: 15px 10px;*/
     
   min-height: 100vh;
   
@@ -105,7 +105,7 @@ body {
 /* footer */
 #footer-main {
   
-  background-color: var(--hover-color);
+  background-color: var(--md-sys-color-surface-2);
   
   width: 100%;
   height: 100px;
@@ -123,30 +123,25 @@ body {
   
   justify-content: center;
   align-items: center;
+
+  gap: 0px 25px;
   
   margin: auto;
   
 }
 
-.footer-link-container > * {
-  margin-right: 25px;
-}
-
-.footer-link-container > *:last-child {
-  margin-right: 0px;
-}
 
 .footer-link {
   
   text-decoration: none;
-  
-  filter: opacity(0.8);
+
+  color: var(--md-sys-color-on-surface);
   
 }
 
 .footer-link:hover {
  
-  filter: none;
+  color: var(--md-sys-color-primary)
   
 }
 
@@ -196,13 +191,13 @@ body {
 
   }
 
-  .text.centered {
+  .text.centered, .text-centered {
       text-align: center;
   }
 
   .text.title,
   .text.rounded,
-  .text.bold {
+  .bold {
       font-weight: bold;
   }
 
@@ -275,11 +270,6 @@ body {
 /* buttons */
 button, a.button-link {
   
-  color: var(--text-color);
-  font-size: 1.1em;
-  font-weight: bold;
-  font-family: var(--font-family);
-  
   transition-property: filter, color, background-color;
   transition-duration: var(--transition-duration);
   
@@ -290,8 +280,8 @@ a.button-link.rounded-button {
   
   border: none;
   
-  background-color: var(--text-color);
-  color: var(--body-color-2);
+  background-color: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
   
   padding: 5px 5px;
   
@@ -332,7 +322,7 @@ button.selection-button.active, a.button-link.selection-button.active {
 
 button:hover:not(.active):not(.rounded-button), 
 a.button-link:hover:not(.active):not(.rounded-button) {
-  background-color: var(--hover-color);
+  background-color: var(--md-sys-color-surface-variant);
   cursor: pointer
   
 }
@@ -346,6 +336,8 @@ a.button-link:hover:not(.active):not(.rounded-button) {
     position: absolute;
     display: flex;
     
+    border-radius: 50px;
+
     height: 40px;
     width: 40px;
     
@@ -358,7 +350,7 @@ a.button-link:hover:not(.active):not(.rounded-button) {
     
     margin: auto;
     
-    color: var(--text-color);
+    color: var(--md-sys-color-on-surface);
     
     font-size: 1.8em
 
@@ -388,7 +380,7 @@ a.button-link:hover:not(.active):not(.rounded-button) {
   button.floating:hover,
   a.button-link.floating:hover {
 
-    background-color: initial !important;
+    background-color: var(--md-sys-color-surface-variant) !important;
 
   }
 
@@ -459,29 +451,31 @@ input.radio-tab + label {
   box-shadow: var(--box-shadow);
   padding: 4px 15px;
   box-sizing: border-box;
-  background-color: var(--body-color-2);
-  color: var(--text-color);
+  border: 1px solid var(--md-sys-color-outline);
+  color: var(--md-sys-color-on-surface);
   border-radius: 10px;
   transition-property: filter, color, background-color;
   transition-duration: var(--transition-duration);
 }
 
 input.radio-tab:checked + label {
-  background-color: var(--text-color);
-  color: var(--body-color-2);
+  border: 1px solid var(--md-sys-color-surface-variant);
+  background-color: var(--md-sys-color-surface-variant);
+  color: var(--md-sys-color-on-surface-variant);
 }
 
 input.radio-tab:not(:checked) + label:hover {
-  background-color: var(--hover-color);
+  background-color: var(--md-sys-color-surface-1);
   cursor: pointer;
 }
 
 input[type="url"] {
   
-  border: 1px solid var(--hover-color);
+  border: 1px solid var(--md-sys-color-outline);
+  background-color: transparent;
+  color: var(--md-sys-color-on-surface);
+
   border-radius: 10px;
-  
-  background-color: var(--body-color-2);
   
   padding: 10px 10px;
   
@@ -492,22 +486,22 @@ input[type="url"] {
 
 input.login-input[type="text"],
 input.login-input[type="password"] {
-  border: 1px solid var(--hover-color);
+  border: 1px solid var(--md-sys-color-outline);
+  background-color: transparent;
+  color: var(--md-sys-color-on-surface);
+
   border-radius: 10px;
-  background-color: var(--body-color-2);
   
   padding: 10px 10px;
   
   box-sizing: border-box;
-
-  color: var(--text-color);
   
   font-size: 1.2em;
 }
 
 /* details */
 details {
-  border: 1px solid var(--hover-color);
+  border: 1px solid var(--md-sys-color-outline);
   border-radius: 10px;
   list-style: outside;
 }
@@ -532,7 +526,7 @@ hr {
 
 hr.default {
   
-  color: var(--hover-color)
+  color: var(--md-sys-color-surface-1)
 
 }
 
@@ -544,7 +538,7 @@ hr.default {
   
   position: relative;
   
-  background-color: var(--body-color-2);
+  background-color: var(--md-sys-color-surface-1);
   border-radius: 10px;
   
   box-shadow: var(--box-shadow);
@@ -552,10 +546,10 @@ hr.default {
   margin: 50px auto auto auto;
 }
 
-.page-card-container .text.title,
-.page-card-container .text.sub-title {
+.page-card-container .title,
+.page-card-container .sub-title {
   text-align: center;
-  padding: 5px;
+  padding: 10px;
 }
 
 

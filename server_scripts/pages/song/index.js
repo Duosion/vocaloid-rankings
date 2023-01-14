@@ -76,7 +76,8 @@ const formatViewData = (viewDataRaw) => {
       
       formatted.share = viewAmount / total
       
-      formatted.color = typeData ? typeData.BarColor : "var(--text-color)"
+      formatted.color = typeData.BarColor
+      formatted.textColor = typeData.TextColor
       
       formatted.viewType = viewType
       
@@ -303,6 +304,78 @@ const getSong = async (request, reply) => {
     return reply.view("pages/song.hbs", params)
 }
 
+const getSongV2 = async (request, reply) => {
+  
+  const parsedCookies = request.parsedCookies || {}
+  
+  const params = { 
+    seo: request.seo,
+    cookies: parsedCookies
+  }
+  
+  // get song name
+  const songID = request.params.songID
+  if (!songID) { 
+    reply.send({
+      code: 400 ,
+      message: "Invalid parameters provided",
+    });
+    return;
+  }
+  
+  // parse locale
+  const locale = (request.headers["accept-language"] || "").split(",")[0]
+  
+  // construct queryData
+  const queryData = {
+    Locale: locale,
+    SongID: songID,
+    Language: parsedCookies.displayLanguage,
+  }
+  
+  // query database
+  const songData = await querySongsDatabaseAsync(queryData)
+  .catch(msg => {
+    reply.send({code: 404, message: msg})
+    return;                   
+  })
+  params.songData = songData
+
+  //construct viewdata table
+  const newVideoIDs = {}
+  for (let [viewType, videoID] of Object.entries(songData.videoIds) ) {
+    
+    const viewData = viewTypes[viewType]
+    if (!viewData || viewData == undefined) { continue; }
+
+    videoID = videoID[0]
+    
+    newVideoIDs[viewType] = {
+      
+      href: viewData.VideoURL.replace("{VideoID}", videoID), // generate URL
+      
+      ...viewData
+      
+    }
+    
+  }
+  params.videoIDs = newVideoIDs
+  
+  //get historical data
+  {
+    const historicalData = await getHistoricalDataAsync({SongId: songID})
+    
+    params.historicalData = historicalData
+  }
+  
+  // set page title
+  params.pageTitle = songData.names.preferred
+
+  // update analytics
+  request.routeConfig.analyticsParams['page_name'] = songID
+  return reply.view("pages/songV2.hbs", params)
+}
+
 exports.prefix = "/song"
 
 exports.register = (fastify, options, done) => {
@@ -313,6 +386,12 @@ exports.register = (fastify, options, done) => {
     },
   },getSong)
   fastify.get("/add", addSongRoute)
+  fastify.get("/v2/:songID",{
+    config: {
+      analyticsEvent: "page_visit",
+      analyticsParams: {'page_name': ""}
+    },
+  }, getSongV2)
 
   done();
 }

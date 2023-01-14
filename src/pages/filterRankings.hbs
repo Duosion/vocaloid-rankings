@@ -4,18 +4,18 @@
   
   {{> back-button}}
   
-  <div class="text title">Filter</div>
+  <div class="headline-medium on-surface-text title">Filter</div>
   
   <form id="filter-form" action="/rankings/filter/add" method="get" target="_self" class="filter-content list vertical">
     {{#each filterOptions}}
       <div class="form-section list">
 
-        <div class="text bold">{{DisplayName}}</div>
+        <div class="title-medium-large on-surface-text">{{DisplayName}}</div>
 
-        <div class="form-radio-container">
+        <div class="form-radio-container title-medium-large">
           {{#each Values}}
             <input type="radio" id="{{@key}}" name="{{@../key}}" value="{{@key}}" {{#if (get ../../filterDefaults @key)}}checked{{/if}}>
-            <label class="text" for="{{@key}}">{{DisplayName}}</label>
+            <label for="{{@key}}">{{DisplayName}}</label>
           {{/each}}
         </div>
 
@@ -23,8 +23,8 @@
     {{/each}}
     
     <div class="form-section">
-      <div class="text bold">Date</div>
-      <input class="text" type="date" id="Date" name="Date" value="{{defaultDate}}" min="{{minimumDate}}" max="{{maximumDate}}">
+      <div class="title-medium-large on-surface-text">Date</div>
+      <input class="title-medium-large on-surface-text" type="date" id="Date" name="Date" value="{{defaultDate}}" min="{{minimumDate}}" max="{{maximumDate}}">
     </div>
     
     {{> default-hr}}

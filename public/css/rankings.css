@@ -11,14 +11,18 @@
 
 #rankings-list, .rankings-list, .top-controls-button, .applied-filter {
   
-  background-color: var(--body-color-2);
-  
+  background-color: var(--md-sys-color-surface-1);
+
+  color: var(--md-sys-color-on-surface);
+
   box-shadow: var(--box-shadow)
   
 }
 
 .top-controls-button, .applied-filter {
   
+  color: var(--md-sys-color-on-surface);
+
   border-radius: 50px;
   
 }
@@ -45,7 +49,7 @@
 
 #rankings-list > *:nth-child(odd):not(.rankings-list-header), .rankings-list > *:nth-child(odd):not(.rankings-list-header) {
   
-  background: var(--odd-element-color)
+  background: var(--md-sys-color-surface-1)
   
 }
 
@@ -82,13 +86,7 @@
 .rankings-list-entry-item {
   
   padding: 15px;
-  color: var(--text-color);
   text-align: center;
-  
-  font-size: 1.1em;
-  font-family: var(--font-family);
-  color: var(--text-color);
-  
   
 }
 
@@ -114,8 +112,8 @@
   width: 80%;
   margin: auto;
   
-  background-color: var(--text-color);
-  color: var(--bg-color);
+  background-color: var(--md-sys-color-on-surface);
+  color: var(--md-sys-color-surface);
   border-radius: 50%;
   display: flex;
   
@@ -155,22 +153,14 @@
   background-size: auto 60px;
   background-position: center;
   
-  border: 1px solid var(--hover-color);
+  border: 1px solid var(--md-sys-color-surface-1)
   
 }
 
-.rank > .text {
-  
-  height: 100%;
-  
+.rank {
   display: flex;
   justify-content: center;
   align-items: center;
-  
-  background: none;
-  
-  color: var(--text-color);
-  
 }
 
 .title {
@@ -242,11 +232,13 @@
   min-width: 40px;
   width: fit-content;
   height: 100%;
+
+  gap: 5px;
+
+  color: var(--md-sys-color-on-surface);
   
   justify-content: center;
   align-items: center;
-  
-  font-size: 1.2em !important;
   
 }
 
@@ -256,8 +248,8 @@
 
 .top-controls-button .material-icons {
   
-  color: inherit;
-  font-size: 1.4em;
+  color: inherit !important;
+  font-size: 1.3em;
     
 }
 
@@ -267,13 +259,12 @@
   
   margin: 0px 5px;
   
-  color: inherit;
+  color: inherit !important;
   
 }
 
 /* rankings refresh display */
 #rankings-refresh-label {
-  color: var(--text-color);
   box-shadow: none;
   position: relative;
   overflow: clip;
@@ -286,7 +277,6 @@
 #rankings-refresh-label-background {
   position: absolute;
   height: 100%;
-  background-color: var(--hover-color);
   left: 0;
   transition-duration: var(--transition-duration);
   transition-property: width;
@@ -347,7 +337,7 @@
 }
 
 #page-selector-container .material-symbols-rounded {
-  color: var(--text-color);
+  color: var(--md-sys-color-on-background);
 }
 
 #page-selector-container > * {
@@ -366,8 +356,9 @@
   justify-content: center;
   align-items: center;
   
-  border-radius: 50px;
+  color: var(--md-sys-color-on-background);
   
+  border-radius: 50px;
 }
 
 .page-change-button .material-symbols-rounded {
@@ -375,10 +366,6 @@
   color: inherit;
   font-size: 1.6em;
     
-}
-
-.page-change-button:hover {
-  background: var(--hover-color)
 }
 
 .page-jump-button {
@@ -391,9 +378,9 @@
   align-items: center;
   
   border-radius: 50px;
-  background: var(--body-color-2);
+  background: var(--md-sys-color-surface-1);
   
-  color: var(--text-color);
+  color: var(--md-sys-color-on-surface);
   
 }
 
@@ -403,8 +390,8 @@
 
 .page-jump-button.active {
   
-  background: var(--text-color);
-  color: var(--body-color-2)
+  background: var(--md-sys-color-on-background);
+  color: var(--md-sys-color-background)
   
 }
 
@@ -432,7 +419,7 @@
 
 /* misc */
 #page-title {
-  margin-bottom: 5px;
+  margin: 10px 0px 5px 0px;
 }
 
 #midpage {

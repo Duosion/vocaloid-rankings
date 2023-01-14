@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <link rel="stylesheet" href="/css/about.css">
-<div class="page-card-container">
+<div class="page-card-container on-surface-text">
   
   {{> back-button}}
   
-  <div class="main-title text title">About</div>
+  <div class="headline-medium title">About</div>
   
   <div class="about-content">
     {{> default-hr}}    
-    <div class="text sub-title bold">Data</div>
-    <div class="text">
+    <div class="title-large title">Data</div>
+    <div class="title-medium-large">
       All song data for this website is provided by <a href="https://vocadb.net">VocaDB</a>.
     </div>
-    <div class="text">
+    <div class="title-medium-large">
       View data is acquired from the APIs provided by
       <a href=https://www.youtube.com>YouTube</a>,
       <a href="https://www.nicovideo.jp">Niconico</a>, and
@@ -21,24 +21,24 @@
 
     {{> default-hr}}
 
-    <div class="text sub-title bold">Song IDs</div>
-    <div class="text">
+    <div class="title-large title">Song IDs</div>
+    <div class="title-medium-large">
       Songs on this site use the same IDs as VocaDB songs, so for example:
     </div>
-    <div class="text">
+    <div class="title-medium-large">
       Traffic Jam on VocaDB uses the URL <a href="https://vocadb.net/S/251205">https://vocadb.net/S/251205</a>.
     </div>
-    <div class="text">
+    <div class="title-medium-large">
       Here, Traffic Jam uses the URL <a href="https://vocaloid-rankings.glitch.me/song/251205">https://vocaloid-rankings.glitch.me/song/251205</a>.
     </div>
-    <div class="text bold">
+    <div class="title-medium-large bold">
       Both use the ID "251205".
     </div>
 
     {{> default-hr}}
 
-    <div class="text sub-title bold">Updates</div>
-    <div class="text">
+    <div class="title-large title">Updates</div>
+    <div class="title-medium-large">
       View data is refreshed every day at <b>0:00 UTC</b>.
     </div>
 
@@ -48,9 +48,9 @@
       {{#each scrapeDomains}}
 
       <details>
-        <summary class="text sub-title bold">{{@key}} Dataset</summary>
+        <summary class="title-medium-large">{{@key}} Dataset</summary>
         {{#each ListURLs}}
-          <div class="text">
+          <div class="title-medium-large">
             <a class="dataset-entry" href="{{../Domain}}{{this}}">{{this}}</a>
           </div>
         {{/each}}

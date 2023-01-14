@@ -28,9 +28,9 @@
 
 input[type="date"] {
   border-radius: 10px;
-  border: 1px solid var(--hover-color);
+  border: 1px solid var(--md-sys-color-outline);
   padding: 4px 15px;
-  background-color: var(--body-color-2);
+  background-color: transparent;
 }
 
 input[type="radio"] {
@@ -39,13 +39,12 @@ input[type="radio"] {
 
 input[type="radio"] + label {
   
-  border: 1px solid var(--hover-color);
+  border: 1px solid var(--md-sys-color-outline);
   padding: 4px 15px;
   
   box-sizing: border-box;
   
-  background-color: var(--body-color-2);
-  color: var(--text-color);
+  color: var(--md-sys-color-on-surface);
   border-radius: 10px;
   
   transition-property: filter, color, background-color;
@@ -55,15 +54,16 @@ input[type="radio"] + label {
 
 input[type="radio"]:not(:checked) + label:hover {
   
-  background-color: var(--hover-color);
+  background-color: var(--md-sys-color-surface-1);
   cursor: pointer;
   
 }
 
 input[type="radio"]:checked + label {
-  
-  background-color: var(--text-color);
-  color: var(--body-color-2);
+
+  border: 1px solid var(--md-sys-color-surface-variant);
+  background-color: var(--md-sys-color-surface-variant);
+  color: var(--md-sys-color-on-surface-variant);
   
 }
 

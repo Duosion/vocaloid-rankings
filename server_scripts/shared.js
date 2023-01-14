@@ -18,8 +18,8 @@ exports.viewTypes = {
       DisplayName: "Niconico",
       VideoURL: "https://www.nicovideo.jp/watch/{VideoID}",
       Color: "#ffffff",
-      BarColor: "var(--text-color)",
-      TextColor: "#222222",
+      BarColor: "var(--md-sys-color-on-surface)",
+      TextColor: "var(--md-sys-color-surface)",
       Image: "https://cdn.glitch.global/92582474-1f68-4591-baa3-ef9e11ee2d8a/Niconico_Official_Logo.png?v=1656914685484"
     },
     "bilibili": {

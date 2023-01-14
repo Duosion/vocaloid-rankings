@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<link rel="stylesheet" href="/css/songV2.css">
+
+<div id="song-info-header-backsplash">
+  <img src="{{songData.thumbnail}}">
+</div>
+<div id="song-info-header" class="on-surface-text">
+  <div id="song-info-header-content">
+    <img class="song-info-cover" src="{{songData.thumbnail}}">
+    <div class="display-small title text-centered">{{songData.names.preferred}}</div>
+    <div class="headline-small bold text-centered">{{longFormat songData.views.total.value}} Views</div>
+  </div>
+</div>
+<div id="song-info-container">
+  
+  <div id="song-info-sidebar">
+
+    {{!<div class="clickable-sidebar-card body-medium on-surface-text text-centered">
+      #0 Most Viewed All Time
+    </div>}}
+    
+    <div class="sidebar-card body-medium on-surface-text">
+      <div class="sidebar-card-dataset">
+        <div class="title">Release Date</div>
+        <div class="value">{{timestampToDateString songData.publishDate}}</div>
+      </div>
+      <div class="sidebar-card-dataset">
+        <div class="title">Addition Date</div>
+        <div class="value">{{timestampToDateString songData.additionDate}}</div>
+      </div>
+      <div class="sidebar-card-dataset">
+        <div class="title">Song Type</div>
+        <a class="value" href="../rankings/filter/add?SongType={{songData.songType}}">{{songData.songType}}</a>
+      </div>
+      {{#each songData.names}}
+        {{#if (notcomp @key "preferred")}}
+          <div class="sidebar-card-dataset">
+            <div class="title">{{@key}}</div>
+            <div class="value">{{this}}</div>
+          </div>
+        {{/if}}
+      {{/each}}
+    </div>
+
+    <a id="outgoing-vocadb-link" class="clickable-sidebar-card body-medium on-surface-text text-centered" href="/outgoing?url=https://vocadb.net/S/{{songData.songId}}">
+      <img src="/images/voca-db-icon.png">
+      VocaDB
+    </a>
+
+  </div>
+
+  <div id="song-info-content">
+      {{!singers}}
+      <div id="singers">
+        <div class="body-large bold on-background-text section-title">Singers</div>
+        <div class="content-flex-wrap">
+          {{#each songData.singers}}
+            <a class="clickable-content-card" href="/rankings/filter/add?Singer={{artistId}}">
+              <img class="cover" src="{{thumbnails.medium}}">
+              <div class="card-content">
+                <div class="body-large clickable-content-card-highlight">{{names.preferred}}</div>
+                <div class="body-medium">{{artistType}}</div>
+              </div>
+            </a>
+          {{/each}}
+        </div>
+      </div>
+      {{!producers}}
+      <div id="producers">
+        <div class="body-large bold on-background-text section-title">Producers</div>
+        <div class="content-flex-wrap">
+          {{#each songData.producers}}
+            <a class="clickable-content-card" href="/rankings/filter/add?Producer={{artistId}}">
+              <img class="cover" src="{{thumbnails.medium}}">
+              <div class="card-content">
+                <div class="body-large clickable-content-card-highlight">{{names.preferred}}</div>
+                <div class="body-medium">{{artistType}}</div>
+              </div>
+            </a>
+          {{/each}}
+        </div>
+      </div>
+      {{!stats}}
+      <div class="content-flex-wrap">
+        <div class="flex-grow">
+          <div class="body-large bold on-background-text section-title">Views Breakdown</div>
+          <div id="views-breakdown" class="content-section">
+            <div class="content">
+              {{#each songData.views.breakdown}}
+                <div class="section">
+                  <div class="label body-medium" style="background-color:{{color}};color:{{textColor}}">{{viewType}}</div>
+                  <div class="body-medium" title="{{longFormat value}}">
+                    <span style="color:{{color}}">{{shortFormat value}}</span> Views
+                    </div>
+                </div>
+              {{/each}}
+            </div>
+            <div class="share-container">
+              <div class="share-bar">
+                {{#each songData.views.breakdown}}
+                  <div class="share" style="background-color:{{color}};flex:{{share}}"></div>
+                {{/each}}
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="flex-grow">
+          <div class="body-large bold on-background-text section-title">Daily Views</div>
+          <div id="daily-views" class="content-section">
+            <div class="views-bar-graph">
+              {{#each historicalData}}
+              
+                <div class="views-bar-graph-entry body-medium">
+                  <div class="share" style="flex:{{share}}"></div>
+                  <div class="count bold" title="{{longFormat total}}">{{shortFormat total}}</div>
+                  <div class="date">{{dateString}}</div>
+                </div>
+              
+              {{/each}}
+            </div>
+          </div>
+        </div>
+        
+      </div>
+  </div>
+  
+</div>

@@ -2,8 +2,8 @@
   <link rel="stylesheet" href="/css/rankings.css">
     <div class="list vertical"> 
       
-      <div id="page-title" class="text title centered">{{year}} in Review</div>
-      <div class="text centered">The top Vocaloid songs released in {{year}}.</div>
+      <div id="page-title" class="display-small on-background-text text-centered">{{year}} in Review</div>
+      <div class="title-medium-large on-background-text text-centered">The top Vocaloid songs released in {{year}}.</div>
       
       <div id="midpage" class="centering-flex">
         
@@ -15,12 +15,7 @@
               </a>
             </div>
             {{#if databaseUpdating}}      
-              <div id="rankings-refresh-label" class="top-controls-button" title="Rankings Refreshing">
-                <div id="rankings-refresh-label-background" style="width:{{percent databaseUpdating.progress}}"></div>
-                <span class="material-symbols-rounded noselect">autorenew</span>
-                <div id="rankings-refresh-label-progress" class="text bold">{{percent databaseUpdating.progress}}</div>
-              </div>
-              <script src="../js/rankings_refresh.js" defer></script>
+              {{> rankings-refresh-label}}
             {{/if}}
             <a class="top-controls-button button-link" href="/settings" title="Settings">
               <span class="material-symbols-rounded">settings</span>
@@ -30,7 +25,7 @@
 
         <div id="rankings-list">
           
-          <div class="rankings-list-header">
+          <div class="rankings-list-header title-medium-large">
             <div class="rankings-list-entry-item rank"></div>
             <div class="rankings-list-entry-item cover"></div>
             <div class="rankings-list-entry-item title">Song Name</div>
@@ -39,10 +34,10 @@
           
           {{#each list}}
 
-            <div class="rankings-list-entry">
+            <div class="rankings-list-entry title-medium-large">
               
-              <div class="rankings-list-entry-item rank">
-                <div class="text bold">{{inc @index (inc 1 ../filterParams.StartAt)}}</div>
+              <div class="rankings-list-entry-item title-large rank">
+                {{inc @index (inc 1 ../filterParams.StartAt)}}
               </div>
               
               <div class="rankings-list-entry-item cover" style='background-image:url("{{thumbnail}}")'></div>
@@ -78,19 +73,19 @@
           {{/if}}
           {{#if firstPage}}
             <a class="page-jump-button button-link" href="{{firstPage}}">
-              <div class="text bold">1</div>
+              <div class="title-medium-large">1</div>
             </a>
             <span class="material-symbols-rounded">more_horiz</span>
           {{/if}}
           {{#each surroundingPages}}
             <a class="page-jump-button button-link {{#if (comp @index ../currentPageNumber)}}active{{/if}}" href="{{this}}">
-              <div class="text bold">{{inc @index 1}}</div>
+              <div class="title-medium-large">{{inc @index 1}}</div>
             </a>
           {{/each}}
           {{#if lastPage}}
             <span class="material-symbols-rounded">more_horiz</span>
             <a class="page-jump-button button-link" href="{{lastPage}}">
-              <div class="text bold">{{lastPageNumber}}</div>
+              <div class="title-medium-large">{{lastPageNumber}}</div>
             </a>
           {{/if}}
           {{#if nextPage}}
@@ -102,6 +97,4 @@
 
       </div>
       
-      
-    
     </div>

@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <link rel="stylesheet" href="/css/login.css">
-<div class="page-card-container">
+<div class="page-card-container on-surface-text">
   
   {{> back-button}}
   
-  <div class="main-title text title filter-title">Login</div>
+  <div class="headline-medium title">Login</div>
   
   
 
@@ -12,7 +12,7 @@
     <input type="text" class="login-input" id="username" name="username" placeholder="Username" spellcheck="false" required>
     <input type="password" class="login-input" id="password" name="password" placeholder="Password" required>
     {{#if errorMessage}}
-      <div class="text sub error">{{errorMessage}}</div>
+      <div class="title-medium-large error-text">{{errorMessage}}</div>
     {{/if}}
     <div class="login-container">
       <button class="rounded-button">Login</button>

@@ -114,7 +114,7 @@
 
 .artist-card {
     aspect-ratio: 1/1;
-    background-color: var(--body-color-2);
+    background-color: var(--md-sys-color-surface-1);
     border-radius: 10px;
     box-shadow: var(--box-shadow);
     box-sizing: border-box;
@@ -152,12 +152,13 @@
 }
 
 .artist-card-info a {
-    text-decoration: none;   
+    text-decoration: none;
+    color: #ffffff;
 }
 
-.artist-card-info .text {
+.artist-card-info {
     text-align: center;
-    color: #ffffff
+    color: #ffffff;
 }
 
 .artist-card-ranking {
@@ -167,10 +168,10 @@
     width: 40px;
     height: 40px;
     border-radius: 10px;
-    background-color: var(--text-color);
-    color: var(--bg-color);
+    background-color: var(--md-sys-color-secondary);
+    color: var(--md-sys-color-on-secondary);
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 20px #00000047;
+    /*box-shadow: 0 2px 20px #00000047*/;
 }
