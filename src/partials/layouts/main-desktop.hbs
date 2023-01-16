@@ -1,4 +1,4 @@
-<html lang="en" class="{{cookies.theme}}">
+<html lang="en">
   <head>
     
     <meta charset="utf-8" />
@@ -26,6 +26,13 @@
     {{! Stylesheet stuff. }}
     <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="/css/material_theme/theme.css">
+    {{#if (comp cookies.theme "light-theme")}}
+      <link rel="stylesheet" href="/css/material_theme/theme.light.css">
+    {{else if (comp cookies.theme "dark-theme")}}
+      <link rel="stylesheet" href="/css/material_theme/theme.dark.css">
+    {{else}}
+      <link rel="stylesheet" href="/css/material_theme/theme.dynamic.css">
+    {{/if}}
     <link href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&family=Roboto&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />

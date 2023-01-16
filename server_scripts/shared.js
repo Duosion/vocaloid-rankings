@@ -12,7 +12,7 @@ exports.viewTypes = {
       Color: "#ff0000",
       BarColor: "#ff0000",
       TextColor: "#ffffff",
-      Image: "https://cdn.glitch.global/92582474-1f68-4591-baa3-ef9e11ee2d8a/yt_logo_mono_dark.png?v=1656913418639"
+      Image: "/images/yt_icon.png"
     },
     "Niconico": {
       DisplayName: "Niconico",
@@ -20,7 +20,7 @@ exports.viewTypes = {
       Color: "#ffffff",
       BarColor: "var(--md-sys-color-on-surface)",
       TextColor: "var(--md-sys-color-surface)",
-      Image: "https://cdn.glitch.global/92582474-1f68-4591-baa3-ef9e11ee2d8a/Niconico_Official_Logo.png?v=1656914685484"
+      Image: "/images/nico_icon.png"
     },
     "bilibili": {
       DisplayName: "bilibili",
@@ -28,7 +28,7 @@ exports.viewTypes = {
       Color: "#079fd2",
       BarColor: "#079fd2",
       TextColor: "#ffffff",
-      Image: "https://cdn.glitch.global/92582474-1f68-4591-baa3-ef9e11ee2d8a/bilibili.png?v=1657493806489"
+      Image: "/images/bili_icon.png"
     }
   }
 

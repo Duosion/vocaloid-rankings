@@ -5,6 +5,8 @@ const scraper = require(modulePath + "/scraper")
 const database = require(workingDirectory + "/db")
 const databaseProxy = require(modulePath + "/database")
 
+const { getAverageColor } = require("fast-average-color-node")
+const { argbFromHex, themeFromSourceColor, applyTheme, hexFromArgb, redFromArgb, greenFromArgb, blueFromArgb } = require("@importantimport/material-color-utilities");
 const { generateTimestamp, getHasherAsync, viewTypes, caches } = require(modulePath + "/shared")
 const { getPreferredLanguageName } = require(modulePath + "/locale")
 
@@ -190,6 +192,39 @@ const getHistoricalDataAsync = (queryData) => {
     })
 }
 
+const getCustomThemeStylesheet = (theme, suffix = "", key = "") => {
+
+  const cacheKey = `${key}${suffix}`
+  {
+    const cached = songsDataCache.get(cacheKey)
+    if (cached) {
+      return cached.getData()
+    }
+  }
+
+  const lines = []
+
+  for (const [key, argb] of Object.entries(theme)) {
+    const token = key.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
+    const color = hexFromArgb(argb);
+    lines.push(`--md-sys-color-${token}-${suffix}: ${color} !important;`)
+  }
+
+  // add primary rgb values
+  const primary = theme['primary']
+  if (primary) {
+    const red = redFromArgb(primary)
+    const green = greenFromArgb(primary)
+    const blue = blueFromArgb(primary)
+    lines.push(`--md-sys-color-primary-${suffix}-rgb: ${red} ${green} ${blue};`)
+  }
+
+  songsDataCache.set(cacheKey, lines)
+
+  return lines
+
+}
+
 // route functions
 const addSongRoute = async (request, reply) => {
     const parsedCookies = request.parsedCookies
@@ -233,79 +268,6 @@ const addSongRoute = async (request, reply) => {
 // song page
 const getSong = async (request, reply) => {
   
-    const parsedCookies = request.parsedCookies || {}
-    
-    const params = { 
-      seo: request.seo,
-      cookies: parsedCookies
-    }
-    
-    // get song name
-    const songID = request.params.songID
-    if (!songID) { 
-      reply.send({
-        code: 400 ,
-        message: "Invalid parameters provided",
-      });
-      return;
-    }
-    
-    // parse locale
-    const locale = (request.headers["accept-language"] || "").split(",")[0]
-    
-    // construct queryData
-    const queryData = {
-      Locale: locale,
-      SongID: songID,
-      Language: parsedCookies.displayLanguage,
-    }
-    
-    // query database
-    const songData = await querySongsDatabaseAsync(queryData)
-    .catch(msg => {
-      reply.send({code: 404, message: msg})
-      return;                   
-    })
-    params.songData = songData
-
-    //construct viewdata table
-    const newVideoIDs = {}
-    for (let [viewType, videoID] of Object.entries(songData.videoIds) ) {
-      
-      const viewData = viewTypes[viewType]
-      if (!viewData || viewData == undefined) { continue; }
-
-      videoID = videoID[0]
-      
-      newVideoIDs[viewType] = {
-        
-        href: viewData.VideoURL.replace("{VideoID}", videoID), // generate URL
-        
-        ...viewData
-        
-      }
-      
-    }
-    params.videoIDs = newVideoIDs
-    
-    //get historical data
-    {
-      const historicalData = await getHistoricalDataAsync({SongId: songID})
-      
-      params.historicalData = historicalData
-      
-    }
-    
-    // set page title
-    params.pageTitle = songData.names.Original
-    // update analytics
-    request.routeConfig.analyticsParams['page_name'] = songID
-    
-    return reply.view("pages/song.hbs", params)
-}
-
-const getSongV2 = async (request, reply) => {
-  
   const parsedCookies = request.parsedCookies || {}
   
   const params = { 
@@ -343,16 +305,24 @@ const getSongV2 = async (request, reply) => {
 
   //construct viewdata table
   const newVideoIDs = {}
-  for (let [viewType, videoID] of Object.entries(songData.videoIds) ) {
+  for (let [viewType, videoIDs] of Object.entries(songData.videoIds) ) {
     
     const viewData = viewTypes[viewType]
     if (!viewData || viewData == undefined) { continue; }
 
-    videoID = videoID[0]
+    const videoID = videoIDs[0]
+
+    const hrefs = []
+    const videoURL = viewData.VideoURL
+
+    videoIDs.forEach( id => {
+      hrefs.push(videoURL.replace("{VideoID}", id))
+    })
     
     newVideoIDs[viewType] = {
       
-      href: viewData.VideoURL.replace("{VideoID}", videoID), // generate URL
+      ids: videoIDs,
+      hrefs: hrefs,
       
       ...viewData
       
@@ -360,6 +330,15 @@ const getSongV2 = async (request, reply) => {
     
   }
   params.videoIDs = newVideoIDs
+
+  //add youtube player
+  {
+    const youtubeId = newVideoIDs["YouTube"]
+    if (youtubeId) {
+      params.youtubePlayerId = youtubeId.ids[0]
+    }
+  }
+  
   
   //get historical data
   {
@@ -371,9 +350,26 @@ const getSongV2 = async (request, reply) => {
   // set page title
   params.pageTitle = songData.names.preferred
 
+  // load page theme
+  {
+    const averageColor = await getAverageColor(songData.thumbnail)
+    // Get the theme from a hex color
+    const theme = themeFromSourceColor(argbFromHex(averageColor.hex), [
+      {
+        name: "custom-1",
+        value: argbFromHex("#ff0000"),
+        blend: true,
+      },
+    ]);
+
+    // Print out the theme as JSON
+    const schemes = theme.schemes
+    params.customTheme = getCustomThemeStylesheet(schemes.light.props, "light", songID).join('') + getCustomThemeStylesheet(schemes.dark.props, "dark", songID).join('')
+  }
+
   // update analytics
   request.routeConfig.analyticsParams['page_name'] = songID
-  return reply.view("pages/songV2.hbs", params)
+  return reply.view("pages/song.hbs", params)
 }
 
 exports.prefix = "/song"
@@ -386,12 +382,6 @@ exports.register = (fastify, options, done) => {
     },
   },getSong)
   fastify.get("/add", addSongRoute)
-  fastify.get("/v2/:songID",{
-    config: {
-      analyticsEvent: "page_visit",
-      analyticsParams: {'page_name': ""}
-    },
-  }, getSongV2)
 
   done();
 }
