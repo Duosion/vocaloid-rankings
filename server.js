@@ -133,7 +133,7 @@ const { addSongFromScraperData } = require(customModuleDirectory + "database")
 
 
 // update songs data function
-  const maxSongRefreshPromises = 15
+  const maxSongRefreshPromises = 5
   const songRefreshFailRetryDelay = 1000 // in ms, when a song fails to refresh, how long to wait before retrying
   let updatingSongsData = false
   const updateSongsData = () => {
