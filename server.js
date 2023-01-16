@@ -133,6 +133,8 @@ const { addSongFromScraperData } = require(customModuleDirectory + "database")
 
 
 // update songs data function
+  const maxSongRefreshPromises = 15
+  const songRefreshFailRetryDelay = 1000 // in ms, when a song fails to refresh, how long to wait before retrying
   let updatingSongsData = false
   const updateSongsData = () => {
     
@@ -168,31 +170,54 @@ const { addSongFromScraperData } = require(customModuleDirectory + "database")
         const problemSize = Object.keys(songs).length
         var progress = 0
 
+        const refreshSong = (data) => {
+          return new Promise(async (resolve, reject) => {
+            try {
+              const songID = data.songId
+              let URL = data.fandomURL
+
+              songsDataExcludeURLs[URL] = true
+              songsDataExcludeIDs[songID] = true
+              
+              // refresh views only
+              console.log("[Refresh]", songID)
+              let views = await scraper.getVideoViewsAsync(parseJson(data.videoIds))
+              
+              views.songId = songID
+              
+              await insertViewData(timestamp, views)
+
+              databaseProxy.setUpdatingProgress(++progress/problemSize)
+              resolve(songID)
+            } catch (error) {
+              console.log(`Error when refreshing ${data.songID}. Error: "${error}"`)
+              setTimeout(async () => {
+                resolve(await refreshSong(data))
+              }, songRefreshFailRetryDelay)
+            }
+          })
+          
+        }
+
+        let promises = []
+
         for (let [_, data] of Object.entries(songs)) {
           
-          const songID = data.songId
-
-          let URL = data.fandomURL
-
-          //if (URL) {
-            songsDataExcludeURLs[URL] = true
-            songsDataExcludeIDs[songID] = true
-            
-            // refresh views only
-            console.log("[Refresh]", songID)
-            let views = await scraper.getVideoViewsAsync(parseJson(data.videoIds))
-            
-            views.songId = songID
-            
-            await insertViewData(timestamp, views)
-
-            databaseProxy.setUpdatingProgress(++progress/problemSize)
-            
-          //}
+          promises.push(refreshSong(data))
+          
+          if (promises.length > maxSongRefreshPromises) {
+            await Promise.all(promises)
+            promises = []
+          }
 
         }
 
+        if (promises.length > 0) {
+          await Promise.all(promises)
+        }
       }
+
+      
 
       // create metadata
       await database.views.createMetadata(timestamp)
@@ -246,7 +271,7 @@ const { addSongFromScraperData } = require(customModuleDirectory + "database")
     })
   }
 
-  //updateSongsDataSafe()
+  updateSongsDataSafe()
   schedule.scheduleJob('0 0 * * *', () => {
     updateSongsDataSafe()
   })
