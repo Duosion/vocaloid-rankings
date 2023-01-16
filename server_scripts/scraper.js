@@ -55,6 +55,10 @@ const vocaDBSongApiParams = "?fields=Artists,Names,PVs&lang=Default"
 const vocaDBArtistsApiUrl = vocaDBApiUrl + "artists/"
 const vocaDBArtistsApiParams = "?fields=Names,MainPicture"
 
+//bilibili API
+const bilibiliVideoDataEndpoint = "https://api.bilibili.com/x/web-interface/view?aid="
+const bilibiliAidRegExp = /av(.+)/
+
 // reg expressions
 const vocaDbIDMatches = [
   /https:\/\/vocadb\.net\/S\/(\d+)/,
@@ -64,32 +68,18 @@ const vocaDbIDMatches = [
 
 // exported function
   const getBilibiliData = async (videoID) => {
-    
-    const serverResponse = await fetch(bilibiliVideoDomain + videoID).catch(error => {return null})
-    if (!serverResponse) { return {Views: 0, Thumbnail: null}; }
-    const responseText = await serverResponse.text()
-    
-    const { document } = await parseHTML(responseText)
-    
-    // get thumbnail element
-    const thumbnailElement = document.querySelector("meta[itemprop='thumbnailUrl']")
-    if (!thumbnailElement) { return {Views: 0, Thumbnail: null}; }
-      
-    // get the view element
-    const viewsElement = document.querySelector(".view.item")
-    if (!viewsElement) { return {Views: 0, Thumbnail: null}; }
-    
-    const viewsMatch = viewsElement.title.match(/(\d+)/)
-    const views = viewsMatch ? viewsMatch[1] : 0
+    const aidMatches = videoID.match(bilibiliAidRegExp)
+    const trimmedAid = aidMatches ? aidMatches[1] : videoID
+    const serverResponse = await fetch(bilibiliVideoDataEndpoint + trimmedAid).catch(error => {return null})
+    const responseBody = serverResponse ? await serverResponse.json() : null
+    if (!responseBody || responseBody.code != 0) { return {Views: 0, Thumbnail: null}; }
+
+    const responseData =  responseBody.data
     
     return {
-      
-      Views: Number(views),
-      
-      Thumbnail: "https:" + thumbnailElement.getAttribute("content"),
-      
+      Views: responseData.stat.view,
+      Thumbnail: responseData.title,
     }
-    
   }
 
   const getYouTubeData = async (videoID) => {
