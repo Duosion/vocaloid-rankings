@@ -133,7 +133,7 @@ const { addSongFromScraperData } = require(customModuleDirectory + "database")
 
 
 // update songs data function
-  const maxSongRefreshPromises = 5
+  const maxSongRefreshPromises = 15
   const songRefreshFailRetryDelay = 1000 // in ms, when a song fails to refresh, how long to wait before retrying
   let updatingSongsData = false
   const updateSongsData = () => {
@@ -183,6 +183,8 @@ const { addSongFromScraperData } = require(customModuleDirectory + "database")
               console.log("[Refresh]", songID)
               let views = await scraper.getVideoViewsAsync(parseJson(data.videoIds))
               
+              console.log(songID, views)
+
               views.songId = songID
               
               await insertViewData(timestamp, views)
