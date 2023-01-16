@@ -177,6 +177,10 @@
   
 }
 
+.title > a:hover {
+  color: var(--md-sys-color-primary)
+}
+
 .views {
   
   flex: 1;

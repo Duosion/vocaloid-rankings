@@ -18,7 +18,7 @@
             {{#if databaseUpdating}}      
               {{> rankings-refresh-label}}
             {{/if}}
-            <a class="top-controls-button button-link" href="/settings" title="Settings">
+            <a class="top-controls-button button-link" href="/settings?referer=/rankings/year-review/{{year}}" title="Settings">
               <span class="material-symbols-rounded">settings</span>
             </a>
           </div>
@@ -55,7 +55,7 @@
                 <div class="rankings-list-entry-item cover" style='background-image:url("{{thumbnail}}")'></div>
 
                 <div class="rankings-list-entry-item title">
-                  <a href="/song/{{songId}}">{{names.preferred}}</a>
+                  <a href="/song/{{songId}}?referer=/rankings/year-review/{{../../year}}">{{names.preferred}}</a>
                   <div class="rankings-list-entry-item-producers">
                     {{#each producers}}
                       <a href="/rankings/filter/add?Producer={{artistId}}" class="producer">{{names.preferred}}</a>

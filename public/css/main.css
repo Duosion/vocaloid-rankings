@@ -1,5 +1,6 @@
 /* material symbols */
 .material-symbols-rounded {
+  color: inherit;
   font-variation-settings:
   'FILL' 1,
   'wght' 400,
@@ -280,8 +281,8 @@ a.button-link.rounded-button {
   
   border: none;
   
-  background-color: var(--md-sys-color-primary);
-  color: var(--md-sys-color-on-primary);
+  background-color: var(--md-sys-color-inverse-surface);
+  color: var(--md-sys-color-inverse-on-surface);
   
   padding: 5px 5px;
   
@@ -328,12 +329,16 @@ a.button-link:hover:not(.active):not(.rounded-button) {
 }
 
   /* floating button */
+
+  .floating {
+    position: absolute !important;
+  }
+
   button.floating, 
   a.button-link.floating {
     
     z-index: 2;
-    
-    position: absolute;
+
     display: flex;
     
     border-radius: 50px;
@@ -363,15 +368,13 @@ a.button-link:hover:not(.active):not(.rounded-button) {
 
   }
 
-  button.floating.top,
-  a.button-link.floating.top {
+  .floating.top {
     
     top: 5px;
     
   }
 
-  button.floating.left,
-  a.button-link.floating.left {
+  .floating.left {
     
     left: 5px;
     
@@ -552,6 +555,65 @@ hr.default {
   padding: 10px;
 }
 
+/* material stuff */
+.icon-button {
+  box-sizing: border-box;
+  position: relative;
+  border-radius: 20px;
+  height: 40px;
+  width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.icon-button::before {
+  background-color: var(--md-sys-color-on-surface-variant);
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 20px;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: 0;
+
+  opacity: 0;
+  transition-property: opacity;
+  transition-timing-function: var(--cubic-tween);
+  transition-duration: var(--transition-duration)
+}
+
+.icon-button:hover:not(.active):before {
+  opacity: 0.08;
+}
+
+.filled-tonal.icon-button {
+  background-color: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+.filled-tonal.icon-button::before {
+  background-color: var(--md-sys-color-on-secondary-container);
+}
+
+.outlined.icon-button:not(.selected) {
+  color: var(--md-sys-color-on-surface-variant);
+  border: 1px solid var(--md-sys-color-outline);
+}
+.outlined.icon-button:not(.selected)::before {
+  background-color: var(--md-sys-color-on-surface-variant);;
+}
+
+.outlined.icon-button.selected {
+  background-color: var(--md-sys-color-inverse-surface);
+  color: var(--md-sys-color-inverse-on-surface);
+}
+.outlined.icon-button.selected::before {
+  background-color: var(--md-sys-color-inverse-on-surface);;
+}
 
 /* misc */
 .noselect {

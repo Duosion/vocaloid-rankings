@@ -31,6 +31,10 @@
     opacity: 0.8;
 }
 
+.rankings-list-entry-item.title .producer:hover {
+    opacity: 1;
+}
+
 #see-all-button {
     font-size: 1.4em !important;
     padding: 5px 10px;

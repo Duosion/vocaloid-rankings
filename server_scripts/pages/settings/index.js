@@ -68,7 +68,13 @@ const postSettings = (request, reply) => {
 const getSettings = (request, reply) => {
     const parsedCookies = request.parsedCookies
     
-    const viewParams = { seo: request.seo, cookies: parsedCookies, filterOptions: settingsPageOptions, pageTitle: "Settings" };
+    const viewParams = { 
+        seo: request.seo, 
+        cookies: parsedCookies, 
+        filterOptions: settingsPageOptions, 
+        pageTitle: "Settings",
+        referer: request.query.referer || "/"
+     };
     
     return reply.view("pages/settings.hbs", viewParams)
 }

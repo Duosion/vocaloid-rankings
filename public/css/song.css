@@ -8,10 +8,15 @@
   }
 }
 
+#home-button {
+  top: 0px;
+  left: 20px;
+}
+
 #song-info-header {
   width: 100%;
   background-color: var(--md-sys-color-surface-2);
-  padding: 15px;
+  padding: 20px 0px 20px 0px;
   min-height: 150px;
   position: relative;
   z-index: 2;
@@ -36,7 +41,9 @@
 
 #song-info-header-content {
   box-sizing: border-box;
+  position: relative;
   max-width: 1320px;
+  width: 100%;
   padding: 0px 20px 0px 20px;
   display: flex;
   flex-direction: column;
@@ -50,7 +57,7 @@
   height: 150px;
   width: 270px;
   object-fit: cover;
-  margin-top: -90px;
+  margin-top: -95px;
 }
 
 /* song info container */

@@ -272,7 +272,8 @@ const getSong = async (request, reply) => {
   
   const params = { 
     seo: request.seo,
-    cookies: parsedCookies
+    cookies: parsedCookies,
+    referer: request.query["referer"] || "/"
   }
   
   // get song name

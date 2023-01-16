@@ -273,7 +273,7 @@ const filterRankingsSQL = (queryData, options = {}) => {
       resolve({
         QueryData: queryData,
         Timestamp: primaryTimestamp,
-        Data: rankings.data || [],
+        Data: (rankings == null) || (rankings == undefined) ? [] : rankings.data,
         Length: rankings.length,
       })
 
@@ -294,16 +294,20 @@ const filterRankingsWithChange = (queryData, options = {}) => {
                         .catch(error => reject(error))
     
     const promiseData = await Promise.allSettled([currentData, previousData])
-    
-    const filteredRankings = []
+
+    const currentRankingsData = promiseData[0].value
+    const previousRankingsData = promiseData[1].value
+
+    if (currentRankingsData == undefined || previousRankingsData == undefined) { return }
+
     const previousRankings = {}
-    
+
     // parse previous rankings
-    for (let [index, songData] of promiseData[1].value.Data.entries()) {
+    for (const [index, songData] of previousRankingsData.Data.entries()) {
       previousRankings[songData.songId] = index
     }
     
-    for (let [index, songData] of promiseData[0].value.Data.entries()) {
+    for (const [index, songData] of currentRankingsData.Data.entries()) {
       
       const previousPos = previousRankings[songData.songId]
       

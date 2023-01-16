@@ -354,6 +354,7 @@ const getAddFilter = async (request, reply) => {
     const parsedCookies = request.parsedCookies
   
     const query = request.query
+    const referer = query["referer"] || "/rankings"
     
     const filterCookie = parsedCookies.filter || {}
     
@@ -389,7 +390,7 @@ const getAddFilter = async (request, reply) => {
     
     reply.setObjectCookie("filter", filterCookie)
     
-    reply.redirect("/rankings?" + encodeURI(newQuery))
+    reply.redirect(`${referer}?${encodeURI(newQuery)}`)
 }
 
 const getCurrentYearReview = async(request, reply) => {
@@ -508,6 +509,7 @@ const getYearReviewFull = async (request, reply) => {
     PublishYear: year,
     StartAt: request.query.StartAt || 0
   }
+  params.filterParams = filterParams
 
   // query database
   const databaseQueryResult = await queryViewsDatabaseAsync(filterParams, {withChange: true})
@@ -517,18 +519,20 @@ const getYearReviewFull = async (request, reply) => {
 
   // calculate pages
   {
-    
+
     const listLength = databaseQueryResult.Length
     const currentPosition = parsedFilterParams.StartAt
     const pageLength = parsedFilterParams.MaxEntries
     
     const totalPages = Math.floor(listLength/pageLength)
     const currentPage = Math.ceil(currentPosition/pageLength)
-
+    
     const surroundingPages = []
-      
+    const addFilterURL = "/rankings/filter/add?StartAt="
+    const suffix = `&referer=/rankings/year-review/${year}/full`
+    
     for (let i = Math.max(0, currentPage - 1); i <= Math.min(totalPages, currentPage + 1); i++) {
-      surroundingPages[i] = `?StartAt=${i*pageLength}`
+      surroundingPages[i] = `${addFilterURL}${i*pageLength}${suffix}`
     }
     
     params.surroundingPages = surroundingPages
@@ -536,20 +540,20 @@ const getYearReviewFull = async (request, reply) => {
     
     // jump to last page and first page buttons
     if (currentPage - 1 > 0) {
-      params.firstPage = ``
+      params.firstPage = `${addFilterURL}0${suffix}`
     }
     
     if (totalPages > currentPage + 1) {
-      params.lastPage = `?StartAt=${totalPages*pageLength}`
+      params.lastPage = `${addFilterURL}${totalPages*pageLength}${suffix}`
       params.lastPageNumber = totalPages + 1
     }
     
     // next/previous page buttons
     if (currentPage > 0) {
-      params.previousPage = `?StartAt=${(currentPage-1)*pageLength}`
+      params.previousPage = `${addFilterURL}${(currentPage-1)*pageLength}${suffix}`
     }
     if (totalPages > currentPage) {
-      params.nextPage = `?StartAt=${(currentPage+1)*pageLength}`
+      params.nextPage = `${addFilterURL}${(currentPage+1)*pageLength}${suffix}`
     }
     
   }
@@ -638,9 +642,10 @@ const getRankings = async (request, reply) => {
       const currentPage = Math.ceil(currentPosition/pageLength)
       
       const surroundingPages = []
+      const addFilterURL = "/rankings/filter/add?StartAt="
         
       for (let i = Math.max(0, currentPage - 1); i <= Math.min(totalPages, currentPage + 1); i++) {
-        surroundingPages[i] = `?StartAt=${i*pageLength}`
+        surroundingPages[i] = `${addFilterURL}${i*pageLength}`
       }
       
       params.surroundingPages = surroundingPages
@@ -648,20 +653,20 @@ const getRankings = async (request, reply) => {
       
       // jump to last page and first page buttons
       if (currentPage - 1 > 0) {
-        params.firstPage = ``
+        params.firstPage = `${addFilterURL}0`
       }
       
       if (totalPages > currentPage + 1) {
-        params.lastPage = `?StartAt=${totalPages*pageLength}`
+        params.lastPage = `${addFilterURL}${totalPages*pageLength}`
         params.lastPageNumber = totalPages + 1
       }
       
       // next/previous page buttons
       if (currentPage > 0) {
-        params.previousPage = `?StartAt=${(currentPage-1)*pageLength}`
+        params.previousPage = `${addFilterURL}${(currentPage-1)*pageLength}`
       }
       if (totalPages > currentPage) {
-        params.nextPage = `?StartAt=${(currentPage+1)*pageLength}`
+        params.nextPage = `${addFilterURL}${(currentPage+1)*pageLength}`
       }
       
     }
