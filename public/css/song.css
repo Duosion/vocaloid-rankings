@@ -296,8 +296,6 @@
   
   height: 150px;
   flex-direction: row-reverse;
-
-  overflow: scroll clip;
 }
 
 .views-bar-graph > * {
@@ -413,11 +411,11 @@
   }
 
   #song-info-sidebar {
-    overflow: scroll;
+    overflow: hidden;
   }
 
   #song-sidebar-info {
-    overflow: scroll;
+    overflow: scroll hidden;
     flex-direction: row;
   }
 

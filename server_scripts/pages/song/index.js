@@ -311,8 +311,6 @@ const getSong = async (request, reply) => {
     const viewData = viewTypes[viewType]
     if (!viewData || viewData == undefined) { continue; }
 
-    const videoID = videoIDs[0]
-
     const hrefs = []
     const videoURL = viewData.VideoURL
 
@@ -353,11 +351,19 @@ const getSong = async (request, reply) => {
 
   // load page theme
   {
-    const averageColor = await getAverageColor(songData.thumbnail)
+    const averageColor = await new Promise(async (resolve, reject) => {
+      try {
+        resolve(await getAverageColor(songData.thumbnail))
+      } catch (error) {
+        resolve({
+          hex: "#ffffff"
+        })
+      }
+    })
     // Get the theme from a hex color
     const theme = themeFromSourceColor(argbFromHex(averageColor.hex), [
       {
-        name: "custom-1",
+        name: "songs-color",
         value: argbFromHex("#ff0000"),
         blend: true,
       },
