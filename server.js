@@ -182,8 +182,6 @@ const { addSongFromScraperData } = require(customModuleDirectory + "database")
               // refresh views only
               console.log("[Refresh]", songID)
               let views = await scraper.getVideoViewsAsync(parseJson(data.videoIds))
-              
-              console.log(songID, views)
 
               views.songId = songID
               
