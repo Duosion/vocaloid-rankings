@@ -30,6 +30,7 @@
   width: 100%;
   overflow: clip;
   height: 165px;
+  background-color: var(--md-sys-color-surface-dark);
 }
 
 #song-info-header-backsplash img {
