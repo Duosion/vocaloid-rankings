@@ -271,7 +271,7 @@ const { addSongFromScraperData } = require(customModuleDirectory + "database")
     })
   }
 
-  updateSongsDataSafe()
+  //updateSongsDataSafe()
   schedule.scheduleJob('0 0 * * *', () => {
     updateSongsDataSafe()
   })
@@ -322,3 +322,13 @@ fastify.listen(
     fastify.log.info(`server listening on ${address}`);
   }
 );
+
+setTimeout(() => {
+  console.time("old get song")
+  database.songs.getSong('20').then((result) => {
+    console.timeEnd("old get song")
+    console.log("old song 20:",result)
+  }).catch((err) => {
+    
+  });
+}, 3000)

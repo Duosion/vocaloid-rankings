@@ -542,6 +542,32 @@ const repairSongThumbnails = () => {
   })
 }
 
+const migrateViewsData = () => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      console.log("------------- MIGRATING VIEWS DATA -------------")
+
+      // migrate songs
+      console.log("-- [Migrating Songs] --")
+      const songs = await database.songs.getSongs()
+      const length = songs.length
+
+      for (const [n, song] of songs.entries()) {
+        const songId = song.songId
+        const thumbnail = song.thumbnail
+        if (thumbnail.startsWith("//")) {
+          console.log(`[${n}/${length}] Repairing ${songId}...`)
+          await database.songs.updateSong(songId, ["thumbnail"], ["https:" + thumbnail])
+        }
+      }
+
+    } catch (error) {
+      console.log("Error occurred when migrating views data. Error:", error)
+      reject(error)
+    }
+  })
+}
+
 // export variables
 exports.viewsDataSortingFunctions = viewsDataSortingFunctions
 

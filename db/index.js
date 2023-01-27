@@ -137,7 +137,6 @@ proxies["songs"] = songsProxy
 // views
 const viewsProxy = {
     // views
-
     createViewsTable: (timestamp) => {
         return new Promise( async (resolve, reject) => {
             try {
@@ -704,3 +703,61 @@ const authProxy = {
 }
 exports.authentication = authProxy
 proxies["authentication"] = authProxy
+
+// songs_data
+const songsDataProxy = {
+    songExists: (songId) => {
+        return new Promise(async (resolve, reject) => {
+            try {
+              
+            } catch (error) {
+               reject(error) 
+            }
+        }) 
+    },
+
+    getSongs: () => {
+        return new Promise(async (resolve, reject) => {
+            try {
+              
+            } catch (error) {
+               reject(error) 
+            }
+        })
+    },
+    getSong: (songID) => {
+        return new Promise(async (resolve, reject) => {
+            try {
+            } catch(error) {
+                reject(error)
+            }
+        })
+    },
+    updateSong: (songId, toUpdate = [], updateValues = []) => {
+        return new Promise((resolve, reject) => {
+            try {
+            } catch (error) {
+                reject(error)
+            }
+        })
+    },
+    // addition
+    insertSongs: (songsToAdd) => {
+        return new Promise( async (resolve, reject) => {
+            try {
+            } catch(error) {
+                reject(error)
+            }
+        })
+    },
+    insertSong: (songID, songData) => {  
+        return new Promise( async (resolve, reject) => {
+            try {
+            } catch(err) {
+                reject(err)
+            }
+        }) 
+    }
+}
+exports.songsData = songsDataProxy
+proxies["songsData"] = songsDataProxy
