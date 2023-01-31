@@ -6,6 +6,18 @@ const localeTools = require("./locale")
 const database = require("../db")
 const { generateTimestamp, verifyParams, rankingsFilterQueryTemplate, historicalDataQueryTemplate } = require("./shared")
 const scraper = require("./scraper")
+const { getAverageColor } = require("fast-average-color-node")
+const { proxies } = require("../db/init")
+const Song = require("../db/dataClasses/song")
+const SongType = require("../db/enums/SongType")
+const Artist = require("../db/dataClasses/Artist")
+const ArtistType = require("../db/enums/ArtistType")
+const NameType = require("../db/enums/NameType")
+const ViewType = require("../db/enums/ViewType")
+const ArtistThumbnailType = require("../db/enums/ArtistThumbnailType")
+const ArtistThumbnail = require("../db/dataClasses/ArtistThumbnail")
+const SongViews = require("../db/dataClasses/SongViews")
+const ArtistCategory = require("../db/enums/ArtistCategory")
 
 // file locations
 const databaseFilePath = process.cwd() + "/database"
@@ -542,31 +554,232 @@ const repairSongThumbnails = () => {
   })
 }
 
+/*
+songId TEXT PRIMARY KEY NOT NULL, 
+songType TEXT NOT NULL, 
+singers JSON NOT NULL, 
+producers JSON NOT NULL, 
+publishDate TEXT NOT NULL, 
+additionDate TEXT NOT NULL, 
+thumbnail TEXT NOT NULL, 
+names JSON NOT NULL, 
+videoIds JSON NOT NULL, 
+fandomURL TEXT
+*/
+
+const getImageAverageColor = (url) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      resolve(await getAverageColor(url))
+    } catch (error) {
+      resolve({
+        hex: "#ffffff"
+      })
+    }
+  })
+}
+
 const migrateViewsData = () => {
   return new Promise(async (resolve, reject) => {
     try {
+      console.time("migration took")
       console.log("------------- MIGRATING VIEWS DATA -------------")
 
-      // migrate songs
-      console.log("-- [Migrating Songs] --")
-      const songs = await database.songs.getSongs()
-      const length = songs.length
+      const viewTypeMap = ViewType.map
 
-      for (const [n, song] of songs.entries()) {
-        const songId = song.songId
-        const thumbnail = song.thumbnail
-        if (thumbnail.startsWith("//")) {
-          console.log(`[${n}/${length}] Repairing ${songId}...`)
-          await database.songs.updateSong(songId, ["thumbnail"], ["https:" + thumbnail])
+      // migrate songs
+      console.log("----[ Migrating Songs ]----")
+      const songsMap = {}
+      const artistsMap = {}
+      {
+        const songs = await database.songs.getSongs()
+        const length = songs.length
+        
+        for (const [n, song] of songs.entries()) {
+          const songId = song.songId
+          const numberSongId = Number.parseInt(songId)
+          console.log(`[${n}/${length}] Migrating ${songId}...`)
+          if (await proxies.songsData.songExists(numberSongId)) { 
+            songsMap[songId] = await proxies.songsData.getSong(numberSongId)
+            continue
+          }
+          // create song
+          const thumbnail = song.thumbnail
+          let maxresThumbnail = thumbnail
+          const youtubeVideoId = thumbnail.match(/https:\/\/img\.youtube\.com\/vi\/([^\/\\]+)\/hqdefault\.jpg/)
+          if (youtubeVideoId) {
+            maxresThumbnail = `https://img.youtube.com/vi/${youtubeVideoId[1]}/maxresdefault.jpg`
+            // test the maxres thumbnail
+            const fetchResult = await fetch(maxresThumbnail)
+              .then(res => {
+                return res.status
+              })
+              .catch(_ => {
+                return 404
+              })
+            if (fetchResult == 404) {
+              maxresThumbnail = thumbnail
+            }
+          }
+          // get average color
+          const averageColor = await getImageAverageColor(maxresThumbnail)
+          // get artists
+          const processedArtists = []
+          const thumbnailTypeMap = {
+            ["original"]: ArtistThumbnailType.Original,
+            ["medium"]: ArtistThumbnailType.Medium,
+            ["small"]: ArtistThumbnailType.Small,
+            ["tiny"]: ArtistThumbnailType.Tiny
+          }
+          const processArtists = async (artists, category) => {
+            for (const [_, artistId] of artists.entries()) {
+              const existsInMap = artistsMap[artistId]
+              if (existsInMap) {
+                processedArtists.push(existsInMap)
+              } else {
+                const artistData = await database.artists.getArtist(artistId)
+                if (artistData) {
+                  // process names
+                  const names = artistData.names
+                  const processedNames = []
+                  processedNames[NameType.Original.id] = names["Original"]
+                  processedNames[NameType.Japanese.id] = names["Japanese"]
+                  processedNames[NameType.English.id] = names["English"]
+                  processedNames[NameType.Romaji.id] = names["Romaji"]
+
+                  // process thumbnails
+                  const thumbnails = artistData.thumbnails
+                  let averageColor = null
+                  const processedThumbnails = []
+                  for (const [original, mapped] of Object.entries(thumbnailTypeMap)) {
+                    const url = thumbnails[original]
+                    if (url) {
+                      if (!averageColor) {
+                        averageColor = await getImageAverageColor(url)
+                      }
+                      processedThumbnails[mapped.id] = new ArtistThumbnail(
+                        mapped,
+                        url,
+                        averageColor.hex
+                      )
+                    } else {
+                      thumbnails[mapped.id] = null
+                    }
+                  }
+
+                  const newArtist = new Artist(
+                    Number.parseInt(artistId),
+                    ArtistType.map[artistData.artistType],
+                    category,
+                    artistData.publishDate,
+                    artistData.additionDate,
+                    processedNames,
+                    processedThumbnails
+                  )
+
+                  artistsMap[artistId] = newArtist
+                  processedArtists.push(newArtist)
+                } else {
+                  console.log("Couldn't load artist with ID ", artistId)
+                }
+              }
+            }
+          }
+          // process artists
+          await processArtists(JSON.parse(song.singers), ArtistCategory.Singer)
+          await processArtists(JSON.parse(song.producers), ArtistCategory.Producer)
+
+          // build names
+          const songNames = JSON.parse(song.names)
+          const processedSongNames = []
+          processedSongNames[NameType.Original.id] = songNames["Original"]
+          processedSongNames[NameType.Japanese.id] = songNames["Japanese"]
+          processedSongNames[NameType.English.id] = songNames["English"]
+          processedSongNames[NameType.Romaji.id] = songNames["Romaji"]
+
+          // build video ids
+          const videoIds = JSON.parse(song.videoIds)
+          const processedVideoIds = []
+          for (const [viewType, ids] of Object.entries(videoIds)) {
+            processedVideoIds[viewTypeMap[viewType].id] = ids
+          }
+
+          // build song
+          const newSong = new Song(
+            numberSongId,
+            song.publishDate,
+            song.additionDate,
+            SongType.map[song.songType] || SongType.Vocaloid,
+            thumbnail,
+            maxresThumbnail,
+            averageColor.hex,
+            song.fandomURL,
+            processedArtists,
+            processedSongNames,
+            processedVideoIds
+          )
+
+          await proxies.songsData.insertSong(newSong)
+          songsMap[songId] = newSong
         }
       }
 
+      // migrate views
+      console.log("----[ Migrating Views ]----")
+      {
+        const metadata = await database.views.getMetadata()
+
+        for (const [_, timestampData] of metadata.entries()) {
+          const timestamp = timestampData.timestamp
+          proxies.songsData.insertViewsTimestamp(timestamp, timestampData.updated)
+
+          console.log("Migrate views for",timestamp)
+
+          // get views data
+          const viewsData = await database.views.getViewsData(timestamp)
+          if (viewsData) {
+
+            for (const [_, viewData] of viewsData.entries()) {
+              const songId = viewData.songId
+              const songData = songsMap[songId]
+              // process breakdown
+              const oldBreakdown = JSON.parse(viewData.breakdown)
+              const newBreakdown = {}
+              for (const [platform, views] of Object.entries(oldBreakdown)) {
+                const viewType = viewTypeMap[platform]
+                if (viewType) {
+                  const viewTypeId = viewType.id
+                  const songVideoIdBucket = songData.videoIds[viewTypeId]
+                  const songVideoId = songVideoIdBucket && songVideoIdBucket[0]
+                  if (songVideoId) {
+                    newBreakdown[viewType.id] = {
+                      [songVideoId]: views
+                    }
+                  }
+                }
+              }
+
+              proxies.songsData.insertSongViews(new SongViews(
+                Number.parseInt(songId),
+                timestamp,
+                viewData.total,
+              ))
+            }
+
+          }
+        }
+
+      }
+
+      console.log("------------- MIGRATING VIEWS DATA COMPLETE -------------")
+      console.timeEnd("migration took")
     } catch (error) {
       console.log("Error occurred when migrating views data. Error:", error)
       reject(error)
     }
   })
 }
+migrateViewsData()
 
 // export variables
 exports.viewsDataSortingFunctions = viewsDataSortingFunctions

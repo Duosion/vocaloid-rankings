@@ -1,23 +1,25 @@
-module.exports = class SongType {
+const Enum = require("./Enum")
+
+module.exports = class SongType extends Enum {
     static Vocaloid = new SongType("Vocaloid", 0)
     static CeVIO = new SongType("CeVIO", 1)
     static SynthesizerV = new SongType("SynthesizerV", 2)
     static Other = new SongType("Other", 3)
 
-    static values = [this.Vocaloid, this.CeVIO, this.SynthesizerV, this.Other]
+    static {
+        const enums = Object.values(this)
 
-    /**
-     * Returns a new SongType based on the id provided.
-     * 
-     * @param {number} id 
-     * @returns A SongType enum that corresponds to the provided id 
-     */
-    static fromId(id) {
-        return this.values[id] || Other
-    }
+        const values = []
+        const map = {}
 
-    constructor(name, id) {
-        this.name = name
-        this.id = id
+        // build the values and map tables/objects
+        enums.forEach(value => {
+            values[value.id] = value
+            map[value.name] = value
+        })
+
+        // add to object
+        this.values = values
+        this.map = map
     }
 }

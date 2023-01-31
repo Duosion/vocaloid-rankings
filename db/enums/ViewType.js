@@ -1,22 +1,22 @@
-module.exports = class SongType {
+module.exports = class SongType extends Enum {
     static YouTube = new SongType("YouTube", 0)
     static Niconico = new SongType("Niconico", 1)
     static bilibili = new SongType("bilibili", 2)
 
-    static values = [this.YouTube, this.Niconico, this.bilibili]
+    static {
+        const enums = Object.values(this)
 
-    /**
-     * Returns a new SongType based on the id provided.
-     * 
-     * @param {number} id 
-     * @returns A SongType enum that corresponds to the provided id 
-     */
-    static fromId(id) {
-        return this.values[id] || Other
-    }
+        const values = []
+        const map = {}
 
-    constructor(name, id) {
-        this.name = name
-        this.id = id
+        // build the values and map tables/objects
+        enums.forEach(value => {
+            values[value.id] = value
+            map[value.name] = value
+        })
+
+        // add to object
+        this.values = values
+        this.map = map
     }
 }

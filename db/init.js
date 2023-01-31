@@ -1,12 +1,5 @@
 const sqlite3 = require("better-sqlite3")
 const fs = require("fs");
-const Artist = require("./dataClasses/Artist");
-const ArtistThumbnail = require("./dataClasses/ArtistThumbnail");
-const Song = require("./dataClasses/song");
-const ArtistThumbnailType = require("./enums/ArtistThumbnailType");
-const ArtistType = require("./enums/ArtistType");
-const NameType = require("./enums/NameType");
-const SongType = require("./enums/SongType");
 const SongsDataProxy = require("./proxies/SongsDataProxy");
 
 // variables
@@ -25,12 +18,14 @@ const databases = [
         path: "songsViews.db",
         pragma: "default", // the pragma for this database
         verbose: null, // is this database verbose?
+        proxy: null,
         init: (db, exists) => require("./dbInitializers/songsViews.js")(db, exists)
     },
     {
         name: "songsData",
         path: "songs_data.db",
         pragma: "default",
+        proxy: SongsDataProxy,
         init: (db, exists) => require("./dbInitializers/songs_data.js")(db, exists)
     },
     {
@@ -47,6 +42,7 @@ const databases = [
     },
 ]
 const loadedDatabases = {} // databases that have been laoded
+const proxies = {}
 
 // copy files from .toClone to data directory
 {
@@ -81,14 +77,20 @@ for (const [_, dbInfo] of databases.entries()) {
             console.log(`Initalization failed for module ${dbInfo.name}. Error: ${error}`)
         }
     }
+    const name = dbInfo.name
     // add to loaded databases page
-    loadedDatabases[dbInfo.name] = db
+    loadedDatabases[name] = db
+    // add proxy
+    const proxy = dbInfo.proxy
+    if (proxy) {
+        proxies[name] = new proxy(db)
+    }
 }
 
 // tests
-const songsDataProxy = new SongsDataProxy(loadedDatabases.songsData)
+/*const songsDataProxy = new SongsDataProxy(loadedDatabases.songsData)
 
-/*songsDataProxy.insertSong(new Song(
+songsDataProxy.insertSong(new Song(
     20,
     "2010-05-18T00:00:00Z",
     "2022-08-28T07:20:35.212Z",
@@ -133,22 +135,29 @@ const songsDataProxy = new SongsDataProxy(loadedDatabases.songsData)
             }
         )
     ],
-    {
-        [NameType.Japanese.id]: "ワールズエンド・ダンスホール",
-        [NameType.English.id]: "World's End Dancehall",
-        [NameType.Original.id]: "ワールズエンド・ダンスホール"
-    }
-))*/
+    [
+        "ワールズエンド・ダンスホール",
+        "World's End Dancehall",
+        "ワールズエンド・ダンスホール"
+    ],
+    [
+        [
+            "ZB75e7vzX0I"
+        ],
+        [
+            "sm10759623"
+        ]
+    ],
+))
 
-setTimeout(() => {
-    console.time("new get song")
-    songsDataProxy.getSong(20).then((result) => {
-        console.timeEnd("new get song")
-        console.log("song 20:",result)
-    }).catch((err) => {
-        console.log("error:", err)
-    });
-},2000)
+console.time("new get song")
+songsDataProxy.getSong(20).then((result) => {
+    console.timeEnd("new get song")
+    console.log("song 20:",result)
+}).catch((err) => {
+    console.log("error:", err)
+});*/
 
 // export loaded databases
 exports.databases = loadedDatabases
+exports.proxies = proxies

@@ -536,6 +536,18 @@ const artistsProxy = {
             }
         })
     },
+    getArtists: () => {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const db = await databases.songsViews
+    
+                // resolve
+                resolve(db.prepare("SELECT * FROM artistData").all())
+            } catch (error) {
+                reject(error)
+            }
+          })   
+    },
     getArtist: (artistId) => {
       return new Promise(async (resolve, reject) => {
         try {

@@ -1,10 +1,8 @@
 const Enum = require("./Enum")
 
-module.exports = class NameType extends Enum {
-    static Original = new NameType("Original", 0)
-    static Japanese = new NameType("Japanese", 1)
-    static English = new NameType("English", 2)
-    static Romaji = new NameType("Romaji", 3)
+module.exports = class ArtistCategory extends Enum {
+    static Singer = new ArtistType("Singer", 0)
+    static Producer = new ArtistType("Producer", 1)
 
     static {
         const enums = Object.values(this)

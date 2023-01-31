@@ -18,6 +18,7 @@ module.exports = class Song {
      * @param {string} fandomUrl // the fandom URL for this song
      * @param {Artist[]} artists // this song's artists
      * @param {string[]} names // this song's names
+     * @param {Array.<string>[]} videoIds
      * @param {SongViews=} views // this song's views
      */
     constructor(
@@ -31,6 +32,7 @@ module.exports = class Song {
         fandomUrl,
         artists,
         names,
+        videoIds,
         views
     ) {
         this.id = id
@@ -43,6 +45,7 @@ module.exports = class Song {
         this.fandomUrl = fandomUrl
         this.artists = artists
         this.names = names
+        this.videoIds = videoIds
         this.views = views
     }
 

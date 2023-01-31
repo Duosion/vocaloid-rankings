@@ -7,6 +7,13 @@ const ArtistThumbnailType = require("../enums/ArtistThumbnailType")
 const ArtistType = require("../enums/ArtistType")
 const SongType = require("../enums/SongType")
 
+const { generateTimestamp } = require("../../server_scripts/shared")
+const ArtistCategory = require("../enums/ArtistCategory")
+
+function generateISOTimestamp() {
+    return new Date().toISOString()
+}
+
 module.exports = class SongsDataProxy {
 
     /**
@@ -53,6 +60,7 @@ module.exports = class SongsDataProxy {
         return new Artist(
             artistData.id,
             ArtistType.fromId(artistData.artist_type),
+            null,
             artistData.publish_date,
             artistData.addition_date,
             names,
@@ -73,6 +81,7 @@ module.exports = class SongsDataProxy {
         songData,
         songNames,
         songArtists,
+        songVideoIds,
         songViews
     ) {
         // process names
@@ -80,7 +89,20 @@ module.exports = class SongsDataProxy {
         for (const [_, nameData] of songNames.entries()) {
             names[nameData.name_type] = nameData.name
         }
-
+        // process video ids
+        const videoIds = []
+        for (const [_, videoIdData] of songVideoIds.entries()) {
+            const type = videoIdData.video_type
+            // get bucket
+            let bucket = videoIds[type]
+            if (!bucket) {
+                bucket = []
+                videoIds[type] = bucket
+            }
+            // add video id to bucket
+            bucket.push(videoIdData.video_id)
+        }
+        // build song
         return new Song(
             songData.id,
             songData.publish_date,
@@ -92,7 +114,73 @@ module.exports = class SongsDataProxy {
             songData.fandom_url,
             songArtists,
             names,
+            videoIds,
             songViews
+        )
+    }
+
+    /**
+     * Builds an SongViews object using data provided from the database.
+     * 
+     * @param {Object} viewsTotal
+     * @param {Object[]} viewsBreakdowns 
+     * @returns {SongViews} The built SongViews object.
+     */
+    #buildSongViews(
+        viewsTotal,
+        viewsBreakdowns
+    ) {
+        // process breakdown
+        const breakdown = []
+        for (const [_, breakdownData] of viewsBreakdowns.entries()) {
+            const type = breakdownData.view_type
+            let bucket = breakdown[type]
+            if (!bucket) {
+                bucket = {}
+                breakdown[type] = bucket
+            }
+            // add breakdown to bucket
+            bucket[breakdownData.video_id] = breakdownData.views
+        }
+
+        return new SongViews(
+            viewsTotal.song_id,
+            viewsTotal.timestamp,
+            viewsTotal.total,
+            breakdown
+        )
+    }
+
+    /**
+     * Synchronously gets the views for the song associated with the provided song id.
+     * Returns null if the song does not exist.
+     * 
+     * @param {number} songId The ID of the song to get.
+     * @param {string} [timestamp]
+     * @returns {SongViews|null} The SongViews associated with songId or null.
+     */
+    #getSongViewsSync(
+        songId,
+        timestamp = this.#getMostRecentViewsTimestampSync()
+    ) {
+        const db = this.db
+
+        // get views totals
+        const viewsTotal = db.prepare(`
+        SELECT song_id, timestamp, total
+        FROM views_totals
+        WHERE song_id = ? AND timestamp = ?`).get(songId, timestamp)
+
+        if (viewsTotal == undefined) { return null }
+
+        const breakdowns = db.prepare(`
+        SELECT views, video_id, view_type
+        FROM views_breakdowns
+        WHERE song_id = ? AND timestamp = ?`).all(songId, timestamp)
+
+        return this.#buildSongViews(
+            viewsTotal,
+            breakdowns
         )
     }
 
@@ -161,22 +249,61 @@ module.exports = class SongsDataProxy {
 
         // get song artists
         const songArtists = db.prepare(`
-        SELECT artist_id
+        SELECT artist_id, artist_category
         FROM songs_artists
+        WHERE song_id = ?`).all(songId)
+
+        // get video ids
+        const songVideoIds = db.prepare(`
+        SELECT video_id, video_type
+        FROM songs_video_ids
         WHERE song_id = ?`).all(songId)
 
         // get artists data
         const artists = []
         for (const [_, songArtist] of songArtists.entries()) {
-            artists.push(this.#getArtistSync(songArtist.artist_id))
+            const artist = this.#getArtistSync(songArtist.artist_id)
+            artist.category = ArtistCategory.fromId(songArtist.artist_category)
+            artists.push(artist)
         }
 
         return this.#buildSong(
             songData,
             songNames,
-            artists
+            artists,
+            songVideoIds,
+            this.#getSongViewsSync(songId)
         )
     }
+
+    /**
+     * Gets the most recent views timestamp within the database.
+     * 
+     * @returns {string=} The most recent views timestamp
+     */
+    #getMostRecentViewsTimestampSync() {
+        return this.db.prepare(`
+        SELECT timestamp
+        FROM views_metadata
+        ORDER BY id DESC
+        LIMIT 1`).get().timestamp
+    }
+
+    /**
+     * Synchronously checks whether the provided timestamp exists within the views_metadata table.
+     * 
+     * @param timestamp The timestamp to check the existence of.
+     * @returns {boolean} Whether the provided timestamp exists or not
+     */
+    #timestampExistsSync(timestamp) {
+        return this.db.prepare(`
+        SELECT id 
+        FROM views_metadata 
+        WHERE timestamp = ? 
+        LIMIT 1`).get(timestamp) ? true : false
+    }
+
+    // public functions
 
     /**
      * Checks if a song exists within the database.
@@ -208,6 +335,37 @@ module.exports = class SongsDataProxy {
                 reject(error)
             }
         }) 
+    }
+
+    /**
+     * Checks if the provided timestamp exists within the database.
+     * 
+     * @param {string} timestamp The timestamp to check the existence of.
+     * @returns {Promise<Boolean>} A promise that resolves with the result of this function.
+     */
+    viewsTimestampExists(timestamp) {
+        return new Promise((resolve, reject) => {
+            try {
+                resolve(this.#timestampExistsSync(timestamp))
+            } catch (error) {
+                reject(error)
+            }
+        })
+    }
+
+    /**
+     * Asynchronously gets the most recent views timestamp.
+     * 
+     * @returns {Promise<string=>} A promise that resolves with the most recent timestamp or undefined if not timestamp exists.
+     */
+    getMostRecentViewsTimestamp() {
+        return new Promise((resolve, reject) => {
+            try {
+                resolve(this.#getMostRecentViewsTimestampSync())
+            } catch (error) {
+                reject(error)
+            }
+        })
     }
 
     /**
@@ -279,11 +437,13 @@ module.exports = class SongsDataProxy {
                 )
                 // insert names
                 for (const [nameType, name] of Object.entries(artist.names)) {
-                    artistsNamesInsertStatement.run(
-                        artistId,
-                        name,
-                        nameType
-                    )
+                    if (name != undefined) {
+                        artistsNamesInsertStatement.run(
+                            artistId,
+                            name,
+                            nameType
+                        )
+                    }
                 }
                 // insert thumbnails
                 for (const [thumbnailType, thumbnail] of Object.entries(artist.thumbnails)) {
@@ -321,12 +481,17 @@ module.exports = class SongsDataProxy {
 
                 // prepare statement to insert into songs artists
                 const songsArtistsInsertStatement = db.prepare(`
-                REPLACE INTO songs_artists (song_id, artist_id)
+                REPLACE INTO songs_artists (song_id, artist_id, artist_category)
                 VALUES (?, ?)`)
 
                 // prepare statement to insert into songs names
                 const songsNamesInsertStatement = db.prepare(`
                 REPLACE INTO songs_names (song_id, name, name_type)
+                VALUES (?, ?, ?)`)
+
+                // prepare statement to insert into songs video ids
+                const songsVideoIdsInsertStatement = db.prepare(`
+                REPLACE INTO songs_video_ids (song_id, video_id, video_type)
                 VALUES (?, ?, ?)`)
 
                 // insert into songs table
@@ -347,21 +512,108 @@ module.exports = class SongsDataProxy {
                     if (!(await this.artistExists(artistId))) {
                         await this.insertArtist(artist)
                     }
+                    const category = artist.category
                     songsArtistsInsertStatement.run(
                         songId,
                         artistId,
+                        category ? category.id : 0
                     )
                 }
 
                 // insert names into songs names table
-                for (const [nameType, name] of Object.entries(song.names)) {
-                    songsNamesInsertStatement.run(
-                        songId,
-                        name,
-                        nameType
-                    )
+                for (const [nameType, name] of song.names.entries()) {
+                    if (name != undefined) {
+                        songsNamesInsertStatement.run(
+                            songId,
+                            name,
+                            nameType
+                        )
+                    }
                 }
 
+                // insert video ids into songs video ids table
+                for (const [viewType, bucket] of song.videoIds.entries()) {
+                    if (bucket != undefined) {
+                        for (const [_, videoId] of bucket.entries()) {
+                            songsVideoIdsInsertStatement.run(
+                                songId,
+                                videoId,
+                                viewType
+                            )
+                        }
+                    }
+                }
+
+                resolve()
+            } catch (error) {
+                reject(error)
+            }
+        })
+    }
+
+    /**
+     * Inserts a new views timestamp into the views metadata table.
+     * 
+     * @param {string} timestamp The timestamp to insert into the views metadata.
+     * @param {string} [updated] When this timestamp was last updated.
+     * @returns {Promise} A promise that resolves upon insertion completion.
+     */
+    insertViewsTimestamp(timestamp, updated) {
+        return new Promise((resolve, reject) => {
+            try {
+                resolve(this.db.prepare(`
+                REPLACE INTO views_metadata (timestamp, updated)
+                VALUES (?, ?)`).run (
+                    timestamp,
+                    updated || generateISOTimestamp()
+                ))
+            } catch (error) {
+                reject(error)
+            }
+        })
+    }
+
+    /**
+     * Inserts a song's views into the database.
+     * 
+     * @param {SongViews} songViews The views to insert into the database.
+     * @returns {Promise} A promise that resolves upon insertion completion.
+     */
+    insertSongViews(songViews) {
+        return new Promise((resolve, reject) => {
+            try {
+                const db = this.db
+                const songId = songViews.songId
+                // get the timestamp
+                const timestamp = songViews.timestamp || this.#getMostRecentViewsTimestampSync() || generateTimestamp().Timestamp
+
+                // prepare the views totals replace statement
+                const viewsTotalsReplaceStatement = db.prepare(`
+                REPLACE INTO views_totals (song_id, timestamp, total)
+                VALUES (?, ?, ?)`)
+
+                const viewsBreakdownsReplaceStatement = db.prepare(`
+                REPLACE INTO views_breakdowns (song_id, timestamp, views, video_id, view_type)
+                VALUES (?, ?, ?, ?, ?)`)
+                
+                viewsTotalsReplaceStatement.run(
+                    songId,
+                    timestamp,
+                    songViews.total,
+                )
+
+                // insert breakdowns
+                for (const [viewType, viewsBucket] of songViews.breakdown.entries()) {
+                    for (const [videoId, views] of Object.entries(viewsBucket)) {
+                        viewsBreakdownsReplaceStatement.run(
+                            songId,
+                            timestamp,
+                            views,
+                            videoId,
+                            viewType
+                        )
+                    }
+                }
                 resolve()
             } catch (error) {
                 reject(error)

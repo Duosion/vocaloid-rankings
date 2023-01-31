@@ -1,23 +1,25 @@
-module.exports = class ArtistThumbnailType {
+const Enum = require("./Enum")
+
+module.exports = class ArtistThumbnailType extends Enum {
     static Original = new ArtistThumbnailType("Original", 0)
     static Medium = new ArtistThumbnailType("Medium", 1)
     static Small = new ArtistThumbnailType("Small", 2)
     static Tiny = new ArtistThumbnailType("Tiny", 3)
 
-    static values = [this.Original, this.Medium, this.Small, this.Tiny]
+    static {
+        const enums = Object.values(this)
 
-    /**
-     * Returns a new ArtistThumbnailType based on the id provided.
-     * 
-     * @param {number} id 
-     * @returns A ArtistThumbnailType enum that corresponds to the provided id 
-     */
-    static fromId(id) {
-        return this.values[id] || Other
-    }
+        const values = []
+        const map = {}
 
-    constructor(name, id) {
-        this.name = name
-        this.id = id
+        // build the values and map tables/objects
+        enums.forEach(value => {
+            values[value.id] = value
+            map[value.name] = value
+        })
+
+        // add to object
+        this.values = values
+        this.map = map
     }
 }
