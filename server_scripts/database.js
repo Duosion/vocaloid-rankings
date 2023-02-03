@@ -4,9 +4,8 @@
 //const jsonWriter = require("./jsonWriter")
 const localeTools = require("./locale")
 const database = require("../db")
-const { generateTimestamp, verifyParams, rankingsFilterQueryTemplate, historicalDataQueryTemplate } = require("./shared")
+const { getAverageColorAsync, generateTimestamp, verifyParams, rankingsFilterQueryTemplate, historicalDataQueryTemplate } = require("./shared")
 const scraper = require("./scraper")
-const { getAverageColor } = require("fast-average-color-node")
 const { proxies } = require("../db/init")
 const Song = require("../db/dataClasses/song")
 const SongType = require("../db/enums/SongType")
@@ -567,18 +566,6 @@ videoIds JSON NOT NULL,
 fandomURL TEXT
 */
 
-const getImageAverageColor = (url) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      resolve(await getAverageColor(url))
-    } catch (error) {
-      resolve({
-        hex: "#ffffff"
-      })
-    }
-  })
-}
-
 const migrateViewsData = () => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -622,7 +609,7 @@ const migrateViewsData = () => {
             }
           }
           // get average color
-          const averageColor = await getImageAverageColor(maxresThumbnail)
+          const averageColor = await getAverageColorAsync(maxresThumbnail)
           // get artists
           const processedArtists = []
           const thumbnailTypeMap = {
@@ -655,7 +642,7 @@ const migrateViewsData = () => {
                     const url = thumbnails[original]
                     if (url) {
                       if (!averageColor) {
-                        averageColor = await getImageAverageColor(url)
+                        averageColor = await getAverageColorAsync(url)
                       }
                       processedThumbnails[mapped.id] = new ArtistThumbnail(
                         mapped,
@@ -666,10 +653,9 @@ const migrateViewsData = () => {
                       thumbnails[mapped.id] = null
                     }
                   }
-
                   const newArtist = new Artist(
                     Number.parseInt(artistId),
-                    ArtistType.map[artistData.artistType],
+                    ArtistType.map[artistData.artistType] || ArtistType.Producer,
                     category,
                     artistData.publishDate,
                     artistData.additionDate,
@@ -686,7 +672,7 @@ const migrateViewsData = () => {
             }
           }
           // process artists
-          await processArtists(JSON.parse(song.singers), ArtistCategory.Singer)
+          await processArtists(JSON.parse(song.singers), ArtistCategory.Vocalist)
           await processArtists(JSON.parse(song.producers), ArtistCategory.Producer)
 
           // build names
@@ -724,6 +710,14 @@ const migrateViewsData = () => {
         }
       }
 
+      // associate artists (assign base artist ids)
+      console.log("----[ Assinging Base Artist Ids ]----")
+      for (const [id, artist] of Object.entries(artistsMap)) {
+        artist.baseArtistId = await proxies.songsData.getBaseArtist(artist.id, artist.names[NameType.Original.id])
+        console.log(`[${id}] base: ${artist.baseArtistId} name: ${artist.names[NameType.Original.id]}`)
+        proxies.songsData.insertArtist(artist)
+      }
+
       // migrate views
       console.log("----[ Migrating Views ]----")
       {
@@ -744,7 +738,7 @@ const migrateViewsData = () => {
               const songData = songsMap[songId]
               // process breakdown
               const oldBreakdown = JSON.parse(viewData.breakdown)
-              const newBreakdown = {}
+              const newBreakdown = []
               for (const [platform, views] of Object.entries(oldBreakdown)) {
                 const viewType = viewTypeMap[platform]
                 if (viewType) {
@@ -763,6 +757,7 @@ const migrateViewsData = () => {
                 Number.parseInt(songId),
                 timestamp,
                 viewData.total,
+                newBreakdown
               ))
             }
 

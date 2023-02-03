@@ -42,7 +42,9 @@ module.exports = (db, exists) => {
         id INTEGER PRIMARY KEY NOT NULL,
         artist_type INTEGER NOT NULL,
         publish_date TEXT NOT NULL,
-        addition_date TEXT NOT NULL)`).run()
+        addition_date TEXT NOT NULL,
+        base_artist_id INTEGER,
+        FOREIGN KEY (base_artist_id) REFERENCES artists (id))`).run()
 
     // create artists names table
     db.prepare(`CREATE TABLE IF NOT EXISTS artists_names (

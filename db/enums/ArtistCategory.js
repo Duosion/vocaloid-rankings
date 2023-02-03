@@ -1,8 +1,8 @@
 const Enum = require("./Enum")
 
 module.exports = class ArtistCategory extends Enum {
-    static Singer = new ArtistType("Singer", 0)
-    static Producer = new ArtistType("Producer", 1)
+    static Vocalist = new ArtistCategory("Vocalist", 0)
+    static Producer = new ArtistCategory("Producer", 1)
 
     static {
         const enums = Object.values(this)

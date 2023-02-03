@@ -102,6 +102,7 @@ const createAccount = async (request, reply) => {
 // plugin
 const plugin = (fastify, options, done) => {
 
+    // add a hook in the "preParsing" phase of request handling
     fastify.addHook("preParsing", async (req, reply, _) => {
         const config = req.routeConfig
 

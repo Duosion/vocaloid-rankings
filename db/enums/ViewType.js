@@ -1,3 +1,4 @@
+const Enum = require("./Enum")
 module.exports = class SongType extends Enum {
     static YouTube = new SongType("YouTube", 0)
     static Niconico = new SongType("Niconico", 1)

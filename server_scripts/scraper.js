@@ -1,10 +1,21 @@
 // scrapes the vocaloid wiki
 const fetch = require("node-fetch")
-const { viewRegExps } = require("./shared")
+const { getAverageColorAsync } = require("./shared")
 //const jsdom = require("jsdom")
   //const { JSDOM } = jsdom;// jsdom constructor
 
 const { parseHTML } = require("linkedom")
+const SongViews = require("../db/dataClasses/SongViews")
+const ViewType = require("../db/enums/ViewType")
+const Artist = require("../db/dataClasses/Artist")
+const ArtistType = require("../db/enums/ArtistType")
+const NameType = require("../db/enums/NameType")
+const ArtistThumbnailType = require("../db/enums/ArtistThumbnailType")
+const ArtistThumbnail = require("../db/dataClasses/ArtistThumbnail")
+const Song = require("../db/dataClasses/song")
+const SongType = require("../db/enums/SongType")
+const ArtistCategory = require("../db/enums/ArtistCategory")
+const { proxies } = require("../db/init")
 
 // strings
 const scrapeDomains = {
@@ -75,10 +86,11 @@ const vocaDbIDMatches = [
     if (!responseBody || responseBody.code != 0) { return {Views: 0, Thumbnail: null}; }
 
     const responseData =  responseBody.data
-    
+    const thumbnail = responseData.pic
     return {
       Views: responseData.stat.view,
-      Thumbnail: responseData.title,
+      Thumbnail: thumbnail,
+      MaxResThumbnail: thumbnail
     }
   }
 
@@ -96,7 +108,8 @@ const vocaDbIDMatches = [
       
       Views: firstItem ? Number(firstItem["statistics"]["viewCount"]) : 0,
       
-      Thumbnail: `https://img.youtube.com/vi/${videoID}/hqdefault.jpg`
+      Thumbnail: `https://img.youtube.com/vi/${videoID}/hqdefault.jpg`,
+      MaxResThumbnail: `https://img.youtube.com/vi/${videoID}/maxresdefault.jpg`
       
     }
     
@@ -108,42 +121,23 @@ const vocaDbIDMatches = [
     if (!serverResponse) { return {Views: 0, Thumbnail: null}; }
     const responseText = await serverResponse.text()
     
-    const parsedHTML = await parseHTML(responseText)
+    const parsedHTML = parseHTML(responseText)
     // parse data-api-data
       const dataElement = parsedHTML.document.getElementById("js-initial-watch-data")
       if (!dataElement) { return {Views: 0, Thumbnail: null}; }
       
       const videoData = JSON.parse(dataElement.getAttribute("data-api-data")).video
-      
+    
+    const thumbnail = videoData.thumbnail.url
+
     return {
       
       Views: Number(videoData.count.view),
       
-      Thumbnail: videoData.thumbnail.url,
+      Thumbnail: thumbnail,
+      MaxResThumbnail: thumbnail
       
     }
-    
-    /*const DOM = await JSDOM.fromURL(nicoNicoVideoDomain + videoID).catch(error => { return error;})
-    if (!DOM) { return 0;}
-    
-    const { document } = DOM.window; // get the document
-    
-    // get the video api data
-    let dataElement = document.querySelector("#js-initial-watch-data")
-    
-    let data = dataElement ? dataElement.getAttribute("data-api-data") : null
-    
-    if (!data) { return 0; }
-    
-    try {
-      
-      return JSON.parse(data).video.count.view; // return views
-      
-    } catch (error) {
-      
-      return 0; // return 0 views if parse failed
-      
-    }*/
     
   }
   
@@ -165,11 +159,11 @@ const vocaDbIDMatches = [
     }
   }
   
-  const viewTypePollers = {
-    ["YouTube"]: getYouTubeData,
-    ["Niconico"]: getNiconicoData,
-    ["bilibili"]: getBilibiliData
-  }
+  const viewTypePollers = [
+    getYouTubeData,
+    getNiconicoData,
+    getBilibiliData
+  ]
 
   const allowedArtistTypes = {
     ["CeVIO"]: true,
@@ -183,46 +177,56 @@ const vocaDbIDMatches = [
     ["Romaji"]: "Romaji",
     ["English"]: "English"
   }
-  
-  const getVideoViewsAsync = (videoIDs) => {
+
+const vocaDBArtistThumbnailMap = {
+  ['urlOriginal']: ArtistThumbnailType.Original,
+  ['urlThumb']: ArtistThumbnailType.Medium,
+  ['urlSmallThumb']: ArtistThumbnailType.Small,
+  ['urlTinyThumb']: ArtistThumbnailType.Tiny
+}
+
+  /**
+   * Gets a video's views
+   * 
+   * @param {string[][]} videoIDs // the ids of the videos to retrieve the views of
+   * @returns {SongViews}
+   */
+  const getVideoViewsAsync = (
+    videoIDs
+  ) => {
     
     return new Promise( async (resolve, reject) => {
+
+      var totalViews = 0;
+
+      const breakdown = []
       
-      const breakdown = {}
-      
-      const returnData = {
+      for (let [viewType, IDs] of videoIDs.entries()) {
         
-        total: 0,
-        breakdown: breakdown
-        
-      }
-      
-      for (let [viewType, IDs] of Object.entries(videoIDs)) {
-        
-        const viewData = viewRegExps[viewType]
         const poller = viewTypePollers[viewType]
 
-        if (viewData && poller) {
+        if (poller) {
           
-          var totalViews = 0;
-          
+          const bucket = {}
+          breakdown[viewType] = bucket
+
           for (let [_, videoID] of IDs.entries()) {
             const views = (await poller(videoID)).Views
-          
-            totalViews += views
-            
-          }
-          
-          returnData.total += totalViews
 
-          breakdown[viewType] = totalViews
+            bucket[videoID] = views
+            totalViews += views
+          }
           
         }
         
       }
       
       // resolve with the view count
-      resolve(returnData)
+      resolve(new SongViews(
+        null,
+        total = totalViews,
+        breakdown = breakdown
+      ))
     })
     
   }
@@ -241,7 +245,7 @@ const vocaDbIDMatches = [
 
         const responseText = await response.text()
         
-        const parsedHTML = await parseHTML(responseText)
+        const parsedHTML = parseHTML(responseText)
 
         const document = parsedHTML.document;
 
@@ -286,54 +290,73 @@ const vocaDbIDMatches = [
     return null;
   }
   
+  /**
+   * Converts vocadb artist data into an Artist object.
+   * 
+   * @param {Object} artistData 
+   * @returns {Artist}
+   */
   const processVocaDBArtistData = (artistData) => {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       try {
         
         // process names
-        const names = {
-          Original: artistData.name
-        }
+        const names = [
+          artistData.name
+        ]
         artistData.names.forEach(nameData => {
-          const language = vocaDBLanguageMap[nameData.language]
-          const exists = names[language] ? true : false
-          if (language && !exists) {
-            names[language] = nameData.value
+          const nameType = NameType.map[nameData.language]
+          const id = nameType && nameType.id
+          const exists = id && names[id] ? true : false
+          if (nameType && !exists) {
+            names[id] = nameData.value
           }
         })
 
-        // process images
-        var thumbnails
-        {
-          const artistImages = artistData.mainPicture
-          if (artistImages) {
-            thumbnails = {
-              original: artistImages.urlOriginal,
-              medium: artistImages.urlThumb,
-              small: artistImages.urlSmallThumb,
-              tiny: artistImages.urlTinyThumb
+        // process thumbnails
+        const thumbnails = []
+        var averageColor = null
+        
+        for (const [rawType, value] of Object.entries(artistData.mainPicture || {})) {
+          const type = vocaDBArtistThumbnailMap[rawType]
+          if (type) {
+
+            if (!averageColor) {
+              // do this so we only have to calculate the average color of an artist's thumbnail once
+              // (there are usually 4 thumbnails per artist, all the same, just downscaled from the original)
+              averageColor = await getAverageColorAsync(value)
             }
-          } else {
-            thumbnails = {}
+
+            thumbnails[type.id] = new ArtistThumbnail(
+              type,
+              value,
+              averageColor.hex
+            )
           }
         }
-        
-        resolve({
-          type: artistData.artistType,
-          id: artistData.id,
-          
-          publishDate: artistData.releaseDate || artistData.createDate,
-          additionDate: new Date().toISOString(),
 
-          names: names,
-          thumbnails: thumbnails
-        })
+
+        resolve(new Artist(
+          Number.parseInt(artistData.id),
+          ArtistType.map[artistData.artistType],
+          null,
+          artistData.releaseDate || artistData.createDate,
+          new Date().toISOString(),
+          names,
+          thumbnails
+        ))
       } catch (error) {
         reject(error)
       }
     })
   }
 
+  /**
+   * Takes a song's data from VocaDB and converts it into a Song object.
+   * 
+   * @param {Object} songData 
+   * @returns {Song}
+   */
   const processVocaDBSongData = (songData) => {
     return new Promise(async (resolve, reject) => {
 
@@ -348,8 +371,7 @@ const vocaDbIDMatches = [
 
       // get singers & producers
         var songType = null
-        const singers = []
-        const producers = []
+        const artists = []
         
         for (let [_, artist] of songData.artists.entries()) {
           
@@ -357,28 +379,25 @@ const vocaDbIDMatches = [
           
           for (let [_, category] of artistCategories.entries()) {
             category = category.trim(); // trim whitespace
-            
-            switch (category) {
-              case "Producer": {
-                const artistData = artist.artist
-                if (artistData) {
-                  producers.push(artistData.id.toString())
+            const categoryType = ArtistCategory.map[category]
+            if (categoryType) {
+              const artistData = artist.artist
+              switch (category) {
+                case "Vocalist": {
+                  // update the songType
+                  const artistType = artistData ? artistData.artistType : null
+                  if (artistType && allowedArtistTypes[artistType]) {
+                    songType = artistType
+                  }
+                  break; 
                 }
-                break;
               }
-              case "Vocalist": {
-                const artistData = artist.artist
-                if (artistData) {
-                  singers.push(artistData.id.toString())
-                }
-                // update the songType
-                const singerData = artist.artist
-                const artistType = singerData ? singerData.artistType : null
-                if (artistType && allowedArtistTypes[artistType]) {
-                  songType = artistType
-                }
-                
-                break; 
+
+              const artistId = artistData && Number.parseInt(artist.artist.id)
+              if (artistId) {
+                const artistObject = await proxies.songsData.getArtist(artistId) || scrapeVocaDBArtist(artistId)
+
+                artists.push(artistObject)
               }
             }
           }
@@ -415,6 +434,7 @@ const vocaDbIDMatches = [
       // get video ID & thumbnail data
         
         var thumbnail = null;
+        var maxResThumbnail = null;
         const videoIDs = {};
         const views = {}
         
@@ -443,8 +463,30 @@ const vocaDbIDMatches = [
               views[dataName] = currentViews + pollerData.Views
               
               // add thumbnail
+              const thumbnail = pollerData.Thumbnail
               if (!thumbnails[dataName]) {
-                thumbnails[dataName] = pollerData.Thumbnail
+                thumbnails[dataName] = thumbnail
+              }
+
+              // add maxres thumbnail
+              const maxResDataName = dataName + "maxRes"
+              if (!thumbnails[maxResDataName]) {
+                const maxResThumb = pollerData.MaxResThumbnail
+                if (thumbnail != maxResThumb) {
+                  // if the thumbnail and max res thumbnails are different
+                  // make sure that the max res thumbnail is a valid URL
+                  const fetchResult = await fetch(maxResThumb)
+                  .then(res => {
+                    return res.status
+                  })
+                  .catch(_ => {
+                    return 404
+                  })
+                  if (fetchResult != 404) {
+                    thumbnails[maxResDataName] = maxResThumb
+                  }
+                }
+
               }
               
             }
@@ -452,15 +494,41 @@ const vocaDbIDMatches = [
           
           // pick the thumbnail in the correct order
           for (let [_, poller] of Object.entries(vocaDBPVPolls)) {
-            const thumb = thumbnails[poller.DataName]
+            const dataName = poller.DataName
+            const thumb = thumbnails[dataName]
+            const maxResThumb = thumbnails[dataName + "maxRes"]
             if (thumb) {
               thumbnail = thumb
+              maxResThumbnail = maxResThumb || thumb
               break;
             }
           }
           
         }
       
+      // get the thumbnail's average color
+
+      
+      resolve(new Song(
+        Number.parseInt(id),
+
+        songData.publishDate,
+        new Date().toISOString(),
+
+        SongType.map[songType],
+        
+        thumbnail,
+        maxResThumbnail,
+
+        await getAverageColorAsync(maxResThumbnail),
+        null,
+
+        artists,
+        names,
+        videoIDs
+
+      ))
+
       resolve({ // return data
         
         songId: id,

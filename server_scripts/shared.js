@@ -1,7 +1,21 @@
 const xxhash = require("xxhash-wasm")
 const { cacher } = require("./cacher")
+const { getAverageColor } = require("fast-average-color-node")
 
 // shared variables
+
+exports.getAverageColorAsync = (input) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      resolve(await getAverageColor(input))
+    } catch (error) {
+      resolve({
+        hex: "#ffffff"
+      })
+    }
+  })
+} 
+
 exports.viewTypes = {
     "": {
       DisplayName: "Combined",

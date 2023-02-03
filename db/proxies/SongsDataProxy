@@ -64,7 +64,8 @@ module.exports = class SongsDataProxy {
             artistData.publish_date,
             artistData.addition_date,
             names,
-            thumbnails
+            thumbnails,
+            artistData.base_artist_id
         )
     }
 
@@ -197,7 +198,7 @@ module.exports = class SongsDataProxy {
         const db = this.db
 
         const artistData = db.prepare(`
-        SELECT id, artist_type, publish_date, addition_date
+        SELECT id, artist_type, publish_date, addition_date, base_artist_id
         FROM artists
         WHERE id = ?`).get(artistId)
 
@@ -282,11 +283,12 @@ module.exports = class SongsDataProxy {
      * @returns {string=} The most recent views timestamp
      */
     #getMostRecentViewsTimestampSync() {
-        return this.db.prepare(`
+        const result =  this.db.prepare(`
         SELECT timestamp
         FROM views_metadata
-        ORDER BY id DESC
-        LIMIT 1`).get().timestamp
+        ORDER BY timestamp DESC
+        LIMIT 1`).get()
+        return result ? result.timestamp : null
     }
 
     /**
@@ -303,7 +305,46 @@ module.exports = class SongsDataProxy {
         LIMIT 1`).get(timestamp) ? true : false
     }
 
+    /**
+     * Gets an artist's base artist if it exists.
+     * 
+     * @param {number} artistId The id of the artist to get the base artist of.
+     * @param {string} artistName The name of the artist to get the base artist of.
+     * @returns {number?}
+     */
+    #getBaseArtistSync(artistId, artistName) {
+        const result = this.db.prepare(`
+        SELECT DISTINCT artists.id
+        FROM artists
+        JOIN artists_names ON artists.id = artists_names.artist_id
+        WHERE INSTR(?, artists_names.name)
+        ORDER BY artists.id ASC
+        LIMIT 1`).get(artistName)
+        const baseArtistId = result ? result.id : artistId
+        return baseArtistId != artistId ? baseArtistId : null 
+    }
+
     // public functions
+
+    /**
+     * Gets an artist's base artist if it exists.
+     * 
+     * @param {number} artistId The id of the artist to get the base artist of.
+     * @param {string} artistName The name of the artist to get the base artist of.
+     * @returns {Promise<number?>} A promise that resolves with the output of this function.
+     */
+    getBaseArtist(
+        artistId,
+        artistName
+    ) {
+        return new Promise((resolve, reject) => {
+            try {
+                resolve(this.#getBaseArtistSync(artistId, artistName))
+            } catch (error) {
+                reject(error)
+            }
+        })
+    }
 
     /**
      * Checks if a song exists within the database.
@@ -402,6 +443,23 @@ module.exports = class SongsDataProxy {
         })
     }
 
+    getArtistFromName(name) {
+        return new Promise((resolve, reject) => {
+            const db = this.db
+
+            const id = db.prepare(`
+            SELECT song_id
+            FROM songs_names
+            WHERE name = ?
+            LIMIT 1`).get(name)
+
+            if (id) {
+                resolve(this.#getArtistSync(id))
+            }
+
+        })
+    }
+
     /**
      * Inserts an artist into the database.
      * 
@@ -417,8 +475,8 @@ module.exports = class SongsDataProxy {
 
                 // prepare statement to insert into artists
                 const artistsInsertStatement = db.prepare(`
-                REPLACE INTO artists (id, artist_type, publish_date, addition_date)
-                VALUES (?, ?, ?, ?)`)
+                REPLACE INTO artists (id, artist_type, publish_date, addition_date, base_artist_id)
+                VALUES (?, ?, ?, ?, ?)`)
                 // prepare statement to insert into artists names
                 const artistsNamesInsertStatement = db.prepare(`
                 REPLACE INTO artists_names (artist_id, name, name_type)
@@ -433,7 +491,8 @@ module.exports = class SongsDataProxy {
                     artistId,
                     artist.type.id,
                     artist.publishDate,
-                    artist.additionDate
+                    artist.additionDate,
+                    artist.baseArtistId
                 )
                 // insert names
                 for (const [nameType, name] of Object.entries(artist.names)) {
@@ -482,7 +541,7 @@ module.exports = class SongsDataProxy {
                 // prepare statement to insert into songs artists
                 const songsArtistsInsertStatement = db.prepare(`
                 REPLACE INTO songs_artists (song_id, artist_id, artist_category)
-                VALUES (?, ?)`)
+                VALUES (?, ?, ?)`)
 
                 // prepare statement to insert into songs names
                 const songsNamesInsertStatement = db.prepare(`
@@ -604,14 +663,16 @@ module.exports = class SongsDataProxy {
 
                 // insert breakdowns
                 for (const [viewType, viewsBucket] of songViews.breakdown.entries()) {
-                    for (const [videoId, views] of Object.entries(viewsBucket)) {
-                        viewsBreakdownsReplaceStatement.run(
-                            songId,
-                            timestamp,
-                            views,
-                            videoId,
-                            viewType
-                        )
+                    if (viewsBucket) {
+                        for (const [videoId, views] of Object.entries(viewsBucket)) {
+                            viewsBreakdownsReplaceStatement.run(
+                                songId,
+                                timestamp,
+                                views,
+                                videoId,
+                                viewType
+                            )
+                        }
                     }
                 }
                 resolve()
