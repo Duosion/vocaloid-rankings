@@ -573,6 +573,7 @@ const migrateViewsData = () => {
       console.log("------------- MIGRATING VIEWS DATA -------------")
 
       const viewTypeMap = ViewType.map
+      const songsDataProxy = database.songsData
 
       // migrate songs
       console.log("----[ Migrating Songs ]----")
@@ -586,8 +587,8 @@ const migrateViewsData = () => {
           const songId = song.songId
           const numberSongId = Number.parseInt(songId)
           console.log(`[${n}/${length}] Migrating ${songId}...`)
-          if (await proxies.songsData.songExists(numberSongId)) { 
-            songsMap[songId] = await proxies.songsData.getSong(numberSongId)
+          if (await songsDataProxy.songExists(numberSongId)) { 
+            songsMap[songId] = await songsDataProxy.getSong(numberSongId)
             continue
           }
           // create song
@@ -695,7 +696,7 @@ const migrateViewsData = () => {
             numberSongId,
             song.publishDate,
             song.additionDate,
-            SongType.map[song.songType] || SongType.Vocaloid,
+            SongType.map[song.songType] || SongType.Other,
             thumbnail,
             maxresThumbnail,
             averageColor.hex,
@@ -705,7 +706,7 @@ const migrateViewsData = () => {
             processedVideoIds
           )
 
-          await proxies.songsData.insertSong(newSong)
+          await songsDataProxy.insertSong(newSong)
           songsMap[songId] = newSong
         }
       }
@@ -713,9 +714,9 @@ const migrateViewsData = () => {
       // associate artists (assign base artist ids)
       console.log("----[ Assinging Base Artist Ids ]----")
       for (const [id, artist] of Object.entries(artistsMap)) {
-        artist.baseArtistId = await proxies.songsData.getBaseArtist(artist.id, artist.names[NameType.Original.id])
+        artist.baseArtistId = await songsDataProxy.getBaseArtist(artist.id, artist.names[NameType.Original.id])
         console.log(`[${id}] base: ${artist.baseArtistId} name: ${artist.names[NameType.Original.id]}`)
-        proxies.songsData.insertArtist(artist)
+        songsDataProxy.insertArtist(artist)
       }
 
       // migrate views
@@ -725,7 +726,7 @@ const migrateViewsData = () => {
 
         for (const [_, timestampData] of metadata.entries()) {
           const timestamp = timestampData.timestamp
-          proxies.songsData.insertViewsTimestamp(timestamp, timestampData.updated)
+          songsDataProxy.insertViewsTimestamp(timestamp, timestampData.updated)
 
           console.log("Migrate views for",timestamp)
 
@@ -753,7 +754,7 @@ const migrateViewsData = () => {
                 }
               }
 
-              proxies.songsData.insertSongViews(new SongViews(
+              songsDataProxy.insertSongViews(new SongViews(
                 Number.parseInt(songId),
                 timestamp,
                 viewData.total,
@@ -774,7 +775,7 @@ const migrateViewsData = () => {
     }
   })
 }
-migrateViewsData()
+//migrateViewsData()
 
 // export variables
 exports.viewsDataSortingFunctions = viewsDataSortingFunctions

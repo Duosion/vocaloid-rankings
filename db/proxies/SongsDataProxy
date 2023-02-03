@@ -299,7 +299,7 @@ module.exports = class SongsDataProxy {
      */
     #timestampExistsSync(timestamp) {
         return this.db.prepare(`
-        SELECT id 
+        SELECT timestamp 
         FROM views_metadata 
         WHERE timestamp = ? 
         LIMIT 1`).get(timestamp) ? true : false
@@ -420,6 +420,16 @@ module.exports = class SongsDataProxy {
         return new Promise((resolve, reject) => {
             try {
                 resolve(this.#getSongSync(id))
+            } catch (error) {
+                reject(error)
+            }
+        })
+    }
+
+    getSongsIds() {
+        return new Promise((resolve, reject) => {
+            try {
+                resolve(this.db.prepare('SELECT id FROM songs').all())
             } catch (error) {
                 reject(error)
             }
@@ -601,6 +611,13 @@ module.exports = class SongsDataProxy {
                             )
                         }
                     }
+                }
+
+                // insert views
+                const views = song.views
+                const viewsTimestamp = views && views.timestamp
+                if (viewsTimestamp) {
+                    await this.insertSongViews(views)
                 }
 
                 resolve()

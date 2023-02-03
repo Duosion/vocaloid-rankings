@@ -1,4 +1,5 @@
 const { generateTimestamp } = require("../server_scripts/shared")
+const SongsDataProxy = require("./proxies/SongsDataProxy")
 const databases = require("./init.js").databases
 
 function generateISOTimestamp() {
@@ -717,59 +718,6 @@ exports.authentication = authProxy
 proxies["authentication"] = authProxy
 
 // songs_data
-const songsDataProxy = {
-    songExists: (songId) => {
-        return new Promise(async (resolve, reject) => {
-            try {
-              
-            } catch (error) {
-               reject(error) 
-            }
-        }) 
-    },
-
-    getSongs: () => {
-        return new Promise(async (resolve, reject) => {
-            try {
-              
-            } catch (error) {
-               reject(error) 
-            }
-        })
-    },
-    getSong: (songID) => {
-        return new Promise(async (resolve, reject) => {
-            try {
-            } catch(error) {
-                reject(error)
-            }
-        })
-    },
-    updateSong: (songId, toUpdate = [], updateValues = []) => {
-        return new Promise((resolve, reject) => {
-            try {
-            } catch (error) {
-                reject(error)
-            }
-        })
-    },
-    // addition
-    insertSongs: (songsToAdd) => {
-        return new Promise( async (resolve, reject) => {
-            try {
-            } catch(error) {
-                reject(error)
-            }
-        })
-    },
-    insertSong: (songID, songData) => {  
-        return new Promise( async (resolve, reject) => {
-            try {
-            } catch(err) {
-                reject(err)
-            }
-        }) 
-    }
-}
+/** @type {SongsDataProxy} */
+const songsDataProxy = new SongsDataProxy(databases.songsData)
 exports.songsData = songsDataProxy
-proxies["songsData"] = songsDataProxy

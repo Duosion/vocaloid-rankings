@@ -1,62 +1,87 @@
-// scrapes the vocaloid wiki
 const fetch = require("node-fetch")
 const { getAverageColorAsync } = require("./shared")
-//const jsdom = require("jsdom")
-  //const { JSDOM } = jsdom;// jsdom constructor
-
+const database = require("../db")
 const { parseHTML } = require("linkedom")
+// import database classes
 const SongViews = require("../db/dataClasses/SongViews")
-const ViewType = require("../db/enums/ViewType")
-const Artist = require("../db/dataClasses/Artist")
-const ArtistType = require("../db/enums/ArtistType")
-const NameType = require("../db/enums/NameType")
-const ArtistThumbnailType = require("../db/enums/ArtistThumbnailType")
 const ArtistThumbnail = require("../db/dataClasses/ArtistThumbnail")
 const Song = require("../db/dataClasses/song")
+// import database enums
+const Artist = require("../db/dataClasses/Artist")
+const ArtistType = require("../db/enums/ArtistType")
+const ViewType = require("../db/enums/ViewType")
+const NameType = require("../db/enums/NameType")
 const SongType = require("../db/enums/SongType")
 const ArtistCategory = require("../db/enums/ArtistCategory")
-const { proxies } = require("../db/init")
+const ArtistThumbnailType = require("../db/enums/ArtistThumbnailType")
 
 // strings
 const scrapeDomains = {
-  Vocaloid: {
-    Domain: "https://vocaloid.fandom.com",
-    ListURLs: [
-      // youtube
-      "/wiki/Category:Songs_with_10M_YouTube_views",
-      "/wiki/Category:Songs_approaching_10M_YouTube_views",
-      "/wiki/Category:Songs_with_100M_YouTube_views",
-      
-      // niconico
-      "/wiki/Category:Hall_of_Myths",
-      "/wiki/Category:Songs_approaching_10M_Niconico_views",
-      
-      // bilibili
-      "/wiki/Category:Songs_with_1M_bilibili_views",
-      "/wiki/Category:Songs_with_10M_bilibili_views"
-    ]
-  },
-  CeVIO: {
-    Domain: "https://cevio-lyrics.fandom.com",
-    ListURLs: [
-      // youtube
-      "/wiki/Category:Songs_with_1M_YouTube_views",
-      "/wiki/Category:Songs_with_10M_YouTube_views"
-    ]
-  }
+    Vocaloid: {
+        Domain: "https://vocaloid.fandom.com",
+        ListURLs: [
+            // youtube
+            "/wiki/Category:Songs_with_10M_YouTube_views",
+            "/wiki/Category:Songs_approaching_10M_YouTube_views",
+            "/wiki/Category:Songs_with_100M_YouTube_views",
+
+            // niconico
+            "/wiki/Category:Hall_of_Myths",
+            "/wiki/Category:Songs_approaching_10M_Niconico_views",
+
+            // bilibili
+            "/wiki/Category:Songs_with_1M_bilibili_views",
+            "/wiki/Category:Songs_with_10M_bilibili_views"
+        ]
+    },
+    CeVIO: {
+        Domain: "https://cevio-lyrics.fandom.com",
+        ListURLs: [
+            // youtube
+            "/wiki/Category:Songs_with_1M_YouTube_views",
+            "/wiki/Category:Songs_with_10M_YouTube_views"
+        ]
+    }
 }
 
 const nicoNicoVideoDomain = "https://www.nicovideo.jp/watch/"
-const bilibiliVideoDomain = "https://www.bilibili.com/video/"
 
-const vocaDBApiUrl = "https://vocadb.net/api/";
+// tables
+const allowedArtistTypes = {
+    ["CeVIO"]: true,
+    ["Vocaloid"]: true,
+    ["OtherVoiceSynthesizer"]: true,
+    ["SynthesizerV"]: true,
+}
 
+const blacklistedSongTypes = {
+    ["Instrumental"]: true,
+    ["MusicPV"]: true
+}
+
+const vocaDBLanguageMap = {
+    ["Japanese"]: "Japanese",
+    ["Romaji"]: "Romaji",
+    ["English"]: "English"
+}
+
+const vocaDBArtistThumbnailMap = {
+    ['urlOriginal']: ArtistThumbnailType.Original,
+    ['urlThumb']: ArtistThumbnailType.Medium,
+    ['urlSmallThumb']: ArtistThumbnailType.Small,
+    ['urlTinyThumb']: ArtistThumbnailType.Tiny
+}
+const vocaDBThumbnailPriority = [ViewType.YouTube, ViewType.bilibili, ViewType.Niconico]
+
+// numbers
 const msInDay = 24 * 60 * 60 * 1000 // one day in ms
 
+// vocaDB api strings
+const vocaDBApiUrl = "https://vocadb.net/api/";
 // entries api
 const vocaDBRecentSongsApiUrl = "https://vocadb.net/api/songs?sort=AdditionDate&onlyWithPVs=true&status=Finished&fields=Names,PVs,Artists"
 const vocaDBRecentSongsViewsThreshold = 10000 // how many views a recent song must have to be entered into this database
-const vocaDBRecentSongsUploadDateThreshold = msInDay * 3 // (in ms) the minimum age in days of a song to be entered into this database
+const vocaDBRecentSongsUploadDateThreshold = msInDay * 3 // (in ms) the maximum age in days of a song to be entered into this database
 const vocaDBRecentSongsSearchDateThreshold = msInDay * 1 // (in ms) how many days back the getRecentSongs function searches.
 const vocaDBDefaultMaxResults = 10
 // song api
@@ -72,30 +97,27 @@ const bilibiliAidRegExp = /av(.+)/
 
 // reg expressions
 const vocaDbIDMatches = [
-  /https:\/\/vocadb\.net\/S\/(\d+)/,
+    /https:\/\/vocadb\.net\/S\/(\d+)/,
 ]
 
-// functions
-
-// exported function
-  const getBilibiliData = async (videoID) => {
+// streaming platform view pollers
+const getBilibiliDataAsync = async (videoID) => {
     const aidMatches = videoID.match(bilibiliAidRegExp)
     const trimmedAid = aidMatches ? aidMatches[1] : videoID
-    const serverResponse = await fetch(bilibiliVideoDataEndpoint + trimmedAid).catch(error => {return null})
+    const serverResponse = await fetch(bilibiliVideoDataEndpoint + trimmedAid).catch(error => { return null })
     const responseBody = serverResponse ? await serverResponse.json() : null
-    if (!responseBody || responseBody.code != 0) { return {Views: 0, Thumbnail: null}; }
+    if (!responseBody || responseBody.code != 0) { return { Views: 0, Thumbnail: null }; }
 
-    const responseData =  responseBody.data
+    const responseData = responseBody.data
     const thumbnail = responseData.pic
     return {
-      Views: responseData.stat.view,
-      Thumbnail: thumbnail,
-      MaxResThumbnail: thumbnail
+        views: Number(responseData.stat.view),
+        default: thumbnail,
+        maxRes: thumbnail
     }
-  }
+}
 
-  const getYouTubeData = async (videoID) => {
-  
+const getYoutubeViewsAsync = async (videoID) => {
     const response = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${videoID}&key=${process.env.YoutubeAPIKey}`)
 
     const responseBody = await response.json()
@@ -103,592 +125,619 @@ const vocaDbIDMatches = [
     const items = responseBody["items"]
 
     const firstItem = items != undefined ? responseBody["items"][0] : null
-    
-    return {
-      
-      Views: firstItem ? Number(firstItem["statistics"]["viewCount"]) : 0,
-      
-      Thumbnail: `https://img.youtube.com/vi/${videoID}/hqdefault.jpg`,
-      MaxResThumbnail: `https://img.youtube.com/vi/${videoID}/maxresdefault.jpg`
-      
-    }
-    
-  }
 
-  const getNiconicoData = async (videoID) => {
-    
-    const serverResponse = await fetch(nicoNicoVideoDomain + videoID).catch(error => {return null})
-    if (!serverResponse) { return {Views: 0, Thumbnail: null}; }
+    return firstItem ? Number(firstItem["statistics"]["viewCount"]) : 0
+}
+
+const getYouTubeThumbnailsAsync = async (videoID) => {
+    const defaultThumb = `https://img.youtube.com/vi/${videoID}/hqdefault.jpg`
+    const maxResThumb = `https://img.youtube.com/vi/${videoID}/maxresdefault.jpg`
+
+    const fetchResult = await fetch(maxResThumb)
+        .then(res => {
+            return res.status
+        })
+        .catch(_ => {
+            return 404
+        })
+
+    return {
+        default: defaultThumb,
+        maxRes: fetchResult == 404 ? defaultThumb : maxResThumb
+    }
+}
+
+const getNiconicoDataAsync = async (videoID) => {
+    const serverResponse = await fetch(nicoNicoVideoDomain + videoID).catch(error => { return null })
+    if (!serverResponse) { return { Views: 0, Thumbnail: null }; }
     const responseText = await serverResponse.text()
-    
+
     const parsedHTML = parseHTML(responseText)
     // parse data-api-data
-      const dataElement = parsedHTML.document.getElementById("js-initial-watch-data")
-      if (!dataElement) { return {Views: 0, Thumbnail: null}; }
-      
-      const videoData = JSON.parse(dataElement.getAttribute("data-api-data")).video
-    
+    const dataElement = parsedHTML.document.getElementById("js-initial-watch-data")
+    if (!dataElement) { return { Views: 0, Thumbnail: null }; }
+
+    const videoData = JSON.parse(dataElement.getAttribute("data-api-data")).video
+
     const thumbnail = videoData.thumbnail.url
 
     return {
-      
-      Views: Number(videoData.count.view),
-      
-      Thumbnail: thumbnail,
-      MaxResThumbnail: thumbnail
-      
+        views: Number(videoData.count.view),
+        default: thumbnail,
+        maxRes: thumbnail
     }
-    
-  }
-  
-  
-  
-  const vocaDBPVPolls = {
-    ["Youtube"]: {
-      DataName: "YouTube",
-      Poller: getYouTubeData
-    },
-    ["NicoNicoDouga"]: {
-      DataName: "Niconico",
-      Poller: getNiconicoData
-    },
-    ["Bilibili"]: {
-      DataName: "bilibili",
-      IDPrefix: "av",
-      Poller: getBilibiliData
-    }
-  }
-  
-  const viewTypePollers = [
-    getYouTubeData,
-    getNiconicoData,
-    getBilibiliData
-  ]
-
-  const allowedArtistTypes = {
-    ["CeVIO"]: true,
-    ["Vocaloid"]: true,
-    ["OtherVoiceSynthesizer"]: true,
-    ["SynthesizerV"]: true,
-  }
-  
-  const vocaDBLanguageMap = {
-    ["Japanese"]: "Japanese",
-    ["Romaji"]: "Romaji",
-    ["English"]: "English"
-  }
-
-const vocaDBArtistThumbnailMap = {
-  ['urlOriginal']: ArtistThumbnailType.Original,
-  ['urlThumb']: ArtistThumbnailType.Medium,
-  ['urlSmallThumb']: ArtistThumbnailType.Small,
-  ['urlTinyThumb']: ArtistThumbnailType.Tiny
 }
 
-  /**
-   * Gets a video's views
-   * 
-   * @param {string[][]} videoIDs // the ids of the videos to retrieve the views of
-   * @returns {SongViews}
-   */
-  const getVideoViewsAsync = (
-    videoIDs
-  ) => {
-    
-    return new Promise( async (resolve, reject) => {
-
-      var totalViews = 0;
-
-      const breakdown = []
-      
-      for (let [viewType, IDs] of videoIDs.entries()) {
-        
-        const poller = viewTypePollers[viewType]
-
-        if (poller) {
-          
-          const bucket = {}
-          breakdown[viewType] = bucket
-
-          for (let [_, videoID] of IDs.entries()) {
-            const views = (await poller(videoID)).Views
-
-            bucket[videoID] = views
-            totalViews += views
-          }
-          
-        }
-        
-      }
-      
-      // resolve with the view count
-      resolve(new SongViews(
-        null,
-        total = totalViews,
-        breakdown = breakdown
-      ))
-    })
-    
-  }
-
-  const getSongURLs = async () => {
-    
-    const urlMatches = {}
-    
-    for (let [songType, domainData] of Object.entries(scrapeDomains)) {
-      
-      const matches = []
-      
-      for (let [_, ListURL] of domainData.ListURLs.entries()) {
-      
-        const response = await fetch(domainData.Domain + ListURL)
-
-        const responseText = await response.text()
-        
-        const parsedHTML = parseHTML(responseText)
-
-        const document = parsedHTML.document;
-
-        const externalURLs = document.querySelectorAll(".category-page__member-link")
-        
-        for (let [_, element] of externalURLs.entries()) {
-          matches.push(decodeURIComponent(element.href))
-        }
-      
-      }
-      
-      urlMatches[songType] = matches
-        
+const viewTypePollers = [
+    getYoutubeViewsAsync,
+    async (videoId) => {
+        return (await getNiconicoDataAsync(videoId)).views
+    },
+    async (videoId) => {
+        return (await getBilibiliDataAsync(videoId)).views
     }
-    
+]
+
+const vocaDBPVPolls = {
+    ["Youtube"]: {
+        dataName: "YouTube",
+        type: ViewType.YouTube,
+        getViews: getYoutubeViewsAsync,
+        getThumbnails: getYouTubeThumbnailsAsync,
+        getBoth: async (videoId) => {
+            return {
+                views: await getYoutubeViewsAsync(videoId),
+                ...(await getYouTubeThumbnailsAsync(videoId))
+            }
+        }
+    },
+    ["NicoNicoDouga"]: {
+        dataName: "Niconico",
+        type: ViewType.Niconico,
+        getViews: viewTypePollers[ViewType.Niconico.id],
+        getThumbnails: getNiconicoDataAsync,
+        getBoth: getNiconicoDataAsync
+    },
+    ["Bilibili"]: {
+        dataName: "bilibili",
+        type: ViewType.bilibili,
+        idPrefix: "av",
+        getViews: viewTypePollers[ViewType.bilibili.id],
+        getThumbnails: getBilibiliDataAsync,
+        getBoth: getBilibiliDataAsync
+    }
+}
+
+/**
+ * Gets a song's views
+ * 
+ * @param {Array.<string>[]} videoIds The video ids to retrieve the views of.
+ * @param {string} [timestamp] The timestamp of the views.
+ * @returns {Promise<SongViews>}
+ */
+
+const getVideoIdsViewsAsync = (
+    videoIds,
+    timestamp
+) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            var totalViews = 0;
+
+            const breakdown = []
+
+            for (let [viewType, IDs] of videoIds.entries()) {
+                const poller = viewTypePollers[viewType]
+
+                if (poller && IDs) {
+                    const bucket = {}
+                    breakdown[viewType] = bucket
+
+                    for (let [_, videoID] of IDs.entries()) {
+                        const views = (await poller(videoID)) || 0
+                        if (views == 0) {
+                            console.log(`0 views for video id ${videoID}`)
+                        }
+
+                        bucket[videoID] = views
+                        totalViews += views
+                    }
+                }
+            }
+
+            // resolve with the view count
+            resolve(new SongViews(
+                null,
+                timestamp,
+                totalViews,
+                breakdown
+            ))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+/**
+ * Gets a song's views
+ * 
+ * @param {Song} song The song to retrieve the views of.
+ * @param {string} [timestamp] The timestamp of the views.
+ * @returns {SongViews}
+ */
+const getSongViewsAsync = (
+    song,
+    timestamp
+) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const songViews = await getVideoIdsViewsAsync(song.videoIds, timestamp)
+            songViews.songId = song.id
+            resolve(songViews)
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+const getFandomSongURLs = async () => {
+
+    const urlMatches = {}
+
+    for (let [songType, domainData] of Object.entries(scrapeDomains)) {
+
+        const matches = []
+
+        for (let [_, ListURL] of domainData.ListURLs.entries()) {
+
+            const response = await fetch(domainData.Domain + ListURL)
+
+            const responseText = await response.text()
+
+            const parsedHTML = parseHTML(responseText)
+
+            const document = parsedHTML.document;
+
+            const externalURLs = document.querySelectorAll(".category-page__member-link")
+
+            for (let [_, element] of externalURLs.entries()) {
+                matches.push(decodeURIComponent(element.href))
+            }
+
+        }
+
+        urlMatches[songType] = matches
+
+    }
+
     return urlMatches
 
-  }
+}
 
-  const getVocaDBRecentSongs = (maxResults = vocaDBDefaultMaxResults, offset = 0) => {
+const getVocaDBRecentSongs = (maxResults = vocaDBDefaultMaxResults, offset = 0) => {
     // gets the most recent song entries from vocaDB
     return new Promise(async (resolve, reject) => {
-      try {
-        resolve(
-          fetch(`${vocaDBRecentSongsApiUrl}&start=${offset}&maxResults=${maxResults}`)
-            .then(response => response.json())
-            .then(json => { return json['items'] })
-            .catch(error => { reject(error) }))
-      } catch (error) {
-        reject(error)
-      }
+        try {
+            resolve(
+                fetch(`${vocaDBRecentSongsApiUrl}&start=${offset}&maxResults=${maxResults}`)
+                    .then(response => response.json())
+                    .then(json => { return json['items'] })
+                    .catch(error => { reject(error) }))
+        } catch (error) {
+            reject(error)
+        }
     })
-  }
-  
-  const getVocaDbID = (input) => {
+}
+
+const getVocaDbID = (input) => {
     // attempts to get an ID from the provided input
     for (let [_, regExp] of vocaDbIDMatches.entries()) {
-      const match = input.match(regExp)
-      if (match) { return match[1] }
+        const match = input.match(regExp)
+        if (match) { return match[1] }
     }
-    
+
     return null;
-  }
-  
-  /**
-   * Converts vocadb artist data into an Artist object.
-   * 
-   * @param {Object} artistData 
-   * @returns {Artist}
-   */
-  const processVocaDBArtistData = (artistData) => {
+}
+
+/**
+ * Converts vocadb artist data into an Artist object.
+ * 
+ * @param {Object} artistData 
+ * @returns {Promise<Artist>}
+ */
+const processVocaDBArtistDataAsync = (artistData) => {
     return new Promise(async (resolve, reject) => {
-      try {
-        
-        // process names
-        const names = [
-          artistData.name
-        ]
-        artistData.names.forEach(nameData => {
-          const nameType = NameType.map[nameData.language]
-          const id = nameType && nameType.id
-          const exists = id && names[id] ? true : false
-          if (nameType && !exists) {
-            names[id] = nameData.value
-          }
-        })
+        try {
 
-        // process thumbnails
-        const thumbnails = []
-        var averageColor = null
-        
-        for (const [rawType, value] of Object.entries(artistData.mainPicture || {})) {
-          const type = vocaDBArtistThumbnailMap[rawType]
-          if (type) {
-
-            if (!averageColor) {
-              // do this so we only have to calculate the average color of an artist's thumbnail once
-              // (there are usually 4 thumbnails per artist, all the same, just downscaled from the original)
-              averageColor = await getAverageColorAsync(value)
-            }
-
-            thumbnails[type.id] = new ArtistThumbnail(
-              type,
-              value,
-              averageColor.hex
-            )
-          }
-        }
-
-
-        resolve(new Artist(
-          Number.parseInt(artistData.id),
-          ArtistType.map[artistData.artistType],
-          null,
-          artistData.releaseDate || artistData.createDate,
-          new Date().toISOString(),
-          names,
-          thumbnails
-        ))
-      } catch (error) {
-        reject(error)
-      }
-    })
-  }
-
-  /**
-   * Takes a song's data from VocaDB and converts it into a Song object.
-   * 
-   * @param {Object} songData 
-   * @returns {Song}
-   */
-  const processVocaDBSongData = (songData) => {
-    return new Promise(async (resolve, reject) => {
-
-      switch(songData.songType) {
-        case "Instrumental":
-        case "MusicPV":
-          reject("Blacklisted song type.");
-          return;
-      }
-      
-      const id = songData.id.toString()
-
-      // get singers & producers
-        var songType = null
-        const artists = []
-        
-        for (let [_, artist] of songData.artists.entries()) {
-          
-          const artistCategories = artist.categories.split(",")
-          
-          for (let [_, category] of artistCategories.entries()) {
-            category = category.trim(); // trim whitespace
-            const categoryType = ArtistCategory.map[category]
-            if (categoryType) {
-              const artistData = artist.artist
-              switch (category) {
-                case "Vocalist": {
-                  // update the songType
-                  const artistType = artistData ? artistData.artistType : null
-                  if (artistType && allowedArtistTypes[artistType]) {
-                    songType = artistType
-                  }
-                  break; 
+            // process names
+            const names = [
+                artistData.name
+            ]
+            artistData.names.forEach(nameData => {
+                const nameType = NameType.map[nameData.language]
+                const id = nameType && nameType.id
+                const exists = id && names[id] ? true : false
+                if (nameType && !exists) {
+                    names[id] = nameData.value
                 }
-              }
+            })
 
-              const artistId = artistData && Number.parseInt(artist.artist.id)
-              if (artistId) {
-                const artistObject = await proxies.songsData.getArtist(artistId) || scrapeVocaDBArtist(artistId)
+            // process thumbnails
+            const thumbnails = []
+            var averageColor = null
 
-                artists.push(artistObject)
-              }
+            for (const [rawType, value] of Object.entries(artistData.mainPicture || {})) {
+                const type = vocaDBArtistThumbnailMap[rawType]
+                if (type) {
+
+                    if (!averageColor) {
+                        // do this so we only have to calculate the average color of an artist's thumbnail once
+                        // (there are usually 4 thumbnails per artist, all the same, just downscaled from the original)
+                        averageColor = await getAverageColorAsync(value)
+                    }
+
+                    thumbnails[type.id] = new ArtistThumbnail(
+                        type,
+                        value,
+                        averageColor.hex
+                    )
+                }
             }
-          }
-        }
-        
-        if (!songType) { 
-          
-          {
-            // attempt to get the original version
 
-            const originalVersionID = songData.originalVersionId
-            if (originalVersionID && songData.songType == "Cover") {
-              resolve(scrapeVocaDB(`https://vocadb.net/S/${originalVersionID}`))
-              return
+            const artistIdNumber = Number(artistData.id)
+
+            resolve(new Artist(
+                artistIdNumber,
+                ArtistType.map[artistData.artistType],
+                null,
+                artistData.releaseDate || artistData.createDate,
+                new Date().toISOString(),
+                names,
+                thumbnails,
+                await database.songsData.getBaseArtist(artistIdNumber, names[NameType.Original.id])
+            ))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+/**
+ * Converts VocaDB api song data into video ids.
+ * 
+ * @param {Object} songData The song data from the VocaDB API
+ * @returns {Array.<string>[]} A promise that resolves with the Song object derived from songData.
+ */
+const getVocaDBSongVideoIds = (songData) => {
+    const videoIds = []
+
+    for (const [_, pv] of songData.pvs.entries()) {
+        const poller = vocaDBPVPolls[pv.service]
+        if (pv.pvType == "Original" && !pv.disabled && poller) {
+            const prefix = poller.idPrefix
+            const pvID = prefix ? prefix + pv.pvId : pv.pvId // the video id of the pv
+
+            /** @type {ViewType} */
+            const pvType = poller.type
+            const pvTypeId = pvType.id
+
+            // add id to to video ids array
+            var idBucket = videoIds[pvTypeId]
+            if (!idBucket) {
+                idBucket = []
+                videoIds[pvTypeId] = idBucket
+            }
+            idBucket.push(pvID)
+        }
+    }
+    return videoIds
+}
+
+/**
+ * Converts VocaDB api song data into a song object.
+ * 
+ * @param {Object} songData The song data from the VocaDB API
+ * @returns {Promise<Song>} A promise that resolves with the Song object derived from songData.
+ */
+const processVocaDBSongDataAsync = (songData) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const songType = songData.songType
+            // check if the song type is blacklisted
+            if (blacklistedSongTypes[songType]) {
+                reject("Blacklisted song type.");
+                return;
             }
 
-          }
-          
-          reject("Song has invalid song type."); 
-          return
-        }
-      
-      // get names
-        const names = {};
-        for (let [_, name] of songData.names.entries()) {
-          const language = vocaDBLanguageMap[name.language]
-          if (language) {
-            names[language] = name.value
-          }
-        }
-      
-      names["Original"] = songData.name
-      
-      // get video ID & thumbnail data
-        
-        var thumbnail = null;
-        var maxResThumbnail = null;
-        const videoIDs = {};
-        const views = {}
-        
-        {
-          const thumbnails = {};
-          
-          for (let [_, pv] of songData.pvs.entries()) {
-            const poller = vocaDBPVPolls[pv.service]
-            if (pv.pvType == "Original" && !pv.disabled && poller) { // make sure that the song isn't a cover
-              const dataName = poller.DataName
-              const prefix = poller.IDPrefix
-              const pvID = prefix ? prefix + pv.pvId : pv.pvId
-              
-              var serviceIDs = videoIDs[dataName] // get the service ids table
-              if (!serviceIDs) {
-                // if it doesn't exist, create it
-                serviceIDs = []
-                videoIDs[dataName] = serviceIDs // add to videoIDs table
-              }
-              serviceIDs.push(pvID) // add video to service IDs table
-              
-              const pollerData = await poller.Poller(pvID)
-              
-              // add views
-              const currentViews = views[dataName] || 0
-              views[dataName] = currentViews + pollerData.Views
-              
-              // add thumbnail
-              const thumbnail = pollerData.Thumbnail
-              if (!thumbnails[dataName]) {
-                thumbnails[dataName] = thumbnail
-              }
+            // variables
+            const songDataProxy = database.songsData
+            const songId = Number(songData.id)
 
-              // add maxres thumbnail
-              const maxResDataName = dataName + "maxRes"
-              if (!thumbnails[maxResDataName]) {
-                const maxResThumb = pollerData.MaxResThumbnail
-                if (thumbnail != maxResThumb) {
-                  // if the thumbnail and max res thumbnails are different
-                  // make sure that the max res thumbnail is a valid URL
-                  const fetchResult = await fetch(maxResThumb)
-                  .then(res => {
-                    return res.status
-                  })
-                  .catch(_ => {
-                    return 404
-                  })
-                  if (fetchResult != 404) {
-                    thumbnails[maxResDataName] = maxResThumb
-                  }
+            // check if this song is a cover
+            // if it is one, return the original version instead
+            {
+                // attempt to get the original version
+
+                const originalVersionID = songData.originalVersionId
+                if (originalVersionID && songType == "Cover") {
+                    resolve(scrapeVocaDBSongAsync(`https://vocadb.net/S/${originalVersionID}`))
+                    return
                 }
 
-              }
-              
             }
-          }
-          
-          // pick the thumbnail in the correct order
-          for (let [_, poller] of Object.entries(vocaDBPVPolls)) {
-            const dataName = poller.DataName
-            const thumb = thumbnails[dataName]
-            const maxResThumb = thumbnails[dataName + "maxRes"]
-            if (thumb) {
-              thumbnail = thumb
-              maxResThumbnail = maxResThumb || thumb
-              break;
+
+            // get artists
+            /** @type {Artist[]} */
+            const artists = []
+
+            for (let [_, artist] of songData.artists.entries()) {
+
+                const artistCategories = artist.categories.split(",")
+
+                for (let [_, category] of artistCategories.entries()) {
+                    category = category.trim(); // trim whitespace
+                    const categoryType = ArtistCategory.map[category]
+                    if (categoryType) {
+                        const artistData = artist.artist
+
+                        const artistId = artistData && Number(artistData.id)
+                        if (artistId) {
+                            const artistObject = await songDataProxy.getArtist(artistId) || await scrapeVocaDBArtistAsync(artistId)
+                            artistObject.category = categoryType
+                            artists.push(artistObject)
+                        }
+                    }
+                }
             }
-          }
-          
+
+            // get names
+            const names = []
+            names[NameType.Original.id] = songData.name // add original name
+            for (const [_, name] of songData.names.entries()) {
+                const type = NameType.map[name.language]
+                const id = type && type.id
+                if (id && !names[id]) {
+                    names[id] = name.value
+                }
+            }
+
+            // get thumbnails, views and video ids
+            const videoIds = []
+            var thumbnail = null
+            var maxResThumbnail = null
+
+            const viewsBreakdown = []
+            var totalViews = 0
+
+            {
+                const videosThumbnails = []
+
+                for (const [_, pv] of songData.pvs.entries()) {
+                    const poller = vocaDBPVPolls[pv.service]
+                    if (pv.pvType == "Original" && !pv.disabled && poller) {
+                        const prefix = poller.idPrefix
+                        const pvID = prefix ? prefix + pv.pvId : pv.pvId // the video id of the pv
+
+                        /** @type {ViewType} */
+                        const pvType = poller.type
+                        const pvTypeId = pvType.id
+
+                        // add id to to video ids array
+                        var idBucket = videoIds[pvTypeId]
+                        if (!idBucket) {
+                            idBucket = []
+                            videoIds[pvTypeId] = idBucket
+                        }
+                        idBucket.push(pvID)
+
+                        const viewsAndThumbnails = await poller.getBoth(pvID)
+
+                        // add to total views
+                        const views = viewsAndThumbnails.views
+                        var breakdownBucket = viewsBreakdown[pvTypeId]
+                        if (!breakdownBucket) {
+                            breakdownBucket = {}
+                            viewsBreakdown[pvTypeId] = breakdownBucket
+                        }
+                        breakdownBucket[pvID] = views
+                        totalViews += views
+
+                        videosThumbnails[pvTypeId] = viewsAndThumbnails
+                    }
+                }
+
+                // get the most relevant thumbnail
+                for (const [_, viewType] of vocaDBThumbnailPriority.entries()) {
+                    const thumbnails = videosThumbnails[viewType.id]
+                    if (thumbnails) {
+                        thumbnail = thumbnails.default
+                        maxResThumbnail = thumbnails.maxRes
+                        break;
+                    }
+                }
+            }
+
+            resolve(new Song(
+                songId,
+
+                songData.publishDate,
+                new Date().toISOString(),
+
+                SongType.map[songType] || SongType.Other,
+
+                thumbnail,
+                maxResThumbnail,
+                (await getAverageColorAsync(maxResThumbnail)).hex,
+                null,
+
+                artists,
+                names,
+                videoIds,
+
+                new SongViews(
+                    songId,
+                    null,
+                    totalViews,
+                    viewsBreakdown
+                )
+            ))
+
+        } catch (error) {
+            reject(error)
         }
-      
-      // get the thumbnail's average color
-
-      
-      resolve(new Song(
-        Number.parseInt(id),
-
-        songData.publishDate,
-        new Date().toISOString(),
-
-        SongType.map[songType],
-        
-        thumbnail,
-        maxResThumbnail,
-
-        await getAverageColorAsync(maxResThumbnail),
-        null,
-
-        artists,
-        names,
-        videoIDs
-
-      ))
-
-      resolve({ // return data
-        
-        songId: id,
-
-        songType: songType,
-        
-        singers: singers,
-        producers: producers,
-        
-        publishDate: songData.publishDate,
-        additionDate: new Date().toISOString(),
-        
-        thumbnail: thumbnail,
-        
-        names: names,
-        
-        videoIds: videoIDs, // video ids
-        
-        views: views,
-        
-      })
     })
-  }
+}
 
-  const scrapeVocaDB = (vocaDbURL) => {
-    
-    return new Promise( async (resolve, reject) => {
-      // get the vocaDB ID
-      const id = typeof(vocaDbURL) == "number" ? vocaDbURL : getVocaDbID(vocaDbURL)
-      if (!id) { reject("Invalid URL provided.") }
-
-      // fetch the data from the vocaDB API
-      const serverResponse = await fetch(`${vocaDBSongApiUrl}${id}${vocaDBSongApiParams}`)
-        .then(response => response.json())
-        .catch(error => { reject(error); return })
-      if (!serverResponse) { reject("No server response."); return; }
-
-      resolve(processVocaDBSongData(serverResponse))
-    })
-    
-  }
-
-  const scrapeVocaDBArtist = (artistId) => {
+/**
+ * Generates a Song object based on VocaDB API data.
+ * 
+ * @param {string | number} vocaDbURL The vocaDB song ID or URL 
+ * @returns {Promise<Song>} A promise that resolves with the derived song.
+ */
+const scrapeVocaDBSongAsync = (vocaDbURL) => {
     return new Promise(async (resolve, reject) => {
-      try {
-        
-      // fetch the data from the vocaDB API
-      const serverResponse = await fetch(`${vocaDBArtistsApiUrl}${artistId}${vocaDBArtistsApiParams}`)
-        .then(response => response.json())
-        .catch(error => { reject(error); return })
-      if (!serverResponse) { reject("No server response."); return; }
+        // get the vocaDB ID
+        const id = typeof (vocaDbURL) == "number" ? vocaDbURL : getVocaDbID(vocaDbURL)
+        if (!id) { reject("Invalid URL provided.") }
 
-      resolve(processVocaDBArtistData(serverResponse))
-      } catch (error) {
-        reject(error)
-      }
-    })
-  }
-
-  const scrapeVocaDBArtistFromName = (artistName) => {
-    return new Promise(async (resolve, reject) => {
-      try {
         // fetch the data from the vocaDB API
-        const serverResponse = await fetch(`${vocaDBArtistsApiUrl}?query=${artistName}`)
-          .then(response => response.json())
-          .catch(error => { reject(error); return })
+        const serverResponse = await fetch(`${vocaDBSongApiUrl}${id}${vocaDBSongApiParams}`)
+            .then(response => response.json())
+            .catch(error => { reject(error); return })
         if (!serverResponse) { reject("No server response."); return; }
 
-        const firstItem = serverResponse.items[0]
-
-        resolve(scrapeVocaDBArtist(firstItem.id))
-      } catch (error) {
-        reject(error)
-      }
+        resolve(processVocaDBSongDataAsync(serverResponse))
     })
-  }
+}
 
-  const getRecentSongs = () => {
+/**
+ * Generates an Artist obejct based on VocaDB API data.
+ * 
+ * @param {string | number} artistId The ID of the artist.
+ * @returns {Promise<Artist>} A promise that resolves with the derived artist.
+ */
+const scrapeVocaDBArtistAsync = (artistId) => {
     return new Promise(async (resolve, reject) => {
-      try {
-        
-        console.log("Getting recent songs...")
+        try {
+            // fetch the data from the vocaDB API
+            const serverResponse = await fetch(`${vocaDBArtistsApiUrl}${artistId}${vocaDBArtistsApiParams}`)
+                .then(response => response.json())
+                .catch(error => { reject(error); return })
+            if (!serverResponse) { reject("No server response."); return; }
 
-        const msInDay = 24 * 60 * 60 * 1000; // the number of milliseconds in a day
-
-        var timeNow = null;
-        var yearNow = null;
-        var monthNow = null;
-        var dayNow = null;
-        var maxAgeDate = null;
-
-        const recentSongs = [] // songs to return
-
-        var continueFetching = true
-        var offset = 0;
-        while (continueFetching) {
-          continueFetching = false
-          console.log("offset [" + offset + "]")
-
-          const apiResponse = await getVocaDBRecentSongs(vocaDBDefaultMaxResults, offset)
-
-          for (const [_, entryData] of apiResponse.entries()) {
-
-            if (timeNow == null) {
-              timeNow = new Date(entryData.createDate)
-              maxAgeDate = new Date()
-              maxAgeDate.setTime(timeNow.getTime() - vocaDBRecentSongsSearchDateThreshold)
-              yearNow = timeNow.getFullYear()
-              monthNow = timeNow.getMonth()
-              dayNow = timeNow.getDate()
-            }
-
-            if (entryData.songType != "Cover") {
-
-              const songData = await processVocaDBSongData(entryData)
-                .catch(err => { return null })
-
-              if (songData != null) {
-                var totalViews = 0
-                for (const [_, views] of Object.entries(songData.views)) {
-                  totalViews += views
-                }
-
-                if ((totalViews >= vocaDBRecentSongsViewsThreshold) && (vocaDBRecentSongsUploadDateThreshold > (timeNow - new Date(songData.publishDate)))) {
-                  console.log(`${songData.songId} meets views threshold (${totalViews} views)`)
-                  recentSongs.push(songData)
-                }
-              }
-
-            }
-          }
-
-          // repeat until the entry's date is no longer today
-          const createDate = new Date(apiResponse[apiResponse.length - 1]["createDate"])
-          continueFetching = createDate >= maxAgeDate 
-
-          offset += vocaDBDefaultMaxResults
+            resolve(processVocaDBArtistDataAsync(serverResponse))
+        } catch (error) {
+            reject(error)
         }
-
-        console.log("Finished getting recent songs.")
-
-        resolve(recentSongs)
-      } catch (error) {
-        reject(error)
-      }
     })
-  }
-  
-  const getSongData = (songURL, songType) => { // v3
-    
-    return new Promise( async (resolve, reject) => {
-      
-      const songsData = []
-      
-      if (songType) {
+}
 
-        const domainData = scrapeDomains[songType]
+/**
+* Generates an Artist obejct based on VocaDB API data.
+* 
+* @param {string} artistName The name of the artist.
+* @returns {Promise<Artist>} A promise that resolves with the derived artist.
+*/
+const scrapeVocaDBArtistFromNameAsync = (artistName) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            // fetch the data from the vocaDB API
+            const serverResponse = await fetch(`${vocaDBArtistsApiUrl}?query=${artistName}`)
+                .then(response => response.json())
+                .catch(error => { reject(error); return })
+            if (!serverResponse) { reject("No server response."); return; }
 
-            const serverResponse = await fetch(domainData.Domain + songURL).catch(error => { reject(error); return;})
- 
+            const firstItem = serverResponse.items[0]
+
+            resolve(scrapeVocaDBArtistAsync(firstItem.id))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+/**
+ * Scrapes the most recent songs off of VocaDB that meet certain conditions.
+ * Specifically, songs that have been uploaded within the past three days and have more than 10,000 views.
+ * 
+ * @returns {Song[]} The most recent songs.
+ */
+const scrapeVocaDBRecentSongsAsync = () => {
+    return new Promise(async (resolve, reject) => {
+        try {
+
+            console.log("Getting recent songs...")
+
+            var timeNow = null;
+            var yearNow = null;
+            var monthNow = null;
+            var dayNow = null;
+            var maxAgeDate = null;
+
+            const recentSongs = [] // songs to return
+
+            var continueFetching = true
+            var offset = 0;
+            while (continueFetching) {
+                continueFetching = false
+                console.log("offset [" + offset + "]")
+
+                const apiResponse = await getVocaDBRecentSongs(vocaDBDefaultMaxResults, offset)
+
+                for (const [_, entryData] of apiResponse.entries()) {
+
+                    if (timeNow == null) {
+                        timeNow = new Date(entryData.createDate)
+                        maxAgeDate = new Date()
+                        maxAgeDate.setTime(timeNow.getTime() - vocaDBRecentSongsSearchDateThreshold)
+                        yearNow = timeNow.getFullYear()
+                        monthNow = timeNow.getMonth()
+                        dayNow = timeNow.getDate()
+                    }
+
+                    if (entryData.songType != "Cover") {
+                        const ids = getVocaDBSongVideoIds(entryData)
+                        const views = await getVideoIdsViewsAsync(ids)
+
+                        if (views != null) {
+
+                            if ((views.total >= vocaDBRecentSongsViewsThreshold) && (vocaDBRecentSongsUploadDateThreshold > (timeNow - new Date(entryData.publishDate)))) {
+                                console.log(`${songData.songId} meets views threshold (${totalViews} views)`)
+                                recentSongs.push(await scrapeVocaDBSongAsync(entryData.id))
+                            }
+                        }
+
+                    }
+                }
+
+                // repeat until the entry's date is no longer today
+                const createDate = new Date(apiResponse[apiResponse.length - 1]["createDate"])
+                continueFetching = createDate >= maxAgeDate
+
+                offset += vocaDBDefaultMaxResults
+            }
+
+            console.log("Finished getting recent songs.")
+
+            resolve(recentSongs)
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+const getFandomSongData = (songURL, songType) => { // v3
+
+    return new Promise(async (resolve, reject) => {
+
+        const songsData = []
+
+        if (songType) {
+
+            const domainData = scrapeDomains[songType]
+
+            const serverResponse = await fetch(domainData.Domain + songURL).catch(error => { reject(error); return; })
+
             const responseText = await serverResponse.text()
 
             const parsedHTML = await parseHTML(responseText)
@@ -696,113 +745,93 @@ const vocaDBArtistThumbnailMap = {
             const document = parsedHTML.document;
 
             const externalURLs = document.querySelectorAll(".external.text")
-            
+
             var newURL;
-            
+
             for (let [_, element] of externalURLs.entries()) {
 
-              const href = element.href
+                const href = element.href
 
-              if (href.match(vocaDbIDMatches[0])) {
-                
-                const songData = await scrapeVocaDB(href).catch(err => reject(err))
+                if (href.match(vocaDbIDMatches[0])) {
 
-                if (songData) {
-                  songsData.push(songData)
+                    const songData = await scrapeVocaDBSongAsync(href).catch(err => reject(err))
+
+                    if (songData) {
+                        songsData.push(songData)
+                    }
                 }
-              }
 
             }
-        
-      } else {
-        // get song data from vocaDB
-        const songData = await scrapeVocaDB(songURL).catch(err => reject(err))
 
-        if (songData) {
-          songsData.push(songData)
+        } else {
+            // get song data from vocaDB
+            const songData = await scrapeVocaDBSongAsync(songURL).catch(err => reject(err))
+
+            if (songData) {
+                songsData.push(songData)
+            }
         }
-      }
-      
-      resolve(songsData)
+
+        resolve(songsData)
 
     })
-    
-  }
-  
-  const getSongsData = (timestamp, excludeURLs, excludeIDs) => {
-    return new Promise( async (resolve, reject) => {
-      let songURLs = await getSongURLs()
 
-      excludeURLs = excludeURLs || {} // make sure it's not null
-      excludeIDs = excludeIDs || {}
+}
 
-      const returnData = []
+const getFandomSongsData = (timestamp, excludeURLs, excludeIDs) => {
+    return new Promise(async (resolve, reject) => {
+        let songURLs = await getFandomSongURLs()
 
-      for (let [songType, URLs] of Object.entries(songURLs)) {
-        for (let [n, URL] of URLs.entries()) {
-          
-          if (!excludeURLs[URL]) {
+        excludeURLs = excludeURLs || {} // make sure it's not null
+        excludeIDs = excludeIDs || {}
 
-            excludeURLs[URL] = true // make the URL excluded
+        const returnData = []
 
-            const songsData = await getSongData(URL, songType).catch(err => { console.log(`URL ${URL} failed to parse. Error: ${err}`) })
+        for (let [songType, URLs] of Object.entries(songURLs)) {
+            for (let [n, URL] of URLs.entries()) {
 
-            if (songsData) {
+                if (!excludeURLs[URL]) {
 
-              for (let [_, songData] of songsData.entries()) {
-                const songID = songData.songId
-                
-                const songViews = songData.views
-                  
-                // add fandom URL
-                songData.fandomURL = URL
-                  
-                // compute total views
-                  let viewData = {
-                    songId: songID,
-                    total: 0,
-                    breakdown: {...songViews}
-                  }
+                    excludeURLs[URL] = true // make the URL excluded
 
-                  {
-                    for (let [_, views] of Object.entries(songViews)) {
-                      viewData.total += views
+                    const songsData = await getFandomSongData(URL, songType).catch(err => { console.log(`URL ${URL} failed to parse. Error: ${err}`) })
+
+                    if (songsData) {
+
+                        for (let [_, song] of songsData.entries()) {
+                            // add fandom URL
+                            song.fandomUrl = URL
+
+
+                            console.log(`[${songType}]`, n + 1, "out of", URLs.length)
+
+                            if (song.views.total > 0) {
+                                returnData.push(song)
+                            }
+
+                            excludeIDs[song.id] = true
+                        }
+
                     }
 
-                    delete songData.views // delete object
-                  }
-                console.log(`[${songType}]`, n+1, "out of", URLs.length)
-
-                if (viewData.total > 0) {
-                  returnData.push({
-                    songData: songData,
-                    viewData: viewData
-                  })
                 }
-                
-                excludeIDs[songID] = true
-
-              }
 
             }
-
-          }
-
         }
-      }
 
-      resolve(returnData)
+        resolve(returnData)
     })
-  }
+}
 
+// exports
 exports.scrapeDomains = scrapeDomains
-  
-exports.getVideoViewsAsync = getVideoViewsAsync
-exports.getSongURLs = getSongURLs
-exports.getSongData = getSongData
-exports.getSongsData = getSongsData
-exports.getRecentSongs = getRecentSongs
-
-exports.scrapeVocaDB = scrapeVocaDB
-exports.scrapeVocaDBArtist = scrapeVocaDBArtist
-exports.scrapeVocaDBArtistFromName = scrapeVocaDBArtistFromName
+exports.getSongViewsAsync = getSongViewsAsync
+// scrapers exports
+exports.scrapeVocaDBSongAsync = scrapeVocaDBSongAsync
+exports.scrapeVocaDBArtistAsync = scrapeVocaDBArtistAsync
+exports.scrapeVocaDBArtistFromNameAsync = scrapeVocaDBArtistFromNameAsync
+exports.scrapeVocaDBRecentSongsAsync = scrapeVocaDBRecentSongsAsync
+// fandom exports
+exports.getFandomSongURLs = getFandomSongURLs
+exports.getFandomSongData = getFandomSongData
+exports.getFandomSongsData = getFandomSongsData

@@ -25,7 +25,6 @@ const databases = [
         name: "songsData",
         path: "songs_data.db",
         pragma: "default",
-        proxy: SongsDataProxy,
         init: (db, exists) => require("./dbInitializers/songs_data.js")(db, exists)
     },
     {
@@ -80,11 +79,6 @@ for (const [_, dbInfo] of databases.entries()) {
     const name = dbInfo.name
     // add to loaded databases page
     loadedDatabases[name] = db
-    // add proxy
-    const proxy = dbInfo.proxy
-    if (proxy) {
-        proxies[name] = new proxy(db)
-    }
 }
 
 // tests
@@ -160,4 +154,3 @@ songsDataProxy.getSong(20).then((result) => {
 
 // export loaded databases
 exports.databases = loadedDatabases
-exports.proxies = proxies
