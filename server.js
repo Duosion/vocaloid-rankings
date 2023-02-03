@@ -6,10 +6,10 @@ const fastify = require("fastify")({
   logger: false,
 });
 const schedule = require('node-schedule')
-  
+
 // import custom modules
 const customModuleDirectory = "./server_scripts/"
-const scraper = require( customModuleDirectory + "scraper")
+const scraper = require(customModuleDirectory + "scraper")
 const partializer = require(customModuleDirectory + "partializer")
 const unitConverter = require(customModuleDirectory + "unitConverter")
 const databaseProxy = require(customModuleDirectory + "database")
@@ -17,102 +17,103 @@ const { generateTimestamp, caches } = require(customModuleDirectory + "shared")
 
 const database = require("./db")
 const { addSongFromScraperData } = require(customModuleDirectory + "database")
-  
+
 // fastify stuff
-  fastify.register(require("@fastify/static"), {
-    root: path.join(__dirname, "public"),
-    prefix: "/", // optional: default '/'
-  });
+fastify.register(require("@fastify/static"), {
+  root: path.join(__dirname, "public"),
+  prefix: "/", // optional: default '/'
+});
 
-  // register apis
-    // v1
-    {
-      const v1 = require(customModuleDirectory + "api/v1/index")
-      
-      fastify.register(v1.register, { prefix: "/api" + v1.prefix})
-    }
+// register apis
+// v1
+{
+  const v1 = require(customModuleDirectory + "api/v1/index")
 
-  // register cookie engine
-    fastify.register(require('@fastify/cookie'), {
-      secret: process.env.CookieSignatureSecret, // for cookies signature
-      parseOptions: {}     // options for parsing cookies
-    })
+  fastify.register(v1.register, { prefix: "/api" + v1.prefix })
+}
 
-  // register plugins
-  {
-    const pluginDirectory = customModuleDirectory + "fastify_plugins/"
-    const plugins = [
-      "cookie.js",
-      "seo.js",
-      "authentication.js",
-      "analytics.js",
-      "outgoinglink.js"
-    ]
-    plugins.forEach(pluginName => {
-      fastify.register(require(pluginDirectory + pluginName))
-    })
-  }
+// register cookie engine
+fastify.register(require('@fastify/cookie'), {
+  secret: process.env.CookieSignatureSecret, // for cookies signature
+  parseOptions: {}     // options for parsing cookies
+})
 
-  // register formbody plugin
-    fastify.register(require("@fastify/formbody"))
+// register plugins
+{
+  const pluginDirectory = customModuleDirectory + "fastify_plugins/"
+  const plugins = [
+    "cookie.js",
+    "seo.js",
+    "authentication.js",
+    "analytics.js",
+    "outgoinglink.js"
+  ]
+  plugins.forEach(pluginName => {
+    fastify.register(require(pluginDirectory + pluginName))
+  })
+}
 
-  // register templating engine
-    const handlebars = require("handlebars")
-    fastify.register(require("@fastify/view"), {
-      engine: {
-        handlebars: handlebars,
-      },
-      root: path.join(__dirname,"src"),
-      layout: "/partials/layouts/main-desktop.hbs",
-    });
+// register formbody plugin
+fastify.register(require("@fastify/formbody"))
 
-    // handlebars helpers
-      handlebars.registerHelper("get", (object, index) => {
-        return object[index]
-      })
+// register templating engine
+const handlebars = require("handlebars")
+fastify.register(require("@fastify/view"), {
+  engine: {
+    handlebars: handlebars,
+  },
+  root: path.join(__dirname, "src"),
+  layout: "/partials/layouts/main-desktop.hbs",
+});
 
-      handlebars.registerHelper("comp", (comp1, comp2) => {
-        return comp1 == comp2 ? true : null
-      })
+// handlebars helpers
+handlebars.registerHelper("get", (object, index) => {
+  return object[index]
+})
 
-      handlebars.registerHelper("notcomp", (comp1, comp2) => {
-        return comp1 != comp2 ? true : null
-      })
+handlebars.registerHelper("comp", (comp1, comp2) => {
+  return comp1 == comp2 ? true : null
+})
 
-      handlebars.registerHelper("inc", function(value, incAmount)
-      {
-          incAmount = parseInt(incAmount || 0)
-          return parseInt(value) + incAmount
-      })
-      
-      // timestamp helper
-      handlebars.registerHelper("timestampToDateString", function(timestamp) {
-        return (new Date(timestamp) || new Date()).toDateString()
-      })
+handlebars.registerHelper("notcomp", (comp1, comp2) => {
+  return comp1 != comp2 ? true : null
+})
 
-      // short format helper
-      handlebars.registerHelper("shortFormat", (value) => {
-        return unitConverter.shortFormat(value)
-      })
+handlebars.registerHelper("inc", function (value, incAmount) {
+  incAmount = parseInt(incAmount || 0)
+  return parseInt(value) + incAmount
+})
 
-      //long format helper
-      handlebars.registerHelper("longFormat", (value) => {
-        return unitConverter.longFormat(value)
-      })
+// timestamp helper
+handlebars.registerHelper("timestampToDateString", function (timestamp) {
+  return (new Date(timestamp) || new Date()).toDateString()
+})
 
-      // percentage format
-      handlebars.registerHelper("percent", (value) => {
-        return unitConverter.percentageFormat(value)
-      })
+// short format helper
+handlebars.registerHelper("shortFormat", (value) => {
+  return unitConverter.shortFormat(value)
+})
 
-    // register partials
-    partializer.registerAll(handlebars)
+//long format helper
+handlebars.registerHelper("longFormat", (value) => {
+  return unitConverter.longFormat(value)
+})
 
-  // load and parse seo data
-  const seo = require("./src/seo.json");
-  if (seo.url === "glitch-default") {
-    seo.url = `https://${process.env.PROJECT_DOMAIN}.glitch.me`;
-  }
+// percentage format
+handlebars.registerHelper("percent", (value) => {
+  return unitConverter.percentageFormat(value)
+})
+
+// register partials
+partializer.registerAll(handlebars)
+
+// load and parse seo data
+const seo = require("./src/seo.json");
+const Song = require("./db/dataClasses/song");
+const SongViews = require("./db/dataClasses/SongViews");
+if (seo.url === "glitch-default") {
+  seo.url = `https://${process.env.PROJECT_DOMAIN}.glitch.me`;
+}
 
 // register page scripts
 {
@@ -126,155 +127,152 @@ const { addSongFromScraperData } = require(customModuleDirectory + "database")
   pageScripts.forEach(path => {
     const module = require(pagesDirectory + path);
 
-    fastify.register(module.register, { prefix: module.prefix || "/"})
+    fastify.register(module.register, { prefix: module.prefix || "/" })
 
   });
 }
 
 
 // update songs data function
-  const maxSongRefreshPromises = 15
-  const songRefreshFailRetryDelay = 1000 // in ms, when a song fails to refresh, how long to wait before retrying
-  let updatingSongsData = false
-  const updateSongsData = () => {
-    
-    return new Promise( async (resolve, reject) => {
-                                   
-      if (updatingSongsData) { reject("Songs are already being updated."); return; }
+const maxSongRefreshPromises = 15
+const songRefreshFailRetryDelay = 1000 // in ms, when a song fails to refresh, how long to wait before retrying
+const maxSongRefreshFailRetries = 5 // how many times a song refresh can retry on fail before giving up.
+let updatingSongsData = false
+const updateSongsData = () => {
 
-      const timestampData = generateTimestamp()
-      const timestamp = timestampData.Name
+  return new Promise(async (resolve, reject) => {
 
-      console.log("Trying to update db for timestamp:", timestamp)
-      if (await database.views.timestampExists(timestamp)) { reject("Database can only be updated once per day."); return; } // only update once per day
+    if (updatingSongsData) { reject("Songs are already being updated."); return; }
 
-      databaseProxy.setUpdating(true)
+    const timestampData = generateTimestamp()
+    const timestamp = timestampData.Name
 
-      database.views.createViewsTable(timestamp)
+    const songsDataProxy = database.songsData
 
-      // variables
-        const parseJson = JSON.parse
+    console.log("Trying to update db for timestamp:", timestamp)
+    const isAlreadyUpdated = await songsDataProxy.viewsTimestampExists(timestamp)
 
-        const insertViewData = database.views.insertViewData
+    databaseProxy.setUpdating(true)
 
-      const updateStartTime = new Date()
-      console.log("Updating database.")
-      
-      // generate exclude urls list
-      const songsDataExcludeURLs = {}
-      const songsDataExcludeIDs = {}
-      {
+    songsDataProxy.insertViewsTimestamp(timestamp, new Date().toISOString())
 
-        const songs = await database.songs.getSongs()
+    // variables
+    const updateStartTime = new Date()
+    console.log("Updating database.")
 
-        const problemSize = Object.keys(songs).length
-        var progress = 0
+    // generate exclude urls list
+    const songsDataExcludeURLs = {}
+    const songsDataExcludeIDs = {}
+    {
 
-        const refreshSong = (data) => {
-          return new Promise(async (resolve, reject) => {
-            try {
-              const songID = data.songId
-              let URL = data.fandomURL
+      const songsIds = await songsDataProxy.getSongsIds()
 
-              songsDataExcludeURLs[URL] = true
-              songsDataExcludeIDs[songID] = true
-              
+      const problemSize = songsIds.length
+      var progress = 0
+
+      const refreshSong = (songId, depth = 0) => {
+        return new Promise(async (resolve, reject) => {
+          try {
+            /** @type {Song} */
+            const song = await songsDataProxy.getSong(songId)
+            if (!song) { 
+              console.log(`No song with ID ${songId} found.`) 
+              return resolve(null) 
+            }
+            let URL = song.fandomUrl
+
+            songsDataExcludeURLs[URL] = true
+            songsDataExcludeIDs[songId] = true
+
+            const existingViews = song.views
+            const existingViewsTimestamp = existingViews && existingViews.timestamp
+            if (timestamp != existingViewsTimestamp) {
               // refresh views only
-              console.log("[Refresh]", songID)
-              let views = await scraper.getVideoViewsAsync(parseJson(data.videoIds))
+              console.log(`[Refresh ${progress}/${problemSize}] ${songId}`)
+              /** @type {SongViews} */
+              const songViews = await scraper.getSongViewsAsync(song, timestamp)
 
-              views.songId = songID
-              
-              await insertViewData(timestamp, views)
+              await songsDataProxy.insertSongViews(songViews)
+            }
 
-              databaseProxy.setUpdatingProgress(++progress/problemSize)
-              resolve(songID)
-            } catch (error) {
-              console.log(`Error when refreshing ${data.songID}. Error: "${error}"`)
+            databaseProxy.setUpdatingProgress(++progress / problemSize)
+            resolve(songId)
+          } catch (error) {
+            console.log(`Error when refreshing ${songId}.`)
+            console.error(error)
+            if (maxSongRefreshFailRetries > depth) {
               setTimeout(async () => {
-                resolve(await refreshSong(data))
+                resolve(await refreshSong(songId, depth + 1))
               }, songRefreshFailRetryDelay)
+            } else {
+              resolve(null)
             }
-          })
-          
-        }
-
-        let promises = []
-
-        for (let [_, data] of Object.entries(songs)) {
-          
-          promises.push(refreshSong(data))
-          
-          if (promises.length > maxSongRefreshPromises) {
-            await Promise.all(promises)
-            promises = []
           }
+        })
+      }
 
-        }
+      let promises = []
 
-        if (promises.length > 0) {
+      for (const [_, id] of songsIds.entries()) {
+
+        promises.push(refreshSong(id.id))
+
+        if (promises.length > maxSongRefreshPromises) {
           await Promise.all(promises)
+          promises = []
+        }
+
+      }
+
+      if (promises.length > 0) {
+        await Promise.all(promises)
+      }
+    }
+
+    // get scraper songs
+    if (!isAlreadyUpdated) {
+      const scraperSongs = await scraper.getFandomSongsData(timestamp, songsDataExcludeURLs, songsDataExcludeIDs)
+      for (const [_, song] of scraperSongs.entries()) {
+        await songsDataProxy.insertSong(song)
+      }
+    }
+
+    // get recent songs
+    if (!isAlreadyUpdated) {
+      const recentSongs = await scraper.scrapeVocaDBRecentSongsAsync();
+      // process
+      for (const [_, song] of recentSongs.entries()) {
+        const songId = song.id
+        if (!songsDataExcludeIDs[songId]) {
+          await songsDataProxy.insertSong(song)
         }
       }
 
-      
+    }
 
-      // create metadata
-      await database.views.createMetadata(timestamp)
+    // purge caches
+    caches.rankingsCache.purge()
+    caches.songsDataCache.purge()
+    caches.historicalCache.purge()
 
-      // get scraper songs
-      {
-        const scraperSongs = await scraper.getSongsData(timestamp, songsDataExcludeURLs, songsDataExcludeIDs)
-        for (const [_, scraperData] of scraperSongs.entries()) {
-          await addSongFromScraperData(timestamp, scraperData.songData, scraperData.viewData)
-        }
-      }
+    databaseProxy.setUpdating(false)
 
-      // get recent songs
-      {
-        const recentSongs = await scraper.getRecentSongs();
-          // process
-          for (const [_, songData] of recentSongs.entries()) {
-            const songViews = songData.views
-            const songId = songData.songId
-            if (!songsDataExcludeIDs[songId]) {
-              // calculate viewData
-              const viewData = {
-                songId: songId,
-                total: 0,
-                breakdown: {...songViews}
-              }
-              for (const [_, views] of Object.entries(songViews)) { viewData.total += views } // calculate total
+    console.log(`Database updated. Took ${(new Date() - updateStartTime) / 1000} seconds.`)
 
-              await addSongFromScraperData(timestamp, songData, viewData)
-            }
-          }
-
-      }
-
-      // purge caches
-      caches.rankingsCache.purge()
-      caches.songsDataCache.purge()
-      caches.historicalCache.purge()
-
-      databaseProxy.setUpdating(false)
-
-      console.log(`Database updated. Took ${(new Date() - updateStartTime) / 1000} seconds.`)
-      
-      resolve()
-    })
-  }
-
-  const updateSongsDataSafe = () => {
-    updateSongsData().catch( (error) => { 
-      console.log("Error occured when updating songs data:" ,error) 
-    })
-  }
-
-  //updateSongsDataSafe()
-  schedule.scheduleJob('0 0 * * *', () => {
-    updateSongsDataSafe()
+    resolve()
   })
+}
+
+const updateSongsDataSafe = () => {
+  updateSongsData().catch((error) => {
+    console.log("Error occured when updating songs data:", error)
+  })
+}
+
+updateSongsDataSafe()
+schedule.scheduleJob('0 0 * * *', () => {
+  updateSongsDataSafe()
+})
 
 // redirect
 fastify.get("/", async function (request, reply) {
@@ -284,9 +282,9 @@ fastify.get("/", async function (request, reply) {
 // about page
 fastify.get("/about", async (request, reply) => {
   const parsedCookies = request.parsedCookies
-  
-  const viewParams = { seo: seo, cookies: parsedCookies, scrapeDomains: scraper.scrapeDomains, pageTitle: "About"};
-  
+
+  const viewParams = { seo: seo, cookies: parsedCookies, scrapeDomains: scraper.scrapeDomains, pageTitle: "About" };
+
   return reply.view("pages/about.hbs", viewParams)
 })
 
@@ -299,13 +297,13 @@ fastify.get("/download-db", (request, reply) => {
   const directory = "data/"
 
   if (fs.existsSync(directory)) {
-      const archive = archiver("zip")
+    const archive = archiver("zip")
 
-      archive.directory(directory)
-  
-      archive.finalize()
+    archive.directory(directory)
 
-      reply.type("application/zip").send(archive)
+    archive.finalize()
+
+    reply.type("application/zip").send(archive)
   }
 })
 
