@@ -45,7 +45,7 @@ module.exports = (db, exists) => {
         addition_date TEXT NOT NULL,
         base_artist_id INTEGER,
         FOREIGN KEY (base_artist_id) REFERENCES artists (id))`).run()
-
+    
     // create artists names table
     db.prepare(`CREATE TABLE IF NOT EXISTS artists_names (
         artist_id INTEGER NOT NULL,
@@ -70,6 +70,8 @@ module.exports = (db, exists) => {
         total INTEGER NOT NULL,
         PRIMARY KEY (song_id, timestamp),
         FOREIGN KEY (song_id) REFERENCES songs (id))`).run()
+    db.prepare(`CREATE INDEX idx_views_totals_timestamp_song_id
+    ON views_totals (timestamp, song_id);`).run()
 
     // create views breakdown table
     db.prepare(`CREATE TABLE IF NOT EXISTS views_breakdowns (
@@ -80,10 +82,11 @@ module.exports = (db, exists) => {
         view_type INTEGER NOT NULL,
         PRIMARY KEY (song_id, timestamp, video_id),
         FOREIGN KEY (song_id) REFERENCES songs (id))`).run()
+    db.prepare(`CREATE INDEX idx_views_breakdowns_timestamp_song_id
+    ON views_breakdowns (timestamp, song_id);`).run()
 
     // create views metadata table
     db.prepare(`CREATE TABLE IF NOT EXISTS views_metadata (
         timestamp TEXT PRIMARY KEY NOT NULL,
         updated TEXT NOT NULL)`).run()
-
 }

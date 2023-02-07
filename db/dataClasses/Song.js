@@ -1,4 +1,3 @@
-const NameType = require("../enums/NameType");
 const SongType = require("../enums/SongType");
 const Artist = require("./Artist");
 const SongViews = require("./SongViews");

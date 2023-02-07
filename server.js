@@ -151,6 +151,7 @@ const updateSongsData = () => {
 
     console.log("Trying to update db for timestamp:", timestamp)
     const isAlreadyUpdated = await songsDataProxy.viewsTimestampExists(timestamp)
+    if (isAlreadyUpdated) { reject("Database was already updated."); return }
 
     databaseProxy.setUpdating(true)
 
@@ -269,7 +270,7 @@ const updateSongsDataSafe = () => {
   })
 }
 
-updateSongsDataSafe()
+//updateSongsDataSafe()
 schedule.scheduleJob('0 0 * * *', () => {
   updateSongsDataSafe()
 })

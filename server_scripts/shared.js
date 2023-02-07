@@ -174,7 +174,6 @@ exports.verifyParams = (toVerify, verifyAgainst) => {
     const toVerifyValue = toVerify[paramName]
 
     const defaultType = typeof(defaultValue)
-    const toVerifyType = typeof(toVerifyValue)
 
     // attempt to convert values
     if (toVerifyValue) {

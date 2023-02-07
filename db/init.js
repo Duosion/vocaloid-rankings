@@ -25,6 +25,9 @@ const databases = [
         name: "songsData",
         path: "songs_data.db",
         pragma: "default",
+        /*verbose: (output) => {
+            console.log(output)
+        },*/
         init: (db, exists) => require("./dbInitializers/songs_data.js")(db, exists)
     },
     {

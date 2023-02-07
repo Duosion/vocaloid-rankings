@@ -17,6 +17,9 @@ const ArtistThumbnailType = require("../db/enums/ArtistThumbnailType")
 const ArtistThumbnail = require("../db/dataClasses/ArtistThumbnail")
 const SongViews = require("../db/dataClasses/SongViews")
 const ArtistCategory = require("../db/enums/ArtistCategory")
+const RankingsFilterParams = require("../db/dataClasses/RankingsFilterParams")
+const FilterOrder = require("../db/enums/FilterOrder")
+const FilterDirection = require("../db/enums/FilterDirection")
 
 // file locations
 const databaseFilePath = process.cwd() + "/database"
@@ -696,7 +699,7 @@ const migrateViewsData = () => {
             numberSongId,
             song.publishDate,
             song.additionDate,
-            SongType.map[song.songType] || SongType.Other,
+            SongType.Original,
             thumbnail,
             maxresThumbnail,
             averageColor.hex,
@@ -740,6 +743,7 @@ const migrateViewsData = () => {
               // process breakdown
               const oldBreakdown = JSON.parse(viewData.breakdown)
               const newBreakdown = []
+              
               for (const [platform, views] of Object.entries(oldBreakdown)) {
                 const viewType = viewTypeMap[platform]
                 if (viewType) {
@@ -769,6 +773,7 @@ const migrateViewsData = () => {
 
       console.log("------------- MIGRATING VIEWS DATA COMPLETE -------------")
       console.timeEnd("migration took")
+      resolve()
     } catch (error) {
       console.log("Error occurred when migrating views data. Error:", error)
       reject(error)
@@ -797,3 +802,32 @@ exports.setUpdatingProgress = setUpdatingProgress
 //artists functions
 exports.addArtistsFromIds = addArtistsFromIds
 exports.populateArtists = populateArtists
+
+setTimeout(() => {
+  console.time("rankings query took")
+  database.songsData.filterRankings(new RankingsFilterParams(
+    "2023-01-20",
+    1, // time period offset
+    1, // change offset
+    null, // view type
+    null, // song type
+    null, // artist type
+    null, // publish date
+    FilterOrder.Views,
+    FilterDirection.Descending,
+    null, // artists
+    50,
+    0)/*{
+    timestamp: "2023-01-20",
+    //timePeriodOffset: 1,
+    direction: "Descending",
+    maxEntries: 50,
+    //viewType: 0,
+    startAt: 0,
+    artists: []
+  }*/).then(result => {
+    console.timeEnd("rankings query took")
+    console.log("rankings",result)
+  })
+}, 2000)
+
