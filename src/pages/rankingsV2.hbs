@@ -1,13 +1,36 @@
 <!DOCTYPE html>
 <link rel="stylesheet" href="/css/rankingsV2.css">
 
-<div id="rankings-content">
+<style>
+{{#each rankings}} 
+    #e{{placement}} .title .main-title:hover {
+        color: {{song.darkColor}}
+    }
+{{/each}}
+</style>
 
-    <div id="rankings">
-        {{#each list}}
+<div id="rankings-container">
 
-            <div>
-                
+    <div></div>
+
+    <div id="rankings-content">
+        {{#each rankings}}
+
+            <div id="e{{placement}}" class="rankings-entry">
+                <div class="rank title-large">{{placement}}</div>
+                <a class="cover" style="background-image:url({{song.thumbnail}})" href="song/{{song.id}}"></a>
+                <div class="title title-medium-large">
+                    <a class="main-title" href="song/{{song.id}}">{{preferredName}}</a>
+                    <div class="artists">
+                        {{#each producers}}
+                            <a class="label title-medium artist" href="artist/{{id}}">{{preferredName}}</a>
+                        {{/each}}
+                    </div>
+                </div>
+                <div class="views title-medium">
+                    <div>{{longFormat views}}</div>
+                    <div class="label title-medium">Views</div>
+                </div>
             </div>
 
         {{/each}}
