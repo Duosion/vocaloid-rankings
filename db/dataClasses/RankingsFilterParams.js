@@ -18,7 +18,7 @@ module.exports = class RankingsFilterParams {
      * @param {string} [publishDate] Similar to timestamp, however, if provided, gets the rankings for songs that were published in the provided publish date. Example: 2022, 2023-02, 2022-05-12 
      * @param {FilterOrder} [orderBy] What to order the ranking results by. By default, orders by views
      * @param {FilterDirection} [direction] What direction to order the ranking results in. By default is descending. 
-     * @param {number[]} [artists] An array of artist IDs. If provided, only returns rankings results with songs that contain the provided artist ids.
+     * @param {number} [artists] An array of artist IDs. If provided, only returns rankings results with songs that contain the provided artist ids.
      * @param {number} [maxEntries] The maximum number of rankings entries to return. Default: 50.
      * @param {number} [startAt] The amount to offset the resulting rankings entries. Default: 0.
      */

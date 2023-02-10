@@ -10,6 +10,8 @@ module.exports = (db, exists) => {
         thumbnail TEXT NOT NULL,
         maxres_thumbnail TEXT NOT NULL,
         average_color TEXT NOT NULL,
+        dark_color TEXT NOT NULL,
+        light_color TEXT NOT NULL,
         fandom_url TEXT)`).run()
 
     // create songs artists table

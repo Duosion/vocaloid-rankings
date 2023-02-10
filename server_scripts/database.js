@@ -5,6 +5,7 @@
 const localeTools = require("./locale")
 const database = require("../db")
 const { getAverageColorAsync, generateTimestamp, verifyParams, rankingsFilterQueryTemplate, historicalDataQueryTemplate } = require("./shared")
+const { argbFromHex, themeFromSourceColor, hexFromArgb } = require("@importantimport/material-color-utilities");
 const scraper = require("./scraper")
 const { proxies } = require("../db/init")
 const Song = require("../db/dataClasses/song")
@@ -614,6 +615,13 @@ const migrateViewsData = () => {
           }
           // get average color
           const averageColor = await getAverageColorAsync(maxresThumbnail)
+
+          // process dark and light colors
+          // Get the theme from a hex color
+          const theme = themeFromSourceColor(argbFromHex(averageColor.hex));
+
+          const colorSchemes = theme.schemes
+
           // get artists
           const processedArtists = []
           const thumbnailTypeMap = {
@@ -703,6 +711,8 @@ const migrateViewsData = () => {
             thumbnail,
             maxresThumbnail,
             averageColor.hex,
+            hexFromArgb(colorSchemes.dark.props.primary),
+            hexFromArgb(colorSchemes.light.props.primary),
             song.fandomURL,
             processedArtists,
             processedSongNames,
@@ -803,12 +813,12 @@ exports.setUpdatingProgress = setUpdatingProgress
 exports.addArtistsFromIds = addArtistsFromIds
 exports.populateArtists = populateArtists
 
-setTimeout(() => {
+/*setTimeout(() => {
   console.time("rankings query took")
   database.songsData.filterRankings(new RankingsFilterParams(
     "2023-01-20",
-    1, // time period offset
-    1, // change offset
+    null, // time period offset
+    null, // change offset
     null, // view type
     null, // song type
     null, // artist type
@@ -817,17 +827,9 @@ setTimeout(() => {
     FilterDirection.Descending,
     null, // artists
     50,
-    0)/*{
-    timestamp: "2023-01-20",
-    //timePeriodOffset: 1,
-    direction: "Descending",
-    maxEntries: 50,
-    //viewType: 0,
-    startAt: 0,
-    artists: []
-  }*/).then(result => {
+    0)).then(result => {
     console.timeEnd("rankings query took")
     console.log("rankings",result)
   })
-}, 2000)
+}, 2000)*/
 

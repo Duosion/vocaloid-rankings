@@ -1,5 +1,6 @@
 const fetch = require("node-fetch")
 const { getAverageColorAsync } = require("./shared")
+const { argbFromHex, themeFromSourceColor, hexFromArgb } = require("@importantimport/material-color-utilities");
 const database = require("../db")
 const { parseHTML } = require("linkedom")
 // import database classes
@@ -557,6 +558,20 @@ const processVocaDBSongDataAsync = (songData) => {
                 }
             }
 
+            // process average color
+            const averageColor = (await getAverageColorAsync(maxResThumbnail)).hex
+
+            // process dark and light colors
+            // Get the theme from a hex color
+            const theme = themeFromSourceColor(argbFromHex(averageColor));
+
+            // get individial light and dark colors
+            const schemes = theme.schemes
+            const lightColor = hexFromArgb(schemes.light.props.primary)
+            const darkColor = hexFromArgb(schemes.dark.props.primary)
+
+            console.log(lightColor, darkColor)
+
             resolve(new Song(
                 songId,
 
@@ -567,7 +582,9 @@ const processVocaDBSongDataAsync = (songData) => {
 
                 thumbnail,
                 maxResThumbnail,
-                (await getAverageColorAsync(maxResThumbnail)).hex,
+                averageColor,
+                darkColor,
+                lightColor,
                 null,
 
                 artists,

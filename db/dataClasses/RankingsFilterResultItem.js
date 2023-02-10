@@ -1,6 +1,6 @@
 const PlacementChange = require("../enums/PlacementChange");
 
-module.exports = class RankingsEntry {
+module.exports = class RankingsFilterResultItem {
     /**
      * Represents a song's ranking placement.
      * 

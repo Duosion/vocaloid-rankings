@@ -14,6 +14,8 @@ module.exports = class Song {
      * @param {string} thumbnail // the URL for this song's thumbnail
      * @param {string} maxresThumbnail // the URL for this song's maximum resolution thumbnail
      * @param {string} averageColor // the average color of this song's thumbnail
+     * @param {string} darkColor // the averageColor adjusted for a dark theme.
+     * @param {string} lightColor // the averageColor adjusted for a light theme.
      * @param {string} [fandomUrl] // the fandom URL for this song
      * @param {Artist[]} artists // this song's artists
      * @param {string[]} names // this song's names
@@ -28,6 +30,8 @@ module.exports = class Song {
         thumbnail,
         maxresThumbnail,
         averageColor,
+        darkColor,
+        lightColor,
         fandomUrl,
         artists,
         names,
@@ -41,6 +45,8 @@ module.exports = class Song {
         this.thumbnail = thumbnail
         this.maxresThumbnail = maxresThumbnail
         this.averageColor = averageColor
+        this.darkColor = darkColor
+        this.lightColor = lightColor
         this.fandomUrl = fandomUrl
         this.artists = artists
         this.names = names
