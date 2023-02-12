@@ -220,7 +220,7 @@
 
 .content-card .cover,
 .clickable-content-card .cover {
-  width: 60px;
+  width: 65px;
   box-sizing: border-box;
   object-fit: cover;
   height: 65px;

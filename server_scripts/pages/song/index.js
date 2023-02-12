@@ -361,13 +361,13 @@ const getSong = async (request, reply) => {
       }
     })
     // Get the theme from a hex color
-    const theme = themeFromSourceColor(argbFromHex(averageColor.hex), [
+    const theme = themeFromSourceColor(argbFromHex(averageColor.hex)/*, [
       {
         name: "songs-color",
         value: argbFromHex("#ff0000"),
         blend: true,
       },
-    ]);
+    ]*/);
 
     // Print out the theme as JSON
     const schemes = theme.schemes

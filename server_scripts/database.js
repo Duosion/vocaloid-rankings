@@ -632,7 +632,7 @@ const migrateViewsData = () => {
           }
           const processArtists = async (artists, category) => {
             for (const [_, artistId] of artists.entries()) {
-              const existsInMap = artistsMap[artistId]
+              const existsInMap = artistsMap[artistId + category.id]
               if (existsInMap) {
                 processedArtists.push(existsInMap)
               } else {
@@ -675,7 +675,7 @@ const migrateViewsData = () => {
                     processedThumbnails
                   )
 
-                  artistsMap[artistId] = newArtist
+                  artistsMap[artistId + category.id] = newArtist
                   processedArtists.push(newArtist)
                 } else {
                   console.log("Couldn't load artist with ID ", artistId)

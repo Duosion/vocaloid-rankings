@@ -681,7 +681,7 @@ const getRankingsV2 = async (request, reply) => {
   )
 
   const filteredRankings = await filterRankingsAsync(filterParams, {
-    preferredLanguage: null
+    preferredLanguage: NameType.Romaji
   })
   
   params.rankings = filteredRankings.results

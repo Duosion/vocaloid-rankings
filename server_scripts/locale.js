@@ -5,8 +5,8 @@ const NameType = require("../db/enums/NameType")
   const preferredLanguagePriorities = [
     [NameType.Original, NameType.Japanese], // Original
     [NameType.Original, NameType.Japanese], // Japanese
-    [NameType.Romaji, NameType.English], // Romaji
     [NameType.English, NameType.Romaji], // English
+    [NameType.Romaji, NameType.English], // Romaji
   ]
 
 // exports

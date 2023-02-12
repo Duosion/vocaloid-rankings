@@ -21,6 +21,7 @@
  --md-sys-color-on-background: var(--md-sys-color-on-background-dark);
  --md-sys-color-surface: var(--md-sys-color-surface-dark);
  --md-sys-color-surface-1: rgb(var(--md-sys-color-primary-rgb) / 0.05);
+ --md-sys-color-surface-1-2: rgb(var(--md-sys-color-primary-rgb) / 0.065);
  --md-sys-color-surface-2: rgb(var(--md-sys-color-primary-rgb) / 0.08);
  --md-sys-color-on-surface: var(--md-sys-color-on-surface-dark);
  --md-sys-color-surface-variant: var(--md-sys-color-surface-variant-dark);
