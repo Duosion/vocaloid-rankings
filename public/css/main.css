@@ -11,7 +11,7 @@
 html {
 
   --transition-duration: 0.15s;
-  
+  --transition-duration-long: 0.2s;
   --cubic-tween: cubic-bezier(.4,0,.6,1);
   
   /*--font-family: "Roboto", "Kosugi Maru"*/
@@ -528,9 +528,8 @@ hr {
 }
 
 hr.default {
-  
-  color: var(--md-sys-color-surface-1)
-
+  color: var(--md-sys-color-outline-variant);
+  box-sizing: border-box;
 }
 
 /* containers */
@@ -614,6 +613,23 @@ hr.default {
 .outlined.icon-button.selected::before {
   background-color: var(--md-sys-color-inverse-on-surface);;
 }
+
+/* surfaces */
+.surface {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  left: 0px;
+  top: 0px;
+}
+
+.surface.level-1 {
+  background-color: var(--md-sys-color-surface-1);
+}
+.surface.level-2 {
+  background-color: var(--md-sys-color-surface-2);
+}
+
 
 /* misc */
 .noselect {

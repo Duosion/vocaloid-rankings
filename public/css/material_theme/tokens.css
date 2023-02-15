@@ -132,7 +132,7 @@
   --md-sys-color-inverse-primary-light: #A6A6A6;
   --md-sys-color-shadow-light: #000000;
   --md-sys-color-surface-tint-light: #006a64;
-  --md-sys-color-outline-variant-light: #bec9c7;
+  --md-sys-color-outline-variant-light: #bebebe;
   --md-sys-color-scrim-light: #000000;
   /* dark */
   --md-sys-color-primary-dark: #FFFFFF;
@@ -164,7 +164,7 @@
   --md-sys-color-inverse-primary-dark: #CECECE;
   --md-sys-color-shadow-dark: #000000;
   --md-sys-color-surface-tint-dark: #50dbd0;
-  --md-sys-color-outline-variant-dark: #3f4947;
+  --md-sys-color-outline-variant-dark: #474747;
   --md-sys-color-scrim-dark: #000000;
   /* display - large */
   --md-sys-typescale-display-large-font-family-name: Roboto, Kosugi Maru;

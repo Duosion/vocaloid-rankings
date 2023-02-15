@@ -1,7 +1,14 @@
 <link rel="stylesheet" href="/css/nav.css">
+
 <div id="nav-bar">
+    <input type="checkbox" id="drawer-toggle" name="drawer-toggle" style="display: none;">
     <div id="nav-content" class="centering-flex">
-        <div id="nav-icon" class="title-medium-large">Vocaloid Rankings</div>
+        <div id="nav-icon" class="title-medium-large">
+            <label for="drawer-toggle" id="drawer-toggle-icon" class="icon-button" style="margin-right: 10px;">
+                <span class="material-symbols-rounded">menu</span>
+            </label>
+            Vocaloid Rankings
+        </div>
         <div id="nav-links" class="centering-flex title-medium">
             <a class="nav-link" href="/rankings">Rankings</a>
             <a class="nav-link" href="/trending">Trending</a>
@@ -11,10 +18,41 @@
         <div id="nav-search">
             <form id="nav-search-form" action="/search" method="get" target="_self">
                 <input class="title-medium" name="searchQuery" id="nav-search-query" placeholder="Search" required>
-                <button id="nav-search-submit">
+                <button id="nav-search-submit" class="centering-flex">
                     <span class="material-symbols-rounded">search</span>
                 </button>
             </form>
         </div>
     </div>
+    <nav id="nav-drawer">
+        <span id="nav-drawer-surface" class="surface level-2"></span>
+        <div id="nav-drawer-content">
+            <form id="nav-drawer-search-form" action="/search" method="get" target="_self">
+                <input class="title-medium" name="searchQuery" id="nav-drawer-search-query" placeholder="Search" required>
+                <button id="nav-drawer-search-submit" class="centering-flex">
+                    <span class="material-symbols-rounded">search</span>
+                </button>
+            </form>
+            {{> default-hr}}
+            <div class="nav-drawer-link-group title-medium">
+                <a class="nav-drawer-link" href="/rankings">
+                    <span class="material-symbols-rounded">bar_chart</span>
+                    Rankings
+                </a>
+                <a class="nav-drawer-link" href="/trending">
+                    <span class="material-symbols-rounded">trending_up</span>
+                    Trending
+                </a>
+                <a class="nav-drawer-link" href="/singers">
+                    <span class="material-symbols-rounded">mic</span>
+                    Singers
+                </a>
+                <a class="nav-drawer-link" href="/producers">
+                    <span class="material-symbols-rounded">music_note</span>
+                    Producers
+                </a>
+            </div> 
+        </div>
+    </nav>
+    <label for="drawer-toggle" id="nav-scrim"></label>
 </div>
