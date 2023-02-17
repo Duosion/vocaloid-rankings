@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    
+
     <meta charset="utf-8" />
-    <link rel="icon" href="https://glitch.com/favicon.ico"/>
+    <link rel="icon" href="https://glitch.com/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>
       {{#if pageTitle}}
-        {{pageTitle}}
+      {{pageTitle}}
       {{else}}
-        {{seo.title}}
+      {{seo.title}}
       {{/if}}
     </title>
-    
+
     <!-- SEO stuff -->
     <link rel="canonical" href="{{seo.url}}">
     <meta name="description" content="{{seo.description}}">
@@ -28,37 +28,42 @@
     <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="/css/material_theme/theme.css">
     {{#if (comp cookies.theme "light-theme")}}
-      <link rel="stylesheet" href="/css/material_theme/theme.light.css">
+    <link rel="stylesheet" href="/css/material_theme/theme.light.css">
     {{else if (comp cookies.theme "dark-theme")}}
-      <link rel="stylesheet" href="/css/material_theme/theme.dark.css">
+    <link rel="stylesheet" href="/css/material_theme/theme.dark.css">
     {{else}}
-      <link rel="stylesheet" href="/css/material_theme/theme.dynamic.css">
+    <link rel="stylesheet" href="/css/material_theme/theme.dynamic.css">
     {{/if}}
     <link href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&family=Roboto&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
-    
+    <link rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-XMDX40Z26D"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
+      function gtag() { dataLayer.push(arguments); }
       gtag('js', new Date());
 
       gtag('config', 'G-XMDX40Z26D');
     </script>
-    
-  </head>
-  <body class="background">
-    {{> nav}}
 
-    <div id="page-content">
-      {{{body}}}
+  </head>
+
+  <body class="background">
+    <div id="main-content-row" class="page-row">
+      {{> nav-drawer}}
+      <div id="page-wrap">
+        {{> nav-bar}}
+        <div id="page-content">
+          {{{body}}}
+        </div>
+        <footer>
+          {{> footer }}
+        </footer>
+      </div>
     </div>
-    
-    <footer>
-      {{> footer }}
-    </footer>
     
   </body>
 </html>

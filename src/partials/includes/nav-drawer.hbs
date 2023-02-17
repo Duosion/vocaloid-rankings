@@ -1,0 +1,57 @@
+<link rel="stylesheet" href="/css/drawer-nav.css">
+<input type="checkbox" id="drawer-toggle" name="drawer-toggle" style="display: none;">
+<nav id="nav-drawer">
+    <span id="nav-drawer-surface" class="surface level-1-2"></span>
+    <div id="nav-drawer-content">
+        <div class="nav-drawer-column-group">
+            <form id="nav-drawer-search-form" action="/search" method="get" target="_self">
+                <input class="title-medium" name="searchQuery" id="nav-drawer-search-query" placeholder="Search"
+                    required>
+                <button id="nav-drawer-search-submit" class="centering-flex">
+                    <span class="material-symbols-rounded">search</span>
+                </button>
+            </form>
+        </div>
+
+        {{> default-hr}}
+        <div class="nav-drawer-link-group title-medium">
+            <a class="nav-drawer-link active" href="/rankings">
+                <span class="material-symbols-rounded">menu</span>
+                Rankings
+            </a>
+            <a class="nav-drawer-link" href="/trending">
+                <span class="material-symbols-rounded">trending_up</span>
+                Trending
+            </a>
+            <a class="nav-drawer-link" href="/singers">
+                <span class="material-symbols-rounded">mic</span>
+                Singers
+            </a>
+            <a class="nav-drawer-link" href="/producers">
+                <span class="material-symbols-rounded">music_note</span>
+                Producers
+            </a>
+            <a class="nav-drawer-link" href="/song/add">
+                <span class="material-symbols-rounded">add</span>
+                Add Song
+            </a>
+        </div>
+        {{> default-hr}}
+        <div class="nav-drawer-link-group title-medium">
+            <a class="nav-drawer-link" href="/about">
+                <span class="material-symbols-rounded">question_mark</span>
+                About
+            </a>
+            <a class="nav-drawer-link" href="/settings">
+                <span class="material-symbols-rounded">Settings</span>
+                Settings
+            </a>
+            <a class="nav-drawer-link" href="https://github.com/Duosion/vocaloid-rankingss">
+                <image id="github-logo" src="/images/github-mark-white.png"></image>
+                Source Code
+            </a>
+        </div>
+        {{> default-hr}}
+    </div>
+</nav>
+<label for="drawer-toggle" id="nav-scrim"></label>

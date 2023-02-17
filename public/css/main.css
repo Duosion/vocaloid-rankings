@@ -95,11 +95,23 @@ body {
   
 }
 
+@keyframes pagein {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 #page-content {
   
   /*margin: 15px 10px;*/
     
   min-height: 100vh;
+  animation-duration: 0.3s;
+  animation: pagein 0.3s var(--cubic-tween);
+  animation-fill-mode: forwards;
   
 }
 
@@ -625,6 +637,9 @@ hr.default {
 
 .surface.level-1 {
   background-color: var(--md-sys-color-surface-1);
+}
+.surface.level-1-2 {
+  background-color: var(--md-sys-color-surface-1-2);
 }
 .surface.level-2 {
   background-color: var(--md-sys-color-surface-2);
