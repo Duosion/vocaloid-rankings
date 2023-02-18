@@ -1,9 +1,8 @@
 #nav-bar {
     height: 60px;
-    padding: 10px;
+    padding: 10px 30px;
     box-sizing: border-box;
-    position: sticky;
-    top: 0;
+    position: relative;
     background-color: var(--md-sys-color-background);
     z-index: 5;
 }
@@ -20,28 +19,35 @@
 }
 
 #nav-content {
-    max-width: 1000px;
     width: 100%;
     height: 100%;
-    gap: 10px;
+    gap: 20px;
     position: relative;
     z-index: 8;
     margin: auto;
 }
 
-#nav-title {
+#nav-head {
     height: 100%;
-    flex: 2.2;
+    flex: 1;
     display: flex;
+    justify-content: flex-start;
     align-items: center;
-    text-align: left;
     font-weight: bold;
     color: var(--md-sys-color-on-surface)
 }
 
-#nav-title a {
+#logo {
+    height: 32px;
+    width: 32px;
+    margin-right: 30px;
     text-decoration: none;
-    color: inherit;
+    color: inherit
+}
+
+#logo .content {
+    height: 100%;
+    width: 100%;
 }
 
 /* drawer toggle style */
@@ -50,16 +56,15 @@
 }
 
 #drawer-toggle-icon {
-    margin-right: 10px;
+    margin-right: 20px;
 }
 #drawer-toggle-icon:hover {
     cursor: pointer;
 }
 
 #nav-links {
-    flex: 5;
     height: 100%;
-
+    align-items: center;
     display: flex;
     gap: 30px;
 }
@@ -76,14 +81,18 @@
     color: var(--md-sys-color-primary)
 }
 
-#nav-search {
-    flex: 2.2;
+#nav-tail {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
     height: 100%;
 }
 
 #nav-search-form,
 #nav-drawer-search-form {
     flex: 1;
+    max-width: 300px;
     display: flex;
     height: 100%;
     color: var(--md-sys-color-on-surface);
@@ -91,9 +100,8 @@
 
 #nav-search-query,
 #nav-drawer-search-query {
-    width: 80%;
     height: 100%;
-    flex: 0.8;
+    flex: 1;
     background-color: var(--md-sys-color-background);
     border: 1px solid var(--md-sys-color-outline-variant);
     box-sizing: border-box;
@@ -104,8 +112,7 @@
 
 #nav-search-submit,
 #nav-drawer-search-submit {
-    width: 20%;
-    flex: 0.2;
+    width: 60px;
     background-color: var(--md-sys-color-surface-1);
     border: 1px solid var(--md-sys-color-outline-variant);
     border-left: none;
@@ -235,16 +242,24 @@
 }
 
 
-@media (min-width: 970px) {
+@media (min-width: 899px) {
     #drawer-toggle-icon,
     #nav-drawer,
     #nav-scrim {
         display: none;
     }
 }
-@media (max-width: 970px) {
-    #nav-links,
-    #nav-search {
+@media (max-width: 900px) {
+    #nav-bar {
+        top: 0;
+        position: sticky;
+    }
+    #nav-links {
+        display: none;
+    }
+}
+@media (max-width: 680px) {
+    #nav-tail {
         display: none;
     }
 }

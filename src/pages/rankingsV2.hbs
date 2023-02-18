@@ -21,7 +21,38 @@
 
 <div id="rankings-container">
 
-    <div></div>
+    <div id="rankings-sidebar">
+        <div id="filter-container" class="sidebar-card body-medium on-surface-text">
+            <div class="filter-dataset">
+                <div class="title">View Type</div>
+                <div class="value">Combined</div>
+            </div>
+            <div class="filter-dataset">
+                <div class="title">Time Period</div>
+                <div class="value">All Time</div>
+            </div>
+            <div class="filter-dataset">
+                <div class="title">Singer Type</div>
+                <div class="value">All</div>
+            </div>
+            <div class="filter-dataset">
+                <div class="title">Direction</div>
+                <div class="value">Descending</div>
+            </div>
+            <div class="filter-dataset">
+                <div class="title">Sort By</div>
+                <div class="value">Views</div>
+            </div>
+            <div class="filter-dataset">
+                <div class="title">Date</div>
+                <div class="value">02/18/2023</div>
+            </div>
+        </div>
+        <a class="material-button with-icon filled-tonal label-large" href="/rankings/filter">
+            <span class="material-symbols-rounded">filter_alt</span>
+            Filter
+        </a>
+    </div>
 
     <div id="rankings-content">
         {{#each rankings}}

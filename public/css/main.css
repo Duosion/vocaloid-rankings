@@ -580,7 +580,27 @@ hr.default {
   color: var(--md-sys-color-on-surface-variant);
 }
 
-.icon-button::before {
+.material-button {
+  box-sizing: border-box;
+  position: relative;
+  border-radius: 20px;
+  width: 100%;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+  padding: 0px 24px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.material-button.with-icon {
+  padding: 0px 24px 0px 16px
+}
+
+.icon-button::before,
+.material-button::before {
   background-color: var(--md-sys-color-on-surface-variant);
   content: "";
   position: absolute;
@@ -598,31 +618,38 @@ hr.default {
   transition-duration: var(--transition-duration)
 }
 
-.icon-button:hover:not(.active):before {
+.icon-button:hover:not(.active):before,
+.material-button:hover:not(.active):before {
   opacity: 0.08;
 }
 
-.filled-tonal.icon-button {
+.filled-tonal.icon-button,
+.filled-tonal.material-button {
   background-color: var(--md-sys-color-secondary-container);
   color: var(--md-sys-color-on-secondary-container);
 }
-.filled-tonal.icon-button::before {
+.filled-tonal.icon-button::before,
+.filled-tonal.material-button::before {
   background-color: var(--md-sys-color-on-secondary-container);
 }
 
-.outlined.icon-button:not(.selected) {
+.outlined.icon-button:not(.selected),
+.outlined.material-button:not(.selected) {
   color: var(--md-sys-color-on-surface-variant);
   border: 1px solid var(--md-sys-color-outline);
 }
-.outlined.icon-button:not(.selected)::before {
+.outlined.icon-button:not(.selected)::before
+.outlined.material-button:not(.selected)::before {
   background-color: var(--md-sys-color-on-surface-variant);;
 }
 
-.outlined.icon-button.selected {
+.outlined.icon-button.selected,
+.outlined.material-button.selected {
   background-color: var(--md-sys-color-inverse-surface);
   color: var(--md-sys-color-inverse-on-surface);
 }
-.outlined.icon-button.selected::before {
+.outlined.icon-button.selected::before,
+.outlined.material-button.selected::before {
   background-color: var(--md-sys-color-inverse-on-surface);;
 }
 
