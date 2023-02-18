@@ -52,18 +52,16 @@
   </head>
 
   <body class="background">
-    <div id="main-content-row" class="page-row">
-      {{> nav-drawer}}
-      <div id="page-wrap">
-        {{> nav-bar}}
-        <div id="page-content">
-          {{{body}}}
-        </div>
-        <footer>
-          {{> footer }}
-        </footer>
-      </div>
+    
+    {{> nav}}
+    
+    <div id="page-content">
+      {{{body}}}
     </div>
+
+    <footer>
+      {{> footer }}
+    </footer>
     
   </body>
 </html>

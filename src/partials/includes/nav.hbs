@@ -1,21 +1,25 @@
 <link rel="stylesheet" href="/css/nav.css">
-
 <div id="nav-bar">
     <input type="checkbox" id="drawer-toggle" name="drawer-toggle" style="display: none;">
     <div id="nav-content" class="centering-flex">
-        <div id="nav-title">
-            <label for="drawer-toggle" id="drawer-toggle-icon" class="icon-button" style="margin-right: 10px;">
+        <div id="nav-head">
+            <label for="drawer-toggle" id="drawer-toggle-icon" class="icon-button">
                 <span class="material-symbols-rounded">menu</span>
             </label>
-            <a href="/" class="title-medium-large">Vocaloid Rankings</a>
+
+            <a id="logo" href="/">
+                <img class="content" src="/images/github-mark-white.png">
+            </a>
+
+            <div id="nav-links" class="title-medium">
+                <a class="nav-link" href="/rankings">Rankings</a>
+                <a class="nav-link" href="/trending">Trending</a>
+                <a class="nav-link" href="/singers">Singers</a>
+                <a class="nav-link" href="/producers">Producers</a>
+            </div>
         </div>
-        <div id="nav-links" class="centering-flex title-medium">
-            <a class="nav-link" href="/rankings">Rankings</a>
-            <a class="nav-link" href="/trending">Trending</a>
-            <a class="nav-link" href="/singers">Singers</a>
-            <a class="nav-link" href="/producers">Producers</a>
-        </div>
-        <div id="nav-search" class="nav-column-group">
+
+        <div id="nav-tail" class="nav-column-group">
             <form id="nav-search-form" action="/search" method="get" target="_self">
                 <input class="title-medium" name="searchQuery" id="nav-search-query" placeholder="Search" required>
                 <button id="nav-search-submit" class="centering-flex">
@@ -35,13 +39,14 @@
                     <span class="material-symbols-rounded">settings</span>
                 </a>
                 <form id="nav-drawer-search-form" action="/search" method="get" target="_self">
-                    <input class="title-medium" name="searchQuery" id="nav-drawer-search-query" placeholder="Search" required>
+                    <input class="title-medium" name="searchQuery" id="nav-drawer-search-query" placeholder="Search"
+                        required>
                     <button id="nav-drawer-search-submit" class="centering-flex">
                         <span class="material-symbols-rounded">search</span>
                     </button>
                 </form>
             </div>
-            
+
             {{> default-hr}}
             <div class="nav-drawer-link-group title-medium">
                 <a class="nav-drawer-link" href="/rankings">
