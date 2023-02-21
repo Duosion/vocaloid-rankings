@@ -599,6 +599,10 @@ hr.default {
   padding: 0px 24px 0px 16px
 }
 
+.material-button.with-icon .material-symbols-rounded {
+  font-size: 18px;
+}
+
 .icon-button::before,
 .material-button::before {
   background-color: var(--md-sys-color-on-surface-variant);
@@ -618,9 +622,19 @@ hr.default {
   transition-duration: var(--transition-duration)
 }
 
-.icon-button:hover:not(.active):before,
-.material-button:hover:not(.active):before {
+.icon-button:hover:not(.active)::before,
+.material-button:hover:not(.active)::before {
   opacity: 0.08;
+}
+
+.filled.icon-button,
+.filled.material-button {
+  background-color: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+}
+.filled.icon-button::before,
+.filled.material-button::before {
+  background-color: var(--md-sys-color-on-primary);
 }
 
 .filled-tonal.icon-button,
@@ -653,6 +667,17 @@ hr.default {
   background-color: var(--md-sys-color-inverse-on-surface);;
 }
 
+.inverse.icon-button.selected,
+.inverse.material-button {
+  background-color: var(--md-sys-color-inverse-surface);
+  color: var(--md-sys-color-inverse-on-surface);
+}
+
+.inverse.icon-button.selected::before,
+.inverse.material-button::before {
+  background-color: var(--md-sys-color-inverse-on-surface);
+}
+
 /* surfaces */
 .surface {
   position: absolute;
@@ -672,6 +697,66 @@ hr.default {
   background-color: var(--md-sys-color-surface-2);
 }
 
+/* chips */
+.chip {
+  border-radius: 8px;
+  display: flex;
+  height: 32px;
+  width: fit-content;
+  padding: 0px 10px;
+  position: relative;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.chip::before {
+  content: "";
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  opacity: 0;
+  transition-property: opacity;
+  transition-timing-function: var(--cubic-tween);
+  transition-duration: var(--transition-duration)
+}
+
+.chip .text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chip:hover:not(.active)::before {
+  opacity: 0.08;
+}
+
+.chip .material-symbols-rounded {
+  font-size: 18px;
+}
+
+.chip.with-trailing {
+  padding-right: 8px;
+}
+
+.chip.with-leading {
+  padding-left: 8px;
+}
+
+.input.chip {
+  color: var(--md-sys-color-on-surface-variant);
+  border: 1px solid var(--md-sys-color-outline);
+}
+.input.chip::before {
+  background-color: var(--md-sys-color-on-surface-variant);
+}
 
 /* misc */
 .noselect {

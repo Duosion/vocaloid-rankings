@@ -134,6 +134,10 @@
     opacity: 0.8;
 }
 
+#mobile-filter-button {
+    display: none;
+}
+
 @media (max-width: 680px) {
     #rankings-container {
         grid-template-columns: auto;
@@ -147,6 +151,12 @@
     }
     .filter-dataset {
         white-space: nowrap;
+    }
+    #mobile-filter-button {
+        display: flex;
+    }
+    #filter-button {
+        display: none;
     }
 }
 
