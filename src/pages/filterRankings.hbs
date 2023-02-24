@@ -7,24 +7,35 @@
   <div class="headline-medium on-surface-text title">Filter</div>
   
   <form id="filter-form" action="/rankings/filter/add" method="get" target="_self" class="filter-content list vertical">
-    {{#each filterOptions}}
+    {{#each filterValues}}
       <div class="form-section list">
 
-        <div class="title-medium-large on-surface-text">{{DisplayName}}</div>
+        <div class="title-medium-large on-surface-text">{{displayName}}</div>
 
-        <div class="form-radio-container title-medium-large">
-          {{#each Values}}
-            <input type="radio" id="{{@key}}" name="{{@../key}}" value="{{@key}}" {{#if (get ../../filterDefaults @key)}}checked{{/if}}>
-            <label for="{{@key}}">{{DisplayName}}</label>
-          {{/each}}
-        </div>
+        {{#if isChip}}
+          <div class="chip-group title-medium-large">
+            {{#each values}}
+              <input type="radio" id="{{this.name}}" name="{{../name}}" value="{{this.value}}" {{#if this.isSelected}}checked{{/if}}>
+              <label class="filter chip" for="{{this.name}}">
+                <span class="material-symbols-rounded leading">done</span>
+                {{this.name}}
+              </label>
+            {{/each}}
+          </div>
+        {{else}}
+          <select class="title-medium-large" name="{{name}}">
+            {{#each values}}
+            <option value="{{this.value}}" {{#if this.isSelected}}selected{{/if}}>{{this.name}}</option>
+            {{/each}}
+          </select>
+        {{/if}}
 
       </div>
     {{/each}}
-    
+
     <div class="form-section">
       <div class="title-medium-large on-surface-text">Date</div>
-      <input class="title-medium-large on-surface-text" type="date" id="Date" name="Date" value="{{defaultDate}}" min="{{minimumDate}}" max="{{maximumDate}}">
+      <input class="title-medium-large on-surface-text" type="date" id="timestamp" name="timestamp" value="{{defaultDate}}" min="{{minimumDate}}" max="{{maximumDate}}">
     </div>
     
     {{> default-hr}}

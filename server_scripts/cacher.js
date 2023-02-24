@@ -17,9 +17,7 @@ class CachedItem {
   }
   
   getData() {
-    
     return this.#data
-    
   }
   
 }

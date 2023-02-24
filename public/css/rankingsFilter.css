@@ -37,7 +37,7 @@ input[type="radio"] {
   display: none;
 }
 
-input[type="radio"] + label {
+/*input[type="radio"] + label {
   
   border: 1px solid var(--md-sys-color-outline);
   padding: 4px 15px;
@@ -65,7 +65,7 @@ input[type="radio"]:checked + label {
   background-color: var(--md-sys-color-inverse-surface);
   color: var(--md-sys-color-inverse-on-surface);
   
-}
+}*/
 
 input[type="url"] {
   width: 100%;

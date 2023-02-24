@@ -23,33 +23,23 @@
 
     <div id="rankings-sidebar">
         <div id="filter-container" class="sidebar-card body-medium on-surface-text">
+            {{#each filterParams}}
             <div class="filter-dataset">
-                <div class="title">View Type</div>
-                <div class="value">Combined</div>
+                <div class="title">{{title}}</div>
+                {{#if isDefault}}
+                  <div class="value">{{value}}</div>
+                {{else}}
+                  <div class="chip-group">
+                    {{#each value}}
+                      <a class="chip input with-trailing" href="/rankings/filter/remove?{{../name}}={{@key}}">
+                        <div class="text label-large">{{this}}</div>
+                        <span class="material-symbols-rounded">close</span>
+                      </a>
+                    {{/each}}
+                  </div>
+                {{/if}}
             </div>
-            <div class="filter-dataset">
-                <div class="title">Time Period</div>
-                <div class="value">All Time</div>
-            </div>
-            <div class="filter-dataset">
-                <div class="title">Singer Type</div>
-                <div class="value">All</div>
-            </div>
-            <div class="filter-dataset">
-                <div class="title">Direction</div>
-                <div class="value">Descending</div>
-            </div>
-            <div class="filter-dataset">
-                <div class="title">Sort By</div>
-                <div class="value">Views</div>
-            </div>
-            <div class="filter-dataset">
-                <div class="title">Date</div>
-                <a class="chip input with-trailing" href="">
-                    <div class="text label-large">02/18/2023</div>
-                    <span class="material-symbols-rounded">close</span>
-                </a>
-            </div>
+            {{/each}}
             <a id="filter-button" class="material-button with-icon inverse label-large" href="/rankings/filter">
                 <span class="material-symbols-rounded">filter_alt</span>
                 Filter
@@ -82,5 +72,35 @@
             </div>
 
         {{/each}}
+
+        <div id="page-selector-container">
+          {{#if previousPage}}
+            <a class="icon-button" href="{{previousPage}}">
+              <span class="material-symbols-rounded">arrow_back</span>
+            </a>
+          {{/if}}
+          {{#if firstPage}}
+            <a class="outlined icon-button" href="{{firstPage}}">
+              <div class="title-medium-large">1</div>
+            </a>
+            <span class="material-symbols-rounded">more_horiz</span>
+          {{/if}}
+          {{#each surroundingPages}}
+            <a class="outlined icon-button {{#if (comp @index ../currentPageNumber)}}selected active{{/if}}" href="{{this}}">
+              <div class="title-medium-large">{{inc @index 1}}</div>
+            </a>
+          {{/each}}
+          {{#if lastPage}}
+            <span class="material-symbols-rounded">more_horiz</span>
+            <a class="outlined icon-button" href="{{lastPage}}">
+              <div class="title-medium-large">{{lastPageNumber}}</div>
+            </a>
+          {{/if}}
+          {{#if nextPage}}
+            <a class="icon-button" href="{{nextPage}}">
+              <span class="material-symbols-rounded">arrow_forward</span>
+            </a>
+          {{/if}}
+        </div>
     </div>
 </div>

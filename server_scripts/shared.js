@@ -48,14 +48,15 @@ exports.viewTypes = {
 
 exports.caches = {
   rankingsCache: new cacher(3600), // initialize rankings cache with a 120 second lifespan
+  queryCache: new cacher(3600), // caches rankings queries
   songsDataCache: new cacher(3600),
   historicalCache: new cacher(3600),
   highlightsCache: new cacher(3600)
 }
 
 // shared functions
-exports.generateTimestamp = () => {
-    let date = new Date()
+exports.generateTimestamp = (customDate) => {
+    const date = customDate || new Date()
     return {
         Name: date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2,'0') + "-" + String(date.getDate()).padStart(2,'0'),
         Timestamp: date

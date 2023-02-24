@@ -1,7 +1,6 @@
 const workingDirectory = process.cwd()
 const modulePath = workingDirectory + "/server_scripts/"
 
-// import
 const { getAverageColor } = require("fast-average-color-node")
 
 const RankingsFilterParams = require("../../../db/dataClasses/RankingsFilterParams")
@@ -10,109 +9,272 @@ const FilterOrder = require("../../../db/enums/FilterOrder")
 const RankingsFilterResult = require("../../../db/dataClasses/RankingsFilterResult")
 const NameType = require("../../../db/enums/NameType")
 const ArtistCategory = require("../../../db/enums/ArtistCategory")
+const SongType = require("../../../db/enums/SongType")
+const ViewType = require("../../../db/enums/ViewType")
+const ArtistType = require("../../../db/enums/ArtistType")
+const { PublishDate } = require("../../../db/enums/FilterOrder")
 
 const database = require(workingDirectory + "/db")
 const databaseProxy = require(modulePath + "/database")
 
 const { longFormat } = require(modulePath + "/unitConverter")
-const { viewTypes, getHasherAsync, caches, rankingsFilterQueryTemplate, getRandomInt } = require(modulePath + "shared") // shared functions
+const { viewTypes, getHasherAsync, caches, rankingsFilterQueryTemplate, getRandomInt, generateTimestamp } = require(modulePath + "shared") // shared functions
 const { getPreferredLanguageName } = require(modulePath + "/locale")
 
 // implement caches
-const rankingsCache = caches.rankingsCache // initialize rankings cache with a 120 second lifespan
+const rankingsCache = caches.rankingsCache // initialize rankings cache with a lifespan of 1 hour
+const queryCache = caches.queryCache // gets the query cache with a lifespan of 1 hour
 const highlightsCache = caches.highlightsCache // gets the highlights cache with a lifespan of 1 hour
 
-// variables
-const filterPageOptions = {
-    ViewType: {
-      DisplayName: "View Type",
-      Values: {
-        "Combined": {
-          DisplayName: "Combined",
-          Default: true
-        },
-        "YouTube": {
-          DisplayName: "YouTube"
-        },
-        "Niconico": {
-          DisplayName: "Niconico"
-        },
-        "bilibili": {
-          DisplayName: "bilibili"
+const filterParamsDisplayData = {
+    'timestamp': {
+        displayName: "Date",
+        defaultValue: null,
+        getValueAsync: (rawValue) => {
+            return [rawValue]
         }
-      }
     },
-    TimePeriod: {
-      DisplayName: "Time Period",
-      Values: {
-        "AllTime": {
-          DisplayName: "All Time",
-          Default: true
-        },
-        "Daily": {
-          DisplayName: "Past Day"
-        },
-        "Weekly": {
-          DisplayName: "Past Week"
-        },
-        "Monthly": {
-          DisplayName: "Past Month"
-        },
-      }
-    },
-    Direction: {
-      DisplayName: "Direction",
-      Values: {
-        "Descending": {
-          DisplayName: "Descending",
-          Default: true
-        },
-        "Ascending": {
-          DisplayName: "Ascending"
-        },
-      }
-    },
-    SortBy: {
-      DisplayName: "Sort By",
-      Values: {
-        "Views": {
-          DisplayName: "Views",
-          Default: true
-        },
-        "UploadDate": {
-          DisplayName: "Upload Date"
-        },
-        "AdditionDate": {
-          DisplayName: "Addition Date"
+    'timePeriodOffset': {
+        displayName: "Time Period",
+        defaultValue: null,
+        getValueAsync: (rawValue) => {
+            return [rawValue]
         }
-        
-      }
     },
-    SongType: {
-      DisplayName: "Song Type",
-      Values: {
-        "All": {
-          DisplayName: "All",
-          Default: true
-        },
-        "Vocaloid": {
-          DisplayName: "Vocaloid"
-        },
-        "CeVIO": {
-          DisplayName: "CeVIO"
-        },
-        "SynthesizerV": {
-          DisplayName: "SynthesizerV"
-        },
-        "OtherVoiceSynthesizer": {
-          DisplayName: "Other"
+    'viewType': {
+        displayName: "View Type",
+        defaultValue: null,
+        getValueAsync: (rawValue) => {
+            return [rawValue.name]
         }
-      }
+    },
+    'songType': {
+        displayName: "Song Type",
+        defaultValue: null,
+        getValueAsync: (rawValue) => {
+            return [rawValue.name]
+        }
+    },
+    'artistType': {
+        displayName: "Artist Type",
+        defaultValue: null,
+        getValueAsync: (rawValue) => {
+            return [rawValue.name]
+        }
+    },
+    'publishDate': {
+        displayName: "Publish Date",
+        defaultValue: null,
+        getValueAsync: (rawValue) => {
+            return [rawValue]
+        }
+    },
+    'orderBy': {
+        displayName: "Order By",
+        defaultValue: FilterOrder.Views,
+        getValueAsync: (rawValue) => {
+            return [rawValue.name]
+        }
+    },
+    'direction': {
+        displayName: "Direction",
+        defaultValue: FilterDirection.Descending,
+        getValueAsync: (rawValue) => {
+            return [rawValue.name]
+        }
+    },
+    'artists': {
+        displayName: 'Artists',
+        defaultValue: null,
+        getValueAsync: async (rawValue, options) => {
+            const preferredLanguage = options.preferredLanguage || NameType.Original
+
+            const artistNames = []
+            const getPreferredName = (names) => {
+                return getPreferredLanguageName(names, preferredLanguage)
+            }
+
+            for (const [_, artistId] of rawValue.entries()) {
+                const artist = await database.songsData.getArtist(artistId)
+                if (artist) {
+                    artistNames.push(getPreferredName(artist.names))
+                }
+            }
+
+            return artistNames
+        }
     },
 }
-const rankingsDateStringOptions = {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }
 
-// functions
+const filterPageOptions = [
+    {
+        displayName: 'View Type',
+        name: "viewType",
+        isChip: true,
+        default: 0,
+        values: [
+            { name: 'Combined', value: null },
+            { name: 'YouTube', value: ViewType.YouTube.id },
+            { name: 'Niconico', value: ViewType.Niconico.id },
+            { name: 'bilibili', value: ViewType.bilibili.id }
+        ]
+    },
+    {
+        displayName: 'Time Period',
+        name: "timePeriodOffset",
+        isChip: true,
+        default: 0,
+        values: [
+            { name: 'All Time', value: null },
+            { name: 'Past Day', value: 1 },
+            { name: 'Past Week', value: 7 },
+            { name: 'Past Month', value: 30 }
+        ]
+    },
+    {
+        displayName: 'Direction',
+        name: "direction",
+        isChip: true,
+        default: 0,
+        values: [
+            { name: 'Descending', value: FilterDirection.Descending.id },
+            { name: 'Ascending', value: FilterDirection.Ascending.id }
+        ]
+    },
+    {
+        displayName: 'Order By',
+        name: "orderBy",
+        isChip: true,
+        default: 0,
+        values: [
+            { name: 'Views', value: FilterOrder.Views.id },
+            { name: 'Publish Date', value: FilterOrder.PublishDate.id },
+            { name: 'Addition Date', value: FilterOrder.AdditionDate.id }
+        ]
+    },
+    {
+        displayName: "Song Type",
+        name: "songType",
+        isChip: true,
+        default: 0,
+        values: [
+            { name: 'All', value: null },
+            { name: 'Original', value: SongType.Original.id },
+            { name: 'Remix', value: SongType.Remix.id },
+            { name: 'Other', value: SongType.Other.id }
+        ]
+    },
+    {
+        displayName: "Artist Type",
+        name: "artistType",
+        isSelect: true,
+        default: 0,
+        values: [
+            { name: 'All', value: null },
+            { name: 'Vocaloid', value: ArtistType.Vocaloid.id },
+            { name: 'CeVIO', value: ArtistType.CeVIO.id },
+            { name: 'SynthesizerV', value: ArtistType.SynthesizerV.id },
+            { name: 'Illustrator', value: ArtistType.Illustrator.id },
+            { name: 'Cover Artist', value: ArtistType.CoverArtist.id },
+            { name: 'Animator', value: ArtistType.Animator.id },
+            { name: 'Producer', value: ArtistType.Producer.id },
+            { name: 'Other Vocalist', value: ArtistType.OtherVocalist.id },
+            { name: 'Other Voice Synthesizer', value: ArtistType.OtherVoiceSynthesizer.id },
+            { name: 'Other Individual', value: ArtistType.OtherIndividual.id },
+            { name: 'Other Group', value: ArtistType.OtherGroup.id }
+        ]
+    },
+]
+
+/**
+ * Turns a fastify request.query object into a filterParams object for rankings querying
+ * 
+ * @param {Object<string, string>} query The query to turn into a filter params.
+ */
+const buildFilterParamsAsync = (query) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            // calculate the hash
+            const hash = (await getHasherAsync())(JSON.stringify(query))
+            {
+                // check if we already have this filter param cached
+                const cached = queryCache.get(hash)
+                if (cached) {
+                    resolve(cached.getData())
+                    return
+                }
+            }
+
+            // parse artists
+            var artists = null
+            const queryArtists = query.artists
+            if (queryArtists) {
+                artists = []
+                queryArtists.split(",").forEach((value) => {
+                    const artistId = Number(value)
+                    if (artistId) {
+                        artists.push(artistId)
+                    }
+                })
+            }
+
+            // generate filter params
+            
+            const params = new RankingsFilterParams(
+                query['timestamp'] || null,
+                Number(query['timePeriodOffset']) || null,
+                Number(query['changeOffset']) || null,
+                Number(query['daysOffset']) || null,
+                ViewType.values[query['viewType']],
+                SongType.values[query['songType']],
+                ArtistType.values[query['artistType']],
+                query['publishDate'] && query.publishDate + "%" || null,
+                FilterOrder.values[query['orderBy']],
+                FilterDirection.values[query['direction']],
+                artists,
+                Math.min(Number(query['maxEntries']) || 50, 50),
+                Number(query['startAt'] || 0)
+            )
+            // add to cache
+            queryCache.set(hash, params)
+
+            // resolve
+            resolve(params)
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+/**
+ * Turns a fastify request.query object into another object for handlebars page rendering.
+ * 
+ * @param {Object<string, string>} query The query to turn into a filter params.
+ */
+const getHandlebarsDisplayFilterParamsAsync = (query, options = {}) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const displayData = []
+            for (const [filterName, filterDisplayData] of Object.entries(filterParamsDisplayData)) {
+                const defaultValue = filterDisplayData.defaultValue
+                const rawFilterValue = query[filterName] || defaultValue
+                if (rawFilterValue) {
+                    let filterValue = await filterDisplayData.getValueAsync(rawFilterValue, options)
+                    displayData.push({
+                        name: filterName,
+                        title: filterDisplayData.displayName,
+                        value: filterValue,
+                        isDefault: defaultValue == rawFilterValue
+                    })
+                }
+            }
+            resolve(displayData)
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
 /**
  * Filters rankings and returns them.
  * 
@@ -120,273 +282,101 @@ const rankingsDateStringOptions = {weekday: 'long', year: 'numeric', month: 'lon
  * @returns {RankingsFilterResult} 
  */
 const filterRankingsAsync = (filterParams, options = {}) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const queryHash = (await getHasherAsync())(JSON.stringify(filterParams))
-      {
-  
-        // check for cache
-        const cachedData = rankingsCache.get(queryHash)
-        
-        if (cachedData) {
-          
-          resolve(cachedData.getData())
-          return;
-          
-        }
-        
-      }
+    return new Promise(async (resolve, reject) => {
+        try {
+            const queryHash = (await getHasherAsync())(JSON.stringify({ ...filterParams, ...options }))
+            {
+                // check for cache
+                const cachedData = rankingsCache.get(queryHash)
 
-      /** @type {RankingsFilterResult} */
-      const filtered = await database.songsData.filterRankings(filterParams)
+                if (cachedData) {
 
-      // add preferred names based on user language setting
-      const preferredLanguage = options.preferredLanguage || NameType.Original
+                    resolve(cachedData.getData())
+                    return;
 
-      const getPreferredName = (names) => {
-        return getPreferredLanguageName(names, preferredLanguage)
-      }
-
-      
-
-      for (const [_, rankingResult] of filtered.results.entries()) {
-        const song = rankingResult.song
-        rankingResult.preferredName = getPreferredName(song.names)
-        // get producers
-        const producers = []
-        for (const [_, artist] of song.artists.entries()) {
-          if (artist.category == ArtistCategory.Producer && 3 > producers.length) {
-            artist.preferredName = getPreferredName(artist.names)
-            producers.push(artist)
-          }
-        }
-        rankingResult.producers = producers
-      }
-      
-
-      // cache filtered data
-      rankingsCache.set(queryHash, filtered)
-      
-      resolve(filtered)
-    } catch (error) {
-      reject(error)
-    }
-  })
-}
-
-const queryViewsDatabaseAsync = (queryData, options = {}) => {
-    return new Promise( async (resolve, reject) => {
-      
-      // hash query data & check for cache
-      const queryHash = (await getHasherAsync())(JSON.stringify({queryData, ...options}))
-      {
-  
-        // check for cache
-        const cachedData = rankingsCache.get(queryHash)
-        
-        if (cachedData) {
-          
-          resolve(cachedData.getData())
-          return;
-          
-        }
-        
-      }
-
-      const preferredLanguage = queryData.Language || rankingsFilterQueryTemplate.Language.default
-
-      const setPreferredLanguageName = (names) => {
-        names.preferred = getPreferredLanguageName(names, preferredLanguage)
-      }
-
-      const getArtistsFromIds = async (ids) => {
-        const artists = await database.artists.getArtistsFromIds(ids)
-        artists.forEach(artist => {
-          setPreferredLanguageName(artist.names)
-        })
-        return artists
-      }
-
-      const jsonParse = JSON.parse
-
-      const artistConvertLimit = options.artistConvertLimit
-
-      onFinish = async (returnData) => {
-        for (const [n, viewData] of returnData.Data.entries()) {
-          // convert names
-          const names = jsonParse(viewData.names)
-          setPreferredLanguageName(names)
-          viewData.names = names
-
-          // convert artists
-          if (artistConvertLimit && (artistConvertLimit > n) || !artistConvertLimit) {
-            const producers = viewData.producers
-            if (producers) {
-              viewData.producers = await getArtistsFromIds(jsonParse(producers))
+                }
             }
-            const singers = viewData.singers
-            if (singers) {
-              viewData.singers = await getArtistsFromIds(jsonParse(singers))
+
+            /** @type {RankingsFilterResult} */
+            const filtered = await database.songsData.filterRankings(filterParams)
+
+            // add preferred names based on user language setting
+            const preferredLanguage = options.preferredLanguage || NameType.Original
+
+            const getPreferredName = (names) => {
+                return getPreferredLanguageName(names, preferredLanguage)
             }
+
+            for (const [_, rankingResult] of filtered.results.entries()) {
+                const song = rankingResult.song
+                rankingResult.preferredName = getPreferredName(song.names)
+                // get producers
+                const producers = []
+                for (const [_, artist] of song.artists.entries()) {
+                    if (artist.category == ArtistCategory.Producer && 3 > producers.length) {
+                        artist.preferredName = getPreferredName(artist.names)
+                        producers.push(artist)
+                    }
+                }
+                rankingResult.producers = producers
+            }
+
+            // cache filtered data
+            rankingsCache.set(queryHash, filtered)
+
+            resolve(filtered)
+        } catch (error) {
+            reject(error)
         }
-          
-        }
-
-        // cache return data
-        rankingsCache.set(queryHash, returnData)
-      
-        resolve(returnData)
-      }
-
-      if (options.withChange) {
-        databaseProxy.filterRankingsWithChange(queryData, options).then( returnData => onFinish(returnData) ).catch(error => reject(error))
-      } else {
-        databaseProxy.filterRankings(queryData, options).then( returnData => onFinish(returnData) ).catch( error => reject(error) )
-      }
-
-      
     })
 }
 
-const getYearReviewTopSongsByType = (defaultFilterParams, options) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const lists = []
+/* request handlers */
 
-      for (const [viewType, typeData] of Object.entries(viewTypes)) {
-        if (viewType != "") {
-          lists.push({
-            name: viewType,
-            data: await queryViewsDatabaseAsync({
-              ViewType: viewType,
-              MaxEntries: 10,
-              ...defaultFilterParams
-            }, {
-              ...options,
-              limitResult: true
-            }).then(data => data.Data)
-        })
-        }
-      }
-
-      resolve(lists)
-    } catch (error) {
-      reject(error)
-    }
-  })
-}
-
-const getTopArtists = (rankingsData, UID) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const cacheKey = "topArtists" + UID
-      {
-        // check for cache
-        const cachedData = highlightsCache.get(cacheKey)
-
-        if (cachedData) {
-          resolve(cachedData.getData())
-          return;
-        }
-      }
-
-      // if not cached, get the top singers
-      const topSingers = []
-      const topProducers = []
-      const references = {}
-
-      const addArtistViews = (artist, views, addToArray) => {
-        const artistId = artist.artistId
-        var reference = references[artistId]
-          if (!reference) {
-            // create new reference
-            reference = {
-              data: artist,
-              views: 0,
-              songCount: 0
-            }
-            addToArray.push(reference)
-            references[artistId] = reference
-          }
-          reference.views += views
-          reference.songCount += 1
-      }
-
-      for (const [n, songData] of rankingsData.entries()) {
-        const singers = songData.singers
-        const producers = songData.producers
-        const totalViews = songData.total
-
-        singers.forEach(singer => addArtistViews(singer, totalViews, topSingers))
-        producers.forEach(producer => addArtistViews(producer, totalViews, topProducers))
-      }
-
-      // sort topSingers
-      topSingers.sort((a, b) => {
-        return b.views - a.views
-      })
-
-      // sort top producers
-      topProducers.sort((a, b) => {
-        return b.views - a.views
-      })
-
-      const returnData = {
-        singers: topSingers,
-        producers: topProducers
-      }
-
-      // set cache
-      highlightsCache.set(cacheKey, returnData)
-      resolve(returnData)
-    } catch (error) {
-      reject(error)
-    }
-  })
-}
-
-// route functions
 const getFilterPage = async (request, reply) => {
     const parsedCookies = request.parsedCookies || {}
-    
+
     const query = {
-      ...request.query,
-      ...parsedCookies.filter || {}
-    } 
-
-    const filterDefaults = {}
-    
-    for ( let [filterName, paramData] of Object.entries(rankingsFilterQueryTemplate) ) {
-
-      const filterValue = query[filterName]
-      
-      if (filterValue) {
-        
-        filterDefaults[filterValue] = true
-        
-      } else {
-        
-        filterDefaults[paramData.default] = true 
-      }
+        ...parsedCookies.filter || {},
+        ...request.query,
     }
-    
-    // get date bounds
-    const viewsMetadata = await database.views.getMetadata() || [] ;
-  
-    const maximumDate = viewsMetadata[viewsMetadata.length - 1].timestamp
 
-    const viewParams = { 
-      seo: request.seo, 
-      cookies: parsedCookies, 
-      filterOptions: filterPageOptions, 
-      filterDefaults: filterDefaults, 
-      pageTitle: "Filter Rankings",
-      minimumDate: viewsMetadata[0].timestamp,
-      defaultDate: query["Date"] || maximumDate,
-      maximumDate: maximumDate
-    };
-    
-    return reply.view("pages/filterRankings.hbs", viewParams)
+    const filterValues = []
+
+    for (const [_, filterOption] of filterPageOptions.entries()) {
+        const name = filterOption.name
+        const selectedValue = query[name] || filterOption.values[filterOption.default].value
+        const values = []
+        for (const [_, valueInfo] of filterOption.values.entries()) {
+            const value = valueInfo.value
+            values.push({
+                name: valueInfo.name,
+                value: value,
+                isSelected: selectedValue == value
+            })
+        }
+        filterValues.push({
+            displayName: filterOption.displayName,
+            name: name,
+            isSelect: filterOption.isSelect,
+            isChip: filterOption.isChip,
+            values: values
+        })
+    }
+
+    const viewsTimestamps = await database.songsData.getViewsTimestamps()
+
+    const maximumDate = viewsTimestamps[0].timestamp
+
+    return reply.view("pages/filterRankings.hbs", {
+        seo: request.seo,
+        cookies: parsedCookies,
+        filterValues: filterValues,
+        pageTitle: "Filter Rankings",
+        minimumDate: viewsTimestamps[viewsTimestamps.length - 1].timestamp,
+        defaultDate: query['timestamp'] || maximumDate,
+        maximumDate: maximumDate
+    });
 }
 
 const getRemoveAllFilters = async (_, reply) => {
@@ -394,485 +384,154 @@ const getRemoveAllFilters = async (_, reply) => {
     reply.redirect("/rankings")
 }
 
-const getRemoveFilter = async(request, reply) => {
+const getRemoveFilter = async (request, reply) => {
     const parsedCookies = request.parsedCookies
-  
+
     const query = request.query
-    
+
     const filterCookie = parsedCookies.filter || {}
-    
-    for ( let [filterName, _] of Object.entries(filterCookie) ) {
-      
-      const removable = query[filterName]
-      
-      if (removable) {
-        
-        delete filterCookie[filterName]
-        
-      }
-      
+
+    for (let [filterName, filterValue] of Object.entries(filterCookie)) {
+        const removable = query[filterName]
+
+        if (removable) {
+            if (filterName == "artists") {
+                const artistIds = filterValue.split(',')
+                const toRemoveIndex = Number(removable)
+                if (toRemoveIndex != NaN) {
+                    artistIds.splice(toRemoveIndex, 1)
+                    filterCookie[filterName] = artistIds.join(",")
+                }
+            } else {
+                delete filterCookie[filterName]
+            }
+        }
+
     }
-    
+
     reply.setObjectCookie("filter", filterCookie)
-    
+
     reply.redirect("/rankings")
 }
 
 const getAddFilter = async (request, reply) => {
     const parsedCookies = request.parsedCookies
-  
+
     const query = request.query
     const referer = query["referer"] || "/rankings"
-    
+
     const filterCookie = parsedCookies.filter || {}
-    
+
     var newQuery = ""
 
     const analyticsFilterNames = []
     const analyticsFilterValues = []
-    
-    for ( let [filterName, paramData] of Object.entries(rankingsFilterQueryTemplate) ) {
 
-      const addable = query[filterName]
-      
-      if (addable) {
-        
-        newQuery = newQuery + `${filterName}=${addable}&`
-        
-        filterCookie[filterName] = addable
-        if (addable != paramData.default) {
-          analyticsFilterNames.push(filterName)
-          analyticsFilterValues.push(addable)
-        }
-      }
-      
+    for (const [filterName, filterValue] of Object.entries(query)) {
+        newQuery += `${filterName}=${filterValue}&`
+
+        filterCookie[filterName] = filterValue
+
+        analyticsFilterNames.push(filterName)
+        analyticsFilterValues.push(filterValue)
     }
 
     // set analytics
     {
-      const params = request.routeConfig["analyticsParams"]
+        const params = request.routeConfig["analyticsParams"]
 
-      params['name'] = analyticsFilterNames
-      params['value'] = analyticsFilterValues
+        params['name'] = analyticsFilterNames
+        params['value'] = analyticsFilterValues
     }
-    
+
     reply.setObjectCookie("filter", filterCookie)
-    
+
     reply.redirect(`${referer}?${encodeURI(newQuery)}`)
 }
 
-const getCurrentYearReview = async(request, reply) => {
-  const year = new Date().getFullYear()
-  reply.redirect(`${exports.prefix}/year-review/${year}`)
-}
-
-const getYearReview = async (request, reply) => {
-  const parsedCookies = request.parsedCookies || {}
-  const params = { 
-    seo: request.seo, 
-    cookies: parsedCookies,
-  }
-
-  // parse locale
-  const locale = (request.headers["accept-language"] || "").split(",")[0]
-  
-  // get date
-  const year = request.params.year
-  params.year = year
-  
-  // construct filter params
-  var filterParams = {
-    Locale: locale,
-    Language: parsedCookies.displayLanguage,
-    PublishYear: year
-  }
-
-  const queryOptions = {
-    limitResult: false, 
-    extraArguments: ["producers", "singers"],
-    //artistConvertLimit: 10, // only convert the first 10 songs' artists
-  }
-
-  // query database
-  const databaseQueryResult = await queryViewsDatabaseAsync(filterParams, queryOptions)
-  const databaseQueryData = databaseQueryResult.Data
-
-  // load view lists
-  {
-    const songTypesData = await getYearReviewTopSongsByType(filterParams, queryOptions)
-    const lists = [
-      {
-        name: "Combined",
-        data: databaseQueryData.slice(0,10)
-      },
-      ...songTypesData
-    ]
-  
-    params.lists = lists
-  }
-
-  // get top singers
-  {
-    const topArtists = await getTopArtists(databaseQueryData, filterParams.Language + year)
-    const singers = topArtists.singers
-    const producers = topArtists.producers
-    params.topArtists = [
-      {
-        type: "Singer",
-        title: "Top 10 Singers",
-        topFour: singers.slice(0,4),
-        data: singers.slice(4,10)
-      },
-      {
-        type: "Producer",
-        title: "Top 10 Producers",
-        topFour: producers.slice(0,4),
-        data: producers.slice(4,10)
-      },
-      
-    ]
-  }
-
-  // see if the database is updating
-  {
-    params.databaseUpdating = databaseProxy.getUpdating()
-  }
-  
-  // add view data to params
-    const paramsViewTypesData = {}
-    {
-      const viewTypeQuery = filterParams["ViewType"] || ""
-      for (let [viewType, viewData] of Object.entries(viewTypes)) {
-        paramsViewTypesData[viewType] = {
-          
-          displayName: viewData.displayName,
-          isActive: viewType == viewTypeQuery
-          
-        }
-      }
-
-    }
-    params.viewTypes = paramsViewTypesData
-
-  return reply.view("pages/yearReview.hbs", params);
-
-}
-
-const getYearReviewFull = async (request, reply) => {
-  const parsedCookies = request.parsedCookies || {}
-
-  const params = { seo: request.seo, cookies: parsedCookies }
-
-  // parse locale
-  const locale = (request.headers["accept-language"] || "").split(",")[0]
-  
-  // get date
-  const year = request.params.year
-  params.year = year
-  
-  // construct filter params
-  var filterParams = {
-    Locale: locale,
-    Language: parsedCookies.displayLanguage,
-    PublishYear: year,
-    StartAt: request.query.StartAt || 0
-  }
-  params.filterParams = filterParams
-
-  // query database
-  const databaseQueryResult = await queryViewsDatabaseAsync(filterParams, {withChange: true})
-  params.list = databaseQueryResult.Data // add result to params
-
-  const parsedFilterParams = databaseQueryResult.QueryData
-
-  // calculate pages
-  {
-
-    const listLength = databaseQueryResult.Length
-    const currentPosition = parsedFilterParams.StartAt
-    const pageLength = parsedFilterParams.MaxEntries
-    
-    const totalPages = Math.floor(listLength/pageLength)
-    const currentPage = Math.ceil(currentPosition/pageLength)
-    
-    const surroundingPages = []
-    const addFilterURL = "/rankings/filter/add?StartAt="
-    const suffix = `&referer=/rankings/year-review/${year}/full`
-    
-    for (let i = Math.max(0, currentPage - 1); i <= Math.min(totalPages, currentPage + 1); i++) {
-      surroundingPages[i] = `${addFilterURL}${i*pageLength}${suffix}`
-    }
-    
-    params.surroundingPages = surroundingPages
-    params.currentPageNumber = currentPage
-    
-    // jump to last page and first page buttons
-    if (currentPage - 1 > 0) {
-      params.firstPage = `${addFilterURL}0${suffix}`
-    }
-    
-    if (totalPages > currentPage + 1) {
-      params.lastPage = `${addFilterURL}${totalPages*pageLength}${suffix}`
-      params.lastPageNumber = totalPages + 1
-    }
-    
-    // next/previous page buttons
-    if (currentPage > 0) {
-      params.previousPage = `${addFilterURL}${(currentPage-1)*pageLength}${suffix}`
-    }
-    if (totalPages > currentPage) {
-      params.nextPage = `${addFilterURL}${(currentPage+1)*pageLength}${suffix}`
-    }
-    
-  }
-  
-  // see if the database is updating
-  {
-    params.databaseUpdating = databaseProxy.getUpdating()
-  }
-
-  // add view data to params
-    const paramsViewTypesData = {}
-    {
-      const viewTypeQuery = filterParams["ViewType"] || ""
-      for (let [viewType, viewData] of Object.entries(viewTypes)) {
-        paramsViewTypesData[viewType] = {
-          
-          displayName: viewData.displayName,
-          isActive: viewType == viewTypeQuery
-          
-        }
-      }
-
-    }
-    params.viewTypes = paramsViewTypesData
-
-  return reply.view("pages/yearReviewFull.hbs", params);
-}
-
-const getRankingsV2 = async (request, reply) => {
-
-  const parsedCookies = request.parsedCookies || {}
-  const params = { seo: request.seo, cookies: parsedCookies }
-
-  // parse locale
-  const locale = (request.headers["accept-language"] || "").split(",")[0]
-
-  // validate query
-  const requestQuery = {
-    ...request.query,
-    ...parsedCookies.filter || {}
-  }
-
-  // construct filter params
-  const filterParams = new RankingsFilterParams(
-    null,
-    Number(requestQuery.timePeriodOffset) || null,
-    1,
-    null,
-    null,
-    null,
-    requestQuery.publishDate,
-    FilterOrder.Views,
-    FilterDirection.Descending,
-    null,
-    50,
-    Number(requestQuery.startAt) || 0,
-  )
-
-  const filteredRankings = await filterRankingsAsync(filterParams, {
-    preferredLanguage: NameType.Romaji
-  })
-  
-  params.rankings = filteredRankings.results
-
-   // calculate pages
-   {
-    const listLength = filteredRankings.totalCount
-    const currentPosition = filterParams.startAt
-    const pageLength = filterParams.maxEntries
-    
-    const totalPages = Math.floor(listLength/pageLength)
-    const currentPage = Math.ceil(currentPosition/pageLength)
-    
-    const surroundingPages = []
-    const addFilterURL = "/rankings/filter/add?StartAt="
-      
-    for (let i = Math.max(0, currentPage - 1); i <= Math.min(totalPages, currentPage + 1); i++) {
-      surroundingPages[i] = `${addFilterURL}${i*pageLength}`
-    }
-    
-    params.surroundingPages = surroundingPages
-    params.currentPageNumber = currentPage
-    
-    // jump to last page and first page buttons
-    if (currentPage - 1 > 0) {
-      params.firstPage = `${addFilterURL}0`
-    }
-    
-    if (totalPages > currentPage + 1) {
-      params.lastPage = `${addFilterURL}${totalPages*pageLength}`
-      params.lastPageNumber = totalPages + 1
-    }
-    
-    // next/previous page buttons
-    if (currentPage > 0) {
-      params.previousPage = `${addFilterURL}${(currentPage-1)*pageLength}`
-    }
-    if (totalPages > currentPage) {
-      params.nextPage = `${addFilterURL}${(currentPage+1)*pageLength}`
-    }
-  }
-
-  //parse timestamp
-  {
-    const date = new Date(filteredRankings.timestamp)
-
-    if (date) {
-      params.date = date.toLocaleDateString(locale, rankingsDateStringOptions)
-    }
-  }
-
-  return reply.view("pages/rankingsV2.hbs", params);
-
-}
-
 const getRankings = async (request, reply) => {
-    // params is an object we'll pass to our handlebars template
-  
-    const parsedCookies = request.parsedCookies || {} 
-    
-    let params = { seo: request.seo, cookies: parsedCookies };
-    
+    const parsedCookies = request.parsedCookies || {}
+    const hbParams = { // params for handlebars
+        seo: request.seo,
+        cookies: parsedCookies
+    }
+
     // parse locale
     const locale = (request.headers["accept-language"] || "").split(",")[0]
-  
+
     // validate query
     const requestQuery = {
-      ...request.query,
-      ...parsedCookies.filter || {}
+        ...parsedCookies.filter || {},
+        ...request.query,
     }
-    
-    // construct filter params
-    let isFiltered = false
-    var filterParams = {
-      
-      Locale: locale,
-      Language: parsedCookies.displayLanguage,
-      ...requestQuery
-      
-    }
-    
-    var uniqueFilterParams = {} // filter params taht aren't default
-    
-    for ( let [filterName, paramData] of Object.entries(rankingsFilterQueryTemplate) ) {
-      const filterValue = requestQuery[filterName]
 
-      if (filterValue && filterValue != paramData.default) {
-          isFiltered = true
-          
-          uniqueFilterParams[filterName] = filterValue
-      }
-      
-    }
-  
-    params.isFiltered = isFiltered
-    params.filterParams = filterParams
-    params.uniqueFilterParams = uniqueFilterParams
-  
-    // query database
-    const databaseQueryResult = await queryViewsDatabaseAsync(filterParams, {withChange: true})
-    params.list = databaseQueryResult.Data // add result to params
+    // generate filter params
+    const filterParams = await buildFilterParamsAsync(requestQuery)
 
-    const parsedFilterParams = databaseQueryResult.QueryData
+    const filteredRankings = await filterRankingsAsync(filterParams, {
+        preferredLanguage: NameType.Romaji
+    })
+
+    hbParams.rankings = filteredRankings.results
 
     // calculate pages
     {
+        const listLength = filteredRankings.totalCount
+        const currentPosition = filterParams.startAt
+        const pageLength = filterParams.maxEntries
 
-      const listLength = databaseQueryResult.Length
-      const currentPosition = parsedFilterParams.StartAt
-      const pageLength = parsedFilterParams.MaxEntries
-      
-      const totalPages = Math.floor(listLength/pageLength)
-      const currentPage = Math.ceil(currentPosition/pageLength)
-      
-      const surroundingPages = []
-      const addFilterURL = "/rankings/filter/add?StartAt="
-        
-      for (let i = Math.max(0, currentPage - 1); i <= Math.min(totalPages, currentPage + 1); i++) {
-        surroundingPages[i] = `${addFilterURL}${i*pageLength}`
-      }
-      
-      params.surroundingPages = surroundingPages
-      params.currentPageNumber = currentPage
-      
-      // jump to last page and first page buttons
-      if (currentPage - 1 > 0) {
-        params.firstPage = `${addFilterURL}0`
-      }
-      
-      if (totalPages > currentPage + 1) {
-        params.lastPage = `${addFilterURL}${totalPages*pageLength}`
-        params.lastPageNumber = totalPages + 1
-      }
-      
-      // next/previous page buttons
-      if (currentPage > 0) {
-        params.previousPage = `${addFilterURL}${(currentPage-1)*pageLength}`
-      }
-      if (totalPages > currentPage) {
-        params.nextPage = `${addFilterURL}${(currentPage+1)*pageLength}`
-      }
-      
-    }
-    
-    // see if the database is updating
-    {
-      params.databaseUpdating = databaseProxy.getUpdating()
-    }
-    
-    //parse timestamp
-    {
-      
-      const date = new Date(databaseQueryResult.Timestamp)
-  
-      if (date) {
-        
-        params.date = date.toLocaleDateString(locale, rankingsDateStringOptions)
-        
-      }
-      
-    }
-  
-    // add view data to params
-      const paramsViewTypesData = {}
-      {
-        const viewTypeQuery = parsedFilterParams["ViewType"] || ""
-        for (let [viewType, viewData] of Object.entries(viewTypes)) {
-          paramsViewTypesData[viewType] = {
-            
-            displayName: viewData.displayName,
-            isActive: viewType == viewTypeQuery
-            
-          }
+        const totalPages = Math.floor(listLength / pageLength)
+        const currentPage = Math.ceil(currentPosition / pageLength)
+
+        const surroundingPages = []
+        const addFilterURL = "/rankings/filter/add?startAt="
+
+        for (let i = Math.max(0, currentPage - 1); i <= Math.min(totalPages, currentPage + 1); i++) {
+            surroundingPages[i] = `${addFilterURL}${i * pageLength}`
         }
-  
-      }
-      params.viewTypes = paramsViewTypesData
-      
-    // The Handlebars code will be able to access the parameter values and build them into the page
-    return reply.view("pages/rankings.hbs", params);
-  }
+
+        hbParams.surroundingPages = surroundingPages
+        hbParams.currentPageNumber = currentPage
+
+        // jump to last page and first page buttons
+        if (currentPage - 1 > 0) {
+            hbParams.firstPage = `${addFilterURL}0`
+        }
+
+        if (totalPages > currentPage + 1) {
+            hbParams.lastPage = `${addFilterURL}${totalPages * pageLength}`
+            hbParams.lastPageNumber = totalPages + 1
+        }
+
+        // next/previous page buttons
+        if (currentPage > 0) {
+            hbParams.previousPage = `${addFilterURL}${(currentPage - 1) * pageLength}`
+        }
+        if (totalPages > currentPage) {
+            hbParams.nextPage = `${addFilterURL}${(currentPage + 1) * pageLength}`
+        }
+    }
+
+    // get display filter params
+    {
+        hbParams.filterParams = await getHandlebarsDisplayFilterParamsAsync(filterParams, {
+            preferredLanguage: NameType.Romaji
+        })
+    }
+
+    return reply.view("pages/rankingsV2.hbs", hbParams);
+}
+
 
 exports.prefix = "/rankings"
 
 exports.register = (fastify, options, done) => {
     fastify.get("/", {
-      config: {
-        analyticsEvent: "page_visit",
-        analyticsParams: {'page_name': "rankings"}
-      },
-    }, getRankingsV2)
+        config: {
+            analyticsEvent: "page_visit",
+            analyticsParams: { 'page_name': "rankings" }
+        },
+    }, getRankings)
 
     fastify.get("/filter", {
       config: {
@@ -881,27 +540,12 @@ exports.register = (fastify, options, done) => {
       },
     }, getFilterPage)
     fastify.get("/filter/add", {
-      config: {
-        analyticsEvent: "filter_add",
-        analyticsParams: {'filter_name': [], 'filter_value': []}
-      },
+        config: {
+            analyticsEvent: "filter_add",
+            analyticsParams: { 'filter_name': [], 'filter_value': [] }
+        },
     }, getAddFilter)
     fastify.get("/filter/remove", getRemoveFilter)
     fastify.get("/filter/remove-all", getRemoveAllFilters)
-
-    // year review endpoints
-    fastify.get("/year-review/:year", {
-      config: {
-        analyticsEvent: "page_visit",
-        analyticsParams: {'page_name': "rankings/year-review"}
-      }
-    }, getYearReview)
-    fastify.get("/year-review/:year/full", {
-      config: {
-        analyticsEvent: "page_visit",
-        analyticsParams: {'page_name': "rankings/year-review/full"}
-      }
-    }, getYearReviewFull)
-    fastify.get("/year-review", getCurrentYearReview)
     done();
 }

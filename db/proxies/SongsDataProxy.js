@@ -300,6 +300,19 @@ module.exports = class SongsDataProxy {
     }
 
     /**
+     * Gets every views timestamp within the database
+     * 
+     * @returns {Object[]} An array of objects containing the timestamps.
+     */
+    #getViewsTimestamps() {
+        const result = this.db.prepare(`
+        SELECT timestamp
+        FROM views_metadata
+        ORDER BY timestamp DESC`).all()
+        return result || []
+    }
+
+    /**
      * Synchronously checks whether the provided timestamp exists within the views_metadata table.
      * 
      * @param timestamp The timestamp to check the existence of.
@@ -343,7 +356,7 @@ module.exports = class SongsDataProxy {
         const queryParams = {
             timestamp: filterParams.timestamp || this.#getMostRecentViewsTimestampSync(),
             timePeriodOffset: filterParams.timePeriodOffset,
-            daysOffset: daysOffset,
+            daysOffset: daysOffset == null ? filterParams.daysOffset : daysOffset + filterParams.daysOffset,
             viewType: filterParams.viewType?.id,
             songType: filterParams.songType?.id,
             artistType: filterParams.artistType?.id,
@@ -493,11 +506,12 @@ module.exports = class SongsDataProxy {
 
         const returnEntries = []
         // generate rankings entries
+        const placementOffset = filterParams.startAt
         for (const [placement, data] of primaryResult.entries()) {
             const songId = data.song_id
             const previousPlacement = changeOffsetMap[songId] || placement
             returnEntries.push(new RankingsFilterResultItem(
-                placement + 1,
+                placement + 1 + placementOffset,
                 previousPlacement == placement ? PlacementChange.SAME : 
                     (placement > previousPlacement ? PlacementChange.DOWN : PlacementChange.UP), 
                 previousPlacement,
@@ -580,6 +594,21 @@ module.exports = class SongsDataProxy {
         return new Promise((resolve, reject) => {
             try {
                 resolve(this.#timestampExistsSync(timestamp))
+            } catch (error) {
+                reject(error)
+            }
+        })
+    }
+
+    /**
+     * Gets every timestamp within the database.
+     * 
+     * @returns {Promise<Object[]>} A promise that resolves with the result of this function.
+     */
+    getViewsTimestamps() {
+        return new Promise((resolve, reject) => {
+            try {
+                resolve(this.#getViewsTimestamps())
             } catch (error) {
                 reject(error)
             }

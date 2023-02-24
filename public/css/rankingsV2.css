@@ -138,6 +138,76 @@
     display: none;
 }
 
+/* page selector rules */
+#page-selector-container {
+  
+    height: 40px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+  }
+  
+  #page-selector-container .material-symbols-rounded {
+    color: var(--md-sys-color-on-background);
+  }
+  
+  #page-selector-container > * {
+    margin-right: 10px;
+  }
+  
+  #page-selector-container > *:last-child {
+    margin-right: 0px;
+  }
+  
+  .page-change-button {
+    height: 100%;
+    width: 40px;
+    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    color: var(--md-sys-color-on-background);
+    
+    border-radius: 50px;
+  }
+  
+  .page-change-button .material-symbols-rounded {
+    
+    color: inherit;
+    font-size: 1.6em;
+      
+  }
+  
+  .page-jump-button {
+    
+    height: 100%;
+    width: 40px;
+    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    border-radius: 50px;
+    background: var(--md-sys-color-surface-1);
+    
+    color: var(--md-sys-color-on-surface);
+    
+  }
+  
+  .page-jump-button .text {
+    color: inherit;
+  }
+  
+  .page-jump-button.active {
+    
+    background: var(--md-sys-color-on-background);
+    color: var(--md-sys-color-background)
+    
+  }
+
 @media (max-width: 680px) {
     #rankings-container {
         grid-template-columns: auto;
