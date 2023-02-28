@@ -44,6 +44,7 @@ fastify.register(require('@fastify/cookie'), {
   const plugins = [
     "cookie.js",
     "seo.js",
+    "localization.js",
     "authentication.js",
     "analytics.js",
     "outgoinglink.js"
@@ -102,6 +103,12 @@ handlebars.registerHelper("longFormat", (value) => {
 // percentage format
 handlebars.registerHelper("percent", (value) => {
   return unitConverter.percentageFormat(value)
+})
+
+// localize
+handlebars.registerHelper("localize", (localizationId, options) => {
+  const localizationTable = options.data.root.localization
+  return localizationTable[localizationId] || localizationId
 })
 
 // register partials

@@ -1,80 +1,78 @@
-<!DOCTYPE html> 
-  <link rel="stylesheet" href="/css/rankings.css">
-    <div class="list vertical"> 
-      
-      <div id="page-title" class="display-small on-background-text text-centered">Vocaloid Rankings</div>
-      <div class="title-medium-large on-background-text text-centered">As of {{date}}</div>
-      
-      <div id="midpage" class="centering-flex">
-        <div id="top-container">
-          {{#if isFiltered}}
-            <div id="applied-filters-container">
-              <a class="top-controls-button button-link on-surface-text" href="/rankings/filter/remove-all" title="Remove All Filters">
-                <span class="material-symbols-rounded on-surface-text">filter_alt_off</span>
-              </a>
-              {{#each uniqueFilterParams}}
-                <a class="applied-filter title-medium-large button-link on-surface-text" href="/rankings/filter/remove?{{@key}}={{this}}">
-                  {{this}}
-                </a>
-              {{/each}}
+<!DOCTYPE html>
+<link rel="stylesheet" href="/css/rankings.css">
+
+<style>
+@media (prefers-color-scheme: dark) {
+    {{#each rankings}} 
+        #e{{placement}} .title .main-title:hover {
+            color: {{song.darkColor}}
+        }
+    {{/each}}
+}
+
+@media (prefers-color-scheme: light) {
+    {{#each rankings}} 
+        #e{{placement}} .title .main-title:hover {
+            color: {{song.lightColor}}
+        }
+    {{/each}}
+}
+</style>
+
+<div id="rankings-container">
+
+    <div id="rankings-sidebar">
+        <div id="filter-container" class="sidebar-card body-medium on-surface-text">
+            {{#each filterParams}}
+            <div class="filter-dataset">
+                <div class="title">{{localize title}}</div>
+                {{#if isDefault}}
+                  <div class="value">{{value}}</div>
+                {{else}}
+                  <div class="chip-group">
+                    {{#each value}}
+                      <a class="chip input with-trailing" href="/rankings/filter/remove?{{../name}}={{@key}}">
+                        <div class="text label-large">{{this}}</div>
+                        <span class="material-symbols-rounded">close</span>
+                      </a>
+                    {{/each}}
+                  </div>
+                {{/if}}
             </div>
-          {{/if}}
-          <div id="top-controls-container">
-            {{#if databaseUpdating}}      
-              {{> rankings-refresh-label}}
-            {{/if}}
-            <a class="top-controls-button button-link with-text" href="/rankings/filter" title="Filter">
-              <span class="material-symbols-rounded">filter_alt</span>
-              <div class="title-medium-large">Filter</div>
+            {{/each}}
+            <a id="filter-button" class="material-button with-icon inverse label-large" href="/rankings/filter">
+                <span class="material-symbols-rounded">filter_alt</span>
+                {{localization.rankings_filter}}
             </a>
-            <a class="top-controls-button button-link" href="/settings" title="Settings">
-              <span class="material-symbols-rounded">settings</span>
-            </a>
-          </div>
         </div>
+        <a id="mobile-filter-button" class="material-button with-icon inverse label-large" href="/rankings/filter">
+            <span class="material-symbols-rounded">filter_alt</span>
+            {{localization.rankings_filter}}
+        </a>
+    </div>
 
-        <div id="rankings-list">
-          
-          <div class="rankings-list-header title-medium-large">
-            <div class="rankings-list-entry-item rank"></div>
-            <div class="rankings-list-entry-item cover"></div>
-            <div class="rankings-list-entry-item title">Song Name</div>
-            <div class="rankings-list-entry-item views">Views</div>
-          </div>
-          
-          {{#each list}}
+    <div id="rankings-content">
+        {{#each rankings}}
 
-            <div class="rankings-list-entry title-medium-large">
-              
-              <div class="rankings-list-entry-item title-large rank">
-                {{inc @index (inc 1 ../filterParams.StartAt)}}
-              </div>
-              
-              <div class="rankings-list-entry-item cover" style='background-image:url("{{thumbnail}}")'></div>
-              
-              {{#if (notcomp change.status "SAME") }}
-                <div class="rankings-list-entry-item change {{change.status}}">
-                  <span class="material-symbols-rounded">
-                    {{#if (comp change.status "UP")}}
-                      arrow_upward
-                    {{else if (comp change.status "DOWN")}}
-                      arrow_downward
-                    {{/if}}
-                  </span>
+            <div id="e{{placement}}" class="rankings-entry">
+                <div class="rank title-large">{{placement}}</div>
+                <a class="cover" style="background-image:url({{song.thumbnail}})" href="song/{{song.id}}"></a>
+                <div class="title">
+                    <a class="main-title title-medium-large" href="song/{{song.id}}">{{preferredName}}</a>
+                    <div class="artists">
+                        {{#each producers}}
+                            <a class="label title-small artist" href="artist/{{id}}">{{preferredName}}</a>
+                        {{/each}}
+                    </div>
                 </div>
-              {{/if}}
+                <div class="views">
+                    <div class="title-medium-large">{{longFormat views}}</div>
+                    <div class="label title-small">{{../localization.rankings_views}}</div>
+                </div>
+            </div>
 
-              <div class="rankings-list-entry-item title">
-                <a href="/song/{{songId}}?referer=/rankings?StartAt={{../filterParams.StartAt}}">{{names.preferred}}</a>
-              </div>
-              <div class="rankings-list-entry-item views">{{longFormat total}}</div>
-              
-            </div> 
+        {{/each}}
 
-          {{/each}}
-          
-        </div>
-        
         <div id="page-selector-container">
           {{#if previousPage}}
             <a class="icon-button" href="{{previousPage}}">
@@ -82,10 +80,10 @@
             </a>
           {{/if}}
           {{#if firstPage}}
-            <a class="outlined icon-button" href="{{firstPage}}">
+            <a class="outlined icon-button offset-jump-button" href="{{firstPage}}">
               <div class="title-medium-large">1</div>
             </a>
-            <span class="material-symbols-rounded">more_horiz</span>
+            <span class="material-symbols-rounded offset-jump-icon">more_horiz</span>
           {{/if}}
           {{#each surroundingPages}}
             <a class="outlined icon-button {{#if (comp @index ../currentPageNumber)}}selected active{{/if}}" href="{{this}}">
@@ -93,8 +91,8 @@
             </a>
           {{/each}}
           {{#if lastPage}}
-            <span class="material-symbols-rounded">more_horiz</span>
-            <a class="outlined icon-button" href="{{lastPage}}">
+            <span class="material-symbols-rounded offset-jump-icon">more_horiz</span>
+            <a class="outlined icon-button offset-jump-button" href="{{lastPage}}">
               <div class="title-medium-large">{{lastPageNumber}}</div>
             </a>
           {{/if}}
@@ -104,9 +102,5 @@
             </a>
           {{/if}}
         </div>
-
-      </div>
-      
-      
-    
     </div>
+</div>

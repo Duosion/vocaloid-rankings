@@ -12,21 +12,21 @@
             </a>
 
             <div id="nav-links" class="title-medium">
-                <a class="nav-link" href="/rankings">Rankings</a>
-                <a class="nav-link" href="/trending">Trending</a>
-                <a class="nav-link" href="/singers">Singers</a>
-                <a class="nav-link" href="/producers">Producers</a>
+                <a class="nav-link" href="/rankings">{{localization.nav_rankings}}</a>
+                <a class="nav-link" href="/trending">{{localization.nav_trending}}</a>
+                <a class="nav-link" href="/singers">{{localization.nav_singers}}</a>
+                <a class="nav-link" href="/producers">{{localization.nav_producers}}</a>
             </div>
         </div>
 
         <div id="nav-tail" class="nav-column-group">
             <form id="nav-search-form" action="/search" method="get" target="_self">
-                <input class="title-medium" name="searchQuery" id="nav-search-query" placeholder="Search" required>
+                <input class="title-medium" name="searchQuery" id="nav-search-query" placeholder="{{localization.search_hint}}" required>
                 <button id="nav-search-submit" class="centering-flex">
                     <span class="material-symbols-rounded">search</span>
                 </button>
             </form>
-            <a id="settings-link" href="/settings" class="icon-button">
+            <a id="settings-link" href="/settings" class="icon-button" title="{{localization.settings}}">
                 <span class="material-symbols-rounded">settings</span>
             </a>
         </div>
@@ -35,11 +35,11 @@
         <span id="nav-drawer-surface" class="surface level-2"></span>
         <div id="nav-drawer-content">
             <div id="nav-drawer-head" class="nav-drawer-column-group">
-                <a id="nav-drawer-settings-link" href="/settings" class="icon-button">
+                <a id="nav-drawer-settings-link" href="/settings" class="icon-button" title="{{localization.settings}}">
                     <span class="material-symbols-rounded">settings</span>
                 </a>
                 <form id="nav-drawer-search-form" action="/search" method="get" target="_self">
-                    <input class="title-medium" name="searchQuery" id="nav-drawer-search-query" placeholder="Search"
+                    <input class="title-medium" name="searchQuery" id="nav-drawer-search-query" placeholder="{{localization.search_hint}}"
                         required>
                     <button id="nav-drawer-search-submit" class="centering-flex">
                         <span class="material-symbols-rounded">search</span>
@@ -51,19 +51,19 @@
             <div class="nav-drawer-link-group title-medium">
                 <a class="nav-drawer-link" href="/rankings">
                     <span class="material-symbols-rounded">menu</span>
-                    Rankings
+                    {{localization.nav_rankings}}
                 </a>
                 <a class="nav-drawer-link" href="/trending">
                     <span class="material-symbols-rounded">trending_up</span>
-                    Trending
+                    {{localization.nav_trending}}
                 </a>
                 <a class="nav-drawer-link" href="/singers">
                     <span class="material-symbols-rounded">mic</span>
-                    Singers
+                    {{localization.nav_singers}}
                 </a>
                 <a class="nav-drawer-link" href="/producers">
                     <span class="material-symbols-rounded">music_note</span>
-                    Producers
+                    {{localization.nav_producers}}
                 </a>
             </div>
             {{> default-hr}}

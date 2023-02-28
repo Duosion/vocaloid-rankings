@@ -13,6 +13,7 @@ const SongType = require("../../../db/enums/SongType")
 const ViewType = require("../../../db/enums/ViewType")
 const ArtistType = require("../../../db/enums/ArtistType")
 const { PublishDate } = require("../../../db/enums/FilterOrder")
+const TitleLanguageSetting = require("../settings/enums/TitleLanguageSetting")
 
 const database = require(workingDirectory + "/db")
 const databaseProxy = require(modulePath + "/database")
@@ -28,14 +29,14 @@ const highlightsCache = caches.highlightsCache // gets the highlights cache with
 
 const filterParamsDisplayData = {
     'timestamp': {
-        displayName: "Date",
+        displayName: "filter_timestamp",
         defaultValue: null,
         getValueAsync: (rawValue) => {
             return [rawValue]
         }
     },
     'timePeriodOffset': {
-        displayName: "Time Period",
+        displayName: "filter_time_period",
         defaultValue: null,
         getValueAsync: (rawValue) => {
             switch (rawValue) {
@@ -51,56 +52,56 @@ const filterParamsDisplayData = {
         }
     },
     'viewType': {
-        displayName: "View Type",
+        displayName: "filter_view_type",
         defaultValue: null,
         getValueAsync: (rawValue) => {
             return [rawValue.name]
         }
     },
     'songType': {
-        displayName: "Song Type",
+        displayName: "filter_song_type",
         defaultValue: null,
         getValueAsync: (rawValue) => {
             return [rawValue.name]
         }
     },
     'artistType': {
-        displayName: "Artist Type",
+        displayName: "filter_artist_type",
         defaultValue: null,
         getValueAsync: (rawValue) => {
             return [rawValue.name]
         }
     },
     'publishDate': {
-        displayName: "Publish Date",
+        displayName: "filter_publish_date",
         defaultValue: null,
         getValueAsync: (rawValue) => {
             return [rawValue]
         }
     },
     'orderBy': {
-        displayName: "Order By",
+        displayName: "filter_order_by",
         defaultValue: FilterOrder.Views,
         getValueAsync: (rawValue) => {
             return [rawValue.name]
         }
     },
     'singleVideo': {
-        displayName: "View Aggregation Mode",
+        displayName: "filter_single_video",
         defaultValue: null,
         getValueAsync: (rawValue) => {
             return [rawValue == 1 ? "Single Video" : "All Videos"]
         }
     },
     'direction': {
-        displayName: "Direction",
+        displayName: "filter_direction",
         defaultValue: FilterDirection.Descending,
         getValueAsync: (rawValue) => {
             return [rawValue.name]
         }
     },
     'artists': {
-        displayName: 'Artists',
+        displayName: 'filter_artists',
         defaultValue: null,
         getValueAsync: async (rawValue, options) => {
             const preferredLanguage = options.preferredLanguage || NameType.Original
@@ -480,7 +481,8 @@ const getRankings = async (request, reply) => {
     const parsedCookies = request.parsedCookies || {}
     const hbParams = { // params for handlebars
         seo: request.seo,
-        cookies: parsedCookies
+        cookies: parsedCookies,
+        localization: request.localization
     }
 
     // parse locale
@@ -496,7 +498,7 @@ const getRankings = async (request, reply) => {
     const filterParams = await buildFilterParamsAsync(requestQuery)
 
     const filteredRankings = await filterRankingsAsync(filterParams, {
-        preferredLanguage: NameType.Romaji
+        preferredLanguage: NameType.fromId(parsedCookies.titleLanguage)
     })
 
     hbParams.rankings = filteredRankings.results
@@ -542,11 +544,11 @@ const getRankings = async (request, reply) => {
     // get display filter params
     {
         hbParams.filterParams = await getHandlebarsDisplayFilterParamsAsync(filterParams, {
-            preferredLanguage: NameType.Romaji
+            preferredLanguage: NameType.fromId(parsedCookies.titleLanguage)
         })
     }
 
-    return reply.view("pages/rankingsV2.hbs", hbParams);
+    return reply.view("pages/rankings.hbs", hbParams);
 }
 
 

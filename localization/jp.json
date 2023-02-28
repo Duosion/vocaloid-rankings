@@ -1,0 +1,20 @@
+{
+    "nav_rankings": "ランキング",
+    "nav_trending": "トレンド",
+    "nav_singers": "シンガー",
+    "nav_producers": "プロデューサー",
+    "search_hint": "サーチ",
+    "rankings_views": "回視聴",
+    "rankings_filter": "フィルタ",
+    "filter_timestamp": " デート ",
+    "filter_time_period_offset": "時間ずれ",
+    "filter_view_type": "視聴のタイプ",
+    "filter_song_type": "歌のタイプ",
+    "filter_artist_type": "作者のタイプ",
+    "filter_publish_date": "公開日",
+    "filter_order_by": "オーダー",
+    "filter_single_video": "シングルビデオモード",
+    "filter_direction": "方",
+    "filter_artists": "作者",
+    "settings": "設定"
+}

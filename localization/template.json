@@ -2,5 +2,19 @@
     "nav_rankings": "",
     "nav_trending": "",
     "nav_singers": "",
-    "nav_producers": ""
+    "nav_producers": "",
+    "search_hint": "",
+    "rankings_views": "",
+    "rankings_filter": "",
+    "filter_timestamp": "",
+    "filter_time_period_offset": "",
+    "filter_view_type": "",
+    "filter_song_type": "",
+    "filter_artist_type": "",
+    "filter_publish_date": "",
+    "filter_order_by": "",
+    "filter_single_video": "",
+    "filter_direction": "",
+    "filter_artists": "",
+    "settings": ""
 }

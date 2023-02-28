@@ -6,18 +6,18 @@ const TitleLanguageSetting = require("../pages/settings/enums/TitleLanguageSetti
 const paramCookies = {
     // [cookie name]: [default value]
     titleLanguage: {
-      DefaultValue: TitleLanguageSetting.English,
-      AllowedValues: [TitleLanguageSetting.Native, TitleLanguageSetting.Romaji, TitleLanguageSetting.English],
+      DefaultValue: TitleLanguageSetting.English.id,
+      AllowedValues: [TitleLanguageSetting.Native.id, TitleLanguageSetting.Romaji.id, TitleLanguageSetting.English.id],
       MaxAge: 31536000,
     },
     theme: {
-      DefaultValue: ThemeSetting.DeviceTheme,
-      AllowedValues: [ThemeSetting.DeviceTheme,ThemeSetting.Light, ThemeSetting.Dark],
+      DefaultValue: ThemeSetting.DeviceTheme.id,
+      AllowedValues: [ThemeSetting.DeviceTheme.id,ThemeSetting.Light.id, ThemeSetting.Dark.id],
       MaxAge: 31536000,
     },
     language: {
-      DefaultValue: LanguageSetting.English,
-      AllowedValues: [LanguageSetting.Default, LanguageSetting.English, LanguageSetting.Japanese],
+      DefaultValue: LanguageSetting.English.id,
+      AllowedValues: [LanguageSetting.Default.id, LanguageSetting.English.id, LanguageSetting.Japanese.id],
       MaxAge: 31536000,
     }
 }
@@ -34,7 +34,7 @@ const parseParamCookies = (request) => {
   
     const parsedCookies = {}
     
-    for (let [cookieName, cookieData] of Object.entries(paramCookies)) {
+    for (const [cookieName, cookieData] of Object.entries(paramCookies)) {
       
       const rawCookie = request.cookies[cookieName]
       
@@ -54,7 +54,7 @@ const parseParamCookies = (request) => {
         
         let allowed = false
         
-        for (let [_, allowedValue] of allowedValues.entries()) {
+        for (const [_, allowedValue] of allowedValues.entries()) {
         
           if (allowedValue == parsedCookieValue) { allowed = true; break; }
         
@@ -189,10 +189,10 @@ const plugin = (fastify, options, done) => {
     })
 
     // cookie parsing
-    fastify.addHook("preParsing", (req, reply, payload, done) => {
+    fastify.addHook("onRequest", (req, reply, done) => {
         var parsedCookies = {}
         
-        for (let [_, parser] of cookieParsers.entries()) {
+        for (const [_, parser] of cookieParsers.entries()) {
           parsedCookies = {
             ...parsedCookies,
             ...parser(req)

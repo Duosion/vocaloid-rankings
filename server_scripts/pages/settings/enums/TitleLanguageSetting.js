@@ -2,7 +2,7 @@ const Enum = require("../../../../db/enums/Enum")
 
 module.exports = class TitleLanguageSetting extends Enum {
     static Native = new TitleLanguageSetting("Native", 0)
-    static Romaji = new TitleLanguageSetting("Romaji", 1)
+    static Romaji = new TitleLanguageSetting("Romaji", 3)
     static English = new TitleLanguageSetting("English", 2)
 
     static {

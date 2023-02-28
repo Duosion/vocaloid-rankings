@@ -27,9 +27,9 @@
     {{! Stylesheet stuff. }}
     <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="/css/material_theme/theme.css">
-    {{#if (comp cookies.theme "light-theme")}}
+    {{#if (comp cookies.theme 1)}}
     <link rel="stylesheet" href="/css/material_theme/theme.light.css">
-    {{else if (comp cookies.theme "dark-theme")}}
+    {{else if (comp cookies.theme 2)}}
     <link rel="stylesheet" href="/css/material_theme/theme.dark.css">
     {{else}}
     <link rel="stylesheet" href="/css/material_theme/theme.dynamic.css">
