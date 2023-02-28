@@ -570,8 +570,6 @@ const processVocaDBSongDataAsync = (songData) => {
             const lightColor = hexFromArgb(schemes.light.props.primary)
             const darkColor = hexFromArgb(schemes.dark.props.primary)
 
-            console.log(lightColor, darkColor)
-
             resolve(new Song(
                 songId,
 
@@ -719,7 +717,7 @@ const scrapeVocaDBRecentSongsAsync = () => {
                         if (views != null) {
 
                             if ((views.total >= vocaDBRecentSongsViewsThreshold) && (vocaDBRecentSongsUploadDateThreshold > (timeNow - new Date(entryData.publishDate)))) {
-                                console.log(`${songData.songId} meets views threshold (${totalViews} views)`)
+                                console.log(`${entryData.id} meets views threshold (${totalViews} views)`)
                                 recentSongs.push(await scrapeVocaDBSongAsync(entryData.id))
                             }
                         }

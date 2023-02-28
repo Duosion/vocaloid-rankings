@@ -1,15 +1,23 @@
 const fp = require("fastify-plugin")
+const LanguageSetting = require("../pages/settings/enums/LanguageSetting")
+const ThemeSetting = require("../pages/settings/enums/ThemeSetting")
+const TitleLanguageSetting = require("../pages/settings/enums/TitleLanguageSetting")
 
 const paramCookies = {
     // [cookie name]: [default value]
-    displayLanguage: {
-      DefaultValue: "English",
-      AllowedValues: ["Original", "Romaji", "English"],
+    titleLanguage: {
+      DefaultValue: TitleLanguageSetting.English,
+      AllowedValues: [TitleLanguageSetting.Native, TitleLanguageSetting.Romaji, TitleLanguageSetting.English],
       MaxAge: 31536000,
     },
     theme: {
-      DefaultValue: "device-theme",
-      AllowedValues: ["device-theme","light-theme", "dark-theme"],
+      DefaultValue: ThemeSetting.DeviceTheme,
+      AllowedValues: [ThemeSetting.DeviceTheme,ThemeSetting.Light, ThemeSetting.Dark],
+      MaxAge: 31536000,
+    },
+    language: {
+      DefaultValue: LanguageSetting.English,
+      AllowedValues: [LanguageSetting.Default, LanguageSetting.English, LanguageSetting.Japanese],
       MaxAge: 31536000,
     }
 }

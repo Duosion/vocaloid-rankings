@@ -20,6 +20,7 @@ module.exports = class RankingsFilterParams {
      * @param {FilterOrder} [orderBy] What to order the ranking results by. By default, orders by views
      * @param {FilterDirection} [direction] What direction to order the ranking results in. By default is descending. 
      * @param {number[]} [artists] An array of artist IDs. If provided, only returns rankings results with songs that contain the provided artist ids.
+     * @param {boolean} [singleVideo] If true, only filters the songs with the most views per view type.
      * @param {number} [maxEntries] The maximum number of rankings entries to return. Default: 50.
      * @param {number} [startAt] The amount to offset the resulting rankings entries. Default: 0.
      */
@@ -34,6 +35,7 @@ module.exports = class RankingsFilterParams {
         publishDate,
         orderBy = FilterOrder.Views,
         direction = FilterDirection.Descending,
+        singleVideo,
         artists,
         maxEntries = 50,
         startAt = 0,
@@ -48,6 +50,7 @@ module.exports = class RankingsFilterParams {
         this.publishDate = publishDate
         this.orderBy = orderBy
         this.direction = direction
+        this.singleVideo = singleVideo
         this.artists = artists
         this.maxEntries = maxEntries
         this.startAt = startAt

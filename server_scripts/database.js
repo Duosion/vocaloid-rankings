@@ -813,23 +813,3 @@ exports.setUpdatingProgress = setUpdatingProgress
 exports.addArtistsFromIds = addArtistsFromIds
 exports.populateArtists = populateArtists
 
-/*setTimeout(() => {
-  console.time("rankings query took")
-  database.songsData.filterRankings(new RankingsFilterParams(
-    "2023-01-20",
-    null, // time period offset
-    null, // change offset
-    null, // view type
-    null, // song type
-    null, // artist type
-    null, // publish date
-    FilterOrder.Views,
-    FilterDirection.Descending,
-    null, // artists
-    50,
-    0)).then(result => {
-    console.timeEnd("rankings query took")
-    console.log("rankings",result)
-  })
-}, 2000)*/
-

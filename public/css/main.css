@@ -796,11 +796,11 @@ input[type="radio"]:checked + .filter.chip .leading {
 /* dropdowns */
 select {
   width: 100%;
-  background-color: var(--md-sys-color-surface-1);
   border-radius: 10px;
   padding: 8px;
-  color: var(--md-sys-color-on-surface);
-  border: 1px solid var(--md-sys-color-outline-variant);
+  background-color: transparent;
+  color: var(--md-sys-color-on-surface-variant);
+  border: 1px solid var(--md-sys-color-outline);
 }
 select option {
   color: var(--md-sys-color-on-surface);

@@ -11,15 +11,15 @@
   <form id="filter-form" action="/settings" method="post" target="_self" class="filter-content list vertical">
     
     {{#each filterOptions}}
-    <div class="title-medium-large on-surface-text">{{DisplayName}}</div>
+    <div class="title-medium-large on-surface-text">{{displayName}}</div>
       <div class="chip-group title-medium-large">
         <div class="form-radio-container">
-          {{#each Values}}
-            <input type="radio" id="{{@key}}" name="{{@../key}}" value="{{@key}}" {{#if (comp @key (get ../../cookies @../key))}}checked{{/if}}>
+          {{#each values}}
+            <input type="radio" id="{{@../key}}{{id}}" name="{{@../key}}" value="{{id}}" {{#if (comp id (get ../../cookies @../key))}}checked{{/if}}>
           
-            <label class="filter chip" for="{{@key}}">
+            <label class="filter chip" for="{{@../key}}{{id}}">
               <span class="material-symbols-rounded leading">done</span>
-              {{DisplayName}}
+              {{name}}
             </label>
           
           {{/each}}

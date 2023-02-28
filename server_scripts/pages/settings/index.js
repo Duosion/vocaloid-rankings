@@ -1,36 +1,28 @@
+const LanguageSetting = require("./enums/LanguageSetting")
+const ThemeSetting = require("./enums/ThemeSetting")
+const TitleLanguageSetting = require("./enums/TitleLanguageSetting")
+
 const workingDirectory = process.cwd()
 const modulePath = workingDirectory + "/server_scripts"
 
 // settings page
+
 const settingsPageOptions = {
-    theme: {
-        DisplayName: "Theme",
-        Values: {
-        "device-theme": {
-            DisplayName: "Device Theme",
-        },
-        "light-theme": {
-            DisplayName: "Light Theme",
-        },
-        "dark-theme": {
-            DisplayName: "Dark Theme",
-        }
-        }
+    'theme': {
+        displayName: "Theme",
+        defaultValue: ThemeSetting.DeviceTheme,
+        values: ThemeSetting.values
     },
-    displayLanguage: {
-        DisplayName: "Display Language",
-        Values: {
-        "Original": {
-            DisplayName: "Native"
-        },
-        "Romaji": {
-            DisplayName: "Romaji"
-        },
-        "English": {
-            DisplayName: "English"
-        }
-        }
-    } 
+    'titleLanguage': {
+        displayName: "Title Language",
+        defaultValue: TitleLanguageSetting.English,
+        values: TitleLanguageSetting.values
+    },
+    'language': {
+        displayName: "Language",
+        defaultValue: LanguageSetting.English,
+        values: LanguageSetting.values
+    }
 }
   
 const postSettings = (request, reply) => {
@@ -42,8 +34,9 @@ const postSettings = (request, reply) => {
 
     for ( let [cookieName, cookieValue] of Object.entries(body)) {
         // verify setting
+        cookieValue = Number.parseInt(cookieValue)
         const exists = settingsPageOptions[cookieName]
-        if (exists && exists.Values[cookieValue]) {
+        if (exists && exists.values[cookieValue]) {
             reply.setParamCookie(cookieName, cookieValue)
 
             const currentValue = parsedCookies[cookieName]

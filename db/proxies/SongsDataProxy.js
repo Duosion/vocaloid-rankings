@@ -363,6 +363,7 @@ module.exports = class SongsDataProxy {
             publishDate: filterParams.publishDate,
             orderBy: filterParams.orderBy?.id,
             direction: filterParams.direction?.id,
+            singleVideo: filterParams.singleVideo,
             maxEntries: filterParams.maxEntries,
             startAt: filterParams.startAt
         }
@@ -408,6 +409,23 @@ module.exports = class SongsDataProxy {
             AND (songs.song_type = :songType OR :songType IS NULL)
             AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
             AND (artists.artist_type = :artistType OR :artistType IS NULL)
+            AND (views_breakdowns.views = CASE WHEN :singleVideo IS NULL
+                THEN views_breakdowns.views
+                ELSE
+                    (SELECT MAX(sub_vb.views)
+                    FROM views_breakdowns AS sub_vb 
+                    INNER JOIN songs ON songs.id = sub_vb.song_id
+                    INNER JOIN songs_artists ON songs_artists.song_id = sub_vb.song_id
+                    INNER JOIN artists ON artists.id = songs_artists.artist_id
+                    WHERE (sub_vb.view_type = views_breakdowns.view_type)
+                        AND (sub_vb.timestamp = views_breakdowns.timestamp)
+                        AND (sub_vb.song_id = views_breakdowns.song_id)
+                        AND (songs.song_type = :songType OR :songType IS NULL)
+                        AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
+                        AND (artists.artist_type = :artistType OR :artistType IS NULL)
+                        ${filterArtists == '' ? '' : `AND (songs_artists.artist_id IN (${filterArtists}) OR artists.base_artist_id IN (${filterArtists}))`}
+                    GROUP BY sub_vb.song_id)
+                END)
             ${filterArtists == '' ? '' : `AND (songs_artists.artist_id IN (${filterArtists}) OR artists.base_artist_id IN (${filterArtists}))`}
         `).get(queryParams.params)?.count
     }
@@ -424,7 +442,7 @@ module.exports = class SongsDataProxy {
         const filterArtists = queryParams.filterArtists
         return this.db.prepare(`
         SELECT DISTINCT views_breakdowns.song_id,
-            SUM(DISTINCT views_breakdowns.views)  - CASE WHEN :timePeriodOffset IS NULL
+            SUM(DISTINCT views_breakdowns.views) - CASE WHEN :timePeriodOffset IS NULL
                 THEN 0
                 ELSE ifnull((
                     SELECT SUM(DISTINCT offset_breakdowns.views)
@@ -441,6 +459,23 @@ module.exports = class SongsDataProxy {
                         AND (songs.song_type = :songType OR :songType IS NULL)
                         AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
                         AND (artists.artist_type = :artistType OR :artistType IS NULL)
+                        AND (offset_breakdowns.views = CASE WHEN :singleVideo IS NULL
+                            THEN offset_breakdowns.views
+                            ELSE
+                                (SELECT MAX(offset_sub_breakdowns.views)
+                                FROM views_breakdowns AS offset_sub_breakdowns 
+                                INNER JOIN songs ON songs.id = offset_sub_breakdowns.song_id
+                                INNER JOIN songs_artists ON songs_artists.song_id = offset_sub_breakdowns.song_id
+                                INNER JOIN artists ON artists.id = songs_artists.artist_id
+                                WHERE (offset_sub_breakdowns.view_type = offset_breakdowns.view_type)
+                                    AND (offset_sub_breakdowns.timestamp = offset_breakdowns.timestamp)
+                                    AND (offset_sub_breakdowns.song_id = offset_breakdowns.song_id)
+                                    AND (songs.song_type = :songType OR :songType IS NULL)
+                                    AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
+                                    AND (artists.artist_type = :artistType OR :artistType IS NULL)
+                                    ${filterArtists == '' ? '' : `AND (songs_artists.artist_id IN (${filterArtists}) OR artists.base_artist_id IN (${filterArtists}))`}
+                                GROUP BY offset_sub_breakdowns.song_id)
+                            END)
                         ${filterArtists == '' ? '' : `AND (songs_artists.artist_id IN (${filterArtists}) OR artists.base_artist_id IN (${filterArtists}))`}
                     GROUP BY offset_breakdowns.song_id
                 ),0)
@@ -457,6 +492,23 @@ module.exports = class SongsDataProxy {
             AND (songs.song_type = :songType OR :songType IS NULL)
             AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
             AND (artists.artist_type = :artistType OR :artistType IS NULL)
+            AND (views_breakdowns.views = CASE WHEN :singleVideo IS NULL
+                THEN views_breakdowns.views
+                ELSE
+                    (SELECT MAX(sub_vb.views)
+                    FROM views_breakdowns AS sub_vb 
+                    INNER JOIN songs ON songs.id = sub_vb.song_id
+                    INNER JOIN songs_artists ON songs_artists.song_id = sub_vb.song_id
+                    INNER JOIN artists ON artists.id = songs_artists.artist_id
+                    WHERE (sub_vb.view_type = views_breakdowns.view_type)
+                        AND (sub_vb.timestamp = views_breakdowns.timestamp)
+                        AND (sub_vb.song_id = views_breakdowns.song_id)
+                        AND (songs.song_type = :songType OR :songType IS NULL)
+                        AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
+                        AND (artists.artist_type = :artistType OR :artistType IS NULL)
+                        ${filterArtists == '' ? '' : `AND (songs_artists.artist_id IN (${filterArtists}) OR artists.base_artist_id IN (${filterArtists}))`}
+                    GROUP BY sub_vb.song_id)
+                END)
             ${filterArtists == '' ? '' : `AND (songs_artists.artist_id IN (${filterArtists}) OR artists.base_artist_id IN (${filterArtists}))`}
         GROUP BY views_breakdowns.song_id
         ORDER BY

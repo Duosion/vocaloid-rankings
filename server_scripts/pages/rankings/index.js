@@ -38,7 +38,16 @@ const filterParamsDisplayData = {
         displayName: "Time Period",
         defaultValue: null,
         getValueAsync: (rawValue) => {
-            return [rawValue]
+            switch (rawValue) {
+                case 1:
+                    return ["Past Day"]
+                case 7:
+                    return ['Past Week']
+                case 30:
+                    return ['Past Month']
+                default:
+                    return [`Past ${rawValue} Days`]
+            }
         }
     },
     'viewType': {
@@ -74,6 +83,13 @@ const filterParamsDisplayData = {
         defaultValue: FilterOrder.Views,
         getValueAsync: (rawValue) => {
             return [rawValue.name]
+        }
+    },
+    'singleVideo': {
+        displayName: "View Aggregation Mode",
+        defaultValue: null,
+        getValueAsync: (rawValue) => {
+            return [rawValue == 1 ? "Single Video" : "All Videos"]
         }
     },
     'direction': {
@@ -150,6 +166,16 @@ const filterPageOptions = [
             { name: 'Views', value: FilterOrder.Views.id },
             { name: 'Publish Date', value: FilterOrder.PublishDate.id },
             { name: 'Addition Date', value: FilterOrder.AdditionDate.id }
+        ]
+    },
+    {
+        displayName: 'View Aggregation Mode',
+        name: "singleVideo",
+        isChip: true,
+        default: 0,
+        values: [
+            { name: 'All Videos', value: null },
+            { name: 'Single Video', value: 1 }
         ]
     },
     {
@@ -231,6 +257,7 @@ const buildFilterParamsAsync = (query) => {
                 query['publishDate'] && query.publishDate + "%" || null,
                 FilterOrder.values[query['orderBy']],
                 FilterDirection.values[query['direction']],
+                query['singleVideo'] ? 1 : null,
                 artists,
                 Math.min(Number(query['maxEntries']) || 50, 50),
                 Number(query['startAt'] || 0)
