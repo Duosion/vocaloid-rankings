@@ -36,7 +36,7 @@ const filterParamsDisplayData = {
         }
     },
     'timePeriodOffset': {
-        displayName: "filter_time_period",
+        displayName: "filter_time_period_offset",
         defaultValue: null,
         getValueAsync: (rawValue) => {
             switch (rawValue) {
@@ -442,6 +442,19 @@ const getRemoveFilter = async (request, reply) => {
     reply.redirect("/rankings")
 }
 
+const getSetFilter = async(request, reply) => {
+    reply.setObjectCookie("filter", {})
+
+    var newQuery = ""
+
+    // build query again
+    for (const [filterName, filterValue] of Object.entries(request.query)) {
+        newQuery += `${filterName}=${filterValue}&`
+    }
+
+    reply.redirect(`/rankings/filter/add?${newQuery}`)
+}
+
 const getAddFilter = async (request, reply) => {
     const parsedCookies = request.parsedCookies
 
@@ -479,11 +492,7 @@ const getAddFilter = async (request, reply) => {
 
 const getRankings = async (request, reply) => {
     const parsedCookies = request.parsedCookies || {}
-    const hbParams = { // params for handlebars
-        seo: request.seo,
-        cookies: parsedCookies,
-        localization: request.localization
-    }
+    const hbParams = request.hbParams
 
     // parse locale
     const locale = (request.headers["accept-language"] || "").split(",")[0]
@@ -574,6 +583,12 @@ exports.register = (fastify, options, done) => {
             analyticsParams: { 'filter_name': [], 'filter_value': [] }
         },
     }, getAddFilter)
+    fastify.get("/filter/set", {
+        config: {
+            analyticsEvent: "filter_set",
+            analyticsParams: { 'filter_name': [], 'filter_value': [] }
+        },
+    }, getSetFilter)
     fastify.get("/filter/remove", getRemoveFilter)
     fastify.get("/filter/remove-all", getRemoveAllFilters)
     done();

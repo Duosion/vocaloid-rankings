@@ -13,8 +13,12 @@
     "filter_artist_type": "作者のタイプ",
     "filter_publish_date": "公開日",
     "filter_order_by": "オーダー",
-    "filter_single_video": "シングルビデオモード",
+    "filter_single_video": "ビデオモード",
     "filter_direction": "方",
     "filter_artists": "作者",
+    "quick_filter_past_day": "1日中",
+    "quick_filter_youtube": "YouTubeのみ",
+    "quick_filter_addition_date": "追加日",
+    "quick_filter_single_video": "シングルビデオ",
     "settings": "設定"
 }

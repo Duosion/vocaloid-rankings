@@ -16,5 +16,9 @@
     "filter_single_video": "",
     "filter_direction": "",
     "filter_artists": "",
+    "quick_filter_past_day": "",
+    "quick_filter_youtube": "",
+    "quick_filter_addition_date": "",
+    "quick_filter_single_video": "",
     "settings": ""
 }

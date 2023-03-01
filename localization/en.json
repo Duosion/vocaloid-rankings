@@ -16,5 +16,9 @@
     "filter_single_video": "Views Aggregation Mode",
     "filter_direction": "Direction",
     "filter_artists": "Artists",
+    "quick_filter_past_day": "Past Day",
+    "quick_filter_youtube": "Youtube Only",
+    "quick_filter_addition_date": "Addition Date",
+    "quick_filter_single_video": "Single Video",
     "settings": "Settings"
 }

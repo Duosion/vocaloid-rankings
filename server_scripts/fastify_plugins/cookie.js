@@ -200,6 +200,7 @@ const plugin = (fastify, options, done) => {
         }
 
         req.parsedCookies = parsedCookies
+        req.addHbParam('cookies', parsedCookies)
         
         done()
     })

@@ -42,6 +42,7 @@ fastify.register(require('@fastify/cookie'), {
 {
   const pluginDirectory = customModuleDirectory + "fastify_plugins/"
   const plugins = [
+    "handlebars_params.js",
     "cookie.js",
     "seo.js",
     "localization.js",
