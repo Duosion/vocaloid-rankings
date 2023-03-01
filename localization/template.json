@@ -21,5 +21,18 @@
     "quick_filter_youtube": "",
     "quick_filter_addition_date": "",
     "quick_filter_single_video": "",
-    "settings": ""
+    "settings": "",
+    "settings_theme": "",
+    "settings_theme_system": "",
+    "settings_theme_light": "",
+    "settings_theme_dark": "",
+    "settings_title_language": "",
+    "settings_title_language_original": "",
+    "settings_title_language_english": "",
+    "settings_title_language_romaji": "",
+    "settings_language": "",
+    "language_system": "",
+    "language_english": "English",
+    "language_japanese": "日本語",
+    "save": ""
 }

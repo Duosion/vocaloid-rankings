@@ -21,5 +21,18 @@
     "quick_filter_youtube": "YouTubeのみ",
     "quick_filter_addition_date": "追加日",
     "quick_filter_single_video": "シングルビデオ",
-    "settings": "設定"
+    "settings": "設定",
+    "settings_theme": "テーマ",
+    "settings_theme_system": "システム",
+    "settings_theme_light": "ライト",
+    "settings_theme_dark": "ダーク",
+    "settings_title_language": "タイトル言語",
+    "settings_title_language_original": "オリジナル",
+    "settings_title_language_english": "英語",
+    "settings_title_language_romaji": "ローマ字 ",
+    "settings_language": "言語",
+    "language_system": "システム",
+    "language_english": "English",
+    "language_japanese": "日本語",
+    "save": "セーブ"
 }

@@ -6,12 +6,12 @@
     <span class="material-symbols-rounded">arrow_back</span>
   </a>
   
-  <div class="headline-medium title">Settings</div>
+  <div class="headline-medium title">{{localization.settings}}</div>
   
   <form id="filter-form" action="/settings" method="post" target="_self" class="filter-content list vertical">
     
     {{#each filterOptions}}
-    <div class="title-medium-large on-surface-text">{{displayName}}</div>
+    <div class="title-medium-large on-surface-text">{{localize displayName}}</div>
       <div class="chip-group title-medium-large">
         <div class="form-radio-container">
           {{#each values}}
@@ -19,7 +19,7 @@
           
             <label class="filter chip" for="{{@../key}}{{id}}">
               <span class="material-symbols-rounded leading">done</span>
-              {{name}}
+              {{localize name}}
             </label>
           
           {{/each}}
@@ -31,7 +31,7 @@
     {{> default-hr}}
     
     <div class="submit-container">
-      <button class="rounded-button">Save</button>
+      <button class="material-button inverse label-large">{{localization.save}}</button>
     </div>
     
   </form>

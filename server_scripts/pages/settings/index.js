@@ -9,17 +9,17 @@ const modulePath = workingDirectory + "/server_scripts"
 
 const settingsPageOptions = {
     'theme': {
-        displayName: "Theme",
+        displayName: "settings_theme",
         defaultValue: ThemeSetting.DeviceTheme,
         values: ThemeSetting.values
     },
     'titleLanguage': {
-        displayName: "Title Language",
+        displayName: "settings_title_language",
         defaultValue: TitleLanguageSetting.English,
         values: TitleLanguageSetting.values
     },
     'language': {
-        displayName: "Language",
+        displayName: "settings_language",
         defaultValue: LanguageSetting.English,
         values: LanguageSetting.values
     }
@@ -59,17 +59,12 @@ const postSettings = (request, reply) => {
 }
   
 const getSettings = (request, reply) => {
-    const parsedCookies = request.parsedCookies
+
+    request.addHbParam('filterOptions', settingsPageOptions)
+    request.addHbParam('pageTitle', 'Settings')
+    request.addHbParam('referer', request.query.referer || "/")
     
-    const viewParams = { 
-        seo: request.seo, 
-        cookies: parsedCookies, 
-        filterOptions: settingsPageOptions, 
-        pageTitle: "Settings",
-        referer: request.query.referer || "/"
-     };
-    
-    return reply.view("pages/settings.hbs", viewParams)
+    return reply.view("pages/settings.hbs", request.hbParams)
 }
 
 exports.prefix = "/settings"

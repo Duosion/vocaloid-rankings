@@ -37,36 +37,6 @@ input[type="radio"] {
   display: none;
 }
 
-/*input[type="radio"] + label {
-  
-  border: 1px solid var(--md-sys-color-outline);
-  padding: 4px 15px;
-  
-  box-sizing: border-box;
-  
-  color: var(--md-sys-color-on-surface);
-  border-radius: 10px;
-  
-  transition-property: filter, color, background-color;
-  transition-duration: var(--transition-duration);
-  
-}
-
-input[type="radio"]:not(:checked) + label:hover {
-  
-  background-color: var(--md-sys-color-surface-1);
-  cursor: pointer;
-  
-}
-
-input[type="radio"]:checked + label {
-
-  border: 1px solid var(--md-sys-color-inverse-surface);
-  background-color: var(--md-sys-color-inverse-surface);
-  color: var(--md-sys-color-inverse-on-surface);
-  
-}*/
-
 input[type="url"] {
   width: 100%;
 }
@@ -103,7 +73,5 @@ input[type="url"] {
 .submit-container button {
   
   width: 100%;
-  
-  font-size: 1.3em
   
 }

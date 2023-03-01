@@ -21,5 +21,18 @@
     "quick_filter_youtube": "Youtube Only",
     "quick_filter_addition_date": "Addition Date",
     "quick_filter_single_video": "Single Video",
-    "settings": "Settings"
+    "settings": "Settings",
+    "settings_theme": "Theme",
+    "settings_theme_system": "Device",
+    "settings_theme_light": "Light",
+    "settings_theme_dark": "Dark",
+    "settings_title_language": "Title Language",
+    "settings_title_language_original": "Native",
+    "settings_title_language_english": "English",
+    "settings_title_language_romaji": "Romaji",
+    "settings_language": "Language",
+    "language_system": "System",
+    "language_english": "English",
+    "language_japanese": "日本語",
+    "save": "Save"
 }

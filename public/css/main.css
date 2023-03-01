@@ -280,7 +280,7 @@ body {
       margin-bottom: 0px;
   }
 
-/* buttons */
+/* buttons 
 button, a.button-link {
   
   transition-property: filter, color, background-color;
@@ -338,7 +338,7 @@ a.button-link:hover:not(.active):not(.rounded-button) {
   background-color: var(--md-sys-color-surface-variant);
   cursor: pointer
   
-}
+}*/
 
   /* floating button */
 
@@ -581,6 +581,7 @@ hr.default {
 }
 
 .material-button {
+  border: none;
   box-sizing: border-box;
   position: relative;
   border-radius: 20px;
@@ -625,6 +626,7 @@ hr.default {
 .icon-button:hover:not(.active)::before,
 .material-button:hover:not(.active)::before {
   opacity: 0.08;
+  cursor: pointer;
 }
 
 .filled.icon-button,
