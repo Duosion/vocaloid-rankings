@@ -41,14 +41,21 @@
             </div>
             {{/each}}
             <a id="filter-button" class="material-button with-icon inverse label-large" href="/rankings/filter">
-                <span class="material-symbols-rounded">filter_alt</span>
-                {{localization.rankings_filter}}
+              <span class="material-symbols-rounded">filter_alt</span>
+              {{localization.rankings_filter}}
             </a>
         </div>
         <a id="mobile-filter-button" class="material-button with-icon inverse label-large" href="/rankings/filter">
             <span class="material-symbols-rounded">filter_alt</span>
             {{localization.rankings_filter}}
         </a>
+        <div class="body-large bold on-background-text section-title">{{localization.quick_filter}}</div>
+        <div id="quick-filter-container" class="sidebar-card body-medium on-surface-text">
+          <a class="material-button outlined label-large" href="/rankings/filter/set?timePeriodOffset=1">{{localization.quick_filter_past_day}}</a>
+          <a class="material-button outlined label-large" href="/rankings/filter/set?viewType=0">{{localization.quick_filter_youtube}}</a>
+          <a class="material-button outlined label-large" href="/rankings/filter/set?orderBy=2">{{localization.quick_filter_addition_date}}</a>
+          <a class="material-button outlined label-large" href="/rankings/filter/set?singleVideo=1">{{localization.quick_filter_single_video}}</a>
+        </div>
     </div>
 
     <div id="rankings-content">
