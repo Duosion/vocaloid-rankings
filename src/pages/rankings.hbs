@@ -27,12 +27,12 @@
             <div class="filter-dataset">
                 <div class="title">{{localize title}}</div>
                 {{#if isDefault}}
-                  <div class="value">{{value}}</div>
+                  <div class="value">{{localize value}}</div>
                 {{else}}
                   <div class="chip-group">
                     {{#each value}}
                       <a class="chip input with-trailing" href="/rankings/filter/remove?{{../name}}={{@key}}">
-                        <div class="text label-large">{{this}}</div>
+                        <div class="text label-large">{{localize this}}</div>
                         <span class="material-symbols-rounded">close</span>
                       </a>
                     {{/each}}

@@ -1,1 +1,13 @@
-<a class="button-link floating top left" href="/"><span class="material-symbols-rounded">arrow_back</span></a>
+<noscript>
+    <style>
+        button.back-button {
+            display: none;
+        }
+    </style>
+    <a class="icon-button floating top left" href="{{referer}}">
+        <span class="material-symbols-rounded">arrow_back</span>
+    </a>
+</noscript>
+<button onclick="history.back()" class="icon-button floating top left back-button">
+    <span class="material-symbols-rounded">arrow_back</span>
+</button>

@@ -1,9 +1,9 @@
 const Enum = require("./Enum")
 
 module.exports = class FilterOrder extends Enum {
-    static Views = new FilterOrder("Views", 0)
-    static PublishDate = new FilterOrder("PublishDate", 1)
-    static AdditionDate = new FilterOrder("AdditionDate", 2)
+    static Views = new FilterOrder("filter_order_by_views", 0)
+    static PublishDate = new FilterOrder("filter_order_by_publish", 1)
+    static AdditionDate = new FilterOrder("filter_order_by_addition", 2)
 
     static {
         const enums = Object.values(this)

@@ -1,9 +1,9 @@
 const Enum = require("./Enum")
 
 module.exports = class SongType extends Enum {
-    static Original = new SongType("Original", 0)
-    static Remix = new SongType("Remix", 1)
-    static Other = new SongType("Other",2)
+    static Original = new SongType("filter_song_type_original", 0)
+    static Remix = new SongType("filter_song_type_remix", 1)
+    static Other = new SongType("filter_song_type_other",2)
 
     static {
         const enums = Object.values(this)

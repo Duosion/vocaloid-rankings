@@ -1,49 +1,51 @@
 <!DOCTYPE html>
 <link rel="stylesheet" href="/css/rankingsFilter.css">
 <div class="page-card-container">
-  
-  {{> back-button}}
-  
-  <div class="headline-medium on-surface-text title">Filter</div>
-  
+
+  {{> back-button referer='/'}}
+
+  <div class="headline-medium on-surface-text title">{{localization.rankings_filter}}</div>
+
   <form id="filter-form" action="/rankings/filter/add" method="get" target="_self" class="filter-content list vertical">
     {{#each filterValues}}
-      <div class="form-section list">
+    <div class="form-section list">
 
-        <div class="title-medium-large on-surface-text">{{displayName}}</div>
+      <div class="title-medium-large on-surface-text">{{localize displayName}}</div>
 
-        {{#if isChip}}
-          <div class="chip-group title-medium-large">
-            {{#each values}}
-              <input type="radio" id="{{this.name}}" name="{{../name}}" value="{{this.value}}" {{#if this.isSelected}}checked{{/if}}>
-              <label class="filter chip" for="{{this.name}}">
-                <span class="material-symbols-rounded leading">done</span>
-                {{this.name}}
-              </label>
-            {{/each}}
-          </div>
-        {{else}}
-          <select class="title-medium-large" name="{{name}}">
-            {{#each values}}
-            <option value="{{this.value}}" {{#if this.isSelected}}selected{{/if}}>{{this.name}}</option>
-            {{/each}}
-          </select>
-        {{/if}}
-
+      {{#if isChip}}
+      <div class="chip-group title-medium-large">
+        {{#each values}}
+        <input type="radio" id="{{this.name}}" name="{{../name}}" value="{{this.value}}" {{#if
+          this.isSelected}}checked{{/if}}>
+        <label class="filter chip" for="{{this.name}}">
+          <span class="material-symbols-rounded leading">done</span>
+          {{localize this.name}}
+        </label>
+        {{/each}}
       </div>
+      {{else}}
+      <select class="title-medium-large" name="{{name}}">
+        {{#each values}}
+        <option value="{{this.value}}" {{#if this.isSelected}}selected{{/if}}>{{localize this.name}}</option>
+        {{/each}}
+      </select>
+      {{/if}}
+
+    </div>
     {{/each}}
 
     <div class="form-section">
-      <div class="title-medium-large on-surface-text">Date</div>
-      <input class="title-medium-large on-surface-text" type="date" id="timestamp" name="timestamp" value="{{defaultDate}}" min="{{minimumDate}}" max="{{maximumDate}}">
+      <div class="title-medium-large on-surface-text">{{localization.filter_timestamp}}</div>
+      <input class="title-medium-large on-surface-text" type="date" id="timestamp" name="timestamp"
+        value="{{defaultDate}}" min="{{minimumDate}}" max="{{maximumDate}}">
     </div>
-    
+
     {{> default-hr}}
-    
+
     <div class="submit-container">
-      <button class="rounded-button">Filter</button>
+      <button class="material-button inverse label-large">{{localization.rankings_filter}}</button>
     </div>
-    
+
   </form>
-  
+
 </div>

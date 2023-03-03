@@ -346,40 +346,6 @@ a.button-link:hover:not(.active):not(.rounded-button) {
     position: absolute !important;
   }
 
-  button.floating, 
-  a.button-link.floating {
-    
-    z-index: 2;
-
-    display: flex;
-    
-    border-radius: 50px;
-
-    height: 40px;
-    width: 40px;
-    
-    font-size: 1.2em
-    
-  }
-
-  button.floating .material-symbols-rounded, 
-  a.button-link.floating .material-symbols-rounded {
-    
-    margin: auto;
-    
-    color: var(--md-sys-color-on-surface);
-    
-    font-size: 1.8em
-
-  }
-
-  button.floating.inverse .material-symbols-rounded,
-  a.button-link.floating.inverse .material-symbols-rounded {
-
-    color: #ffffff
-
-  }
-
   .floating.top {
     
     top: 5px;
@@ -390,48 +356,6 @@ a.button-link:hover:not(.active):not(.rounded-button) {
     
     left: 5px;
     
-  }
-  
-  button.floating:hover,
-  a.button-link.floating:hover {
-
-    background-color: var(--md-sys-color-surface-variant) !important;
-
-  }
-
-  button.floating::before,
-  a.button-link.floating::before {
-    
-    content: "";
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    border-radius: 50px;
-    background-color: var(--text-color);
-    top: 0;
-    bottom: 0;
-    right: 0;
-    left: 0;
-    
-    opacity: 0;
-    transition-property: opacity;
-    transition-timing-function: var(--cubic-tween);
-    transition-duration: var(--transition-duration)
-      
-  }
-
-  button.floating.inverse::before,
-  a.button-link.floating.inverse::before {
-    
-    background-color: #ffffff;
-    
-  }
-
-  button.floating:hover::before,
-  a.button-link.floating:hover::before {
-
-    opacity: 0.1;
-
   }
 
 /* input */
@@ -568,6 +492,8 @@ hr.default {
 
 /* material stuff */
 .icon-button {
+  background: none;
+  border: none;
   box-sizing: border-box;
   position: relative;
   border-radius: 20px;

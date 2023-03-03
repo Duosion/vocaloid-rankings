@@ -90,7 +90,7 @@ const filterParamsDisplayData = {
         displayName: "filter_single_video",
         defaultValue: null,
         getValueAsync: (rawValue) => {
-            return [rawValue == 1 ? "Single Video" : "All Videos"]
+            return [rawValue == 1 ? "filter_single_video_single" : "filter_single_video_all"]
         }
     },
     'direction': {
@@ -125,90 +125,90 @@ const filterParamsDisplayData = {
 
 const filterPageOptions = [
     {
-        displayName: 'View Type',
+        displayName: 'filter_view_type',
         name: "viewType",
         isChip: true,
         default: 0,
         values: [
-            { name: 'Combined', value: null },
-            { name: 'YouTube', value: ViewType.YouTube.id },
-            { name: 'Niconico', value: ViewType.Niconico.id },
+            { name: 'filter_view_type_combined', value: null },
+            { name: 'youtube', value: ViewType.YouTube.id },
+            { name: 'niconico', value: ViewType.Niconico.id },
             { name: 'bilibili', value: ViewType.bilibili.id }
         ]
     },
     {
-        displayName: 'Time Period',
+        displayName: 'filter_time_period_offset',
         name: "timePeriodOffset",
         isChip: true,
         default: 0,
         values: [
-            { name: 'All Time', value: null },
-            { name: 'Past Day', value: 1 },
-            { name: 'Past Week', value: 7 },
-            { name: 'Past Month', value: 30 }
+            { name: 'filter_time_period_offset_all_time', value: null },
+            { name: 'filter_time_period_offset_day', value: 1 },
+            { name: 'filter_time_period_offset_week', value: 7 },
+            { name: 'filter_time_period_offset_month', value: 30 }
         ]
     },
     {
-        displayName: 'Direction',
+        displayName: 'filter_direction',
         name: "direction",
         isChip: true,
         default: 0,
         values: [
-            { name: 'Descending', value: FilterDirection.Descending.id },
-            { name: 'Ascending', value: FilterDirection.Ascending.id }
+            { name: 'filter_direction_descending', value: FilterDirection.Descending.id },
+            { name: 'filter_direction_ascending', value: FilterDirection.Ascending.id }
         ]
     },
     {
-        displayName: 'Order By',
+        displayName: 'filter_order_by',
         name: "orderBy",
         isChip: true,
         default: 0,
         values: [
-            { name: 'Views', value: FilterOrder.Views.id },
-            { name: 'Publish Date', value: FilterOrder.PublishDate.id },
-            { name: 'Addition Date', value: FilterOrder.AdditionDate.id }
+            { name: 'filter_order_by_views', value: FilterOrder.Views.id },
+            { name: 'filter_order_by_publish', value: FilterOrder.PublishDate.id },
+            { name: 'filter_order_by_addition', value: FilterOrder.AdditionDate.id }
         ]
     },
     {
-        displayName: 'View Aggregation Mode',
+        displayName: 'filter_single_video',
         name: "singleVideo",
         isChip: true,
         default: 0,
         values: [
-            { name: 'All Videos', value: null },
-            { name: 'Single Video', value: 1 }
+            { name: 'filter_single_video_all', value: null },
+            { name: 'filter_single_video_single', value: 1 }
         ]
     },
     {
-        displayName: "Song Type",
+        displayName: "filter_song_type",
         name: "songType",
         isChip: true,
         default: 0,
         values: [
-            { name: 'All', value: null },
-            { name: 'Original', value: SongType.Original.id },
-            { name: 'Remix', value: SongType.Remix.id },
-            { name: 'Other', value: SongType.Other.id }
+            { name: 'filter_song_type_all', value: null },
+            { name: 'filter_song_type_original', value: SongType.Original.id },
+            { name: 'filter_song_type_remix', value: SongType.Remix.id },
+            { name: 'filter_song_type_other', value: SongType.Other.id }
         ]
     },
     {
-        displayName: "Artist Type",
+        displayName: "filter_artist_type",
         name: "artistType",
         isSelect: true,
         default: 0,
         values: [
-            { name: 'All', value: null },
-            { name: 'Vocaloid', value: ArtistType.Vocaloid.id },
-            { name: 'CeVIO', value: ArtistType.CeVIO.id },
-            { name: 'SynthesizerV', value: ArtistType.SynthesizerV.id },
-            { name: 'Illustrator', value: ArtistType.Illustrator.id },
-            { name: 'Cover Artist', value: ArtistType.CoverArtist.id },
-            { name: 'Animator', value: ArtistType.Animator.id },
-            { name: 'Producer', value: ArtistType.Producer.id },
-            { name: 'Other Vocalist', value: ArtistType.OtherVocalist.id },
-            { name: 'Other Voice Synthesizer', value: ArtistType.OtherVoiceSynthesizer.id },
-            { name: 'Other Individual', value: ArtistType.OtherIndividual.id },
-            { name: 'Other Group', value: ArtistType.OtherGroup.id }
+            { name: 'filter_artist_type_all', value: null },
+            { name: 'filter_artist_type_vocaloid', value: ArtistType.Vocaloid.id },
+            { name: 'filter_artist_type_cevio', value: ArtistType.CeVIO.id },
+            { name: 'filter_artist_type_synth_v', value: ArtistType.SynthesizerV.id },
+            { name: 'filter_artist_type_illustrator', value: ArtistType.Illustrator.id },
+            { name: 'filter_artist_type_cover_artist', value: ArtistType.CoverArtist.id },
+            { name: 'filter_artist_type_animator', value: ArtistType.Animator.id },
+            { name: 'filter_artist_type_producer', value: ArtistType.Producer.id },
+            { name: 'filter_artist_type_other_vocalist', value: ArtistType.OtherVocalist.id },
+            { name: 'filter_artist_type_other_voice_synth', value: ArtistType.OtherVoiceSynthesizer.id },
+            { name: 'filter_artist_type_other_individual', value: ArtistType.OtherIndividual.id },
+            { name: 'filter_artist_type_other_group', value: ArtistType.OtherGroup.id }
         ]
     },
 ]
@@ -396,15 +396,15 @@ const getFilterPage = async (request, reply) => {
 
     const maximumDate = viewsTimestamps[0].timestamp
 
-    return reply.view("pages/filterRankings.hbs", {
-        seo: request.seo,
-        cookies: parsedCookies,
-        filterValues: filterValues,
+    request.addHbParams({
+        ['filterValues']: filterValues,
         pageTitle: "Filter Rankings",
         minimumDate: viewsTimestamps[viewsTimestamps.length - 1].timestamp,
         defaultDate: query['timestamp'] || maximumDate,
         maximumDate: maximumDate
-    });
+    })
+
+    return reply.view("pages/filterRankings.hbs", request.hbParams);
 }
 
 const getRemoveAllFilters = async (_, reply) => {

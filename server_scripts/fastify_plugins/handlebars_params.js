@@ -10,6 +10,13 @@ const plugin = (fastify, options, done) => {
         this.hbParams[name] = value
     })
 
+    fastify.decorateRequest("addHbParams", function(dict) {
+        const params =  this.hbParams
+        for (const [key, val] of Object.entries(dict)) {
+            params[key] = val
+        }
+    })
+
     fastify.addHook('onRequest', (request, reply, done) => {
         request.hbParams = {}
         

@@ -1,17 +1,17 @@
 const Enum = require("./Enum")
 
 module.exports = class ArtistType extends Enum {
-    static Vocaloid = new ArtistType("Vocaloid", 0)
-    static CeVIO = new ArtistType("CeVIO", 1)
-    static SynthesizerV = new ArtistType("SynthesizerV", 2)
-    static Illustrator = new ArtistType("Illustrator", 3)
-    static CoverArtist = new ArtistType("CoverArtist", 4)
-    static Animator = new ArtistType("Animator", 5)
-    static Producer = new ArtistType("Producer", 6)
-    static OtherVocalist = new ArtistType("OtherVocalist", 7)
-    static OtherVoiceSynthesizer = new ArtistType("OtherVoiceSynthesizer", 8)
-    static OtherIndividual = new ArtistType("OtherIndividual", 9)
-    static OtherGroup = new ArtistType("OtherGroup", 10)
+    static Vocaloid = new ArtistType("filter_artist_type_vocaloid", 0)
+    static CeVIO = new ArtistType("filter_artist_type_cevio", 1)
+    static SynthesizerV = new ArtistType("filter_artist_type_synth_v", 2)
+    static Illustrator = new ArtistType("filter_artist_type_illustrator", 3)
+    static CoverArtist = new ArtistType("filter_artist_type_cover_artist", 4)
+    static Animator = new ArtistType("filter_artist_type_animator", 5)
+    static Producer = new ArtistType("filter_artist_type_producer", 6)
+    static OtherVocalist = new ArtistType("filter_artist_type_other_vocalist", 7)
+    static OtherVoiceSynthesizer = new ArtistType("filter_artist_type_other_vocal_synth", 8)
+    static OtherIndividual = new ArtistType("filter_artist_type_other_individual", 9)
+    static OtherGroup = new ArtistType("filter_artist_type_other_group", 10)
 
     static {
         const enums = Object.values(this)

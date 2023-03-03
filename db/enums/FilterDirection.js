@@ -1,8 +1,8 @@
 const Enum = require("./Enum")
 
 module.exports = class FilterDirection extends Enum {
-    static Descending = new FilterDirection("Descending", 0)
-    static Ascending = new FilterDirection("Ascending", 1)
+    static Descending = new FilterDirection("filter_direction_descending", 0)
+    static Ascending = new FilterDirection("filter_direction_ascending", 1)
 
     static {
         const enums = Object.values(this)

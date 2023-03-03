@@ -1,7 +1,7 @@
 const Enum = require("./Enum")
 module.exports = class SongType extends Enum {
-    static YouTube = new SongType("YouTube", 0)
-    static Niconico = new SongType("Niconico", 1)
+    static YouTube = new SongType("youtube", 0)
+    static Niconico = new SongType("niconico", 1)
     static bilibili = new SongType("bilibili", 2)
 
     static {
