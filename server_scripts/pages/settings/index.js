@@ -1,3 +1,4 @@
+const AnimationToggleSetting = require("./enums/AnimationToggleSetting")
 const LanguageSetting = require("./enums/LanguageSetting")
 const ThemeSetting = require("./enums/ThemeSetting")
 const TitleLanguageSetting = require("./enums/TitleLanguageSetting")
@@ -22,6 +23,11 @@ const settingsPageOptions = {
         displayName: "settings_language",
         defaultValue: LanguageSetting.English,
         values: LanguageSetting.values
+    },
+    'animationToggle': {
+        displayName: "settings_animations",
+        defaultValue: AnimationToggleSetting.Enabled,
+        values: AnimationToggleSetting.values
     }
 }
   

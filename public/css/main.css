@@ -9,83 +9,11 @@
 }
 
 html {
-
   --transition-duration: 0.15s;
   --transition-duration-long: 0.2s;
+  --transition-duration-300ms: 0.3s;
   --cubic-tween: cubic-bezier(.4,0,.6,1);
-  
-  /*--font-family: "Roboto", "Kosugi Maru"*/
-
 }
-
-/*html.light-theme {
-
-  --body-color: rgb(240, 240, 240);
-  --body-color-2: #ffffff;
-  --text-color: #3d3d3d;
-
-  --bg-color: #ffffff;
-  --hover-color: rgba(0,0,0,0.1);
-  
-  --odd-element-color: rgba(0,0,0,0.05);
-
-  --accent-color: #34bf55;
-  
-  --box-shadow: 0 2px 20px rgba(49,49,49,.09);
-
-}
-
-html.dark-theme {
-
-  --body-color: #141414;
-  --body-color-2: #222222;
-  --text-color: #ffffff;
-  --hover-color: rgba(255,255,255,0.1);
-
-  --bg-color: #3d3d3d;
-    
-  --odd-element-color: rgba(255,255,255,0.03);
-  
-  --accent-color: #34bf55;
-  
-  --box-shadow: initial;
-
-}
-
-@media (prefers-color-scheme: dark) {
-  html.device-theme {
-    --body-color: #141414;
-    --body-color-2: #222222;
-    --text-color: #ffffff;
-    --hover-color: rgba(255,255,255,0.1);
-
-    --bg-color: #3d3d3d;
-    
-    --odd-element-color: rgba(255,255,255,0.03);
-  
-    --accent-color: #34bf55;
-    
-    --box-shadow: initial;
-  }
-}
-
-@media (prefers-color-scheme: light) {
-  html.device-theme {
-    --body-color: rgb(240, 240, 240);
-    --body-color-2: #ffffff;
-    --text-color: #3d3d3d;
-
-    --bg-color: #ffffff;
-    --hover-color: rgba(0,0,0,0.1);
-  
-    --odd-element-color: rgba(0,0,0,0.05);
-
-    --accent-color: #34bf55;
-    
-    --box-shadow: 0 2px 20px rgba(49,49,49,.09);
-
-  }
-}*/
 
 body {
   
@@ -110,7 +38,7 @@ body {
     
   min-height: 100vh;
   animation-duration: 0.3s;
-  animation: pagein 0.3s var(--cubic-tween);
+  animation: pagein var(--transition-duration-300ms) var(--cubic-tween);
   animation-fill-mode: forwards;
   
 }

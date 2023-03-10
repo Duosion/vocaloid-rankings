@@ -1,10 +1,8 @@
-const Enum = require("./Enum")
+const Enum = require("../../../../db/enums/Enum")
 
-module.exports = class NameType extends Enum {
-    static Original = new NameType("name_type_original", 0)
-    static Japanese = new NameType("name_type_japanese", 1)
-    static English = new NameType("name_type_english", 2)
-    static Romaji = new NameType("name_type_romaji", 3)
+module.exports = class AnimationToggleSetting extends Enum {
+    static Enabled = new AnimationToggleSetting('settings_animations_enabled', 0)
+    static Disabled = new AnimationToggleSetting("settings_animations_disabled", 1)
 
     static {
         const enums = Object.values(this)

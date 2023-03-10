@@ -7,189 +7,221 @@ const databaseProxy = require(modulePath + "/database")
 
 const { getAverageColor } = require("fast-average-color-node")
 const { argbFromHex, themeFromSourceColor, applyTheme, hexFromArgb, redFromArgb, greenFromArgb, blueFromArgb } = require("@importantimport/material-color-utilities");
-const { generateTimestamp, getHasherAsync, viewTypes, caches } = require(modulePath + "/shared")
+const SongViews = require("../../../db/dataClasses/SongViews")
+const ViewType = require("../../../db/enums/ViewType")
+const NameType = require("../../../db/enums/NameType")
+const { generateTimestamp, getHasherAsync, viewTypesDisplayData, caches } = require(modulePath + "/shared")
 const { getPreferredLanguageName } = require(modulePath + "/locale")
 
 // initialize caches
 const songsDataCache = caches.songsDataCache
 const historicalCache = caches.historicalCache
 
+// data
+
+
 // functions
 const addSong = (vocaDBURL) => {
-    return new Promise( async (resolve, reject) => {
-      
-      const timestamp = generateTimestamp()
-      
-      // get vocaDB data
-      const songData = await scraper.scrapeVocaDB(vocaDBURL).catch( err => { reject(err) } )
-      if (!songData || songData == undefined) { reject("Provided song doesn't exist."); return; }
-      
-      const viewsMetadata = await database.views.getMetadata()
-      
-      // get the most recent views data
-      const mostRecentViewsMetadata = viewsMetadata[viewsMetadata.length - 1]
-      
-      // get the song's ID
-      const songID = songData.songId
+  return new Promise(async (resolve, reject) => {
 
-      // check if the song already exists
-      if (await database.songs.songExists(songID)) { reject("The provided song is already in the database."); return; }
-      
-      // compute total views
-      const viewsBreakdown = {}
-      let viewData = {
-        songId: songID,
-        total: 0,
-        breakdown: viewsBreakdown
+    const timestamp = generateTimestamp()
+
+    // get vocaDB data
+    const songData = await scraper.scrapeVocaDB(vocaDBURL).catch(err => { reject(err) })
+    if (!songData || songData == undefined) { reject("Provided song doesn't exist."); return; }
+
+    const viewsMetadata = await database.views.getMetadata()
+
+    // get the most recent views data
+    const mostRecentViewsMetadata = viewsMetadata[viewsMetadata.length - 1]
+
+    // get the song's ID
+    const songID = songData.songId
+
+    // check if the song already exists
+    if (await database.songs.songExists(songID)) { reject("The provided song is already in the database."); return; }
+
+    // compute total views
+    const viewsBreakdown = {}
+    let viewData = {
+      songId: songID,
+      total: 0,
+      breakdown: viewsBreakdown
+    }
+
+    {
+
+      for (let [viewType, views] of Object.entries(songData.views)) {
+        viewsBreakdown[viewType] = views
+        viewData.total += views
       }
 
-      {
-        
-        for (let [viewType, views] of Object.entries(songData.views)) {
-          viewsBreakdown[viewType] = views
-          viewData.total += views
-        }
+      delete songData.views // delete object
+    }
 
-        delete songData.views // delete object
-      }
-      
-      // add required values
-      songData.additionDate = new Date().toISOString()
+    // add required values
+    songData.additionDate = new Date().toISOString()
 
-      // write to files
-      await databaseProxy.addSongFromScraperData(mostRecentViewsMetadata.timestamp, songData, viewData)
+    // write to files
+    await databaseProxy.addSongFromScraperData(mostRecentViewsMetadata.timestamp, songData, viewData)
 
-      resolve(songData)
-      
-    })
+    resolve(songData)
+
+  })
 }
 
-const formatViewData = (viewDataRaw) => {
-  
-    const total = viewDataRaw.total
-    
-    // format the breakdown
-    const breakdown = []
-    
-    for (let [viewType, viewAmount] of Object.entries(viewDataRaw.breakdown)) {
-      const typeData = viewTypes[viewType]
-      
-      const formatted = { value: viewAmount }
-      
-      formatted.share = viewAmount / total
-      
-      formatted.color = typeData.BarColor
-      formatted.textColor = typeData.TextColor
-      
-      formatted.viewType = viewType
-      
-      breakdown.push(formatted)
-      
+/**
+ * Formats a SongViews object
+ * 
+ * @param {SongViews} songViews 
+ * @returns {Object}
+ */
+const getViewsBreakdownDisplayData = (songViews) => {
+
+  const total = songViews.total
+
+  // format the breakdown
+  const breakdown = []
+
+  for (const [typeId, breakdowns] of Object.entries(songViews.breakdown)) {
+    const displayData = viewTypesDisplayData[typeId]
+    const colors = displayData.colors
+    const colorCount = colors.length
+
+    for (const [n, videoViews] of breakdowns.entries()) {
+      const views = videoViews.views
+      breakdown.push({
+        number: n,
+        videoId: videoViews.id,
+        views: views,
+        share: views / total,
+        color: colors[n % colorCount],
+        displayData: displayData
+      })
     }
-  
-    breakdown.sort( (a, b) => {
-      return b.value - a.value
-    })
-    
-    return {
-      
-      total: { value: total },
-      breakdown: breakdown
-      
-    }
-    
+  }
+
+  breakdown.sort((a, b) => {
+    return b.views - a.views
+  })
+
+  return breakdown
+
 }
 
 const querySongsDatabaseAsync = (queryData) => {
-    return new Promise( async (resolve, reject) => {
-      
-      const queryHash = (await getHasherAsync())(JSON.stringify(queryData))
-      {
-  
-        // check for cache
-        const cachedData = songsDataCache.get(queryHash)
-        if (cachedData) {
-          resolve(cachedData.getData())
-          return;
-          
-        }
-        
+  return new Promise(async (resolve, reject) => {
+
+    const queryHash = (await getHasherAsync())(JSON.stringify(queryData))
+    {
+      // check for cache
+      const cachedData = songsDataCache.get(queryHash)
+      if (cachedData) {
+        resolve(cachedData.getData())
+        return;
       }
-      
-      // parse queryData
-      const songID = queryData.SongID
-      
-      databaseProxy.getSongData(songID)
-        .then(songData => {
-        
-        if (!songData) { 
-            reject("No view data found for song '" + songID + "'."); 
-            return; 
+    }
+
+    // parse queryData
+    const songId = Number.parseInt(queryData.songId)
+
+    database.songsData.getSong(songId)
+      .then(async songData => {
+        if (!songData) {
+          reject("No data found for song '" + songId + "'.");
+          return;
         }
-      
-        songData.views = formatViewData(songData.views)
-        
-        const setPreferredName = (names) => {
-          names.preferred = getPreferredLanguageName(names, queryData.Language || rankingsFilterQueryTemplate.Language.default)
-        } 
+
+        songData.displayBreakdown = getViewsBreakdownDisplayData(songData.views)
+
+        const preferredLanguage = queryData.preferredLanguage || NameType.Original
+
+        const getPreferredName = (names) => {
+          return getPreferredLanguageName(names, preferredLanguage)
+        }
 
         // set preferred name
-          setPreferredName(songData.names)
-        
+        songData.preferredName = getPreferredName(songData.names)
+
         // get artists names
         {
-          const artists = [...songData.singers, ...songData.producers]
-          artists.forEach(artist => {
-            setPreferredName(artist.names)
+          songData.artists.forEach(artist => {
+            artist.preferredName = getPreferredName(artist.names)
           })
         }
 
+        // get historical views
+        {
+          const historicalViews = await database.songsData.getSongHistoricalViews(songId)
+
+          highestViews = 0
+          historicalViews.forEach(entry => {
+            const date = new Date(entry.timestamp)
+      
+            const dateString = `${(date.getMonth() + 1).toString().padStart(2, "0")}/${date.getDate().toString().padStart(2, "0")}`
+      
+            highestViews = Math.max(highestViews, entry.views)
+      
+            entry.dateString = dateString
+          })
+          //calculate share
+          historicalViews.forEach(entry => {
+            entry.share = entry.views / highestViews
+          })
+
+          songData.historicalViews = historicalViews
+        }
+
         // cache return data
-          songsDataCache.set(queryHash, songData)
+        songsDataCache.set(queryHash, songData)
 
         resolve(songData)
-        
-      }).catch(error => {reject(error)})
-  
-    })
+
+      }).catch(error => { reject(error) })
+
+  })
 }
 
 const getHistoricalDataAsync = (queryData) => {
-    return new Promise(async (resolve, reject) => {
-      // hash query data & check for cache
-      const queryHash = (await getHasherAsync())(JSON.stringify(queryData))
-      {
-        // check for cache
-        const cachedData = historicalCache.get(queryHash)
-        if (cachedData) {
-          resolve(cachedData.getData())
-          return;
-        }
+  return new Promise(async (resolve, reject) => {
+    // hash query data & check for cache
+    const queryHash = (await getHasherAsync())(JSON.stringify(queryData))
+    {
+      // check for cache
+      const cachedData = historicalCache.get(queryHash)
+      if (cachedData) {
+        resolve(cachedData.getData())
+        return;
       }
-      
-      // get data
-      const data = await databaseProxy.getHistoricalData(queryData)
-  
-      var highestViews = 1
-      
-      data.forEach(entry => {
-        const date = new Date(entry.timestamp)
-        
-        const dateString = `${(date.getMonth() + 1).toString().padStart(2,"0")}/${date.getDate().toString().padStart(2,"0")}`
-        
-        highestViews = Math.max(highestViews, entry.total)
-  
-        entry.dateString = dateString
-      })
-      
-      //calculate share
-      data.forEach(entry => {
-        entry.share = entry.total/highestViews
-      })
-  
-      resolve(data)
-      
+    }
+
+    // get data
+    const data = await databaseProxy.getHistoricalData(queryData)
+
+    var highestViews = 1
+
+    data.forEach(entry => {
+      const date = new Date(entry.timestamp)
+
+      const dateString = `${(date.getMonth() + 1).toString().padStart(2, "0")}/${date.getDate().toString().padStart(2, "0")}`
+
+      highestViews = Math.max(highestViews, entry.total)
+
+      entry.dateString = dateString
     })
+
+    //calculate share
+    data.forEach(entry => {
+      entry.share = entry.total / highestViews
+    })
+
+    resolve(data)
+
+  })
+}
+
+const getRgbMdTokenFromArgb = (argb, suffix = '') => {
+  return `--md-sys-color-${suffix}-rgb: ${redFromArgb(argb)} ${greenFromArgb(argb)} ${blueFromArgb(argb)};`
 }
 
 const getCustomThemeStylesheet = (theme, suffix = "", key = "") => {
@@ -213,10 +245,12 @@ const getCustomThemeStylesheet = (theme, suffix = "", key = "") => {
   // add primary rgb values
   const primary = theme['primary']
   if (primary) {
-    const red = redFromArgb(primary)
-    const green = greenFromArgb(primary)
-    const blue = blueFromArgb(primary)
-    lines.push(`--md-sys-color-primary-${suffix}-rgb: ${red} ${green} ${blue};`)
+    lines.push(getRgbMdTokenFromArgb(primary, "primary-" + suffix))
+  }
+  // add bg rgb values
+  const background = theme['background']
+  if (background) {
+    lines.push(getRgbMdTokenFromArgb(background, "background-" + suffix))
   }
 
   songsDataCache.set(cacheKey, lines)
@@ -227,106 +261,184 @@ const getCustomThemeStylesheet = (theme, suffix = "", key = "") => {
 
 // route functions
 const addSongRoute = async (request, reply) => {
-    const parsedCookies = request.parsedCookies
-  
-    const query = request.query
-    const params = {
-        seo: request.seo, 
-        cookies: parsedCookies, 
-        pageTitle: "Filter Rankings",
-    }
-    
-    // get the url to add
-    const url = query["url"]
-    
-    if (url) {
-        // attempt to add the provided url
-        
-        const added = await addSong(url).catch( err => {
+  const parsedCookies = request.parsedCookies
 
-        params.errorMessage = err
+  const query = request.query
+  const params = {
+    seo: request.seo,
+    cookies: parsedCookies,
+    pageTitle: "Filter Rankings",
+  }
 
-        return reply.view("pages/addSong.hbs", params);
+  // get the url to add
+  const url = query["url"]
 
-        })
+  if (url) {
+    // attempt to add the provided url
 
-        // if it succeeded, redirect to the new page
-        reply.statusCode = 302
-        reply.redirect(`/song/${encodeURIComponent(added.songId)}`)
-        
-    } else {
-        
-        // view the add song page
-        
-        params.pageTitle = "Add Song"
-        
-        return reply.view("pages/addSong.hbs", params)
-        
-    }
+    const added = await addSong(url).catch(err => {
+
+      params.errorMessage = err
+
+      return reply.view("pages/addSong.hbs", params);
+
+    })
+
+    // if it succeeded, redirect to the new page
+    reply.statusCode = 302
+    reply.redirect(`/song/${encodeURIComponent(added.songId)}`)
+
+  } else {
+
+    // view the add song page
+
+    params.pageTitle = "Add Song"
+
+    return reply.view("pages/addSong.hbs", params)
+
+  }
 }
 
 // song page
-const getSong = async (request, reply) => {
-  
+const getSongV2 = async (request, reply) => {
   const parsedCookies = request.parsedCookies || {}
-  
-  const params = { 
-    seo: request.seo,
-    cookies: parsedCookies,
-    referer: request.query["referer"] || "/"
-  }
-  
-  // get song name
-  const songID = request.params.songID
-  if (!songID) { 
+  const hbParams = request.hbParams
+
+  // add referer
+  hbParams.referer = request.query["referer"] || "/"
+
+  // get song id
+  const songId = request.params.songId
+  if (!songId) {
     reply.send({
-      code: 400 ,
+      code: 400,
       message: "Invalid parameters provided",
     });
     return;
   }
-  
+
+  // query database
+  const songData = await querySongsDatabaseAsync({
+    songId: songId,
+    preferredLanguage: NameType.fromId(parsedCookies.titleLanguage),
+  })
+    .catch(msg => {
+      reply.send({ code: 404, message: msg })
+      return;
+    })
+  hbParams['songData'] = songData
+
+  // load custom theme 
+  {
+    const theme = themeFromSourceColor(argbFromHex(songData.averageColor), [
+      {
+        name: "songs-color",
+        value: argbFromHex("#ff0000"),
+        blend: true,
+      },
+    ]);
+
+    // Print out the theme as JSON
+    const schemes = theme.schemes
+    hbParams.customTheme = getCustomThemeStylesheet(schemes.light.props, "light", songId).join('') + getCustomThemeStylesheet(schemes.dark.props, "dark", songId).join('')
+  }
+
+  // load song names
+  {
+    const songNames = []
+    for (const [id, name] of songData.names.entries()) {
+      if (name) {
+        songNames.push({
+          name: NameType.fromId(id).name,
+          value: name
+        })
+      }
+    }
+    hbParams.displayNames = songNames
+  }
+
+  // get video id display data
+  {
+    const displayVideoIds = []
+    for (const [videoType, videoIds] of songData.videoIds.entries()) {
+      const displayData = viewTypesDisplayData[videoType]
+      if (displayData) {
+        displayVideoIds[videoType] = {
+          displayData: displayData,
+          ids: videoIds
+        }
+      }
+      // add youtube player
+      if (videoType == ViewType.YouTube.id) {
+        hbParams.youtubePlayerId = videoIds[0]
+      }
+    }
+    hbParams.displayVideoIds = displayVideoIds
+  }
+
+  return reply.view("pages/songv2.hbs", hbParams)
+}
+const getSong = async (request, reply) => {
+
+  const parsedCookies = request.parsedCookies || {}
+
+  const params = {
+    seo: request.seo,
+    cookies: parsedCookies,
+    referer: request.query["referer"] || "/"
+  }
+
+  // get song name
+  const songID = request.params.songID
+  if (!songID) {
+    reply.send({
+      code: 400,
+      message: "Invalid parameters provided",
+    });
+    return;
+  }
+
   // parse locale
   const locale = (request.headers["accept-language"] || "").split(",")[0]
-  
+
   // construct queryData
   const queryData = {
     Locale: locale,
     SongID: songID,
     Language: parsedCookies.displayLanguage,
   }
-  
+
   // query database
   const songData = await querySongsDatabaseAsync(queryData)
-  .catch(msg => {
-    reply.send({code: 404, message: msg})
-    return;                   
-  })
+    .catch(msg => {
+      reply.send({ code: 404, message: msg })
+      return;
+    })
   params.songData = songData
 
   //construct viewdata table
   const newVideoIDs = {}
-  for (let [viewType, videoIDs] of Object.entries(songData.videoIds) ) {
-    
+  for (let [viewType, videoIDs] of Object.entries(songData.videoIds)) {
+
     const viewData = viewTypes[viewType]
     if (!viewData || viewData == undefined) { continue; }
 
     const hrefs = []
     const videoURL = viewData.VideoURL
 
-    videoIDs.forEach( id => {
+    videoIDs.forEach(id => {
       hrefs.push(videoURL.replace("{VideoID}", id))
     })
-    
+
     newVideoIDs[viewType] = {
-      
+
       ids: videoIDs,
       hrefs: hrefs,
-      
+
       ...viewData
-      
+
     }
-    
+
   }
   params.videoIDs = newVideoIDs
 
@@ -337,15 +449,15 @@ const getSong = async (request, reply) => {
       params.youtubePlayerId = youtubeId.ids[0]
     }
   }
-  
-  
+
+
   //get historical data
   {
-    const historicalData = await getHistoricalDataAsync({SongId: songID})
-    
+    const historicalData = await getHistoricalDataAsync({ SongId: songID })
+
     params.historicalData = historicalData
   }
-  
+
   // set page title
   params.pageTitle = songData.names.preferred
 
@@ -382,12 +494,12 @@ const getSong = async (request, reply) => {
 exports.prefix = "/song"
 
 exports.register = (fastify, options, done) => {
-  fastify.get("/:songID", {
+  fastify.get("/:songId", {
     config: {
       analyticsEvent: "page_visit",
-      analyticsParams: {'page_name': ""}
+      analyticsParams: { 'page_name': "" }
     },
-  },getSong)
+  }, getSongV2)
   fastify.get("/add", addSongRoute)
 
   done();

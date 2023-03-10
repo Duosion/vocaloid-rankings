@@ -7,7 +7,7 @@
     z-index: 5;
 }
 
-#nav-bar::after {
+#nav-bar::before {
     content: '';
     position: absolute;
     top: 0;

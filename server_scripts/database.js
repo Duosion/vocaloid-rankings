@@ -18,9 +18,7 @@ const ArtistThumbnailType = require("../db/enums/ArtistThumbnailType")
 const ArtistThumbnail = require("../db/dataClasses/ArtistThumbnail")
 const SongViews = require("../db/dataClasses/SongViews")
 const ArtistCategory = require("../db/enums/ArtistCategory")
-const RankingsFilterParams = require("../db/dataClasses/RankingsFilterParams")
-const FilterOrder = require("../db/enums/FilterOrder")
-const FilterDirection = require("../db/enums/FilterDirection")
+const VideoViews = require("../db/dataClasses/VideoViews")
 
 // file locations
 const databaseFilePath = process.cwd() + "/database"
@@ -579,6 +577,20 @@ const migrateViewsData = () => {
       const viewTypeMap = ViewType.map
       const songsDataProxy = database.songsData
 
+      const artistTypeMap = {
+        'Vocaloid': ArtistType.Vocaloid,
+        'CeVIO': ArtistType.CeVIO,
+        'SynthesizerV': ArtistType.SynthesizerV,
+        'Illustrator': ArtistType.Illustrator,
+        'CoverArtist': ArtistType.CoverArtist,
+        'Animator': ArtistType.Animator,
+        'Producer': ArtistType.Producer,
+        'OtherVocalist': ArtistType.OtherVocalist,
+        'OtherVoiceSynthesizer': ArtistType.OtherVoiceSynthesizer,
+        'OtherIndividual': ArtistType.OtherIndividual,
+        'OtherGroup': ArtistType.OtherGroup,
+      }
+
       // migrate songs
       console.log("----[ Migrating Songs ]----")
       const songsMap = {}
@@ -667,7 +679,7 @@ const migrateViewsData = () => {
                   }
                   const newArtist = new Artist(
                     Number.parseInt(artistId),
-                    ArtistType.map[artistData.artistType] || ArtistType.Producer,
+                    artistTypeMap[artistData.artistType] || ArtistType.Producer,
                     category,
                     artistData.publishDate,
                     artistData.additionDate,
@@ -699,7 +711,7 @@ const migrateViewsData = () => {
           const videoIds = JSON.parse(song.videoIds)
           const processedVideoIds = []
           for (const [viewType, ids] of Object.entries(videoIds)) {
-            processedVideoIds[viewTypeMap[viewType].id] = ids
+            processedVideoIds[viewTypeMap[viewType.toLowerCase()].id] = ids
           }
 
           // build song
@@ -755,15 +767,18 @@ const migrateViewsData = () => {
               const newBreakdown = []
               
               for (const [platform, views] of Object.entries(oldBreakdown)) {
-                const viewType = viewTypeMap[platform]
+                const viewType = viewTypeMap[platform.toLowerCase()]
                 if (viewType) {
                   const viewTypeId = viewType.id
                   const songVideoIdBucket = songData.videoIds[viewTypeId]
                   const songVideoId = songVideoIdBucket && songVideoIdBucket[0]
                   if (songVideoId) {
-                    newBreakdown[viewType.id] = {
-                      [songVideoId]: views
-                    }
+                    newBreakdown[viewType.id] = [
+                      new VideoViews(
+                        songVideoId,
+                        views
+                      )
+                    ]
                   }
                 }
               }

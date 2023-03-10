@@ -26,6 +26,17 @@
 
     {{! Stylesheet stuff. }}
     <link rel="stylesheet" href="/css/main.css">
+
+    {{#if (comp cookies.animationToggle 1)}}
+    <style>
+      html {
+        --transition-duration: 0s !important;
+        --transition-duration-long: 0s !important;
+        --transition-duration-300ms: 0s !important;
+      }
+    </style>
+    {{/if}}
+
     <link rel="stylesheet" href="/css/material_theme/theme.css">
     {{#if (comp cookies.theme 1)}}
     <link rel="stylesheet" href="/css/material_theme/theme.light.css">

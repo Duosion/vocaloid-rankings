@@ -16,6 +16,33 @@ exports.getAverageColorAsync = (input) => {
   })
 } 
 
+exports.viewTypesDisplayData = [
+  {
+    displayName: "youtube",
+    videoURL: "https://www.youtube.com/watch?v={VideoID}",
+    color: "#ff0000",
+    colors: ['#ff0000', '#dc0000', '#c90000', '#a90000', '#960000'],
+    textColor: '#ffffff',
+    icon: "/images/yt_icon.png"
+  },
+  {
+    displayName: 'niconico',
+    videoURL: "https://www.youtube.com/watch?v={VideoID}",
+    color: "#ffffff",
+    colors: ['#ffffff', '#d5d5d5', '#bbbbbb', '#a5a5a5', '#888888'],
+    textColor: '#000000',
+    icon: '/images/nico_icon.png'
+  },
+  {
+    displayName: "bilibili",
+    videoURL: 'https://www.bilibili.com/video/{VideoID}',
+    color: "#079fd2",
+    colors: ['#079fd2', '#068cb8', '#05769b', '#045e7c', '#04516b'],
+    textColor: "#ffffff",
+    icon: '/images/bili_icon.png'
+  }
+]
+
 exports.viewTypes = {
     "": {
       DisplayName: "Combined",

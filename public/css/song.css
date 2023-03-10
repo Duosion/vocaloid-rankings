@@ -8,6 +8,12 @@
   }
 }
 
+#nav-bar {
+  background-color: rgb(var(--md-sys-color-background-rgb) / 0.35);
+  position: absolute;
+  width: 100%;
+}
+
 #home-button {
   top: 0px;
   left: 20px;
@@ -29,7 +35,7 @@
 #song-info-header-backsplash {
   width: 100%;
   overflow: clip;
-  height: 165px;
+  height: 215px;
   background-color: var(--md-sys-color-surface-dark);
 }
 
@@ -132,6 +138,8 @@
   align-items: center;
   justify-content: flex-start;
   column-gap: 10px;
+  transition-property: color;
+  transition-duration: var(--transition-duration);
 }
 
 .clickable-sidebar-card:hover {
@@ -214,6 +222,10 @@
   cursor: pointer;
 }
 
+.clickable-content-card-highlight {
+  transition-property: color;
+  transition-duration: var(--transition-duration);
+}
 .clickable-content-card:hover .clickable-content-card-highlight {
   color: var(--md-sys-color-primary)
 }
@@ -240,8 +252,12 @@
 }
 
 /* views breakdown */
+#views-breakdown-section {
+  overflow: hidden;
+}
 #views-breakdown .content {
   box-sizing: border-box;
+  overflow: scroll hidden;
   padding: 15px;
   display: flex;
   column-gap: 15px;
@@ -253,6 +269,7 @@
 #views-breakdown .content .section {
   display: flex;
   flex-direction: column;
+  white-space: nowrap;
   row-gap: 10px;
 }
 

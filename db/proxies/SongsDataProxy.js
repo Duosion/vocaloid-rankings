@@ -13,6 +13,8 @@ const RankingsFilterResultItem = require("../dataClasses/RankingsFilterResultIte
 const RankingsFilterParams = require("../dataClasses/RankingsFilterParams")
 const PlacementChange = require("../enums/PlacementChange")
 const RankingsFilterResult = require("../dataClasses/RankingsFilterResult")
+const VideoViews = require("../dataClasses/VideoViews")
+const HistoricalViews = require("../dataClasses/HistoricalViews")
 
 function generateISOTimestamp() {
     return new Date().toISOString()
@@ -143,11 +145,14 @@ module.exports = class SongsDataProxy {
             const type = breakdownData.view_type
             let bucket = breakdown[type]
             if (!bucket) {
-                bucket = {}
+                bucket = []
                 breakdown[type] = bucket
             }
             // add breakdown to bucket
-            bucket[breakdownData.video_id] = breakdownData.views
+            bucket.push(new VideoViews(
+                breakdownData.video_id,
+                breakdownData.views
+            ))
         }
 
         return new SongViews(
@@ -176,14 +181,16 @@ module.exports = class SongsDataProxy {
         const viewsTotal = db.prepare(`
         SELECT song_id, timestamp, total
         FROM views_totals
-        WHERE song_id = ? AND timestamp = ?`).get(songId, timestamp)
+        WHERE song_id = ? AND timestamp = ?
+        ORDER BY total DESC`).get(songId, timestamp)
 
         if (viewsTotal == undefined) { return null }
 
         const breakdowns = db.prepare(`
         SELECT views, video_id, view_type
         FROM views_breakdowns
-        WHERE song_id = ? AND timestamp = ?`).all(songId, timestamp)
+        WHERE song_id = ? AND timestamp = ?
+        ORDER BY views DESC`).all(songId, timestamp)
 
         return this.#buildSongViews(
             viewsTotal,
@@ -582,6 +589,49 @@ module.exports = class SongsDataProxy {
         )
     }
 
+    /**
+     * Gets a song's historical views.
+     * 
+     * @param {number} id The id of the song to get the historical views data of.
+     * @param {number} [range] In days. The number of days in the past to get the historical data of.
+     * @param {number} [period] In days. The amount of days between each entry.
+     * @param {string} [timestamp] The timestamp to start getting the historical data from.
+     * @returns {HistoricalViews[]} An array of HistoricalViews objects depicting the historical views of this song.
+     */
+    #getSongHistoricalViewsSync(
+        id,
+        range = 7,
+        period = 1,
+        timestamp = this.#getMostRecentViewsTimestampSync()
+    ) {
+        const views = []
+        const timestamps = []
+        const historicalViews = []
+        for (let i = 0; i < range + 1; i++) {
+            const dbResult = this.db.prepare(`
+            SELECT SUM(views) AS views, MIN(timestamp) AS timestamp
+            FROM views_breakdowns
+            WHERE (song_id = :id)
+                AND (timestamp = DATE(:timestamp, '-' || :daysOffset || ' day'))
+            `).get({
+                id: id,
+                daysOffset: i * period,
+                timestamp: timestamp
+            })
+            views.push(dbResult.views)
+            timestamps.push(dbResult.timestamp)
+        }
+        for (let i = 0; i < views.length - 1; i++) {
+            const current = views[i]
+            const next = views[i + 1]
+            historicalViews.push(new HistoricalViews(
+                current - next,
+                timestamps[i]
+            ))
+        }
+        return historicalViews
+    }
+
     // public functions
 
     /**
@@ -692,6 +742,30 @@ module.exports = class SongsDataProxy {
         return new Promise((resolve, reject) => {
             try {
                 resolve(this.#filterRankingsSync(filterParams))
+            } catch (error) {
+                reject(error)
+            }
+        })
+    }
+
+    /**
+     * Gets a song's historical views.
+     * 
+     * @param {number} id The id of the song to get the historical views data of.
+     * @param {number} [range] In days. The number of days in the past to get the historical data of.
+     * @param {number} [period] In days. The amount of days between each entry.
+     * @param {string} [timestamp] The timestamp to start getting the historical data from.
+     * @returns {HistoricalViews[]} An array of HistoricalViews objects depicting the historical views of this song.
+     */
+    getSongHistoricalViews(
+        id,
+        range,
+        period,
+        timestamp
+    ) {
+        return new Promise((resolve, reject) => {
+            try {
+                resolve(this.#getSongHistoricalViewsSync(id, range, period, timestamp))
             } catch (error) {
                 reject(error)
             }
@@ -972,12 +1046,12 @@ module.exports = class SongsDataProxy {
                 // insert breakdowns
                 for (const [viewType, viewsBucket] of songViews.breakdown.entries()) {
                     if (viewsBucket) {
-                        for (const [videoId, views] of Object.entries(viewsBucket)) {
+                        for (const [_, videoViews] of viewsBucket.entries()) {
                             viewsBreakdownsReplaceStatement.run(
                                 songId,
                                 timestamp,
-                                views,
-                                videoId,
+                                videoViews.views,
+                                videoViews.id,
                                 viewType
                             )
                         }

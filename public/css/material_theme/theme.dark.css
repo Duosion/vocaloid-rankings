@@ -18,6 +18,7 @@
  --md-sys-color-on-error-container: var(--md-sys-color-on-error-container-dark);
  --md-sys-color-outline: var(--md-sys-color-outline-dark);
  --md-sys-color-background: var(--md-sys-color-background-dark);
+ --md-sys-color-background-rgb: var(--md-sys-color-background-dark-rgb);
  --md-sys-color-on-background: var(--md-sys-color-on-background-dark);
  --md-sys-color-surface: var(--md-sys-color-surface-dark);
  --md-sys-color-surface-1: rgb(var(--md-sys-color-primary-rgb) / 0.05);

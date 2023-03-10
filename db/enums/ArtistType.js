@@ -9,7 +9,7 @@ module.exports = class ArtistType extends Enum {
     static Animator = new ArtistType("filter_artist_type_animator", 5)
     static Producer = new ArtistType("filter_artist_type_producer", 6)
     static OtherVocalist = new ArtistType("filter_artist_type_other_vocalist", 7)
-    static OtherVoiceSynthesizer = new ArtistType("filter_artist_type_other_vocal_synth", 8)
+    static OtherVoiceSynthesizer = new ArtistType("filter_artist_type_other_voice_synth", 8)
     static OtherIndividual = new ArtistType("filter_artist_type_other_individual", 9)
     static OtherGroup = new ArtistType("filter_artist_type_other_group", 10)
 
