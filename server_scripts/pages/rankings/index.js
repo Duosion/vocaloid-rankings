@@ -14,6 +14,9 @@ const ViewType = require("../../../db/enums/ViewType")
 const ArtistType = require("../../../db/enums/ArtistType")
 const { PublishDate } = require("../../../db/enums/FilterOrder")
 const TitleLanguageSetting = require("../settings/enums/TitleLanguageSetting")
+const ArtistsRankingsFilterParams = require("../../../db/dataClasses/ArtistsRankingsFilterParams")
+const ArtistsRankingsFilterResultItem = require("../../../db/dataClasses/ArtistsRankingsFilterResultItem")
+const ArtistsRankingsFilterResult = require("../../../db/dataClasses/ArtistsRankingsFilterResult")
 
 const database = require(workingDirectory + "/db")
 const databaseProxy = require(modulePath + "/database")
@@ -32,7 +35,11 @@ const filterParamsDisplayData = {
         displayName: "filter_timestamp",
         defaultValue: null,
         getValueAsync: (rawValue) => {
-            return [rawValue]
+            if (generateTimestamp().Name == rawValue) {
+                return null
+            } else {
+                return [rawValue]
+            }
         }
     },
     'timePeriodOffset': {
@@ -246,7 +253,6 @@ const buildFilterParamsAsync = (query) => {
             }
 
             // generate filter params
-            
             const params = new RankingsFilterParams(
                 query['timestamp'] || null,
                 Number(query['timePeriodOffset']) || null,
@@ -275,6 +281,66 @@ const buildFilterParamsAsync = (query) => {
 }
 
 /**
+ * Turns a fastify request.query object into a filterParams object for artists rankings querying
+ * 
+ * @param {Object<string, string>} query The query to turn into a filter params.
+ */
+const buildArtistsFilterParamsAsync = (query) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            // calculate the hash
+            const hash = (await getHasherAsync())(JSON.stringify(query)) + 'artists'
+            {
+                // check if we already have this filter param cached
+                const cached = queryCache.get(hash)
+                if (cached) {
+                    resolve(cached.getData())
+                    return
+                }
+            }
+
+            // parse songs
+            var songs = null
+            const querySongs = query.songs
+            if (querySongs) {
+                songs = []
+                querySongs.split(",").forEach((value) => {
+                    const songId = Number(value)
+                    if (songId) {
+                        songs.push(songId)
+                    }
+                })
+            }
+
+            // generate filter params
+            const params = new ArtistsRankingsFilterParams(
+                query['timestamp'] || null,
+                Number(query['timePeriodOffset']) || null,
+                Number(query['changeOffset']) || null,
+                Number(query['daysOffset']) || null,
+                ViewType.values[query['viewType']],
+                SongType.values[query['songType']],
+                ArtistType.values[query['artistType']],
+                null,
+                query['publishDate'] && query.publishDate + "%" || null,
+                FilterOrder.values[query['orderBy']],
+                FilterDirection.values[query['direction']],
+                songs,
+                query['singleVideo'] ? 1 : null,
+                Math.min(Number(query['maxEntries']) || 50, 50),
+                Number(query['startAt'] || 0)
+            )
+            // add to cache
+            queryCache.set(hash, params)
+            // resolve
+            resolve(params)
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+/**
  * Turns a fastify request.query object into another object for handlebars page rendering.
  * 
  * @param {Object<string, string>} query The query to turn into a filter params.
@@ -287,13 +353,15 @@ const getHandlebarsDisplayFilterParamsAsync = (query, options = {}) => {
                 const defaultValue = filterDisplayData.defaultValue
                 const rawFilterValue = query[filterName] || defaultValue
                 if (rawFilterValue) {
-                    let filterValue = await filterDisplayData.getValueAsync(rawFilterValue, options)
-                    displayData.push({
-                        name: filterName,
-                        title: filterDisplayData.displayName,
-                        value: filterValue,
-                        isDefault: defaultValue == rawFilterValue
-                    })
+                    const filterValue = await filterDisplayData.getValueAsync(rawFilterValue, options)
+                    if (filterValue) {
+                        displayData.push({
+                            name: filterName,
+                            title: filterDisplayData.displayName,
+                            value: filterValue,
+                            isDefault: defaultValue == rawFilterValue
+                        })
+                    }
                 }
             }
             resolve(displayData)
@@ -347,6 +415,53 @@ const filterRankingsAsync = (filterParams, options = {}) => {
                     }
                 }
                 rankingResult.producers = producers
+            }
+
+            // cache filtered data
+            rankingsCache.set(queryHash, filtered)
+
+            resolve(filtered)
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+/**
+ * Filters artists rankings and returns them.
+ * 
+ * @param {RankingsFilterParams} filterParams The parameters that define how the rankings are filtered.
+ * @param {Object<string, string>} options Options to modify the filterArtistsRankings function.
+ * @returns {ArtistsRankingsFilterResult} The filtered artists rankings. 
+ */
+const filterArtistsRankingsAsync = (filterParams, options = {}) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const queryHash = (await getHasherAsync())(JSON.stringify({...filterParams, ...options})) + "artists"
+            {
+                // check for cache
+                const cachedData = rankingsCache.get(queryHash)
+
+                if (cachedData) {
+
+                    resolve(cachedData.getData())
+                    return;
+
+                }
+            }
+
+            /** @type {ArtistsRankingsFilterResult} */
+            const filtered = await database.songsData.filterArtistsRankings(filterParams)
+
+            // add preferred names based on user language setting
+            const preferredLanguage = options.preferredLanguage || NameType.Original
+
+            const getPreferredName = (names) => {
+                return getPreferredLanguageName(names, preferredLanguage)
+            }
+
+            for (const [_, rankingResult] of filtered.results.entries()) {
+                rankingResult.preferredName = getPreferredName(rankingResult.artist.names)
             }
 
             // cache filtered data
@@ -560,6 +675,91 @@ const getRankings = async (request, reply) => {
     return reply.view("pages/rankings.hbs", hbParams);
 }
 
+/**
+ * 
+ * @param {Object} request 
+ * @param {Object} reply 
+ * @param {ArtistCategory} [artistCategory]
+ */
+const getArtistsRankings = async (request, reply, artistCategory = ArtistCategory.Vocalist) => {
+    const parsedCookies = request.parsedCookies || {}
+    const hbParams = request.hbParams
+
+    // parse locale
+    const locale = (request.headers["accept-language"] || "").split(",")[0]
+
+    // validate query
+    const requestQuery = {
+        ...parsedCookies.filter || {},
+        ...request.query,
+    }
+
+    // generate filter params
+    const filterParams = await buildArtistsFilterParamsAsync(requestQuery)
+    filterParams.artistCategory = artistCategory
+
+    const filteredRankings = await filterArtistsRankingsAsync(filterParams, {
+        preferredLanguage: NameType.fromId(parsedCookies.titleLanguage)
+    })
+
+    hbParams.rankings = filteredRankings.results
+
+    // calculate pages
+    {
+        const listLength = filteredRankings.totalCount
+        const currentPosition = filterParams.startAt
+        const pageLength = filterParams.maxEntries
+
+        const totalPages = Math.floor(listLength / pageLength)
+        const currentPage = Math.ceil(currentPosition / pageLength)
+
+        const surroundingPages = []
+        const addFilterURL = "/rankings/filter/add?startAt="
+
+        for (let i = Math.max(0, currentPage - 1); i <= Math.min(totalPages, currentPage + 1); i++) {
+            surroundingPages[i] = `${addFilterURL}${i * pageLength}`
+        }
+
+        hbParams.surroundingPages = surroundingPages
+        hbParams.currentPageNumber = currentPage
+
+        // jump to last page and first page buttons
+        if (currentPage - 1 > 0) {
+            hbParams.firstPage = `${addFilterURL}0`
+        }
+
+        if (totalPages > currentPage + 1) {
+            hbParams.lastPage = `${addFilterURL}${totalPages * pageLength}`
+            hbParams.lastPageNumber = totalPages + 1
+        }
+
+        // next/previous page buttons
+        if (currentPage > 0) {
+            hbParams.previousPage = `${addFilterURL}${(currentPage - 1) * pageLength}`
+        }
+        if (totalPages > currentPage) {
+            hbParams.nextPage = `${addFilterURL}${(currentPage + 1) * pageLength}`
+        }
+    }
+
+    // get display filter params
+    {
+        hbParams.filterParams = await getHandlebarsDisplayFilterParamsAsync(filterParams, {
+            preferredLanguage: NameType.fromId(parsedCookies.titleLanguage)
+        })
+    }
+
+    return reply.view("pages/artistsRankings.hbs", hbParams);
+}
+
+const getSingersRankings = async (request, reply) => {
+    return await getArtistsRankings(request, reply, ArtistCategory.Vocalist)
+}
+
+const getProducersRankings = async (request, reply) => {
+    return await getArtistsRankings(request, reply, ArtistCategory.Producer)
+}
+
 
 exports.prefix = "/rankings"
 
@@ -570,6 +770,19 @@ exports.register = (fastify, options, done) => {
             analyticsParams: { 'page_name': "rankings" }
         },
     }, getRankings)
+
+    fastify.get("/singers", {
+        config: {
+            analyticsEvent: "page_visit",
+            analyticsParams: { 'page_name': "singers_rankings" }
+        }
+    }, getSingersRankings)
+    fastify.get("/producers", {
+        config: {
+            analyticsEvent: "page_visit",
+            analyticsParams: { 'page_name': "producers_rankings" }
+        }
+    }, getProducersRankings)
 
     fastify.get("/filter", {
       config: {
