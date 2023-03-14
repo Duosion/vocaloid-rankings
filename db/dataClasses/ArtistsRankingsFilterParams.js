@@ -23,6 +23,7 @@ module.exports = class ArtistsRankingsFilterParams {
      * @param {FilterDirection} [direction] What direction to order the ranking results in. By default is descending. 
      * @param {number[]} [songs] An array of song IDs. If provided, only returns rankings results with artists that are featured in the provided songs.
      * @param {boolean} [singleVideo] If true, only filters the songs with the most views per view type.
+     * @param {boolean} [combineSimilarArtists] If true, combines similar artists. I.E Hatsune Miku V4's views will be combined with Hatsune Miku's views.
      * @param {number} [maxEntries] The maximum number of rankings entries to return. Default: 50.
      * @param {number} [startAt] The amount to offset the resulting rankings entries. Default: 0.
      */
@@ -40,6 +41,7 @@ module.exports = class ArtistsRankingsFilterParams {
         direction = FilterDirection.Descending,
         songs,
         singleVideo,
+        combineSimilarArtists,
         maxEntries = 50,
         startAt = 0,
     ) {
@@ -55,6 +57,7 @@ module.exports = class ArtistsRankingsFilterParams {
         this.orderBy = orderBy
         this.direction = direction
         this.singleVideo = singleVideo
+        this.combineSimilarArtists = combineSimilarArtists
         this.songs = songs
         this.maxEntries = maxEntries
         this.startAt = startAt

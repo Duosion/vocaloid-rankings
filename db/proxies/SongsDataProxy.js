@@ -373,7 +373,7 @@ module.exports = class SongsDataProxy {
             publishDate: filterParams.publishDate,
             orderBy: filterParams.orderBy?.id,
             direction: filterParams.direction?.id,
-            singleVideo: filterParams.singleVideo,
+            singleVideo: filterParams.singleVideo && 1,
             maxEntries: filterParams.maxEntries,
             startAt: filterParams.startAt
         }
@@ -610,7 +610,8 @@ module.exports = class SongsDataProxy {
             publishDate: filterParams.publishDate,
             orderBy: filterParams.orderBy?.id,
             direction: filterParams.direction?.id,
-            singleVideo: filterParams.singleVideo,
+            singleVideo: filterParams.singleVideo && 1,
+            combineSimilarArtists: filterParams.combineSimilarArtists && 1,
             maxEntries: filterParams.maxEntries,
             startAt: filterParams.startAt
         }
@@ -643,7 +644,10 @@ module.exports = class SongsDataProxy {
     #filterArtistsRankingsCountSync(queryParams) {
         const filterSongs = queryParams.filterSongs
         return this.db.prepare(`
-        SELECT count(DISTINCT artists.id) AS count
+        SELECT count(DISTINCT CASE WHEN :combineSimilarArtists IS NULL THEN artists.id
+            WHEN artists.base_artist_id IS NULL THEN artists.id
+            ELSE artists.base_artist_id
+        END) AS count
         FROM views_breakdowns
         INNER JOIN songs ON views_breakdowns.song_id = songs.id
         INNER JOIN songs_artists ON songs_artists.song_id = views_breakdowns.song_id
@@ -675,7 +679,12 @@ module.exports = class SongsDataProxy {
                         ${filterSongs == '' ? '' : `AND (songs.id IN (${filterSongs}))`}
                     GROUP BY sub_vb.song_id)
                 END)
-            ${filterSongs == '' ? '' : `AND (songs.id IN (${filterSongs}))`}
+            ${filterSongs == '' ? '' : `AND (songs.id IN (${filterSongs}))
+        GROUP BY 
+            CASE WHEN :combineSimilarArtists IS NULL THEN artists.id
+            WHEN artists.base_artist_id IS NULL then artists.id
+            ELSE artists.base_artist_id
+            END`}
         `).get(queryParams.params)?.count
     }
 
@@ -690,7 +699,11 @@ module.exports = class SongsDataProxy {
     #filterArtistsRankingsRawSync(queryParams) {
         const filterSongs = queryParams.filterSongs
         return this.db.prepare(`
-        SELECT DISTINCT artists.id,
+        SELECT DISTINCT 
+            CASE WHEN :combineSimilarArtists IS NULL THEN artists.id
+                WHEN artists.base_artist_id IS NULL THEN artists.id
+                ELSE artists.base_artist_id
+            END AS id,
             SUM(DISTINCT views_breakdowns.views) AS total_views
         FROM views_breakdowns
         INNER JOIN songs ON views_breakdowns.song_id = songs.id
@@ -724,7 +737,11 @@ module.exports = class SongsDataProxy {
                     GROUP BY sub_vb.song_id)
                 END)
             ${filterSongs == '' ? '' : `AND (songs.id IN (${filterSongs}))`}
-        GROUP BY artists.id
+        GROUP BY 
+            CASE WHEN :combineSimilarArtists IS NULL THEN artists.id
+            WHEN artists.base_artist_id IS NULL then artists.id
+            ELSE artists.base_artist_id
+            END
         ORDER BY
             CASE WHEN :direction = 0 THEN 1
             ELSE

@@ -32,6 +32,14 @@ const objectCookies = {
   filter: {
     MaxAge: null, // session cookie
     Signed: true
+  },
+  filterVocalist: {
+    MaxAge: null,
+    Signed: true
+  },
+  filterProducer: {
+    MaxAge: null,
+    Signed: true
   }
 }
 

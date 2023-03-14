@@ -87,6 +87,15 @@
     border: 1px solid var(--md-sys-color-surface-1);
 }
 
+.rankings-entry .cover.type-0 {
+    background-repeat: no-repeat;
+    background-position: top;
+}
+.rankings-entry .cover.type-1 {
+    background-size: cover;
+    background-repeat: no-repeat;
+}
+
 .rankings-entry .title,
 .rankings-entry .views {
     box-sizing: border-box;

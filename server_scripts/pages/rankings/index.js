@@ -42,6 +42,14 @@ const filterParamsDisplayData = {
             }
         }
     },
+    'startAt': {
+        displayName: "filter_page",
+        defaultValue: null,
+        getValueAsync: (rawValue) => {
+            const asNumber = Number.parseInt(rawValue) || 0
+            return [Math.floor(asNumber / 50) + 1]
+        }
+    },
     'timePeriodOffset': {
         displayName: "filter_time_period_offset",
         defaultValue: null,
@@ -98,6 +106,13 @@ const filterParamsDisplayData = {
         defaultValue: null,
         getValueAsync: (rawValue) => {
             return [rawValue == 1 ? "filter_single_video_single" : "filter_single_video_all"]
+        }
+    },
+    'combineSimilarArtists': {
+        displayName: "filter_combine_similar_artists",
+        defaultValue: null,
+        getValueAsync: (rawValue) => {
+            return [rawValue ? "filter_combine_similar_artists_enabled" : "filter_combine_similar_artists_disabled"]
         }
     },
     'direction': {
@@ -220,6 +235,25 @@ const filterPageOptions = [
     },
 ]
 
+const filterArtistsPageOptions = [
+    ...filterPageOptions,
+    {
+        displayName: 'filter_combine_similar_artists',
+        name: "combineSimilarArtists",
+        isChip: true,
+        default: 0,
+        values: [
+            { name: 'filter_combine_similar_artists_disabled', value: null },
+            { name: 'filter_combine_similar_artists_enabled', value: 1 }
+        ]
+    },
+]
+
+const artistCategoryCookieNameMap = {
+    ['0']: 'filterVocalist',
+    ['1']: 'filterProducer'
+}
+
 /**
  * Turns a fastify request.query object into a filterParams object for rankings querying
  * 
@@ -265,7 +299,7 @@ const buildFilterParamsAsync = (query) => {
                 FilterOrder.values[query['orderBy']],
                 FilterDirection.values[query['direction']],
                 artists,
-                query['singleVideo'] ? 1 : null,
+                query['singleVideo'] ? true : null,
                 Math.min(Number(query['maxEntries']) || 50, 50),
                 Number(query['startAt'] || 0)
             )
@@ -326,7 +360,8 @@ const buildArtistsFilterParamsAsync = (query) => {
                 FilterOrder.values[query['orderBy']],
                 FilterDirection.values[query['direction']],
                 songs,
-                query['singleVideo'] ? 1 : null,
+                query['singleVideo'] ? true : null,
+                query['combineSimilarArtists'] ? true : null,
                 Math.min(Number(query['maxEntries']) || 50, 50),
                 Number(query['startAt'] || 0)
             )
@@ -479,14 +514,21 @@ const filterArtistsRankingsAsync = (filterParams, options = {}) => {
 const getFilterPage = async (request, reply) => {
     const parsedCookies = request.parsedCookies || {}
 
+    const requestQuery = request.query
     const query = {
-        ...parsedCookies.filter || {},
-        ...request.query,
+        ...parsedCookies[artistCategoryCookieNameMap[requestQuery.artistCategory] || 'filter'] || {},
+        ...requestQuery,
     }
 
     const filterValues = []
 
-    for (const [_, filterOption] of filterPageOptions.entries()) {
+    const artistCategory = query["artistCategory"]
+    const isArtistsFilterPage = artistCategory ? true : false
+
+    const filterOptions = isArtistsFilterPage ? filterArtistsPageOptions : filterPageOptions
+
+
+    for (const [_, filterOption] of filterOptions.entries()) {
         const name = filterOption.name
         const selectedValue = query[name] || filterOption.values[filterOption.default].value
         const values = []
@@ -512,27 +554,35 @@ const getFilterPage = async (request, reply) => {
     const maximumDate = viewsTimestamps[0].timestamp
 
     request.addHbParams({
+        referer: requestQuery.referer,
         ['filterValues']: filterValues,
         pageTitle: "Filter Rankings",
         minimumDate: viewsTimestamps[viewsTimestamps.length - 1].timestamp,
         defaultDate: query['timestamp'] || maximumDate,
-        maximumDate: maximumDate
+        maximumDate: maximumDate,
+        isArtistsFilterPage: isArtistsFilterPage,
+        artistCategory: artistCategory
     })
 
     return reply.view("pages/filterRankings.hbs", request.hbParams);
 }
 
 const getRemoveAllFilters = async (_, reply) => {
-    reply.setObjectCookie("filter", {})
-    reply.redirect("/rankings")
+    reply.setObjectCookie(artistCategoryCookieNameMap[request.query.artistCategory] || 'filter', {})
+    reply.redirect(query.referer || '/rankings')
 }
 
 const getRemoveFilter = async (request, reply) => {
     const parsedCookies = request.parsedCookies
 
     const query = request.query
+    const referer = query.referer || '/rankings'
+    delete query.referer
+    
+    const filterCookieName = artistCategoryCookieNameMap[query.artistCategory] || 'filter'
+    delete query.artistCategory
 
-    const filterCookie = parsedCookies.filter || {}
+    const filterCookie = parsedCookies[filterCookieName] || {}
 
     for (let [filterName, filterValue] of Object.entries(filterCookie)) {
         const removable = query[filterName]
@@ -552,14 +602,14 @@ const getRemoveFilter = async (request, reply) => {
 
     }
 
-    reply.setObjectCookie("filter", filterCookie)
+    reply.setObjectCookie(filterCookieName, filterCookie)
 
-    reply.redirect("/rankings")
+    reply.redirect(referer)
 }
 
 const getSetFilter = async(request, reply) => {
-    reply.setObjectCookie("filter", {})
-
+    reply.setObjectCookie(artistCategoryCookieNameMap[request.query.artistCategory] || 'filter', {})
+    
     var newQuery = ""
 
     // build query again
@@ -575,8 +625,12 @@ const getAddFilter = async (request, reply) => {
 
     const query = request.query
     const referer = query["referer"] || "/rankings"
+    delete query.referer
 
-    const filterCookie = parsedCookies.filter || {}
+    const filterCookieName = artistCategoryCookieNameMap[query.artistCategory] || 'filter'
+    delete query.artistCategory
+
+    const filterCookie = parsedCookies[filterCookieName] || {}
 
     var newQuery = ""
 
@@ -600,7 +654,7 @@ const getAddFilter = async (request, reply) => {
         params['value'] = analyticsFilterValues
     }
 
-    reply.setObjectCookie("filter", filterCookie)
+    reply.setObjectCookie(filterCookieName, filterCookie)
 
     reply.redirect(`${referer}?${encodeURI(newQuery)}`)
 }
@@ -688,9 +742,15 @@ const getArtistsRankings = async (request, reply, artistCategory = ArtistCategor
     // parse locale
     const locale = (request.headers["accept-language"] || "").split(",")[0]
 
+    const pageName = artistCategory == ArtistCategory.Vocalist ? "singers" : "producers"
+
+    // pass artist category to hb params
+    hbParams.artistCategory = artistCategory.id
+    hbParams.pageName = pageName
+
     // validate query
     const requestQuery = {
-        ...parsedCookies.filter || {},
+        ...parsedCookies[artistCategoryCookieNameMap[artistCategory.id.toString()]] || {},
         ...request.query,
     }
 
@@ -714,7 +774,7 @@ const getArtistsRankings = async (request, reply, artistCategory = ArtistCategor
         const currentPage = Math.ceil(currentPosition / pageLength)
 
         const surroundingPages = []
-        const addFilterURL = "/rankings/filter/add?startAt="
+        const addFilterURL = `/rankings/filter/add?artistCategory=${artistCategory.id}&referer=/rankings/${pageName}&startAt=`
 
         for (let i = Math.max(0, currentPage - 1); i <= Math.min(totalPages, currentPage + 1); i++) {
             surroundingPages[i] = `${addFilterURL}${i * pageLength}`

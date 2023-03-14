@@ -7,6 +7,10 @@
   <div class="headline-medium on-surface-text title">{{localization.rankings_filter}}</div>
 
   <form id="filter-form" action="/rankings/filter/add" method="get" target="_self" class="filter-content list vertical">
+    {{#if isArtistsFilterPage}}
+      <input type="hidden" name="artistCategory" value="{{artistCategory}}">
+    {{/if}}
+    <input type="hidden" name="referer" value="{{referer}}">
     {{#each filterValues}}
     <div class="form-section list">
 

@@ -31,7 +31,7 @@
                 {{else}}
                   <div class="chip-group">
                     {{#each value}}
-                      <a class="chip input with-trailing" href="/rankings/filter/remove?{{../name}}={{@key}}">
+                      <a class="chip input with-trailing" href="/rankings/filter/remove?artistCategory={{../../artistCategory}}&referer=/rankings/{{../../pageName}}&{{../name}}={{@key}}">
                         <div class="text label-large">{{localize this}}</div>
                         <span class="material-symbols-rounded">close</span>
                       </a>
@@ -40,30 +40,29 @@
                 {{/if}}
             </div>
             {{/each}}
-            <a id="filter-button" class="material-button with-icon inverse label-large" href="/rankings/filter">
+            <a id="filter-button" class="material-button with-icon inverse label-large" href="/rankings/filter?artistCategory={{artistCategory}}&referer=/rankings/{{pageName}}">
               <span class="material-symbols-rounded">filter_alt</span>
               {{localization.rankings_filter}}
             </a>
         </div>
-        <a id="mobile-filter-button" class="material-button with-icon inverse label-large" href="/rankings/filter">
+        <a id="mobile-filter-button" class="material-button with-icon inverse label-large" href="/rankings/filter?artistCategory={{artistCategory}}&referer=/rankings/{{pageName}}">
             <span class="material-symbols-rounded">filter_alt</span>
             {{localization.rankings_filter}}
         </a>
         <div class="body-large bold on-background-text section-title">{{localization.quick_filter}}</div>
         <div id="quick-filter-container" class="sidebar-card body-medium on-surface-text">
-          <a class="material-button outlined label-large" href="/rankings/filter/set?timePeriodOffset=1">{{localization.quick_filter_past_day}}</a>
-          <a class="material-button outlined label-large" href="/rankings/filter/set?viewType=0">{{localization.quick_filter_youtube}}</a>
-          <a class="material-button outlined label-large" href="/rankings/filter/set?orderBy=2">{{localization.quick_filter_addition_date}}</a>
-          <a class="material-button outlined label-large" href="/rankings/filter/set?singleVideo=1">{{localization.quick_filter_single_video}}</a>
+          <a class="material-button outlined label-large" href="/rankings/filter/set?artistCategory={{artistCategory}}&referer=/rankings/{{pageName}}&timePeriodOffset=1">{{localization.quick_filter_past_day}}</a>
+          <a class="material-button outlined label-large" href="/rankings/filter/set?artistCategory={{artistCategory}}&referer=/rankings/{{pageName}}&viewType=0">{{localization.quick_filter_youtube}}</a>
+          <a class="material-button outlined label-large" href="/rankings/filter/set?artistCategory={{artistCategory}}&referer=/rankings/{{pageName}}&orderBy=2">{{localization.quick_filter_addition_date}}</a>
+          <a class="material-button outlined label-large" href="/rankings/filter/set?artistCategory={{artistCategory}}&referer=/rankings/{{pageName}}&singleVideo=1">{{localization.quick_filter_single_video}}</a>
         </div>
     </div>
 
     <div id="rankings-content">
         {{#each rankings}}
-
             <div id="e{{placement}}" class="rankings-entry">
                 <div class="rank title-large">{{placement}}</div>
-                <a class="cover" style="background-image:url({{artist.thumbnails.[3].url}})" href="/artist/{{artist.id}}?referer=/rankings"></a>
+                <a class="cover type-{{../artistCategory}}" style="background-image:url({{artist.thumbnails.[3].url}})" href="/artist/{{artist.id}}?referer=/rankings"></a>
                 <div class="title">
                     <a class="main-title title-medium-large" href="/artist/{{artist.id}}?referer=/rankings">{{preferredName}}</a>
                 </div>
@@ -72,7 +71,6 @@
                     <div class="label title-small">{{../localization.rankings_views}}</div>
                 </div>
             </div>
-
         {{/each}}
 
         <div id="page-selector-container">
