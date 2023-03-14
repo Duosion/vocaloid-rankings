@@ -18,7 +18,10 @@ const ArtistThumbnailType = require("../db/enums/ArtistThumbnailType")
 const ArtistThumbnail = require("../db/dataClasses/ArtistThumbnail")
 const SongViews = require("../db/dataClasses/SongViews")
 const ArtistCategory = require("../db/enums/ArtistCategory")
-const VideoViews = require("../db/dataClasses/VideoViews")
+const VideoViews = require("../db/dataClasses/VideoViews");
+const ArtistsRankingsFilterParams = require("../db/dataClasses/ArtistsRankingsFilterParams");
+const FilterDirection = require("../db/enums/FilterDirection");
+const FilterOrder = require("../db/enums/FilterOrder");
 
 // file locations
 const databaseFilePath = process.cwd() + "/database"
@@ -827,4 +830,28 @@ exports.setUpdatingProgress = setUpdatingProgress
 //artists functions
 exports.addArtistsFromIds = addArtistsFromIds
 exports.populateArtists = populateArtists
-
+/*setTimeout(() => {
+  console.time("filtered artists")
+  database.songsData.filterArtistsRankings(new ArtistsRankingsFilterParams(
+    null, // timestamp
+    1, // time period offset
+    null, // change offset
+    null, // days offset
+    null, // view type
+    null, // song type
+    null, // artist type
+    null, // ArtistCategory.Vocalist,
+    null, // publish date
+    FilterOrder.Views, // filter order
+    FilterDirection.Descending, // filter direction
+    null, // songs
+    null,//'', // single video
+    50, // max entires
+    0, // start at
+  )).then(result => {
+    console.timeEnd("filtered artists")
+    result.results.forEach(resultItem => {
+      console.log(resultItem.artist.id, resultItem.artist.names[0], resultItem.views)
+    });
+  })
+}, 1000)*/

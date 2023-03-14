@@ -22,6 +22,8 @@ module.exports = (db, exists) => {
         PRIMARY KEY (song_id, artist_id, artist_category),
         FOREIGN KEY (song_id) REFERENCES songs (id),
         FOREIGN KEY (artist_id) REFERENCES artists (id))`).run()
+    db.prepare(`CREATE INDEX idx_songs_artists_artist_id_song_id
+        ON songs_artists (artist_id, song_id);`).run()
 
     // create songs names table
     db.prepare(`CREATE TABLE IF NOT EXISTS songs_names (

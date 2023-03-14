@@ -14,7 +14,8 @@ const ViewType = require("../db/enums/ViewType")
 const NameType = require("../db/enums/NameType")
 const SongType = require("../db/enums/SongType")
 const ArtistCategory = require("../db/enums/ArtistCategory")
-const ArtistThumbnailType = require("../db/enums/ArtistThumbnailType")
+const ArtistThumbnailType = require("../db/enums/ArtistThumbnailType");
+const VideoViews = require("../db/dataClasses/VideoViews");
 
 // strings
 const scrapeDomains = {
@@ -231,7 +232,7 @@ const getVideoIdsViewsAsync = (
                 const poller = viewTypePollers[viewType]
 
                 if (poller && IDs) {
-                    const bucket = {}
+                    const bucket = []
                     breakdown[viewType] = bucket
 
                     for (let [_, videoID] of IDs.entries()) {
@@ -239,8 +240,10 @@ const getVideoIdsViewsAsync = (
                         if (views == 0) {
                             console.log(`0 views for video id ${videoID}`)
                         }
-
-                        bucket[videoID] = views
+                        bucket.push(new VideoViews(
+                            videoID,
+                            views
+                        ))
                         totalViews += views
                     }
                 }
@@ -717,7 +720,7 @@ const scrapeVocaDBRecentSongsAsync = () => {
                         if (views != null) {
 
                             if ((views.total >= vocaDBRecentSongsViewsThreshold) && (vocaDBRecentSongsUploadDateThreshold > (timeNow - new Date(entryData.publishDate)))) {
-                                console.log(`${entryData.id} meets views threshold (${totalViews} views)`)
+                                console.log(`${entryData.id} meets views threshold (${views.total} views)`)
                                 recentSongs.push(await scrapeVocaDBSongAsync(entryData.id))
                             }
                         }

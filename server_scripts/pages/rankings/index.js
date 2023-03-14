@@ -258,8 +258,8 @@ const buildFilterParamsAsync = (query) => {
                 query['publishDate'] && query.publishDate + "%" || null,
                 FilterOrder.values[query['orderBy']],
                 FilterDirection.values[query['direction']],
-                query['singleVideo'] ? 1 : null,
                 artists,
+                query['singleVideo'] ? 1 : null,
                 Math.min(Number(query['maxEntries']) || 50, 50),
                 Number(query['startAt'] || 0)
             )
