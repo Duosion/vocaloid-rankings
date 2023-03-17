@@ -451,8 +451,7 @@ module.exports = class SongsDataProxy {
             maxEntries: filterParams.maxEntries,
             startAt: filterParams.startAt,
             minViews: filterParams?.minViews,
-            maxViews: filterParams?.maxViews,
-            countMode: filterParams.countMode && 1,
+            maxViews: filterParams?.maxViews
         }
 
         const buildInStatement = (values, prefix = '') => {
