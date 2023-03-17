@@ -22,6 +22,7 @@ const VideoViews = require("../db/dataClasses/VideoViews");
 const ArtistsRankingsFilterParams = require("../db/dataClasses/ArtistsRankingsFilterParams");
 const FilterDirection = require("../db/enums/FilterDirection");
 const FilterOrder = require("../db/enums/FilterOrder");
+const RankingsFilterParams = require("../db/dataClasses/RankingsFilterParams");
 
 // file locations
 const databaseFilePath = process.cwd() + "/database"
@@ -830,6 +831,41 @@ exports.setUpdatingProgress = setUpdatingProgress
 //artists functions
 exports.addArtistsFromIds = addArtistsFromIds
 exports.populateArtists = populateArtists
+
+/*setTimeout(() => {
+  console.time('filtered rankings')
+  database.songsData.filterRankings(new RankingsFilterParams(
+    null, // timestamp
+    null, // time period offset
+    null, // change offset
+    null, // days offset
+    null, // view type
+    null, // song type
+    null, // artist type
+    null, // publish date
+    null, // filter order
+    null, // filter direction
+    null, // artists
+    null, // single video
+    1, // max entries
+    0, // start at
+    [130889], // songs
+    null, // min views
+    null, // max views
+    null // count mode
+  )).then(result => {
+    
+    const views = result.results[0].views
+    const filter = new RankingsFilterParams()
+    filter.minViews = views
+    filter.countMode = true
+
+    database.songsData.filterRankings(filter).then(finalResult => {
+      console.timeEnd('filtered rankings')
+      console.log(finalResult.totalCount)
+    })
+  })
+}, 1000)*/
 /*setTimeout(() => {
   console.time("filtered artists")
   database.songsData.filterArtistsRankings(new ArtistsRankingsFilterParams(

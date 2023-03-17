@@ -1,5 +1,6 @@
 const SongType = require("../enums/SongType");
 const Artist = require("./Artist");
+const SongPlacement = require("./SongPlacement");
 const SongViews = require("./SongViews");
 
 module.exports = class Song {
@@ -19,8 +20,9 @@ module.exports = class Song {
      * @param {string} [fandomUrl] // the fandom URL for this song
      * @param {Artist[]} artists // this song's artists
      * @param {string[]} names // this song's names
-     * @param {Array.<string>[]} videoIds
+     * @param {Array.<string>[]} videoIds // this song's viodeo ids
      * @param {SongViews=} views // this song's views
+     * @param {SongPlacement} [songPlacement] // this song's placements
      */
     constructor(
         id,
@@ -36,7 +38,8 @@ module.exports = class Song {
         artists,
         names,
         videoIds,
-        views
+        views,
+        songPlacement
     ) {
         this.id = id
         this.publishDate = publishDate
@@ -52,6 +55,7 @@ module.exports = class Song {
         this.names = names
         this.videoIds = videoIds
         this.views = views
+        this.songPlacement = songPlacement
     }
 
 }

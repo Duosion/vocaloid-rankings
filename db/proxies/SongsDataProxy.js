@@ -18,6 +18,7 @@ const HistoricalViews = require("../dataClasses/HistoricalViews")
 const ArtistsRankingsFilterParams = require("../dataClasses/ArtistsRankingsFilterParams")
 const ArtistsRankingsFilterResultItem = require("../dataClasses/ArtistsRankingsFilterResultItem")
 const ArtistsRankingsFilterResult = require("../dataClasses/ArtistsRankingsFilterResult")
+const SongPlacement = require("../dataClasses/SongPlacement")
 
 function generateISOTimestamp() {
     return new Date().toISOString()
@@ -85,6 +86,7 @@ module.exports = class SongsDataProxy {
      * @param {Object[]} songNames 
      * @param {Artist[]} songArtists
      * @param {SongViews=} songViews
+     * @param {SongPlacement} [songPlacement]
      * @returns {Song} The built Song object.
      */
     #buildSong(
@@ -92,7 +94,8 @@ module.exports = class SongsDataProxy {
         songNames,
         songArtists,
         songVideoIds,
-        songViews
+        songViews,
+        songPlacement
     ) {
         // process names
         const names = []
@@ -127,7 +130,8 @@ module.exports = class SongsDataProxy {
             songArtists,
             names,
             videoIds,
-            songViews
+            songViews,
+            songPlacement
         )
     }
 
@@ -239,6 +243,72 @@ module.exports = class SongsDataProxy {
     }
 
     /**
+     * Builds a song placement object from a song's data.
+     * Contains placement information for various rankings.
+     * 
+     * @param {Object} songData The data for this song (raw from the database).
+     * @param {SongViews} songViews The views data for this song.
+     * @returns {SongPlacement} The built SongPlacement object
+     */
+    #buildSongPlacement(
+        allTimePlacement,
+        releaseYearPlacement
+    ) {
+        return new SongPlacement(
+            allTimePlacement,
+            releaseYearPlacement
+        )
+    }
+
+    /**
+     * Synchronously gets a song placement object from a song's data.
+     * Contains placement information for various rankings.
+     * 
+     * @param {Object} songData The data for this song (raw from the database).
+     * @param {SongViews} [songViews] Optional. The views data for this song.
+     * @returns {SongPlacement|null} The built SongPlacement object
+     */
+    #getSongPlacementSync(
+        songData,
+        songViews
+    ) {
+        if (!songViews) {
+            songViews = this.#getSongViewsSync(songData.id)
+        }
+        if (!songViews) {
+            return null
+        }
+
+        let allTimePlacement
+        // get all time placement
+        {
+            // get placement
+            const allTimePlacementFilterParams = new RankingsFilterParams()
+            allTimePlacementFilterParams.minViews = songViews.total
+
+            allTimePlacement = this.#filterRankingsCountSync(this.#getFilterRankingsQueryParams(allTimePlacementFilterParams))
+        }
+
+        // get release year placement
+        let releaseYearPlacement
+        {
+            
+            const releaseYear = (new Date(songData.publish_date)).getFullYear() + "%"
+            // get placement
+            const releaseYearPlacementFilterParams = new RankingsFilterParams()
+            releaseYearPlacementFilterParams.minViews = songViews.total
+            releaseYearPlacementFilterParams.publishDate = releaseYear
+
+            releaseYearPlacement = this.#filterRankingsCountSync(this.#getFilterRankingsQueryParams(releaseYearPlacementFilterParams))
+        }
+
+        return this.#buildSongPlacement(
+            allTimePlacement || 0,
+            releaseYearPlacement || 0
+        )
+    }
+
+    /**
      * Synchronously gets the song associated with the provided song id.
      * Returns null if the song does not exist.
      * 
@@ -286,12 +356,16 @@ module.exports = class SongsDataProxy {
             artists.push(artist)
         }
 
+        const songViews = getViews ? this.#getSongViewsSync(songId) : null
+        const songPlacement = songViews ? this.#getSongPlacementSync(songData, songViews) : null
+
         return this.#buildSong(
             songData,
             songNames,
             artists,
             songVideoIds,
-            getViews ? this.#getSongViewsSync(songId) : null
+            songViews,
+            songPlacement
         )
     }
 
@@ -375,24 +449,29 @@ module.exports = class SongsDataProxy {
             direction: filterParams.direction?.id,
             singleVideo: filterParams.singleVideo && 1,
             maxEntries: filterParams.maxEntries,
-            startAt: filterParams.startAt
+            startAt: filterParams.startAt,
+            minViews: filterParams?.minViews,
+            maxViews: filterParams?.maxViews,
+            countMode: filterParams.countMode && 1,
         }
 
-        // build artists statement
-        const filterParamsArtists = filterParams.artists
-        let filterArtists = ''
-        if (filterParamsArtists) {
-            const artists = []
-            for (const [n, artistId] of filterParamsArtists.entries()) {
-                const key = `artist${n}`
-                artists.push(`:${key}`)
-                queryParams[key] = artistId
+        const buildInStatement = (values, prefix = '') => {
+            const stringBuilder = []
+            for (const [n, value] of values.entries()) {
+                const key = `${prefix}${n}`
+                stringBuilder.push(`:${key}`)
+                queryParams[key] = value
             }
-            filterArtists = artists.join(',')
+            return stringBuilder.join(',')
         }
 
+        // prepare build statements
+        const filterParamsArtists = filterParams.artists
+        const filterParamsSongs = filterParams.songs
+        
         return {
-            filterArtists: filterArtists,
+            filterArtists: filterParamsArtists ? buildInStatement(filterParamsArtists, 'artist') : '',
+            filterSongs: filterParamsSongs ? buildInStatement(filterParamsSongs, 'song') : '',
             params: queryParams
         }
     }
@@ -405,8 +484,12 @@ module.exports = class SongsDataProxy {
      */
     #filterRankingsCountSync(queryParams) {
         const filterArtists = queryParams.filterArtists
+        const filterSongs = queryParams.filterSongs
+
+        const filterArtistsStatement = filterArtists == '' ? '' : ` AND (songs_artists.artist_id IN (${filterArtists}) OR artists.base_artist_id IN (${filterArtists}))`
+        const filterSongsStatement = filterSongs == '' ? '' : ` AND (songs.id IN (${filterSongs}))`
         return this.db.prepare(`
-        SELECT count(DISTINCT views_breakdowns.song_id) AS count
+        SELECT views_breakdowns.song_id
         FROM views_breakdowns
         INNER JOIN songs ON views_breakdowns.song_id = songs.id
         INNER JOIN songs_artists ON songs_artists.song_id = views_breakdowns.song_id
@@ -432,12 +515,17 @@ module.exports = class SongsDataProxy {
                         AND (sub_vb.song_id = views_breakdowns.song_id)
                         AND (songs.song_type = :songType OR :songType IS NULL)
                         AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
-                        AND (artists.artist_type = :artistType OR :artistType IS NULL)
-                        ${filterArtists == '' ? '' : `AND (songs_artists.artist_id IN (${filterArtists}) OR artists.base_artist_id IN (${filterArtists}))`}
+                        AND (artists.artist_type = :artistType OR :artistType IS NULL)${filterArtistsStatement}${filterSongsStatement}
                     GROUP BY sub_vb.song_id)
-                END)
-            ${filterArtists == '' ? '' : `AND (songs_artists.artist_id IN (${filterArtists}) OR artists.base_artist_id IN (${filterArtists}))`}
-        `).get(queryParams.params)?.count
+                END)${filterArtistsStatement}${filterSongsStatement}
+        GROUP BY views_breakdowns.song_id
+        HAVING (CASE WHEN :minViews IS NULL
+            THEN 1
+            ELSE SUM(DISTINCT views_breakdowns.views) >= :minViews END)
+            AND (CASE WHEN :maxViews IS NULL
+                THEN 1
+                ELSE SUM(DISTINCT views_breakdowns.views) <= :maxViews END)
+        `).all(queryParams.params)?.length || 0
     }
 
     /**
@@ -450,12 +538,16 @@ module.exports = class SongsDataProxy {
      */
     #filterRankingsRawSync(queryParams) {
         const filterArtists = queryParams.filterArtists
+        const filterSongs = queryParams.filterSongs
+
+        const filterArtistsStatement = filterArtists == '' ? '' : ` AND (songs_artists.artist_id IN (${filterArtists}) OR artists.base_artist_id IN (${filterArtists}))`
+        const filterSongsStatement = filterSongs == '' ? '' : ` AND (songs.id IN (${filterSongs}))`
         return this.db.prepare(`
         SELECT DISTINCT views_breakdowns.song_id,
             SUM(DISTINCT views_breakdowns.views) - CASE WHEN :timePeriodOffset IS NULL
                 THEN 0
                 ELSE ifnull((
-                    SELECT SUM(DISTINCT offset_breakdowns.views)
+                    SELECT SUM(DISTINCT offset_breakdowns.views) AS offset_views
                     FROM views_breakdowns AS offset_breakdowns
                     INNER JOIN songs ON songs.id = offset_breakdowns.song_id
                     INNER JOIN songs_artists ON songs_artists.song_id = offset_breakdowns.song_id
@@ -482,11 +574,9 @@ module.exports = class SongsDataProxy {
                                     AND (offset_sub_breakdowns.song_id = offset_breakdowns.song_id)
                                     AND (songs.song_type = :songType OR :songType IS NULL)
                                     AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
-                                    AND (artists.artist_type = :artistType OR :artistType IS NULL)
-                                    ${filterArtists == '' ? '' : `AND (songs_artists.artist_id IN (${filterArtists}) OR artists.base_artist_id IN (${filterArtists}))`}
+                                    AND (artists.artist_type = :artistType OR :artistType IS NULL)${filterArtistsStatement}${filterSongsStatement}
                                 GROUP BY offset_sub_breakdowns.song_id)
-                            END)
-                        ${filterArtists == '' ? '' : `AND (songs_artists.artist_id IN (${filterArtists}) OR artists.base_artist_id IN (${filterArtists}))`}
+                            END)${filterArtistsStatement}${filterSongsStatement}
                     GROUP BY offset_breakdowns.song_id
                 ),0)
             END AS total_views
@@ -515,12 +605,16 @@ module.exports = class SongsDataProxy {
                         AND (sub_vb.song_id = views_breakdowns.song_id)
                         AND (songs.song_type = :songType OR :songType IS NULL)
                         AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
-                        AND (artists.artist_type = :artistType OR :artistType IS NULL)
-                        ${filterArtists == '' ? '' : `AND (songs_artists.artist_id IN (${filterArtists}) OR artists.base_artist_id IN (${filterArtists}))`}
+                        AND (artists.artist_type = :artistType OR :artistType IS NULL)${filterArtistsStatement}${filterSongsStatement}
                     GROUP BY sub_vb.song_id)
-                END)
-            ${filterArtists == '' ? '' : `AND (songs_artists.artist_id IN (${filterArtists}) OR artists.base_artist_id IN (${filterArtists}))`}
+                END)${filterArtistsStatement}${filterSongsStatement}
         GROUP BY views_breakdowns.song_id
+        HAVING (CASE WHEN :minViews IS NULL
+            THEN 1
+            ELSE total_views >= :minViews END)
+            AND (CASE WHEN :maxViews IS NULL
+                THEN 1
+                ELSE total_views <= :maxViews END)
         ORDER BY
             CASE WHEN :direction = 0 THEN 1
             ELSE
