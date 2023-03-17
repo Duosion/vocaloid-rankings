@@ -72,6 +72,8 @@
     "song_daily_views": "Daily Views",
     "song_video": "Video",
     "song_listen": "Listen",
+    "song_placement_all_time": "#:placement Highest Views All Time",
+    "song_placement_release_year": "#:placement Highest Views :releaseYear",
     "name_type_original": "Original",
     "name_type_japanese": "Japanese",
     "name_type_english": "English",

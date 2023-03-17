@@ -24,6 +24,10 @@
     padding: 20px;
 }
 
+#quick-filter-container {
+    text-align: center;
+}
+
 .filter-dataset {
     width: fit-content;
 }

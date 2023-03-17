@@ -72,6 +72,8 @@
     "song_daily_views": "日別回視聴生回数",
     "song_video": "ビデオ",
     "song_listen": "聴く",
+    "song_placement_all_time": "#:placement 史上最高再生回数",
+    "song_placement_release_year": "#:placement :releaseYear年の最高再生回数",
     "name_type_original": "オリジナル",
     "name_type_japanese": "日本語",
     "name_type_english": "英語",

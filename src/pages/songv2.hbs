@@ -11,9 +11,7 @@
 </div>
 <div id="song-info-header" class="on-surface-text">
   <div id="song-info-header-content">
-    <a id="home-button" class="filled-tonal icon-button floating" href="{{referer}}">
-      <span class="material-symbols-rounded">arrow_back</span>
-    </a>
+    {{> back-button referer=referer class='filled-tonal' id='home-button'}}
     <img class="song-info-cover" src="{{songData.maxresThumbnail}}">
     <div class="display-small title text-centered">{{songData.preferredName}}</div>
     <div class="headline-small bold text-centered">{{longFormat songData.views.total}} {{localization.rankings_views}}
@@ -23,10 +21,14 @@
 <div id="song-info-container">
 
   <div id="song-info-sidebar">
-
-    {{!<div class="clickable-sidebar-card body-medium on-surface-text text-centered">
-      #0 Most Viewed All Time
-    </div>}}
+    <div id="song-sidebar-placements">
+      {{#each displayPlacements}}
+        <a class="placement-card {{type}} outgoing-link clickable-sidebar-card text-centered body-small on-surface-text" href="{{url}}">
+          <span class="material-symbols-rounded">star</span>
+          <div>{{text}}</div>
+        </a>
+      {{/each}}
+    </div>
 
     <div id="song-sidebar-info" class="sidebar-card body-medium on-surface-text">
       <div class="sidebar-card-dataset">
@@ -39,7 +41,7 @@
       </div>
       <div class="sidebar-card-dataset">
         <div class="title">Song Type</div>
-        <a class="value" href="../rankings/filter/set?songType={{songData.type.id}}">{{localize songData.type.name}}</a>
+        <a class="value" href="/rankings/filter/set?songType={{songData.type.id}}">{{localize songData.type.name}}</a>
       </div>
       {{#each displayNames}}
       <div class="sidebar-card-dataset">

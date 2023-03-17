@@ -323,6 +323,7 @@ const getSong = async (request, reply) => {
     preferredLanguage: NameType.fromId(parsedCookies.titleLanguage),
   })
     .catch(msg => {
+      console.log(msg)
       reply.send({ code: 404, message: msg })
       return;
     })
@@ -376,6 +377,34 @@ const getSong = async (request, reply) => {
       }
     }
     hbParams.displayVideoIds = displayVideoIds
+  }
+
+  // get placement display data
+  {
+    const displayPlacements = []
+
+    // all time
+    {
+      const allTimePlacement = songData.placement.allTime
+      const toFormat = hbParams.localization.song_placement_all_time
+      displayPlacements.push({
+        type: "views",
+        url: "/rankings/filter/set?startAt=" + (allTimePlacement - 1),
+        text: toFormat.replace(':placement', allTimePlacement)
+      })
+    }
+
+    //release year
+    {
+      const releaseYear = new Date(songData.publishDate).getFullYear()
+      const toFormat = hbParams.localization.song_placement_release_year
+      displayPlacements.push({
+        type: "views",
+        url: `/rankings/filter/set?publishDate=${releaseYear}`,
+        text: toFormat.replace(':placement', songData.placement.releaseYear).replace(':releaseYear', releaseYear)
+      })
+    }
+    hbParams.displayPlacements = displayPlacements
   }
 
   return reply.view("pages/songv2.hbs", hbParams)

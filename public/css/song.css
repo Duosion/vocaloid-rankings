@@ -100,10 +100,6 @@
   flex-direction: column;
 }
 
-.sidebar-card-dataset {
-  width: 100%;
-}
-
 .sidebar-card-dataset .title {
   padding-bottom: 5px;
   font-weight: bold;
@@ -391,6 +387,23 @@
   box-sizing: border-box;
 }
 
+/* placement cards */
+
+#song-sidebar-placements {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.placement-card div {
+  flex: 1;
+  color: inherit;
+}
+
+.placement-card.views .material-symbols-rounded {
+  color: var(--md-sys-color-secondary);
+}
+
 /* media queries */
 @media (min-width: 1320px) {
   .content-grid {
@@ -435,6 +448,15 @@
   #song-sidebar-info {
     overflow: scroll hidden;
     flex-direction: row;
+  }
+
+  #song-sidebar-placements {
+    flex-direction: row;
+    overflow: scroll hidden;
+  }
+
+  .placement-card {
+    white-space: nowrap;
   }
 
   .sidebar-card-dataset {
