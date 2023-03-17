@@ -26,7 +26,6 @@ module.exports = class RankingsFilterParams {
      * @param {number[]} [songs] An array of song IDs. If provided, only returns rankings results with songs that contain the provided song ids.
      * @param {number} [minViews] The minimum amount of views a song must have to be included in the result.
      * @param {number} [maxViews] The maximum amount of views a song must have to be included in the result.
-     * @param {boolean} [countMode] Whether to enable count mode. (Gets the number of songs that meet the provided threshold)
      */
     constructor(
         timestamp,
@@ -46,7 +45,6 @@ module.exports = class RankingsFilterParams {
         songs,
         minViews,
         maxViews,
-        countMode,
     ) {
         this.timestamp = timestamp
         this.timePeriodOffset = timePeriodOffset
@@ -65,6 +63,5 @@ module.exports = class RankingsFilterParams {
         this.songs = songs
         this.minViews = minViews
         this.maxViews = maxViews
-        this.countMode = countMode
     }
 }

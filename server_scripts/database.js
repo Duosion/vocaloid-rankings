@@ -858,7 +858,6 @@ exports.populateArtists = populateArtists
     const views = result.results[0].views
     const filter = new RankingsFilterParams()
     filter.minViews = views
-    filter.countMode = true
 
     database.songsData.filterRankings(filter).then(finalResult => {
       console.timeEnd('filtered rankings')
