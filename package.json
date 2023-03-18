@@ -23,8 +23,7 @@
     "node-fetch": "2.6.7",
     "node-schedule": "^1.3.3",
     "xxhash-wasm": "^1.0.1",
-    "@importantimport/material-color-utilities": "0.2.1-alpha.0",
-    "fastest-levenshtein": "^1.0.16"
+    "@importantimport/material-color-utilities": "0.2.1-alpha.0"
   },
   "engines": {
     "node": "19.x"
