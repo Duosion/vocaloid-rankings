@@ -28,7 +28,8 @@ const databases = [
         /*verbose: (output) => {
             console.log(output)
         },*/
-        init: (db, exists) => require("./dbInitializers/songs_data.js")(db, exists)
+        init: (db, exists) => require("./dbInitializers/songs_data.js")(db, exists),
+        extensions: [process.cwd() + "/db/extensions/spellfix.dll"]
     },
     {
         name: "analytics",
@@ -70,6 +71,16 @@ for (const [_, dbInfo] of databases.entries()) {
     // set pragma
     const pragma = dbInfo.pragma
     if (pragma) { db.pragma(dbPragmas[pragma] || pragma); }
+
+    // load extensions
+    const extensions = dbInfo.extensions
+    if (extensions) {
+        for (const [_, path] of extensions.entries()) {
+            console.log(path)
+            db.loadExtension(path)
+        }
+    }
+
     // call init function
     const init = dbInfo.init
     if (init) {
