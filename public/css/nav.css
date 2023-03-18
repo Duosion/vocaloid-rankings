@@ -89,7 +89,7 @@
     height: 100%;
 }
 
-#nav-search-form,
+/*#nav-search-form,
 #nav-drawer-search-form {
     flex: 1;
     max-width: 300px;
@@ -119,7 +119,7 @@
     border-radius: 0px 60px 60px 0px;
     padding: 0px 15px;
     color: inherit
-}
+}*/
 
 .nav-column-group {
     color: var(--md-sys-color-on-surface);

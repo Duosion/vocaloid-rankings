@@ -208,66 +208,6 @@ body {
       margin-bottom: 0px;
   }
 
-/* buttons 
-button, a.button-link {
-  
-  transition-property: filter, color, background-color;
-  transition-duration: var(--transition-duration);
-  
-}
-
-button.rounded-button, 
-a.button-link.rounded-button {
-  
-  border: none;
-  
-  background-color: var(--md-sys-color-inverse-surface);
-  color: var(--md-sys-color-inverse-on-surface);
-  
-  padding: 5px 5px;
-  
-  border-radius: 50px;
-  
-}
-
-button.rounded-button:hover, 
-a.button-link.rounded-button:hover {
-  
-  filter: brightness(0.8);
-  cursor: pointer;
-  
-}
-
-
-a.button-link {
-  text-decoration: none;
-  text-align: center;
-}
-
-button.selection-button, a.button-link.selection-button {
-  
-  border: 1px solid var(--hover-color);
-  padding: 5px;
-  
-  background-color: var(--body-color-2);
-  color: var(--text-color)
-  
-}
-
-button.selection-button.active, a.button-link.selection-button.active {
-  
-  background-color: var(--text-color);
-  color: var(--body-color-2)
-  
-}
-
-button:hover:not(.active):not(.rounded-button), 
-a.button-link:hover:not(.active):not(.rounded-button) {
-  background-color: var(--md-sys-color-surface-variant);
-  cursor: pointer
-  
-}*/
-
   /* floating button */
 
   .floating {
@@ -664,6 +604,31 @@ select option {
 }
 select::-ms-expand {
   display: none;
+}
+
+/* search bar */
+.search-bar {
+  background-color: var(--md-sys-color-background);
+  padding: 0px 15px;
+  box-sizing: border-box;
+  border: none;
+  border-radius: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.search-query {
+  border: none;
+  background-color: transparent;
+  height: 100%;
+  flex: 1;
+}
+
+.search-submit {
+  height: 100%;
+  aspect-ratio: 1/1;
 }
 
 /* misc */
