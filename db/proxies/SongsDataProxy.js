@@ -19,6 +19,10 @@ const ArtistsRankingsFilterParams = require("../dataClasses/ArtistsRankingsFilte
 const ArtistsRankingsFilterResultItem = require("../dataClasses/ArtistsRankingsFilterResultItem")
 const ArtistsRankingsFilterResult = require("../dataClasses/ArtistsRankingsFilterResult")
 const SongPlacement = require("../dataClasses/SongPlacement")
+const SearchQueryParams = require("../dataClasses/SearchQueryParams")
+const SearchQueryResult = require("../dataClasses/SearchQueryResult")
+const SearchQueryResultItem = require("../dataClasses/SearchQueryResultItem")
+const SearchQueryResultItemType = require("../enums/SearchQueryResultItemType")
 
 function generateISOTimestamp() {
     return new Date().toISOString()
@@ -973,6 +977,138 @@ module.exports = class SongsDataProxy {
         return historicalViews
     }
 
+    /**
+     * Builds a search query result item using a placement, type, and ID
+     * 
+     * @param {number} placement 
+     * @param {number} type
+     * @param {number} id 
+     * @param {number} distance
+     * @returns {SearchQueryResultItem} The built result item
+     */
+    #buildSearchQueryResultItem(
+        placement,
+        type,
+        id,
+        distance
+    ) {
+        type = SearchQueryResultItemType.values[type]
+        return new SearchQueryResultItem(
+            placement,
+            type,
+            type == SearchQueryResultItemType.Song ? this.#getSongSync(id, false) : this.#getArtistSync(id),
+            distance
+        )
+    }
+
+    /**
+     * Converts the complex SearchQueryParams object into a plain object for use with the database.
+     * 
+     * @param {SearchQueryParams} complexParams 
+     * @returns {Object}
+     */
+    #getSearchQueryPlainParams(
+        complexParams
+    ) {
+        return {
+            query: complexParams.query,
+            maxEntries: complexParams.maxEntries,
+            startAt: complexParams.startAt,
+            minimumDistance: complexParams.minimumDistance,
+            maximumDistance: complexParams.maximumDistance
+        }
+    }
+
+    /**
+     * Synchronously performs a search query based on the provided parameters.
+     * Returns a SearchQueryResult with the raw search query result.
+     * 
+     * @param {Object} params The plain parameters to perform this query with.
+     * @returns {Object[]} The raw search query result.
+     */
+    #searchQueryRawSync(
+        params
+    ) {
+        return this.db.prepare(`
+        SELECT DISTINCT 0 AS type,
+            song_id AS id,
+            (CASE WHEN name LIKE '%' || :query || '%'
+                THEN 0
+                ELSE editdist3(lower(:query), lower(name)) END) AS distance
+        FROM songs_names
+        WHERE distance >= :minimumDistance
+            AND distance <= :maximumDistance
+        UNION
+        SELECT DISTINCT 1 AS type,
+            artist_id AS id, 
+            (CASE WHEN name LIKE '%' || :query || '%'
+                THEN 0
+                ELSE editdist3(lower(:query), lower(name)) END) AS distance
+        FROM artists_names
+        WHERE distance >= :minimumDistance
+            AND distance <= :maximumDistance
+        ORDER BY distance ASC 
+        LIMIT :maxEntries
+        OFFSET :startAt`).all(params)
+    }
+
+    /**
+     * Calculates and returns the total possible number of results that a search query with the provided parameters can return.
+     * 
+     * @param {Object} params The plain parameters to perform this query with.
+     * @returns {number} The number of possible results.
+     */
+    #getSearchQueryCountSync(
+        params
+    ) {
+        return this.db.prepare(`
+        SELECT COUNT(DISTINCT song_id) AS count,
+            (CASE WHEN name LIKE '%' || :query || '%'
+                THEN 0
+                ELSE editdist3(lower(:query), lower(name)) END) AS distance
+        FROM songs_names
+        WHERE distance >= :minimumDistance
+            AND distance <= :maximumDistance
+        UNION
+        SELECT COUNT(DISTINCT artist_id) AS count,
+            (CASE WHEN name LIKE '%' || :query || '%'
+                THEN 0
+                ELSE editdist3(lower(:query), lower(name)) END) AS distance
+        FROM artists_names
+        WHERE distance >= :minimumDistance
+            AND distance <= :maximumDistance`).get(params)?.count || 0
+    }
+
+    /**
+     * Synchronously performs a search query based on the provided parameters.
+     * Returns a SearchQueryResult with the search query result.
+     * 
+     * @param {SearchQueryParams} params The parameters to perform this query with.
+     * @returns {SearchQueryResult} The search query result.
+     */
+    #searchQuerySync(
+        params
+    ) {
+        const plainParams = this.#getSearchQueryPlainParams(params)
+        const rawResults = this.#searchQueryRawSync(plainParams)
+
+        const results = []
+
+        for (const [n, searchResultData] of rawResults.entries()) {
+            results.push(this.#buildSearchQueryResultItem(
+                n + params.startAt,
+                searchResultData.type,
+                searchResultData.id,
+                searchResultData.distance
+            ))
+        }
+
+        return new SearchQueryResult(
+            this.#getSearchQueryCountSync(plainParams),
+            results
+        )
+    }
+
     // public functions
 
     /**
@@ -1122,6 +1258,24 @@ module.exports = class SongsDataProxy {
         return new Promise((resolve, reject) => {
             try {
                 resolve(this.#getSongHistoricalViewsSync(id, range, period, timestamp))
+            } catch (error) {
+                reject(error)
+            }
+        })
+    }
+
+    /**
+     * Performs a search query using the provided SearchQueryParams and returns the resulting SearchQueryResult.
+     * 
+     * @param {SearchQueryParams} params 
+     * @returns {SearchQueryResult}
+     */
+    searchQuery(
+        params
+    ) {
+        return new Promise((resolve, reject) => {
+            try {
+                resolve(this.#searchQuerySync(params))
             } catch (error) {
                 reject(error)
             }

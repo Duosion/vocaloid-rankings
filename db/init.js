@@ -76,7 +76,6 @@ for (const [_, dbInfo] of databases.entries()) {
     const extensions = dbInfo.extensions
     if (extensions) {
         for (const [_, path] of extensions.entries()) {
-            console.log(path)
             db.loadExtension(path)
         }
     }

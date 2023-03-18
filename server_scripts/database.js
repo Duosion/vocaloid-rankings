@@ -23,6 +23,7 @@ const ArtistsRankingsFilterParams = require("../db/dataClasses/ArtistsRankingsFi
 const FilterDirection = require("../db/enums/FilterDirection");
 const FilterOrder = require("../db/enums/FilterOrder");
 const RankingsFilterParams = require("../db/dataClasses/RankingsFilterParams");
+const SearchQueryParams = require("../db/dataClasses/SearchQueryParams");
 
 // file locations
 const databaseFilePath = process.cwd() + "/database"
@@ -890,3 +891,15 @@ exports.populateArtists = populateArtists
     });
   })
 }, 1000)*/
+setTimeout(() => {
+  console.time("search query")
+  database.songsData.searchQuery(new SearchQueryParams(
+    'emptiness'
+  )).then(result => {
+    console.timeEnd("search query")
+    console.log("total: " + result.totalCount)
+    result.results.forEach(resultItem => {
+      console.log(resultItem.placement, resultItem.type.name, resultItem.data.id, resultItem.distance)
+    })
+  })
+}, 1000)
