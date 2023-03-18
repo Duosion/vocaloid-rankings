@@ -891,10 +891,10 @@ exports.populateArtists = populateArtists
     });
   })
 }, 1000)*/
-setTimeout(() => {
+/*setTimeout(() => {
   console.time("search query")
   database.songsData.searchQuery(new SearchQueryParams(
-    'emptiness'
+    'かご め'
   )).then(result => {
     console.timeEnd("search query")
     console.log("total: " + result.totalCount)
@@ -902,4 +902,4 @@ setTimeout(() => {
       console.log(resultItem.placement, resultItem.type.name, resultItem.data.id, resultItem.distance)
     })
   })
-}, 1000)
+}, 1000)*/

@@ -407,7 +407,7 @@ const getSong = async (request, reply) => {
     hbParams.displayPlacements = displayPlacements
   }
 
-  return reply.view("pages/songv2.hbs", hbParams)
+  return reply.view("pages/song.hbs", hbParams)
 }
 
 exports.prefix = "/song"
