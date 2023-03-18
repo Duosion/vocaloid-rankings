@@ -16,7 +16,6 @@ const databaseProxy = require(customModuleDirectory + "database")
 const { generateTimestamp, caches } = require(customModuleDirectory + "shared")
 
 const database = require("./db")
-const { addSongFromScraperData } = require(customModuleDirectory + "database")
 
 // fastify stuff
 fastify.register(require("@fastify/static"), {
@@ -130,13 +129,13 @@ if (seo.url === "glitch-default") {
     "rankings", // the rankings page
     "settings", // settings
     "song", // song pages (add/view)
+    "search" // search page
   ]
 
   pageScripts.forEach(path => {
     const module = require(pagesDirectory + path);
 
     fastify.register(module.register, { prefix: module.prefix || "/" })
-
   });
 }
 

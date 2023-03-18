@@ -5,8 +5,7 @@ const scraper = require(modulePath + "/scraper")
 const database = require(workingDirectory + "/db")
 const databaseProxy = require(modulePath + "/database")
 
-const { getAverageColor } = require("fast-average-color-node")
-const { argbFromHex, themeFromSourceColor, applyTheme, hexFromArgb, redFromArgb, greenFromArgb, blueFromArgb } = require("@importantimport/material-color-utilities");
+const { argbFromHex, themeFromSourceColor, hexFromArgb, redFromArgb, greenFromArgb, blueFromArgb } = require("@importantimport/material-color-utilities");
 const SongViews = require("../../../db/dataClasses/SongViews")
 const ViewType = require("../../../db/enums/ViewType")
 const NameType = require("../../../db/enums/NameType")
@@ -15,7 +14,6 @@ const { getPreferredLanguageName } = require(modulePath + "/locale")
 
 // initialize caches
 const songsDataCache = caches.songsDataCache
-const historicalCache = caches.historicalCache
 
 // data
 
@@ -182,44 +180,6 @@ const querySongsDatabaseAsync = (queryData) => {
   })
 }
 
-const getHistoricalDataAsync = (queryData) => {
-  return new Promise(async (resolve, reject) => {
-    // hash query data & check for cache
-    const queryHash = (await getHasherAsync())(JSON.stringify(queryData))
-    {
-      // check for cache
-      const cachedData = historicalCache.get(queryHash)
-      if (cachedData) {
-        resolve(cachedData.getData())
-        return;
-      }
-    }
-
-    // get data
-    const data = await databaseProxy.getHistoricalData(queryData)
-
-    var highestViews = 1
-
-    data.forEach(entry => {
-      const date = new Date(entry.timestamp)
-
-      const dateString = `${(date.getMonth() + 1).toString().padStart(2, "0")}/${date.getDate().toString().padStart(2, "0")}`
-
-      highestViews = Math.max(highestViews, entry.total)
-
-      entry.dateString = dateString
-    })
-
-    //calculate share
-    data.forEach(entry => {
-      entry.share = entry.total / highestViews
-    })
-
-    resolve(data)
-
-  })
-}
-
 const getRgbMdTokenFromArgb = (argb, suffix = '') => {
   return `--md-sys-color-${suffix}-rgb: ${redFromArgb(argb)} ${greenFromArgb(argb)} ${blueFromArgb(argb)};`
 }
@@ -324,7 +284,7 @@ const getSong = async (request, reply) => {
   })
     .catch(msg => {
       console.log(msg)
-      reply.send({ code: 404, message: msg })
+      reply.send({ code: 400, message: msg.message })
       return;
     })
   hbParams['songData'] = songData
@@ -365,9 +325,13 @@ const getSong = async (request, reply) => {
       if (videoIds) {
         const displayData = viewTypesDisplayData[videoType]
         if (displayData) {
+          const hrefs = []
+          videoIds.forEach(id => {
+            hrefs.push(displayData.videoURL.replace('{VideoID}', id))
+          })
           displayVideoIds[videoType] = {
             displayData: displayData,
-            ids: videoIds
+            hrefs: hrefs
           }
         }
         // add youtube player

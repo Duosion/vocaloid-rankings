@@ -11,7 +11,7 @@ module.exports = class SearchQueryParams {
      */
     constructor(
         query,
-        maxEntries = 50,
+        maxEntries = 25,
         startAt = 0,
         minimumDistance = 0,
         maximumDistance = 1000

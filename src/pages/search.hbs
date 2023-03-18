@@ -1,0 +1,62 @@
+<link rel="stylesheet" href="/css/search.css">
+<link rel="stylesheet" href="/css/rankings.css">
+
+<style>
+@media (prefers-color-scheme: dark) {
+    {{#each queryResult.results}}
+        {{#if isSong}} 
+            #e{{placement}} .title .main-title:hover {
+                color: {{data.darkColor}}
+            }
+        {{/if}}
+    {{/each}}
+}
+
+@media (prefers-color-scheme: light) {
+    {{#each queryResult.results}} 
+        {{#if isSong}} 
+            #e{{placement}} .title .main-title:hover {
+                color: {{data.lightColor}}
+            }
+        {{/if}}
+    {{/each}}
+}
+</style>
+
+<div id="search-header">
+    <div id="search-header-top" class="on-background-text">
+        <button onclick="history.back()" class="icon-button back-button">
+            <span class="material-symbols-rounded">arrow_back</span>
+        </button>
+        <div class="on-background-text headline-small">Search</div>
+    </div>
+    <form id="search-form" action="/search" method="get" target="_self">
+        {{> search-bar placeholder=localization.search_hint value=searchQuery}}
+    </form>
+</div>
+
+<div id="search-results">
+    {{#if emptyResultsSet}}
+        <div id="no-results-text" class="on-background-text headline-small">{{localization.search_no_results}}</div>
+    {{else}}
+        {{#each queryResult.results}}
+            {{#if isSong}}
+                <div id="e{{placement}}" class="rankings-entry">
+                    <a class="cover" style="background-image:url({{data.thumbnail}})" href="song/{{data.id}}?referer=/search"></a>
+                    <div class="title">
+                        <a class="main-title title-medium-large" href="song/{{data.id}}?referer=/search">{{preferredName}}</a>
+                        <div class="label title-small">{{../localization.search_song}}</div>
+                    </div>
+                </div>
+            {{else}}
+                <div id="e{{placement}}" class="rankings-entry">
+                    <a class="cover type-0" style="background-image:url({{data.thumbnails.[3].url}})" href="/artist/{{data.id}}?referer=/search"></a>
+                    <div class="title">
+                        <a class="main-title title-medium-large" href="/artist/{{data.id}}?referer=/search">{{preferredName}}</a>
+                        <div class="label title-small">{{../localization.search_artist}}</div>
+                    </div>
+                </div>
+            {{/if}}
+        {{/each}}
+    {{/if}}
+</div>
