@@ -4,21 +4,17 @@
 <style>
 @media (prefers-color-scheme: dark) {
     {{#each queryResult.results}}
-        {{#if isSong}} 
-            #e{{placement}} .title .main-title:hover {
-                color: {{data.darkColor}}
-            }
-        {{/if}}
+        #e{{placement}} .title .main-title:hover {
+            color: {{data.darkColor}}
+        }
     {{/each}}
 }
 
 @media (prefers-color-scheme: light) {
-    {{#each queryResult.results}} 
-        {{#if isSong}} 
-            #e{{placement}} .title .main-title:hover {
-                color: {{data.lightColor}}
-            }
-        {{/if}}
+    {{#each queryResult.results}}             
+        #e{{placement}} .title .main-title:hover {
+            color: {{data.lightColor}}
+        }
     {{/each}}
 }
 </style>
@@ -28,7 +24,7 @@
         <button onclick="history.back()" class="icon-button back-button">
             <span class="material-symbols-rounded">arrow_back</span>
         </button>
-        <div class="on-background-text headline-small">Search</div>
+        <div class="on-background-text headline-small">{{localization.search_hint}}</div>
     </div>
     <form id="search-form" action="/search" method="get" target="_self">
         {{> search-bar placeholder=localization.search_hint value=searchQuery}}
@@ -45,7 +41,15 @@
                     <a class="cover" style="background-image:url({{data.thumbnail}})" href="song/{{data.id}}?referer=/search"></a>
                     <div class="title">
                         <a class="main-title title-medium-large" href="song/{{data.id}}?referer=/search">{{preferredName}}</a>
-                        <div class="label title-small">{{../localization.search_song}}</div>
+                        <div class="label song title-small">{{../localization.search_song}}</div>
+                    </div>
+                    <div class="placements">
+                        {{#each placements}}
+                            <div class="placement">
+                                <div class="rank title-large">#{{placement}}</div>
+                                <div class="label title-small">{{localize text}}</div>
+                            </div>
+                        {{/each}}
                     </div>
                 </div>
             {{else}}
@@ -53,10 +57,39 @@
                     <a class="cover type-0" style="background-image:url({{data.thumbnails.[3].url}})" href="/artist/{{data.id}}?referer=/search"></a>
                     <div class="title">
                         <a class="main-title title-medium-large" href="/artist/{{data.id}}?referer=/search">{{preferredName}}</a>
-                        <div class="label title-small">{{../localization.search_artist}}</div>
+                        <div class="label artist title-small">{{../localization.search_artist}}</div>
                     </div>
                 </div>
             {{/if}}
         {{/each}}
     {{/if}}
+    <div id="page-selector-container">
+        {{#if previousPage}}
+        <a class="icon-button" href="{{previousPage}}">
+            <span class="material-symbols-rounded">arrow_back</span>
+        </a>
+        {{/if}}
+        {{#if firstPage}}
+        <a class="outlined icon-button offset-jump-button" href="{{firstPage}}">
+            <div class="title-medium-large">1</div>
+        </a>
+        <span class="material-symbols-rounded offset-jump-icon">more_horiz</span>
+        {{/if}}
+        {{#each surroundingPages}}
+        <a class="outlined icon-button {{#if (comp @index ../currentPageNumber)}}selected active{{/if}}" href="{{this}}">
+            <div class="title-medium-large">{{inc @index 1}}</div>
+        </a>
+        {{/each}}
+        {{#if lastPage}}
+        <span class="material-symbols-rounded offset-jump-icon">more_horiz</span>
+        <a class="outlined icon-button offset-jump-button" href="{{lastPage}}">
+            <div class="title-medium-large">{{lastPageNumber}}</div>
+        </a>
+        {{/if}}
+        {{#if nextPage}}
+        <a class="icon-button" href="{{nextPage}}">
+            <span class="material-symbols-rounded">arrow_forward</span>
+        </a>
+        {{/if}}
+    </div>
 </div>

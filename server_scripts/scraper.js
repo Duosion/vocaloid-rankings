@@ -210,6 +210,12 @@ const vocaDBPVPolls = {
     }
 }
 
+const vocaDbSongNameTypeMap = {
+    ['Japanese']: NameType.Japanese,
+    ['English']: NameType.English,
+    ['Romaji']: NameType.Romaji
+}
+
 /**
  * Gets a song's views
  * 
@@ -368,7 +374,7 @@ const processVocaDBArtistDataAsync = (artistData) => {
 
             // process thumbnails
             const thumbnails = []
-            var averageColor = null
+            let averageColor = null
 
             for (const [rawType, value] of Object.entries(artistData.mainPicture || {})) {
                 const type = vocaDBArtistThumbnailMap[rawType]
@@ -377,16 +383,20 @@ const processVocaDBArtistDataAsync = (artistData) => {
                     if (!averageColor) {
                         // do this so we only have to calculate the average color of an artist's thumbnail once
                         // (there are usually 4 thumbnails per artist, all the same, just downscaled from the original)
-                        averageColor = await getAverageColorAsync(value)
+                        averageColor = (await getAverageColorAsync(value)).hex
                     }
 
                     thumbnails[type.id] = new ArtistThumbnail(
                         type,
-                        value,
-                        averageColor.hex
+                        value
                     )
                 }
             }
+
+            averageColor = averageColor || "#ffffff"
+
+            const theme = themeFromSourceColor(argbFromHex(averageColor))
+            const colorSchemes = theme.schemes
 
             const artistIdNumber = Number(artistData.id)
 
@@ -398,7 +408,10 @@ const processVocaDBArtistDataAsync = (artistData) => {
                 new Date().toISOString(),
                 names,
                 thumbnails,
-                await database.songsData.getBaseArtist(artistIdNumber, names[NameType.Original.id])
+                await database.songsData.getBaseArtist(artistIdNumber, names[NameType.Original.id]),
+                averageColor,
+                hexFromArgb(colorSchemes.dark.props.primary),
+                hexFromArgb(colorSchemes.light.props.primary),
             ))
         } catch (error) {
             reject(error)
@@ -498,7 +511,7 @@ const processVocaDBSongDataAsync = (songData) => {
             const names = []
             names[NameType.Original.id] = songData.name // add original name
             for (const [_, name] of songData.names.entries()) {
-                const type = NameType.map[name.language]
+                const type = vocaDbSongNameTypeMap[name.language]
                 const id = type && type.id
                 if (id && !names[id]) {
                     names[id] = name.value
@@ -546,7 +559,11 @@ const processVocaDBSongDataAsync = (songData) => {
                         breakdownBucket[pvID] = views
                         totalViews += views
 
-                        videosThumbnails[pvTypeId] = viewsAndThumbnails
+                        // add to thumbnails
+                        const exists = videosThumbnails[pvTypeId]
+                        if (exists && (views > exists.views) || !exists) {
+                            videosThumbnails[pvTypeId] = viewsAndThumbnails
+                        }
                     }
                 }
 
@@ -562,7 +579,7 @@ const processVocaDBSongDataAsync = (songData) => {
             }
 
             // process average color
-            const averageColor = (await getAverageColorAsync(maxResThumbnail)).hex
+            const averageColor = (await getAverageColorAsync(maxResThumbnail)).hex || "#ffffff"
 
             // process dark and light colors
             // Get the theme from a hex color
@@ -597,7 +614,8 @@ const processVocaDBSongDataAsync = (songData) => {
                     null,
                     totalViews,
                     viewsBreakdown
-                )
+                ),
+                null
             ))
 
         } catch (error) {

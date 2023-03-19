@@ -27,7 +27,7 @@ exports.viewTypesDisplayData = [
   },
   {
     displayName: 'niconico',
-    videoURL: "https://www.youtube.com/watch?v={VideoID}",
+    videoURL: "https://www.nicovideo.jp/watch/{VideoID}",
     color: "#ffffff",
     colors: ['#ffffff', '#d5d5d5', '#bbbbbb', '#a5a5a5', '#888888'],
     textColor: '#000000',

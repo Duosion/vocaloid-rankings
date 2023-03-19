@@ -40,13 +40,27 @@ const querySearchAsync = (queryParams, options) => {
         const getPreferredName = (names) => {
           return getPreferredLanguageName(names, preferredLanguage)
         }
-    
+
         result.results.forEach(result => {
           const data = result.data
           switch (result.type) {
             case SearchQueryResultItemType.Song:
               result.preferredName = getPreferredName(data.names)
               result.isSong = true
+
+              // handle placement
+              {
+                const placements = []
+
+                // all time
+                placements.push({
+                  placement: data.placement.allTime,
+                  text: "search_placement_all_time"
+                })
+
+                result.placements = placements
+              }
+
               break
             case SearchQueryResultItemType.Artist:
               result.preferredName = getPreferredName(data.names)
@@ -74,7 +88,13 @@ const getSearchRoute = async (request, reply) => {
   const searchQuery = params.query || ''
   request.addHbParam('searchQuery', searchQuery)
 
-  const queryResult = await querySearchAsync(new SearchQueryParams(searchQuery), {
+  const queryParams = new SearchQueryParams(
+    searchQuery,
+    25,
+    Number.parseInt(params.startAt) || 0
+  )
+
+  const queryResult = await querySearchAsync(queryParams, {
     preferredLanguage: NameType.fromId(parsedCookies.titleLanguage)
   }).catch(error => {
     reply.send({ code: 400, message: error.message })
@@ -85,6 +105,47 @@ const getSearchRoute = async (request, reply) => {
 
   if (queryResult.results.length == 0) {
     request.addHbParam('emptyResultsSet', true)
+  }
+
+  // calculate pages
+  {
+    const hbParams = request.hbParams
+
+    const listLength = queryResult.totalCount
+    const currentPosition = queryParams.startAt
+    const pageLength = queryParams.maxEntries
+
+    const totalPages = Math.floor(listLength / pageLength)
+    const currentPage = Math.ceil(currentPosition / pageLength)
+
+    const surroundingPages = []
+    const searchPageURL = `/search?query=${searchQuery}&startAt=`
+
+    for (let i = Math.max(0, currentPage - 1); i <= Math.min(totalPages, currentPage + 1); i++) {
+      surroundingPages[i] = `${searchPageURL}${i * pageLength}`
+    }
+
+    hbParams.surroundingPages = surroundingPages
+    hbParams.currentPageNumber = currentPage
+
+    // jump to last page and first page buttons
+    if (currentPage - 1 > 0) {
+
+      hbParams.firstPage = `${searchPageURL}0`
+    }
+
+    if (totalPages > currentPage + 1) {
+      hbParams.lastPage = `${searchPageURL}${totalPages * pageLength}`
+      hbParams.lastPageNumber = totalPages + 1
+    }
+
+    // next/previous page buttons
+    if (currentPage > 0) {
+      hbParams.previousPage = `${searchPageURL}${(currentPage - 1) * pageLength}`
+    }
+    if (totalPages > currentPage) {
+      hbParams.nextPage = `${searchPageURL}${(currentPage + 1) * pageLength}`
+    }
   }
 
   return reply.view('pages/search.hbs', request.hbParams)

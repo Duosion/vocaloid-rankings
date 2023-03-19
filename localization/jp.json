@@ -81,6 +81,8 @@
     "search_no_results": "",
     "search_artist": "アーティスト",
     "search_song": "歌",
+    "search_placement_all_time": "史上",
+    "search_placement_release_year": ":releaseYear",
     "language_system": "システム",
     "language_english": "English",
     "language_japanese": "日本語",

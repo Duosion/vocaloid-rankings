@@ -48,6 +48,9 @@ module.exports = (db, exists) => {
         publish_date TEXT NOT NULL,
         addition_date TEXT NOT NULL,
         base_artist_id INTEGER,
+        average_color TEXT NOT NULL,
+        dark_color TEXT NOT NULL,
+        light_color TEXT NOT NULL,
         FOREIGN KEY (base_artist_id) REFERENCES artists (id))`).run()
     
     // create artists names table
@@ -63,7 +66,6 @@ module.exports = (db, exists) => {
         thumbnail_type INTEGER NOT NULL,
         url TEXT NOT NULL,
         artist_id INTEGER NOT NULL,
-        average_color TEXT NOT NULL,
         PRIMARY KEY (artist_id, thumbnail_type),
         FOREIGN KEY (artist_id) REFERENCES artists (id))`).run()
 

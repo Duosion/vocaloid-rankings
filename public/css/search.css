@@ -1,12 +1,13 @@
 #search-header,
 #search-results {
-    max-width: 1028px;
+    max-width: 828px;
     padding: 0px 20px 0px 20px;
     margin: 20px auto 20px auto;
     display: flex;
     flex-direction: column;
     width: 100%;
     gap: 20px;
+    box-sizing: border-box;
 }
 
 #search-results {
@@ -31,4 +32,35 @@
 
 #no-results-text {
     text-align: center;
+}
+
+.placements {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 20px;
+}
+
+.placement {
+    height: 100%;
+    padding: 5px 10px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    border: 1px solid var(--md-sys-color-outline-variant)
+}
+
+.placement .rank {
+    flex: 1
+}
+
+.label.song {
+    color: var(--miku)
+}
+
+.label.artist {
+    color: var(--ren)
 }

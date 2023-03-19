@@ -81,6 +81,8 @@
     "search_no_results": "No Results Found",
     "search_artist": "Artist",
     "search_song": "Song",
+    "search_placement_all_time": "All Time",
+    "search_placement_release_year": ":releaseYear",
     "language_system": "System",
     "language_english": "English",
     "language_japanese": "日本語",

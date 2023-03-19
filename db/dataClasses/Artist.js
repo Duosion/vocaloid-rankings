@@ -14,6 +14,9 @@ module.exports = class Artist {
      * @param {string[]} names This artist's name.
      * @param {ArtistThumbnail[]} thumbnails The thumbnails for this artist.
      * @param {number} [baseArtistId] The id of this artist's base artist.
+     * @param {string} [averageColor] The average color of this artist's thumbnail.
+     * @param {string} [darkColor] The dark color for this artist.
+     * @param {string} [lightColor] The light color for this artist.
      */
     constructor(
         id,
@@ -23,7 +26,10 @@ module.exports = class Artist {
         additionDate,
         names,
         thumbnails,
-        baseArtistId
+        baseArtistId,
+        averageColor,
+        darkColor,
+        lightColor
     ) {
         this.id = id
         this.type = type
@@ -33,6 +39,9 @@ module.exports = class Artist {
         this.names = names
         this.thumbnails = thumbnails
         this.baseArtist = baseArtistId
+        this.averageColor = averageColor
+        this.darkColor = darkColor
+        this.lightColor = lightColor
     }
 
 }

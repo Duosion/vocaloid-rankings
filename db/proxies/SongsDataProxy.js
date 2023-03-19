@@ -66,8 +66,7 @@ module.exports = class SongsDataProxy {
             const thumbType = thumbnailData.thumbnail_type
             thumbnails[thumbType] = new ArtistThumbnail(
                 ArtistThumbnailType.fromId(thumbType),
-                thumbnailData.url,
-                thumbnailData.average_color
+                thumbnailData.url
             )
         }
 
@@ -79,7 +78,10 @@ module.exports = class SongsDataProxy {
             artistData.addition_date,
             names,
             thumbnails,
-            artistData.base_artist_id
+            artistData.base_artist_id,
+            artistData.average_color,
+            artistData.dark_color,
+            artistData.light_color
         )
     }
 
@@ -222,7 +224,7 @@ module.exports = class SongsDataProxy {
         const db = this.db
 
         const artistData = db.prepare(`
-        SELECT id, artist_type, publish_date, addition_date, base_artist_id
+        SELECT id, artist_type, publish_date, addition_date, base_artist_id, average_color, dark_color, light_color
         FROM artists
         WHERE id = ?`).get(artistId)
 
@@ -235,7 +237,7 @@ module.exports = class SongsDataProxy {
         WHERE artist_id = ?`).all(artistId)
 
         const artistThumbnails = db.prepare(`
-        SELECT thumbnail_type, url, average_color
+        SELECT thumbnail_type, url
         FROM artists_thumbnails
         WHERE artist_id = ?`).all(artistId)
 
@@ -996,7 +998,7 @@ module.exports = class SongsDataProxy {
         return new SearchQueryResultItem(
             placement,
             type,
-            type == SearchQueryResultItemType.Song ? this.#getSongSync(id, false) : this.#getArtistSync(id),
+            type == SearchQueryResultItemType.Song ? this.#getSongSync(id, true) : this.#getArtistSync(id),
             distance
         )
     }
@@ -1358,16 +1360,16 @@ module.exports = class SongsDataProxy {
 
                 // prepare statement to insert into artists
                 const artistsInsertStatement = db.prepare(`
-                REPLACE INTO artists (id, artist_type, publish_date, addition_date, base_artist_id)
-                VALUES (?, ?, ?, ?, ?)`)
+                REPLACE INTO artists (id, artist_type, publish_date, addition_date, base_artist_id, average_color, dark_color, light_color)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)`)
                 // prepare statement to insert into artists names
                 const artistsNamesInsertStatement = db.prepare(`
                 REPLACE INTO artists_names (artist_id, name, name_type)
                 VALUES (?, ?, ?)`)
                 // prepare statement to insert into artists thumbnails
                 const artistsThumnailsInsertStatement = db.prepare(`
-                REPLACE INTO artists_thumbnails (thumbnail_type, url, artist_id, average_color)
-                VALUES (?, ?, ?, ?)`)
+                REPLACE INTO artists_thumbnails (thumbnail_type, url, artist_id)
+                VALUES (?, ?, ?)`)
 
                 // insert artist into artists
                 artistsInsertStatement.run(
@@ -1375,7 +1377,10 @@ module.exports = class SongsDataProxy {
                     artist.type.id,
                     artist.publishDate,
                     artist.additionDate,
-                    artist.baseArtistId
+                    artist.baseArtistId,
+                    artist.averageColor,
+                    artist.darkColor,
+                    artist.lightColor
                 )
                 // insert names
                 for (const [nameType, name] of Object.entries(artist.names)) {
@@ -1392,8 +1397,7 @@ module.exports = class SongsDataProxy {
                     artistsThumnailsInsertStatement.run(
                         thumbnailType,
                         thumbnail.url,
-                        artistId,
-                        thumbnail.averageColor
+                        artistId
                     )
                 }
                 resolve()

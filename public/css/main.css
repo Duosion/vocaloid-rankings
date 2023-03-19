@@ -13,6 +13,12 @@ html {
   --transition-duration-long: 0.2s;
   --transition-duration-300ms: 0.3s;
   --cubic-tween: cubic-bezier(.4,0,.6,1);
+
+  --miku: #01d48f;
+  --kaito: #2209c3;
+  --rin: #d8e500;
+  --ren: #ead400;
+  --meiko: #bd0404
 }
 
 body {

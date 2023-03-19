@@ -631,11 +631,11 @@ const migrateViewsData = () => {
             }
           }
           // get average color
-          const averageColor = await getAverageColorAsync(maxresThumbnail)
+          const averageColor = (await getAverageColorAsync(maxresThumbnail)).hex
 
           // process dark and light colors
           // Get the theme from a hex color
-          const theme = themeFromSourceColor(argbFromHex(averageColor.hex));
+          const theme = themeFromSourceColor(argbFromHex(averageColor));
 
           const colorSchemes = theme.schemes
 
@@ -665,23 +665,28 @@ const migrateViewsData = () => {
 
                   // process thumbnails
                   const thumbnails = artistData.thumbnails
-                  let averageColor = null
+                  let artistAverageColor = null
                   const processedThumbnails = []
                   for (const [original, mapped] of Object.entries(thumbnailTypeMap)) {
                     const url = thumbnails[original]
                     if (url) {
-                      if (!averageColor) {
-                        averageColor = await getAverageColorAsync(url)
+                      if (!artistAverageColor) {
+                        artistAverageColor = (await getAverageColorAsync(url)).hex
                       }
                       processedThumbnails[mapped.id] = new ArtistThumbnail(
                         mapped,
-                        url,
-                        averageColor.hex
+                        url
                       )
                     } else {
                       thumbnails[mapped.id] = null
                     }
                   }
+
+                  artistAverageColor = artistAverageColor || "#ffffff"
+
+                  const artistTheme = themeFromSourceColor(argbFromHex(artistAverageColor))
+                  const artistColorSchemes = artistTheme.schemes
+
                   const newArtist = new Artist(
                     Number.parseInt(artistId),
                     artistTypeMap[artistData.artistType] || ArtistType.Producer,
@@ -689,7 +694,11 @@ const migrateViewsData = () => {
                     artistData.publishDate,
                     artistData.additionDate,
                     processedNames,
-                    processedThumbnails
+                    processedThumbnails,
+                    null,
+                    artistAverageColor,
+                    hexFromArgb(artistColorSchemes.dark.props.primary),
+                    hexFromArgb(artistColorSchemes.light.props.primary),
                   )
 
                   artistsMap[artistId + category.id] = newArtist
@@ -727,7 +736,7 @@ const migrateViewsData = () => {
             SongType.Original,
             thumbnail,
             maxresThumbnail,
-            averageColor.hex,
+            averageColor,
             hexFromArgb(colorSchemes.dark.props.primary),
             hexFromArgb(colorSchemes.light.props.primary),
             song.fandomURL,
