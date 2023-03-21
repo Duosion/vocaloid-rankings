@@ -10,10 +10,14 @@
 </div>
 <div id="song-info-header" class="on-surface-text">
   <div id="song-info-header-content">
-    {{> back-button referer=referer class='filled-tonal' id='home-button'}}
+    {{> back-button referer=referer class='filled-tonal floating top left' id='home-button'}}
     <img class="song-info-cover" src="{{songData.maxresThumbnail}}">
     <div class="display-small title text-centered">{{songData.preferredName}}</div>
-    <div class="headline-small bold text-centered">{{longFormat songData.views.total}} {{localization.rankings_views}}
+    <div class="headline-small bold text-centered">{{longFormat songData.views.total}} {{localization.rankings_views}}</div>
+    <div id="song-actions">
+      <a class="icon-button filled-tonal" href="/song/{{songData.id}}/refresh">
+        <span class="material-symbols-rounded">refresh</span>
+      </a>
     </div>
   </div>
 </div>

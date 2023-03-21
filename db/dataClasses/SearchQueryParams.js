@@ -14,7 +14,7 @@ module.exports = class SearchQueryParams {
         maxEntries = 25,
         startAt = 0,
         minimumDistance = 0,
-        maximumDistance = 1000
+        maximumDistance = 500
     ) {
         this.query = query
         this.maxEntries = maxEntries

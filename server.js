@@ -16,7 +16,6 @@ const databaseProxy = require(customModuleDirectory + "database")
 const { generateTimestamp, caches } = require(customModuleDirectory + "shared")
 
 const database = require("./db")
-
 // fastify stuff
 fastify.register(require("@fastify/static"), {
   root: path.join(__dirname, "public"),
@@ -118,6 +117,7 @@ partializer.registerAll(handlebars)
 const seo = require("./src/seo.json");
 const Song = require("./db/dataClasses/song");
 const SongViews = require("./db/dataClasses/SongViews");
+const ArtistThumbnail = require("./db/dataClasses/ArtistThumbnail");
 if (seo.url === "glitch-default") {
   seo.url = `https://${process.env.PROJECT_DOMAIN}.glitch.me`;
 }

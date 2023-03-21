@@ -83,7 +83,7 @@ const querySearchAsync = (queryParams, options) => {
 // route functions
 const getSearchRoute = async (request, reply) => {
   const params = request.query
-  const parsedCookies = request.cookies
+  const parsedCookies = request.parsedCookies || {}
   // process search query
   const searchQuery = params.query || ''
   request.addHbParam('searchQuery', searchQuery)

@@ -1,0 +1,60 @@
+#settings-header,
+#settings-entries {
+    max-width: 728px;
+    padding: 0px 20px 0px 20px;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 20px;
+    box-sizing: border-box;
+}
+
+#settings-header {
+    margin: 20px auto 20px auto;
+}
+
+#settings-entries {
+    margin: auto
+}
+
+#settings-header-top {
+    width: 100%;
+    display: flex;
+    gap: 20px;
+    position: relative;
+    align-items: center;
+}
+
+#header-save-button {
+    width: fit-content;
+    padding: 0px 50px;
+}
+
+.settings-entry {
+    display: flex;
+    box-sizing: border-box;
+    padding: 10px;
+    border-radius: 10px;
+    background-color: var(--md-sys-color-surface-2);
+    flex-direction: column;
+    gap: 10px;
+}
+
+.settings-entry-description {
+    opacity: 0.8;
+}
+
+input[type="radio"] {
+    display: none;
+}
+
+@media (min-width: 450px) {
+    #body-save-button {
+        display: none;
+    }
+}
+@media (max-width: 450px) {
+    #header-save-button {
+        display: none;
+    }
+}

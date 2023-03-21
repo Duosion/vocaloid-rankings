@@ -594,6 +594,7 @@ const migrateViewsData = () => {
         'OtherVoiceSynthesizer': ArtistType.OtherVoiceSynthesizer,
         'OtherIndividual': ArtistType.OtherIndividual,
         'OtherGroup': ArtistType.OtherGroup,
+        'UTAU': ArtistType.UTAU
       }
 
       // migrate songs

@@ -9,64 +9,13 @@ const { argbFromHex, themeFromSourceColor, hexFromArgb, redFromArgb, greenFromAr
 const SongViews = require("../../../db/dataClasses/SongViews")
 const ViewType = require("../../../db/enums/ViewType")
 const NameType = require("../../../db/enums/NameType")
-const { generateTimestamp, getHasherAsync, viewTypesDisplayData, caches } = require(modulePath + "/shared")
+const { getHasherAsync, viewTypesDisplayData, caches } = require(modulePath + "/shared")
 const { getPreferredLanguageName } = require(modulePath + "/locale")
 
 // initialize caches
 const songsDataCache = caches.songsDataCache
 
 // data
-
-
-// functions
-const addSong = (vocaDBURL) => {
-  return new Promise(async (resolve, reject) => {
-
-    const timestamp = generateTimestamp()
-
-    // get vocaDB data
-    const songData = await scraper.scrapeVocaDB(vocaDBURL).catch(err => { reject(err) })
-    if (!songData || songData == undefined) { reject("Provided song doesn't exist."); return; }
-
-    const viewsMetadata = await database.views.getMetadata()
-
-    // get the most recent views data
-    const mostRecentViewsMetadata = viewsMetadata[viewsMetadata.length - 1]
-
-    // get the song's ID
-    const songID = songData.songId
-
-    // check if the song already exists
-    if (await database.songs.songExists(songID)) { reject("The provided song is already in the database."); return; }
-
-    // compute total views
-    const viewsBreakdown = {}
-    let viewData = {
-      songId: songID,
-      total: 0,
-      breakdown: viewsBreakdown
-    }
-
-    {
-
-      for (let [viewType, views] of Object.entries(songData.views)) {
-        viewsBreakdown[viewType] = views
-        viewData.total += views
-      }
-
-      delete songData.views // delete object
-    }
-
-    // add required values
-    songData.additionDate = new Date().toISOString()
-
-    // write to files
-    await databaseProxy.addSongFromScraperData(mostRecentViewsMetadata.timestamp, songData, viewData)
-
-    resolve(songData)
-
-  })
-}
 
 /**
  * Formats a SongViews object
@@ -129,6 +78,8 @@ const querySongsDatabaseAsync = (queryData) => {
           reject("No data found for song '" + songId + "'.");
           return;
         }
+
+        console.log(songData)
 
         songData.displayBreakdown = getViewsBreakdownDisplayData(songData.views)
 
@@ -227,7 +178,7 @@ const addSongRoute = async (request, reply) => {
   const params = {
     seo: request.seo,
     cookies: parsedCookies,
-    pageTitle: "Filter Rankings",
+    pageTitle: "Add Song",
   }
 
   // get the url to add
@@ -236,27 +187,59 @@ const addSongRoute = async (request, reply) => {
   if (url) {
     // attempt to add the provided url
 
-    const added = await addSong(url).catch(err => {
+    const song = await scraper.scrapeVocaDBSongAsync(url)
+      .catch(msg => {
+        return reply.send({ code: 400, message: msg.message })
+      })
 
-      params.errorMessage = err
+    if (song == undefined) {
+      params.errorMessage = 'Invalid URL provided.'
+      return reply.view("pages/addSong.hbs", params)
+    }
 
-      return reply.view("pages/addSong.hbs", params);
-
-    })
+    // add the song
+    await database.songsData.insertSong(song)
+      .catch(msg => {
+        return reply.send({ code: 400, message: msg.message })
+      })
 
     // if it succeeded, redirect to the new page
     reply.statusCode = 302
-    reply.redirect(`/song/${encodeURIComponent(added.songId)}`)
+    reply.redirect(`/song/${encodeURIComponent(song.id)}`)
 
   } else {
-
-    // view the add song page
-
-    params.pageTitle = "Add Song"
 
     return reply.view("pages/addSong.hbs", params)
 
   }
+}
+
+const refreshSongRoute = async (request, reply) => {
+  const songId = request.params.songId
+  if (!songId) {
+    reply.send({
+      code: 400,
+      message: "Invalid parameters provided",
+    });
+    return;
+  }
+
+  const song = await scraper.scrapeVocaDBSongAsync(Number(songId) || 0)
+    .catch(msg => {
+      console.log(msg)
+      return reply.send({ code: 400, message: msg.message })
+    })
+
+  // add the song
+  await database.songsData.insertSong(song)
+    .catch(msg => {
+      console.log(msg)
+      return reply.send({ code: 400, message: msg.message })
+    })
+
+  songsDataCache.purge()
+
+  return reply.redirect("/song/" + songId)
 }
 
 // song page
@@ -384,6 +367,7 @@ exports.register = (fastify, options, done) => {
     },
   }, getSong)
   fastify.get("/add", addSongRoute)
+  fastify.get("/:songId/refresh", refreshSongRoute)
 
   done();
 }

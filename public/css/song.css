@@ -404,6 +404,15 @@
   color: var(--md-sys-color-secondary);
 }
 
+/* song actions */
+#song-actions {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  gap: 20px;
+}
+
 /* media queries */
 @media (min-width: 1320px) {
   .content-grid {

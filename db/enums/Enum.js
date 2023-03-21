@@ -12,7 +12,7 @@ module.exports = class Enum {
      * @returns A ArtistType enum that corresponds to the provided id 
      */
     static fromId(id) {
-        return this.values[id] || Other
+        return this.values[id]
     }
 
 }

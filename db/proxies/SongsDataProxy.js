@@ -549,41 +549,80 @@ module.exports = class SongsDataProxy {
         const filterSongsStatement = filterSongs == '' ? '' : ` AND (songs.id IN (${filterSongs}))`
         return this.db.prepare(`
         SELECT DISTINCT views_breakdowns.song_id,
-            SUM(DISTINCT views_breakdowns.views) - CASE WHEN :timePeriodOffset IS NULL
-                THEN 0
-                ELSE ifnull((
-                    SELECT SUM(DISTINCT offset_breakdowns.views) AS offset_views
-                    FROM views_breakdowns AS offset_breakdowns
-                    INNER JOIN songs ON songs.id = offset_breakdowns.song_id
-                    INNER JOIN songs_artists ON songs_artists.song_id = offset_breakdowns.song_id
-                    INNER JOIN artists ON artists.id = songs_artists.artist_id
-                    WHERE (offset_breakdowns.timestamp = CASE WHEN :daysOffset IS NULL
-                            THEN DATE(:timestamp, '-' || :timePeriodOffset || ' day')
-                            ELSE DATE(DATE(:timestamp, '-' || :daysOffset || ' day'), '-' || :timePeriodOffset || ' day')
-                            END)
-                        AND (offset_breakdowns.song_id = views_breakdowns.song_id)
-                        AND (offset_breakdowns.view_type = :viewType OR :viewType IS NULL)
-                        AND (songs.song_type = :songType OR :songType IS NULL)
-                        AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
-                        AND (artists.artist_type = :artistType OR :artistType IS NULL)
-                        AND (offset_breakdowns.views = CASE WHEN :singleVideo IS NULL
-                            THEN offset_breakdowns.views
-                            ELSE
-                                (SELECT MAX(offset_sub_breakdowns.views)
-                                FROM views_breakdowns AS offset_sub_breakdowns 
-                                INNER JOIN songs ON songs.id = offset_sub_breakdowns.song_id
-                                INNER JOIN songs_artists ON songs_artists.song_id = offset_sub_breakdowns.song_id
-                                INNER JOIN artists ON artists.id = songs_artists.artist_id
-                                WHERE (offset_sub_breakdowns.view_type = offset_breakdowns.view_type)
-                                    AND (offset_sub_breakdowns.timestamp = offset_breakdowns.timestamp)
-                                    AND (offset_sub_breakdowns.song_id = offset_breakdowns.song_id)
-                                    AND (songs.song_type = :songType OR :songType IS NULL)
-                                    AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
-                                    AND (artists.artist_type = :artistType OR :artistType IS NULL)${filterArtistsStatement}${filterSongsStatement}
-                                GROUP BY offset_sub_breakdowns.song_id)
-                            END)${filterArtistsStatement}${filterSongsStatement}
-                    GROUP BY offset_breakdowns.song_id
-                ),0)
+            CASE :orderBy
+                WHEN 3
+                    THEN (1 - 0.1) * (log10((SUM(DISTINCT views_breakdowns.views) - CASE WHEN :timePeriodOffset IS NULL
+                    THEN 0
+                    ELSE ifnull((
+                        SELECT SUM(DISTINCT offset_breakdowns.views) AS offset_views
+                        FROM views_breakdowns AS offset_breakdowns
+                        INNER JOIN songs ON songs.id = offset_breakdowns.song_id
+                        INNER JOIN songs_artists ON songs_artists.song_id = offset_breakdowns.song_id
+                        INNER JOIN artists ON artists.id = songs_artists.artist_id
+                        WHERE (offset_breakdowns.timestamp = CASE WHEN :daysOffset IS NULL
+                                THEN DATE(:timestamp, '-' || :timePeriodOffset || ' day')
+                                ELSE DATE(DATE(:timestamp, '-' || :daysOffset || ' day'), '-' || :timePeriodOffset || ' day')
+                                END)
+                            AND (offset_breakdowns.song_id = views_breakdowns.song_id)
+                            AND (offset_breakdowns.view_type = :viewType OR :viewType IS NULL)
+                            AND (songs.song_type = :songType OR :songType IS NULL)
+                            AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
+                            AND (artists.artist_type = :artistType OR :artistType IS NULL)
+                            AND (offset_breakdowns.views = CASE WHEN :singleVideo IS NULL
+                                THEN offset_breakdowns.views
+                                ELSE
+                                    (SELECT MAX(offset_sub_breakdowns.views)
+                                    FROM views_breakdowns AS offset_sub_breakdowns 
+                                    INNER JOIN songs ON songs.id = offset_sub_breakdowns.song_id
+                                    INNER JOIN songs_artists ON songs_artists.song_id = offset_sub_breakdowns.song_id
+                                    INNER JOIN artists ON artists.id = songs_artists.artist_id
+                                    WHERE (offset_sub_breakdowns.view_type = offset_breakdowns.view_type)
+                                        AND (offset_sub_breakdowns.timestamp = offset_breakdowns.timestamp)
+                                        AND (offset_sub_breakdowns.song_id = offset_breakdowns.song_id)
+                                        AND (songs.song_type = :songType OR :songType IS NULL)
+                                        AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
+                                        AND (artists.artist_type = :artistType OR :artistType IS NULL)${filterArtistsStatement}${filterSongsStatement}
+                                    GROUP BY offset_sub_breakdowns.song_id)
+                                END)${filterArtistsStatement}${filterSongsStatement}
+                        GROUP BY offset_breakdowns.song_id
+                    ),0)
+                END) + 1) + 1) + 0.8 * (1 - exp(-(julianday('now') - julianday(songs.publish_date)/365)))
+                ELSE SUM(DISTINCT views_breakdowns.views) - CASE WHEN :timePeriodOffset IS NULL
+                    THEN 0
+                    ELSE ifnull((
+                        SELECT SUM(DISTINCT offset_breakdowns.views) AS offset_views
+                        FROM views_breakdowns AS offset_breakdowns
+                        INNER JOIN songs ON songs.id = offset_breakdowns.song_id
+                        INNER JOIN songs_artists ON songs_artists.song_id = offset_breakdowns.song_id
+                        INNER JOIN artists ON artists.id = songs_artists.artist_id
+                        WHERE (offset_breakdowns.timestamp = CASE WHEN :daysOffset IS NULL
+                                THEN DATE(:timestamp, '-' || :timePeriodOffset || ' day')
+                                ELSE DATE(DATE(:timestamp, '-' || :daysOffset || ' day'), '-' || :timePeriodOffset || ' day')
+                                END)
+                            AND (offset_breakdowns.song_id = views_breakdowns.song_id)
+                            AND (offset_breakdowns.view_type = :viewType OR :viewType IS NULL)
+                            AND (songs.song_type = :songType OR :songType IS NULL)
+                            AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
+                            AND (artists.artist_type = :artistType OR :artistType IS NULL)
+                            AND (offset_breakdowns.views = CASE WHEN :singleVideo IS NULL
+                                THEN offset_breakdowns.views
+                                ELSE
+                                    (SELECT MAX(offset_sub_breakdowns.views)
+                                    FROM views_breakdowns AS offset_sub_breakdowns 
+                                    INNER JOIN songs ON songs.id = offset_sub_breakdowns.song_id
+                                    INNER JOIN songs_artists ON songs_artists.song_id = offset_sub_breakdowns.song_id
+                                    INNER JOIN artists ON artists.id = songs_artists.artist_id
+                                    WHERE (offset_sub_breakdowns.view_type = offset_breakdowns.view_type)
+                                        AND (offset_sub_breakdowns.timestamp = offset_breakdowns.timestamp)
+                                        AND (offset_sub_breakdowns.song_id = offset_breakdowns.song_id)
+                                        AND (songs.song_type = :songType OR :songType IS NULL)
+                                        AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
+                                        AND (artists.artist_type = :artistType OR :artistType IS NULL)${filterArtistsStatement}${filterSongsStatement}
+                                    GROUP BY offset_sub_breakdowns.song_id)
+                                END)${filterArtistsStatement}${filterSongsStatement}
+                        GROUP BY offset_breakdowns.song_id
+                    ),0)
+                END 
             END AS total_views
         FROM views_breakdowns
         INNER JOIN songs ON views_breakdowns.song_id = songs.id
@@ -1416,9 +1455,14 @@ module.exports = class SongsDataProxy {
     insertSong(song) {
         return new Promise(async (resolve, reject) => {
             try {
+                if (!song || song == undefined) {
+                    return reject('undefined song provided to insertSong.')
+                }
                 const db = this.db
 
                 const songId = song.id
+
+                const existingSong = this.#getSongSync(songId, false)
 
                 // prepare statement to insert into songs
                 const songsInsertStatement = db.prepare(`
@@ -1443,8 +1487,8 @@ module.exports = class SongsDataProxy {
                 // insert into songs table
                 songsInsertStatement.run(
                     songId,
-                    song.publishDate,
-                    song.additionDate,
+                    existingSong ? existingSong.publishDate : song.publishDate,
+                    existingSong ? existingSong.additionDate : song.additionDate,
                     song.type.id,
                     song.thumbnail,
                     song.maxresThumbnail,
@@ -1494,8 +1538,7 @@ module.exports = class SongsDataProxy {
 
                 // insert views
                 const views = song.views
-                const viewsTimestamp = views && views.timestamp
-                if (viewsTimestamp) {
+                if (views) {
                     await this.insertSongViews(views)
                 }
 

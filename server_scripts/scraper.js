@@ -216,6 +216,26 @@ const vocaDbSongNameTypeMap = {
     ['Romaji']: NameType.Romaji
 }
 
+const artistTypeMap = {
+    'Vocaloid': ArtistType.Vocaloid,
+    'CeVIO': ArtistType.CeVIO,
+    'SynthesizerV': ArtistType.SynthesizerV,
+    'Illustrator': ArtistType.Illustrator,
+    'CoverArtist': ArtistType.CoverArtist,
+    'Animator': ArtistType.Animator,
+    'Producer': ArtistType.Producer,
+    'OtherVocalist': ArtistType.OtherVocalist,
+    'OtherVoiceSynthesizer': ArtistType.OtherVoiceSynthesizer,
+    'OtherIndividual': ArtistType.OtherIndividual,
+    'OtherGroup': ArtistType.OtherGroup,
+    'UTAU': ArtistType.UTAU
+}
+
+const songTypeMap = {
+    'Original': SongType.Original,
+    'Remix': SongType.Remix
+}
+
 /**
  * Gets a song's views
  * 
@@ -364,7 +384,7 @@ const processVocaDBArtistDataAsync = (artistData) => {
                 artistData.name
             ]
             artistData.names.forEach(nameData => {
-                const nameType = NameType.map[nameData.language]
+                const nameType = vocaDbSongNameTypeMap[nameData.language]
                 const id = nameType && nameType.id
                 const exists = id && names[id] ? true : false
                 if (nameType && !exists) {
@@ -402,7 +422,7 @@ const processVocaDBArtistDataAsync = (artistData) => {
 
             resolve(new Artist(
                 artistIdNumber,
-                ArtistType.map[artistData.artistType],
+                artistTypeMap[artistData.artistType],
                 null,
                 artistData.releaseDate || artistData.createDate,
                 new Date().toISOString(),
@@ -553,10 +573,13 @@ const processVocaDBSongDataAsync = (songData) => {
                         const views = viewsAndThumbnails.views
                         var breakdownBucket = viewsBreakdown[pvTypeId]
                         if (!breakdownBucket) {
-                            breakdownBucket = {}
+                            breakdownBucket = []
                             viewsBreakdown[pvTypeId] = breakdownBucket
                         }
-                        breakdownBucket[pvID] = views
+                        breakdownBucket.push(new VideoViews(
+                            pvID,
+                            views
+                        ))
                         totalViews += views
 
                         // add to thumbnails
@@ -596,7 +619,7 @@ const processVocaDBSongDataAsync = (songData) => {
                 songData.publishDate,
                 new Date().toISOString(),
 
-                SongType.map[songType] || SongType.Other,
+                songTypeMap[songType] || SongType.Other,
 
                 thumbnail,
                 maxResThumbnail,

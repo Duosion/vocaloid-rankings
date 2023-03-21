@@ -16,11 +16,13 @@ const settingsPageOptions = {
     },
     'titleLanguage': {
         displayName: "settings_title_language",
+        description: "settings_title_language_description",
         defaultValue: TitleLanguageSetting.English,
         values: TitleLanguageSetting.values
     },
     'language': {
         displayName: "settings_language",
+        description: "settings_language_description",
         defaultValue: LanguageSetting.English,
         values: LanguageSetting.values
     },
@@ -70,7 +72,7 @@ const getSettings = (request, reply) => {
     request.addHbParam('pageTitle', 'Settings')
     request.addHbParam('referer', request.query.referer || "/")
     
-    return reply.view("pages/settings.hbs", request.hbParams)
+    return reply.view("pages/settingsV2.hbs", request.hbParams)
 }
 
 exports.prefix = "/settings"

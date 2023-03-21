@@ -4,6 +4,7 @@ module.exports = class FilterOrder extends Enum {
     static Views = new FilterOrder("filter_order_by_views", 0)
     static PublishDate = new FilterOrder("filter_order_by_publish", 1)
     static AdditionDate = new FilterOrder("filter_order_by_addition", 2)
+    static Popularity = new FilterOrder("filter_order_by_popularity", 3)
 
     static {
         const enums = Object.values(this)

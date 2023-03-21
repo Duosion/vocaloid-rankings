@@ -12,6 +12,7 @@ module.exports = class ArtistType extends Enum {
     static OtherVoiceSynthesizer = new ArtistType("filter_artist_type_other_voice_synth", 8)
     static OtherIndividual = new ArtistType("filter_artist_type_other_individual", 9)
     static OtherGroup = new ArtistType("filter_artist_type_other_group", 10)
+    static UTAU = new ArtistType('filter_artist_type_utau', 11)
 
     static {
         const enums = Object.values(this)
