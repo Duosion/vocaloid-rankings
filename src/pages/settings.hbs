@@ -1,14 +1,15 @@
 <link rel="stylesheet" href="/css/settings.css">
+<link rel="stylesheet" href="/css/default_layout.css">
 <form id="filter-form" action="/settings" method="post" target="_self" class="filter-content list vertical">
-    <div id="settings-header">
-        <div id="settings-header-top" class="on-background-text">
+    <div id="page-header">
+        <div id="page-header-content" class="on-background-text">
             {{> back-button referer=referer}}
             <div class="on-background-text headline-small">{{localization.settings}}</div>
             <div class="flex-divider"></div>
             <button id="header-save-button" class="material-button inverse label-large">{{localization.save}}</button>
         </div>
     </div>
-    <div id="settings-entries">
+    <div id="page-body">
         {{#each filterOptions}}
             <div class="settings-entry">
                 <div class="title-medium-large on-surface-text">{{localize displayName}}</div>

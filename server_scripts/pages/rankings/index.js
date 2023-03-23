@@ -561,7 +561,7 @@ const getFilterPage = async (request, reply) => {
         artistCategory: artistCategory
     })
 
-    return reply.view("pages/filterRankingsV2.hbs", request.hbParams);
+    return reply.view("pages/filterRankings.hbs", request.hbParams);
 }
 
 const getRemoveAllFilters = async (_, reply) => {

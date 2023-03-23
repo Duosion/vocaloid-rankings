@@ -1,0 +1,26 @@
+#page-header,
+#page-body {
+    max-width: 728px;
+    padding: 0px 20px 0px 20px;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 20px;
+    box-sizing: border-box;
+}
+
+#page-header {
+    margin: 20px auto 20px auto;
+}
+
+#page-body {
+    margin: auto
+}
+
+#page-header-content {
+    width: 100%;
+    display: flex;
+    gap: 20px;
+    position: relative;
+    align-items: center;
+}

@@ -83,7 +83,9 @@ body {
   text-decoration: none;
 
   color: var(--md-sys-color-on-surface);
-  
+
+  transition-property: color;
+  transition-duration: var(--transition-duration);
 }
 
 .footer-link:hover {

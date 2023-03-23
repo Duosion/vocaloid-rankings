@@ -1,21 +1,26 @@
 <!DOCTYPE html>
-<link rel="stylesheet" href="/css/rankingsFilter.css">
-<div class="page-card-container">
-
-  {{> back-button referer='/'}}
-
-  <div class="headline-medium on-surface-text title">{{localization.rankings_filter}}</div>
-
-  <form id="filter-form" action="/rankings/filter/add" method="get" target="_self" class="filter-content list vertical">
+<link rel="stylesheet" href="/css/filter_rankings.css">
+<link rel="stylesheet" href="/css/default_layout.css">
+<form id="filter-form" action="/rankings/filter/add" method="get" target="_self" class="filter-content list vertical">
+  <div id="page-header">
+    <div id="page-header-content">
+      {{> back-button referer=referer}}
+      <div class="on-background-text headline-small">{{localization.rankings_filter}}</div>
+      <div class="flex-divider"></div>
+      <button id="header-filter-button" class="material-button inverse label-large">{{localization.rankings_filter}}</button>
+    </div>
+  </div>
+  <div id="page-body">
     {{#if isArtistsFilterPage}}
-      <input type="hidden" name="artistCategory" value="{{artistCategory}}">
+    <input type="hidden" name="artistCategory" value="{{artistCategory}}">
     {{/if}}
     <input type="hidden" name="referer" value="{{referer}}">
     {{#each filterValues}}
-    <div class="form-section list">
-
+    <div class="filter-entry">
       <div class="title-medium-large on-surface-text">{{localize displayName}}</div>
-
+      {{#if description}}
+        <div class="filter-entry-description label-large on-surface-text">{{localize description}}</div>
+      {{/if}}
       {{#if isChip}}
       <div class="chip-group title-medium-large">
         {{#each values}}
@@ -34,22 +39,9 @@
         {{/each}}
       </select>
       {{/if}}
-
     </div>
     {{/each}}
+    <button id="body-filter-button" class="material-button inverse label-large">{{localization.rankings_filter}}</button>
+  </div>
 
-    <div class="form-section">
-      <div class="title-medium-large on-surface-text">{{localization.filter_timestamp}}</div>
-      <input class="title-medium-large on-surface-text" type="date" id="timestamp" name="timestamp"
-        value="{{defaultDate}}" min="{{minimumDate}}" max="{{maximumDate}}">
-    </div>
-
-    {{> default-hr}}
-
-    <div class="submit-container">
-      <button class="material-button inverse label-large">{{localization.rankings_filter}}</button>
-    </div>
-
-  </form>
-
-</div>
+</form>
