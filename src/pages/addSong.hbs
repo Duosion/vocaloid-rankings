@@ -1,41 +1,37 @@
 <!DOCTYPE html>
-<link rel="stylesheet" href="/css/rankingsFilter.css">
-<div class="page-card-container on-surface-text">
-  
-  {{> back-button}}
-  
-  <div class="headline-medium title">Add a Song</div>
-  
-  <form id="filter-form" action="/song/add" method="get" target="_self" class="filter-content list vertical">
-  
-    <div>
-      <input class="title-medium-large" type="url" name="url" id="input-url" placeholder="https://vocadb.net/S/..." pattern="https://vocadb.net/S/.+" required>
+<link rel="stylesheet" href="/css/add_song.css">
+<link rel="stylesheet" href="/css/default_layout.css">
+<div id="page-header">
+  <div id="page-header-content">
+    {{> back-button referer=referer}}
+    <div class="on-background-text headline-small">{{localization.add_song}}</div>
+  </div>
+</div>
+<div id="page-body">
+  <form id="filter-form" action="/song/add" method="get" target="_self"
+    class="filter-content list vertical on-background-text">
+    <div id="url-input-container">
+      <input class="title-medium-large" type="url" name="url" id="input-url" placeholder="https://vocadb.net/S/..."
+        pattern="https://vocadb.net/S/.+" required>
       <div class="title-medium-large error-text">{{errorMessage}}</div>
     </div>
-    
-    <div class="title-medium-large">
-      To add a song, go to <a href="https://vocadb.net">vocadb.net</a>, find the song that you wish to add, and put the URL of that page in the box above.
+
+    <div class="card title-medium-large">
+      <div>{{localization.add_song_instructions}}</div>
+      <div>
+        {{localization.add_song_format}}
+        <div class="text bold sub">{{localization.add_song_format_example}}</div>
+      </div>
     </div>
-    
-    <div class="title-medium-large">
-      URLS must be in the format: 
-      <div class="text bold sub">
-      https://vocadb.net/S/(Numbers will be here)
-      </div> 
+
+    <div class="card title-medium-large">
+      {{localization.add_song_example}}
+      <a href="https://vocadb.net/S/293881">https://vocadb.net/S/293881</a>
     </div>
-    
-    {{> default-hr}}
-    
-    <div class="title-medium-large">
-      For example, to add the song "GETCHA!", you would put this URL into the box above: <a href="https://vocadb.net/S/293881">https://vocadb.net/S/293881</a>
-    </div>
-    
-    {{> default-hr}}
-    
+
     <div class="submit-container">
-      <button class="rounded-button">Add Song</button>
+      <button class="material-button inverse label-large">{{localization.add_song_submit}}</button>
     </div>
-    
+
   </form>
-  
 </div>

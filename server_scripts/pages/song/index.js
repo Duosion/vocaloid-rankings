@@ -173,11 +173,7 @@ const addSongRoute = async (request, reply) => {
   const parsedCookies = request.parsedCookies
 
   const query = request.query
-  const params = {
-    seo: request.seo,
-    cookies: parsedCookies,
-    pageTitle: "Add Song",
-  }
+  request.addHbParam('pageTitle', 'Add Song')
 
   // get the url to add
   const url = query["url"]
@@ -207,7 +203,7 @@ const addSongRoute = async (request, reply) => {
 
   } else {
 
-    return reply.view("pages/addSong.hbs", params)
+    return reply.view("pages/addSong.hbs", request.hbParams)
 
   }
 }

@@ -1,0 +1,14 @@
+#url-input-container,
+#input-url {
+    width: 100%;
+}
+
+.card {
+    border-radius: 10px;
+    box-sizing: border-box;
+    padding: 10px;
+    background-color: var(--md-sys-color-surface-2);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
