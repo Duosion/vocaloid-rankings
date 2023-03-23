@@ -72,7 +72,7 @@ const getSettings = (request, reply) => {
     request.addHbParam('pageTitle', 'Settings')
     request.addHbParam('referer', request.query.referer || "/")
     
-    return reply.view("pages/settingsV2.hbs", request.hbParams)
+    return reply.view("pages/settings.hbs", request.hbParams)
 }
 
 exports.prefix = "/settings"

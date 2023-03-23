@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<link rel="stylesheet" href="/css/rankingsFilter.css">
+<form id="filter-form" action="/rankings/filter/add" method="get" target="_self" class="filter-content list vertical">
+  <div id="filter-header">
+    <div id="filter-header-top">
+      {{> back-button referer=referer}}
+      <div class="on-background-text headline-small">{{localization.rankings_filter}}</div>
+      <div class="flex-divider"></div>
+      <button id="header-filter-button" class="material-button inverse label-large">{{localization.rankings_filter}}</button>
+    </div>
+  </div>
+  <div id="filter-entries">
+    {{#if isArtistsFilterPage}}
+    <input type="hidden" name="artistCategory" value="{{artistCategory}}">
+    {{/if}}
+    <input type="hidden" name="referer" value="{{referer}}">
+    {{#each filterValues}}
+    <div class="filter-entry">
+      <div class="title-medium-large on-surface-text">{{localize displayName}}</div>
+      {{#if description}}
+        <div class="filter-entry-description label-large on-surface-text">{{localize description}}</div>
+      {{/if}}
+      {{#if isChip}}
+      <div class="chip-group title-medium-large">
+        {{#each values}}
+        <input type="radio" id="{{this.name}}" name="{{../name}}" value="{{this.value}}" {{#if
+          this.isSelected}}checked{{/if}}>
+        <label class="filter chip" for="{{this.name}}">
+          <span class="material-symbols-rounded leading">done</span>
+          {{localize this.name}}
+        </label>
+        {{/each}}
+      </div>
+      {{else}}
+      <select class="title-medium-large" name="{{name}}">
+        {{#each values}}
+        <option value="{{this.value}}" {{#if this.isSelected}}selected{{/if}}>{{localize this.name}}</option>
+        {{/each}}
+      </select>
+      {{/if}}
+    </div>
+    {{/each}}
+    <button id="body-filter-button" class="material-button inverse label-large">{{localization.rankings_filter}}</button>
+  </div>
+
+</form>

@@ -79,8 +79,6 @@ const querySongsDatabaseAsync = (queryData) => {
           return;
         }
 
-        console.log(songData)
-
         songData.displayBreakdown = getViewsBreakdownDisplayData(songData.views)
 
         const preferredLanguage = queryData.preferredLanguage || NameType.Original

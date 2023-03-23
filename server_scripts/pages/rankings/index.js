@@ -12,23 +12,17 @@ const ArtistCategory = require("../../../db/enums/ArtistCategory")
 const SongType = require("../../../db/enums/SongType")
 const ViewType = require("../../../db/enums/ViewType")
 const ArtistType = require("../../../db/enums/ArtistType")
-const { PublishDate } = require("../../../db/enums/FilterOrder")
-const TitleLanguageSetting = require("../settings/enums/TitleLanguageSetting")
 const ArtistsRankingsFilterParams = require("../../../db/dataClasses/ArtistsRankingsFilterParams")
-const ArtistsRankingsFilterResultItem = require("../../../db/dataClasses/ArtistsRankingsFilterResultItem")
 const ArtistsRankingsFilterResult = require("../../../db/dataClasses/ArtistsRankingsFilterResult")
 
 const database = require(workingDirectory + "/db")
-const databaseProxy = require(modulePath + "/database")
 
-const { longFormat } = require(modulePath + "/unitConverter")
-const { viewTypes, getHasherAsync, caches, rankingsFilterQueryTemplate, getRandomInt, generateTimestamp } = require(modulePath + "shared") // shared functions
+const { getHasherAsync, caches, rankingsFilterQueryTemplate, getRandomInt, generateTimestamp } = require(modulePath + "shared") // shared functions
 const { getPreferredLanguageName } = require(modulePath + "/locale")
 
 // implement caches
 const rankingsCache = caches.rankingsCache // initialize rankings cache with a lifespan of 1 hour
 const queryCache = caches.queryCache // gets the query cache with a lifespan of 1 hour
-const highlightsCache = caches.highlightsCache // gets the highlights cache with a lifespan of 1 hour
 
 const filterParamsDisplayData = {
     'timestamp': {
@@ -193,6 +187,7 @@ const filterPageOptions = [
     },
     {
         displayName: 'filter_single_video',
+        description: "filter_single_video_description",
         name: "singleVideo",
         isChip: true,
         default: 0,
@@ -239,6 +234,7 @@ const filterArtistsPageOptions = [
     ...filterPageOptions,
     {
         displayName: 'filter_combine_similar_artists',
+        description: 'filter_combine_similar_artists_description',
         name: "combineSimilarArtists",
         isChip: true,
         default: 0,
@@ -542,6 +538,7 @@ const getFilterPage = async (request, reply) => {
         }
         filterValues.push({
             displayName: filterOption.displayName,
+            description: filterOption.description,
             name: name,
             isSelect: filterOption.isSelect,
             isChip: filterOption.isChip,
@@ -564,7 +561,7 @@ const getFilterPage = async (request, reply) => {
         artistCategory: artistCategory
     })
 
-    return reply.view("pages/filterRankings.hbs", request.hbParams);
+    return reply.view("pages/filterRankingsV2.hbs", request.hbParams);
 }
 
 const getRemoveAllFilters = async (_, reply) => {
