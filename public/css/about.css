@@ -2,7 +2,6 @@ a {
   text-decoration: none;
   
   color: #03a1fc;
-  
 }
 
 a.dataset-entry {
@@ -11,10 +10,18 @@ a.dataset-entry {
   
 }
 
-.about-content {
-  padding: 0px 10px 10px 10px;
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.main-title {
-  padding: 10px 5px 5px 5px;
+.card {
+  border-radius: 10px;
+  box-sizing: border-box;
+  padding: 10px;
+  background-color: var(--md-sys-color-surface-2);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }

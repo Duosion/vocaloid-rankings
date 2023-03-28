@@ -323,7 +323,7 @@ details {
 
 details > summary {
   text-align: center;
-  padding: 5px;
+  padding: 10px;
 }
 
 details > summary:hover {
