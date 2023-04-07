@@ -334,17 +334,30 @@ fastify.get("/thumbnail/:songId", (request, reply) => {
     })
   }
 
-  database.songsData.getSong(songId)
-    .then(song => fetch(song.thumbnail))
-    .then(response => response.arrayBuffer())
-    .then(imageBuffer => {
-      reply.type('image/jpg').send(toBuffer(imageBuffer))
-    })
-    .catch(msg => {
-      console.log(msg)
-      reply.send({ code: 400, message: "Invalid song id provided." })
-      return;
-    })
+  const cached = caches.thumbnailCache.get(songId)
+
+  const sendBuffer = (buffer) => {
+    reply.type('image/jpg').send(buffer)
+  }
+
+  // check if the thumbnail is cached
+  if (cached) {
+    sendBuffer(cached.getData())
+  } else {
+    database.songsData.getSong(songId)
+      .then(song => fetch(song.thumbnail))
+      .then(response => response.arrayBuffer())
+      .then(imageBuffer => toBuffer(imageBuffer))
+      .then(buffer => {
+        caches.thumbnailCache.set(songId, buffer)
+        sendBuffer(buffer)
+      })
+      .catch(msg => {
+        console.log(msg)
+        reply.send({ code: 400, message: "Invalid song id provided." })
+        return;
+      })
+  }
 })
 
 // run the server

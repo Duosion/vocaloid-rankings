@@ -64,7 +64,6 @@ class Cacher {
     if (this.get(cachedItemID)) { return }
     
     cacheTime = cacheTime || this.#defaultLifespan
-    
     const newCachedItem = new CachedItem(cachedItemID, cachedItemData)
     
     this.#cache[cachedItemID] = newCachedItem

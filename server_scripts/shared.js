@@ -79,7 +79,8 @@ exports.caches = {
   songsDataCache: new cacher(3600),
   historicalCache: new cacher(3600),
   highlightsCache: new cacher(3600),
-  searchCache: new cacher(300) // search cache 5 minutes
+  searchCache: new cacher(300), // search cache 5 minutes
+  thumbnailCache: new cacher(1800) // thumbnail cache - 30 minutes
 }
 
 // shared functions
