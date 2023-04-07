@@ -1,5 +1,6 @@
 // import npm modules
 const path = require("path");
+const fs = require('fs');
 
 const fastify = require("fastify")({
   // Set this to true for detailed logging:
@@ -313,6 +314,37 @@ fastify.get("/download-db", (request, reply) => {
 
     reply.type("application/zip").send(archive)
   }
+})
+
+function toBuffer(arrayBuffer) {
+  const buffer = Buffer.alloc(arrayBuffer.byteLength);
+  const view = new Uint8Array(arrayBuffer);
+  for (let i = 0; i < buffer.length; ++i) {
+    buffer[i] = view[i];
+  }
+  return buffer;
+}
+
+fastify.get("/thumbnail/:songId", (request, reply) => {
+  const songId = Number.parseInt(request.params.songId)
+  if (!songId) {
+    reply.send({
+      code: 400,
+      message: "Invalid parameters provided",
+    })
+  }
+
+  database.songsData.getSong(songId)
+    .then(song => fetch(song.thumbnail))
+    .then(response => response.arrayBuffer())
+    .then(imageBuffer => {
+      reply.type('image/jpg').send(toBuffer(imageBuffer))
+    })
+    .catch(msg => {
+      console.log(msg)
+      reply.send({ code: 400, message: "Invalid song id provided." })
+      return;
+    })
 })
 
 // run the server

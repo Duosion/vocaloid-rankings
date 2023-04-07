@@ -843,6 +843,64 @@ exports.setUpdatingProgress = setUpdatingProgress
 exports.addArtistsFromIds = addArtistsFromIds
 exports.populateArtists = populateArtists
 
+/*database.songsData.filterRankings(new RankingsFilterParams(
+  null, // timestamp
+  1, // time period offset
+  null, // change offset
+  null, // days offset
+  null, // view type
+  null, // song type
+  null, // artist type
+  null, // publish date
+  null, // filter order
+  FilterDirection.Descending, // filter direction
+  null, // artists
+  null, // single video
+  10000, // max entries
+  0, // start at
+  null,//[130889], // songs
+  null, // min views
+  null, // max views
+  null // count mode
+)).then(result => {
+  
+  var total_daily_views = 10000000
+  const resultCount = result.totalCount
+  /*result.results.forEach(resultItem => {
+    total_daily_views += resultItem.views
+  });
+
+  const historicalAvg = total_daily_views / resultCount
+
+  var standardDeviationSum = 0
+
+  result.results.forEach(resultItem => {
+    standardDeviationSum += Math.pow(resultItem.views - historicalAvg, 2)
+  })
+
+  const historicalStandardDeviation = Math.sqrt(standardDeviationSum / total_daily_views)
+
+  const getZScore = (views) => {
+    return (views - historicalAvg) / historicalStandardDeviation
+  }
+
+  const zScores = []
+
+  result.results.forEach(resultItem => {
+    zScores.push({
+      id: resultItem.song.id,
+      name: resultItem.song.names[2],
+      zScore: getZScore(resultItem.views),
+    })
+  })
+  zScores.sort((a,b) => {
+    return b.zScore - a.zScore
+  })
+
+  console.log(zScores)
+
+})*/
+
 /*setTimeout(() => {
   console.time('filtered rankings')
   database.songsData.filterRankings(new RankingsFilterParams(
