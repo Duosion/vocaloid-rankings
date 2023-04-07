@@ -14,6 +14,7 @@ const { getPreferredLanguageName } = require(modulePath + "/locale")
 
 // initialize caches
 const songsDataCache = caches.songsDataCache
+const thumbnailCache = caches.thumbnailCache
 
 // data
 
@@ -166,6 +167,15 @@ const getCustomThemeStylesheet = (theme, suffix = "", key = "") => {
 
   return lines
 
+}
+
+const toBuffer = (arrayBuffer) => {
+  const buffer = Buffer.alloc(arrayBuffer.byteLength);
+  const view = new Uint8Array(arrayBuffer);
+  for (let i = 0; i < buffer.length; ++i) {
+    buffer[i] = view[i];
+  }
+  return buffer;
 }
 
 // route functions
@@ -351,6 +361,41 @@ const getSong = async (request, reply) => {
   return reply.view("pages/song.hbs", hbParams)
 }
 
+const getThumbnail = (request, reply) => {
+  const songId = Number.parseInt(request.params.songId)
+  if (!songId) {
+    reply.send({
+      code: 400,
+      message: "Invalid parameters provided",
+    })
+  }
+
+  const cached = thumbnailCache.get(songId)
+
+  const sendBuffer = (buffer) => {
+    reply.type('image/jpg').send(buffer)
+  }
+
+  // check if the thumbnail is cached
+  if (cached) {
+    sendBuffer(cached.getData())
+  } else {
+    database.songsData.getSong(songId)
+      .then(song => fetch(song.thumbnail))
+      .then(response => response.arrayBuffer())
+      .then(imageBuffer => toBuffer(imageBuffer))
+      .then(buffer => {
+        thumbnailCache.set(songId, buffer)
+        sendBuffer(buffer)
+      })
+      .catch(msg => {
+        console.log(msg)
+        reply.send({ code: 400, message: "Invalid song id provided." })
+        return;
+      })
+  }
+}
+
 exports.prefix = "/song"
 
 exports.register = (fastify, options, done) => {
@@ -362,6 +407,7 @@ exports.register = (fastify, options, done) => {
   }, getSong)
   fastify.get("/add", addSongRoute)
   fastify.get("/:songId/refresh", refreshSongRoute)
+  fastify.get('/thumbnail/:songId', getThumbnail)
 
   done();
 }

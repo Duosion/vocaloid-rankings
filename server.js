@@ -316,50 +316,6 @@ fastify.get("/download-db", (request, reply) => {
   }
 })
 
-function toBuffer(arrayBuffer) {
-  const buffer = Buffer.alloc(arrayBuffer.byteLength);
-  const view = new Uint8Array(arrayBuffer);
-  for (let i = 0; i < buffer.length; ++i) {
-    buffer[i] = view[i];
-  }
-  return buffer;
-}
-
-fastify.get("/thumbnail/:songId", (request, reply) => {
-  const songId = Number.parseInt(request.params.songId)
-  if (!songId) {
-    reply.send({
-      code: 400,
-      message: "Invalid parameters provided",
-    })
-  }
-
-  const cached = caches.thumbnailCache.get(songId)
-
-  const sendBuffer = (buffer) => {
-    reply.type('image/jpg').send(buffer)
-  }
-
-  // check if the thumbnail is cached
-  if (cached) {
-    sendBuffer(cached.getData())
-  } else {
-    database.songsData.getSong(songId)
-      .then(song => fetch(song.thumbnail))
-      .then(response => response.arrayBuffer())
-      .then(imageBuffer => toBuffer(imageBuffer))
-      .then(buffer => {
-        caches.thumbnailCache.set(songId, buffer)
-        sendBuffer(buffer)
-      })
-      .catch(msg => {
-        console.log(msg)
-        reply.send({ code: 400, message: "Invalid song id provided." })
-        return;
-      })
-  }
-})
-
 // run the server
 fastify.listen(
   // process.env.PORT
