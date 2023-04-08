@@ -6,6 +6,7 @@ const SongViews = require("../dataClasses/SongViews")
 const ArtistThumbnailType = require("../enums/ArtistThumbnailType")
 const ArtistType = require("../enums/ArtistType")
 const SongType = require("../enums/SongType")
+const ViewType = require("../enums/ViewType")
 
 const { generateTimestamp } = require("../../server_scripts/shared")
 const ArtistCategory = require("../enums/ArtistCategory")
@@ -137,7 +138,8 @@ module.exports = class SongsDataProxy {
             names,
             videoIds,
             songViews,
-            songPlacement
+            songPlacement,
+            ViewType.fromId(songData.thumbnail_type)
         )
     }
 
@@ -329,7 +331,7 @@ module.exports = class SongsDataProxy {
         const db = this.db
 
         const songData = db.prepare(`
-        SELECT id, publish_date, addition_date, song_type, thumbnail, maxres_thumbnail, average_color, dark_color, light_color, fandom_url
+        SELECT id, publish_date, addition_date, song_type, thumbnail, maxres_thumbnail, thumbnail_type, average_color, dark_color, light_color, fandom_url
         FROM songs
         WHERE id = ?`).get(songId)
 
@@ -1466,8 +1468,8 @@ module.exports = class SongsDataProxy {
 
                 // prepare statement to insert into songs
                 const songsInsertStatement = db.prepare(`
-                REPLACE INTO songs (id, publish_date, addition_date, song_type, thumbnail, maxres_thumbnail, average_color, dark_color, light_color, fandom_url)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+                REPLACE INTO songs (id, publish_date, addition_date, song_type, thumbnail, maxres_thumbnail, thumbnail_type, average_color, dark_color, light_color, fandom_url)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
 
                 // prepare statement to insert into songs artists
                 const songsArtistsInsertStatement = db.prepare(`
@@ -1492,6 +1494,7 @@ module.exports = class SongsDataProxy {
                     song.type.id,
                     song.thumbnail,
                     song.maxresThumbnail,
+                    song.thumbnailType.id,
                     song.averageColor,
                     song.darkColor,
                     song.lightColor,

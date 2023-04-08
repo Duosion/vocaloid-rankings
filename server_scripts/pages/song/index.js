@@ -9,6 +9,7 @@ const { argbFromHex, themeFromSourceColor, hexFromArgb, redFromArgb, greenFromAr
 const SongViews = require("../../../db/dataClasses/SongViews")
 const ViewType = require("../../../db/enums/ViewType")
 const NameType = require("../../../db/enums/NameType")
+const CachedThumbnail = require("../../../db/dataClasses/CachedThumbnail")
 const { getHasherAsync, viewTypesDisplayData, caches } = require(modulePath + "/shared")
 const { getPreferredLanguageName } = require(modulePath + "/locale")
 
@@ -361,6 +362,12 @@ const getSong = async (request, reply) => {
   return reply.view("pages/song.hbs", hbParams)
 }
 
+/**
+ * Proxy for getting a song's thumbnail.
+ * 
+ * @param {*} request 
+ * @param {*} reply 
+ */
 const getThumbnail = (request, reply) => {
   const songId = Number.parseInt(request.params.songId)
   if (!songId) {
@@ -369,24 +376,43 @@ const getThumbnail = (request, reply) => {
       message: "Invalid parameters provided",
     })
   }
+  const useMaxresThumbnail = request.query.maxRes ? true : false
 
-  const cached = thumbnailCache.get(songId)
+  const cacheKey = `${songId}_${useMaxresThumbnail ? "1" : "0"}`
+  const cached = thumbnailCache.get(cacheKey)
 
-  const sendBuffer = (buffer) => {
-    reply.type('image/jpg').send(buffer)
+  const sendThumbnail = (data) => {
+    if (data.type == ViewType.bilibili) {
+      reply.type('image/jpg').send(data.data)
+    } else {
+      reply.redirect(data.data)
+    }
   }
 
   // check if the thumbnail is cached
   if (cached) {
-    sendBuffer(cached.getData())
+    sendThumbnail(cached.getData())
   } else {
     database.songsData.getSong(songId)
-      .then(song => fetch(song.thumbnail))
-      .then(response => response.arrayBuffer())
-      .then(imageBuffer => toBuffer(imageBuffer))
-      .then(buffer => {
-        thumbnailCache.set(songId, buffer)
-        sendBuffer(buffer)
+      .then(song => {
+        const thumbnail = useMaxresThumbnail ? song.maxresThumbnail : song.thumbnail
+        const thumbnailType = song.thumbnailType
+        const cachedThumbnail = new CachedThumbnail(null, thumbnailType)
+
+        if (thumbnailType == ViewType.bilibili) {
+          fetch(useMaxresThumbnail ? song.maxresThumbnail : song.thumbnail)
+            .then(response => response.arrayBuffer())
+            .then(imageBuffer => toBuffer(imageBuffer))
+            .then(buffer => {
+              cachedThumbnail.data = buffer
+              thumbnailCache.set(cacheKey, cachedThumbnail)
+              sendThumbnail(cachedThumbnail)
+            })
+        } else {
+          cachedThumbnail.data = thumbnail
+          thumbnailCache.set(cacheKey, cachedThumbnail)
+          sendThumbnail(cachedThumbnail)
+        }
       })
       .catch(msg => {
         console.log(msg)

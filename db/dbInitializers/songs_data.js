@@ -9,6 +9,7 @@ module.exports = (db, exists) => {
         song_type INTEGER NOT NULL,
         thumbnail TEXT NOT NULL,
         maxres_thumbnail TEXT NOT NULL,
+        thumbnail_type INTEGER NOT NULL,
         average_color TEXT NOT NULL,
         dark_color TEXT NOT NULL,
         light_color TEXT NOT NULL,

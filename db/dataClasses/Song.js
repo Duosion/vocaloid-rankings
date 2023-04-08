@@ -23,6 +23,7 @@ module.exports = class Song {
      * @param {Array.<string>[]} videoIds // this song's viodeo ids
      * @param {SongViews=} views // this song's views
      * @param {SongPlacement} [placement] // this song's placements
+     * @param {ViewType} [thumbnailType] // this song's thumbnail type
      */
     constructor(
         id,
@@ -39,7 +40,8 @@ module.exports = class Song {
         names,
         videoIds,
         views,
-        placement
+        placement,
+        thumbnailType
     ) {
         this.id = id
         this.publishDate = publishDate
@@ -56,6 +58,7 @@ module.exports = class Song {
         this.videoIds = videoIds
         this.views = views
         this.placement = placement
+        this.thumbnailType = thumbnailType
     }
 
 }

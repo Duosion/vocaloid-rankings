@@ -1,8 +1,8 @@
 const Enum = require("./Enum")
-module.exports = class SongType extends Enum {
-    static YouTube = new SongType("youtube", 0)
-    static Niconico = new SongType("niconico", 1)
-    static bilibili = new SongType("bilibili", 2)
+module.exports = class ViewType extends Enum {
+    static YouTube = new ViewType("youtube", 0)
+    static Niconico = new ViewType("niconico", 1)
+    static bilibili = new ViewType("bilibili", 2)
 
     static {
         const enums = Object.values(this)
