@@ -1,0 +1,6 @@
+.artist-info-cover {
+    border-radius: 10px;
+    height: 150px;
+    width: 150px;
+    object-fit: contain;
+}

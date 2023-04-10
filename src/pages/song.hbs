@@ -3,13 +3,14 @@
       {{customTheme}}
   }
 </style>
+<link rel="stylesheet" href="/css/entry_info.css">
 <link rel="stylesheet" href="/css/song.css">
 
-<div id="song-info-header-backsplash">
+<div id="info-header-backsplash">
   <img src="/song/thumbnail/{{songData.id}}?maxRes=1">
 </div>
-<div id="song-info-header" class="on-surface-text">
-  <div id="song-info-header-content">
+<div id="info-header" class="on-surface-text">
+  <div id="info-header-content">
     {{> back-button referer=referer class='filled-tonal floating top left' id='home-button'}}
     <img class="song-info-cover" src="/song/thumbnail/{{songData.id}}">
     <div class="display-small title text-centered">{{songData.preferredName}}</div>
@@ -21,9 +22,9 @@
     </div>
   </div>
 </div>
-<div id="song-info-container">
+<div id="info-container">
 
-  <div id="song-info-sidebar">
+  <div id="info-sidebar">
     <div id="song-sidebar-placements">
       {{#each displayPlacements}}
         <a class="placement-card {{type}} outgoing-link clickable-sidebar-card text-centered body-small on-surface-text" href="{{url}}">
@@ -33,7 +34,7 @@
       {{/each}}
     </div>
 
-    <div id="song-sidebar-info" class="sidebar-card body-medium on-surface-text">
+    <div id="sidebar-info" class="sidebar-card body-medium on-surface-text">
       <div class="sidebar-card-dataset">
         <div class="title">Release Date</div>
         <div class="value">{{timestampToDateString songData.publishDate}}</div>
@@ -63,7 +64,7 @@
 
   </div>
 
-  <div id="song-info-content">
+  <div id="info-content">
     {{!singers}}
     <div id="singers">
       <div class="body-large bold on-background-text section-title">{{localization.song_singers}}</div>

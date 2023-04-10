@@ -1,0 +1,81 @@
+<style>
+    :root {
+        {{customTheme}}
+    }
+</style>
+<link rel="stylesheet" href="/css/entry_info.css">
+<link rel="stylesheet" href="/css/artist.css">
+<div id="info-header" class="on-surface-text">
+    <div id="info-header-content">
+        {{> back-button referer=referer class='filled-tonal floating top left' id='home-button'}}
+        <img class="artist-info-cover" src="{{artistData.thumbnails.[1].url}}">
+        <div class="display-small title text-centered">{{artistData.preferredName}}</div>
+        <div class="headline-small bold text-centered">{{longFormat 0}} {{localization.rankings_views}}</div>
+    </div>
+</div>
+<div id="info-container">
+
+    <div id="info-sidebar">
+        {{#if artistData.baseArtist}}
+        <div>
+            <div class="body-large bold on-background-text section-title">Based On</div>
+            <a class="clickable-content-card small" href="/artist/{{artistData.baseArtist.id}}">
+                <img class="cover" src="{{artistData.baseArtist.thumbnails.[1].url}}">
+                <div class="card-content">
+                    <div class="body-large clickable-content-card-highlight">{{artistData.baseArtist.preferredName}}
+                    </div>
+                </div>
+            </a>
+        </div>
+        {{/if}}
+
+        <div id="sidebar-info" class="sidebar-card body-medium on-surface-text">
+            <div class="sidebar-card-dataset">
+                <div class="title">Release Date</div>
+                <div class="value">{{timestampToDateString artistData.publishDate}}</div>
+            </div>
+            <div class="sidebar-card-dataset">
+                <div class="title">Addition Date</div>
+                <div class="value">{{timestampToDateString artistData.additionDate}}</div>
+            </div>
+            <div class="sidebar-card-dataset">
+                <div class="title">Artist Type</div>
+                <div class="value">{{localize artistData.type.name}}</div>
+            </div>
+            {{#each displayNames}}
+            <div class="sidebar-card-dataset">
+                <div class="title">{{localize name}}</div>
+                <div class="value">{{value}}</div>
+            </div>
+            {{/each}}
+        </div>
+
+        <a id="outgoing-vocadb-link-sidebar"
+            class="outgoing-link clickable-sidebar-card body-medium on-surface-text text-centered"
+            href="/outgoing?url=https://vocadb.net/Ar/{{id}}">
+            <img src="/images/voca-db-icon.png">
+            VocaDB
+        </a>
+
+    </div>
+
+    <div id="info-content">
+        {{! similar artists}}
+        {{#if artistData.children}}
+            <div id="similar-artists">
+                <div class="body-large bold on-background-text section-title">Similar Artists</div>
+                <div class="card-grid">
+                    {{#each artistData.children}}
+                            <a class="clickable-content-card" href="/artist/{{id}}">
+                                <img class="cover" src="{{thumbnails.[1].url}}">
+                                <div class="card-content">
+                                    <div class="body-large clickable-content-card-highlight">{{preferredName}}</div>
+                                    <div class="body-medium">{{localize type.name}}</div>
+                                </div>
+                            </a>
+                    {{/each}}
+                </div>
+            </div>
+        {{/if}}
+    </div>
+</div>

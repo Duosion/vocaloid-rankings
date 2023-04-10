@@ -300,7 +300,7 @@ module.exports = class SongsDataProxy {
         // get release year placement
         let releaseYearPlacement
         {
-            
+
             const releaseYear = (new Date(songData.publish_date)).getFullYear() + "%"
             // get placement
             const releaseYearPlacementFilterParams = new RankingsFilterParams()
@@ -438,6 +438,25 @@ module.exports = class SongsDataProxy {
     }
 
     /**
+     * Gets every artist that has their base artist ID equal to artistID.
+     * 
+     * @param {number} artistId The ID of the artist to find the children of.
+     * @returns {Artist[]}
+     */
+    #getArtistChildrenSync(artistId) {
+        const result = this.db.prepare(`
+            SELECT DISTINCT artists.id
+            FROM artists
+            WHERE base_artist_id = ?`).all(artistId)
+
+        const children = []
+        result.forEach(artist => {
+            children.push(this.#getArtistSync(artist.id))
+        })
+        return children
+    }
+
+    /**
      * Turns the provided RankingsFilterParams object into an object readable by better sqlite3.
      * 
      * @param {RankingsFilterParams} filterParams 
@@ -475,7 +494,7 @@ module.exports = class SongsDataProxy {
         // prepare build statements
         const filterParamsArtists = filterParams.artists
         const filterParamsSongs = filterParams.songs
-        
+
         return {
             filterArtists: filterParamsArtists ? buildInStatement(filterParamsArtists, 'artist') : '',
             filterSongs: filterParamsSongs ? buildInStatement(filterParamsSongs, 'song') : '',
@@ -928,7 +947,7 @@ module.exports = class SongsDataProxy {
                 data.total_views = data.total_views - offsetViews
             }
         }
-        
+
         return primaryResult
     }
 
@@ -1168,6 +1187,22 @@ module.exports = class SongsDataProxy {
         return new Promise((resolve, reject) => {
             try {
                 resolve(this.#getBaseArtistSync(artistId, artistName))
+            } catch (error) {
+                reject(error)
+            }
+        })
+    }
+
+    /**
+     * Gets every artist that has its base artist id equal to the provided artistId.
+     * 
+     * @param {number} artistId The artist id to get the children of.
+     * @returns {Promise<Artist[]|Error>} The list of children.
+     */
+    getArtistChildren(artistId) {
+        return new Promise((resolve, reject) => {
+            try {
+                resolve(this.#getArtistChildrenSync(artistId))
             } catch (error) {
                 reject(error)
             }

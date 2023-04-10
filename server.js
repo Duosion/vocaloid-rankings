@@ -130,7 +130,8 @@ if (seo.url === "glitch-default") {
     "rankings", // the rankings page
     "settings", // settings
     "song", // song pages (add/view)
-    "search" // search page
+    "search", // search page
+    "artist" // artist page
   ]
 
   pageScripts.forEach(path => {
