@@ -1,7 +1,7 @@
 const SongType = require("../enums/SongType");
 const Artist = require("./Artist");
 const SongPlacement = require("./SongPlacement");
-const SongViews = require("./SongViews");
+const EntityViews = require("./EntityViews");
 
 module.exports = class Song {
 
@@ -21,7 +21,7 @@ module.exports = class Song {
      * @param {Artist[]} artists // this song's artists
      * @param {string[]} names // this song's names
      * @param {Array.<string>[]} videoIds // this song's viodeo ids
-     * @param {SongViews=} views // this song's views
+     * @param {EntityViews=} views // this song's views
      * @param {SongPlacement} [placement] // this song's placements
      * @param {ViewType} [thumbnailType] // this song's thumbnail type
      */

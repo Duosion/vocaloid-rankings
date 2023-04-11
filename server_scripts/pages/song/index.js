@@ -6,7 +6,7 @@ const database = require(workingDirectory + "/db")
 const databaseProxy = require(modulePath + "/database")
 
 const { argbFromHex, themeFromSourceColor, hexFromArgb, redFromArgb, greenFromArgb, blueFromArgb } = require("@importantimport/material-color-utilities");
-const SongViews = require("../../../db/dataClasses/SongViews")
+const EntityViews = require("../../../db/dataClasses/EntityViews")
 const ViewType = require("../../../db/enums/ViewType")
 const NameType = require("../../../db/enums/NameType")
 const CachedThumbnail = require("../../../db/dataClasses/CachedThumbnail")
@@ -22,7 +22,7 @@ const thumbnailCache = caches.thumbnailCache
 /**
  * Formats a SongViews object
  * 
- * @param {SongViews} songViews 
+ * @param {EntityViews} songViews 
  * @returns {Object}
  */
 const getViewsBreakdownDisplayData = (songViews) => {

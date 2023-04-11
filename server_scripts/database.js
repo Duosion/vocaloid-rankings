@@ -16,7 +16,7 @@ const NameType = require("../db/enums/NameType")
 const ViewType = require("../db/enums/ViewType")
 const ArtistThumbnailType = require("../db/enums/ArtistThumbnailType")
 const ArtistThumbnail = require("../db/dataClasses/ArtistThumbnail")
-const SongViews = require("../db/dataClasses/SongViews")
+const EntityViews = require("../db/dataClasses/EntityViews")
 const ArtistCategory = require("../db/enums/ArtistCategory")
 const VideoViews = require("../db/dataClasses/VideoViews");
 const ArtistsRankingsFilterParams = require("../db/dataClasses/ArtistsRankingsFilterParams");
@@ -826,8 +826,7 @@ const migrateViewsData = () => {
                 }
               }
 
-              songsDataProxy.insertSongViews(new SongViews(
-                Number.parseInt(songId),
+              songsDataProxy.insertSongViews(new EntityViews(
                 timestamp,
                 viewData.total,
                 newBreakdown

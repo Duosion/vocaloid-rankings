@@ -2,7 +2,7 @@ const Database = require("better-sqlite3")
 const Artist = require("../dataClasses/Artist")
 const ArtistThumbnail = require("../dataClasses/ArtistThumbnail")
 const Song = require("../dataClasses/song")
-const SongViews = require("../dataClasses/SongViews")
+const EntityViews = require("../dataClasses/EntityViews")
 const ArtistThumbnailType = require("../enums/ArtistThumbnailType")
 const ArtistType = require("../enums/ArtistType")
 const SongType = require("../enums/SongType")
@@ -92,7 +92,7 @@ module.exports = class SongsDataProxy {
      * @param {Object} songData 
      * @param {Object[]} songNames 
      * @param {Artist[]} songArtists
-     * @param {SongViews=} songViews
+     * @param {EntityViews=} songViews
      * @param {SongPlacement} [songPlacement]
      * @returns {Song} The built Song object.
      */
@@ -148,9 +148,9 @@ module.exports = class SongsDataProxy {
      * 
      * @param {Object} viewsTotal
      * @param {Object[]} viewsBreakdowns 
-     * @returns {SongViews} The built SongViews object.
+     * @returns {EntityViews} The built SongViews object.
      */
-    #buildSongViews(
+    #buildEntityViews(
         viewsTotal,
         viewsBreakdowns
     ) {
@@ -170,8 +170,7 @@ module.exports = class SongsDataProxy {
             ))
         }
 
-        return new SongViews(
-            viewsTotal.song_id,
+        return new EntityViews(
             viewsTotal.timestamp,
             viewsTotal.total,
             breakdown
@@ -184,7 +183,7 @@ module.exports = class SongsDataProxy {
      * 
      * @param {number} songId The ID of the song to get.
      * @param {string} [timestamp]
-     * @returns {SongViews|null} The SongViews associated with songId or null.
+     * @returns {EntityViews|null} The EntityViews associated with songId or null.
      */
     #getSongViewsSync(
         songId,
@@ -207,7 +206,7 @@ module.exports = class SongsDataProxy {
         WHERE song_id = ? AND timestamp = ?
         ORDER BY views DESC`).all(songId, timestamp)
 
-        return this.#buildSongViews(
+        return this.#buildEntityViews(
             viewsTotal,
             breakdowns
         )
@@ -255,7 +254,7 @@ module.exports = class SongsDataProxy {
      * Contains placement information for various rankings.
      * 
      * @param {Object} songData The data for this song (raw from the database).
-     * @param {SongViews} songViews The views data for this song.
+     * @param {EntityViews} songViews The views data for this song.
      * @returns {SongPlacement} The built SongPlacement object
      */
     #buildSongPlacement(
@@ -273,7 +272,7 @@ module.exports = class SongsDataProxy {
      * Contains placement information for various rankings.
      * 
      * @param {Object} songData The data for this song (raw from the database).
-     * @param {SongViews} [songViews] Optional. The views data for this song.
+     * @param {EntityViews} [songViews] Optional. The views data for this song.
      * @returns {SongPlacement|null} The built SongPlacement object
      */
     #getSongPlacementSync(
@@ -1612,7 +1611,7 @@ module.exports = class SongsDataProxy {
     /**
      * Inserts a song's views into the database.
      * 
-     * @param {SongViews} songViews The views to insert into the database.
+     * @param {EntityViews} songViews The views to insert into the database.
      * @returns {Promise} A promise that resolves upon insertion completion.
      */
     insertSongViews(songViews) {

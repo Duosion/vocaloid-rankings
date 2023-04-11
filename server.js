@@ -117,7 +117,7 @@ partializer.registerAll(handlebars)
 // load and parse seo data
 const seo = require("./src/seo.json");
 const Song = require("./db/dataClasses/song");
-const SongViews = require("./db/dataClasses/SongViews");
+const EntityViews = require("./db/dataClasses/EntityViews");
 const ArtistThumbnail = require("./db/dataClasses/ArtistThumbnail");
 if (seo.url === "glitch-default") {
   seo.url = `https://${process.env.PROJECT_DOMAIN}.glitch.me`;

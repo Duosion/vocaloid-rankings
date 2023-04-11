@@ -4,7 +4,7 @@ const { argbFromHex, themeFromSourceColor, hexFromArgb } = require("@importantim
 const database = require("../db")
 const { parseHTML } = require("linkedom")
 // import database classes
-const SongViews = require("../db/dataClasses/SongViews")
+const EntityViews = require("../db/dataClasses/EntityViews")
 const ArtistThumbnail = require("../db/dataClasses/ArtistThumbnail")
 const Song = require("../db/dataClasses/song")
 // import database enums
@@ -276,8 +276,7 @@ const getVideoIdsViewsAsync = (
             }
 
             // resolve with the view count
-            resolve(new SongViews(
-                null,
+            resolve(new EntityViews(
                 timestamp,
                 totalViews,
                 breakdown
@@ -293,7 +292,7 @@ const getVideoIdsViewsAsync = (
  * 
  * @param {Song} song The song to retrieve the views of.
  * @param {string} [timestamp] The timestamp of the views.
- * @returns {SongViews}
+ * @returns {EntityViews}
  */
 const getSongViewsAsync = (
     song,
@@ -632,8 +631,7 @@ const processVocaDBSongDataAsync = (songData) => {
                 names,
                 videoIds,
 
-                new SongViews(
-                    songId,
+                new EntityViews(
                     null,
                     totalViews,
                     viewsBreakdown
