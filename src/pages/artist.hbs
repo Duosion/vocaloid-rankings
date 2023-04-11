@@ -10,7 +10,7 @@
         {{> back-button referer=referer class='filled-tonal floating top left' id='home-button'}}
         <img class="artist-info-cover" src="{{artistData.thumbnails.[1].url}}">
         <div class="display-small title text-centered">{{artistData.preferredName}}</div>
-        <div class="headline-small bold text-centered">{{longFormat 0}} {{localization.rankings_views}}</div>
+        <div class="headline-small bold text-centered">{{longFormat artistData.views.total}} {{localization.rankings_views}}</div>
     </div>
 </div>
 <div id="info-container">

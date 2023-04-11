@@ -47,13 +47,15 @@ module.exports = class SongsDataProxy {
      * 
      * @param {Object} artistData 
      * @param {Object[]} artistNames 
-     * @param {Object[]} artistThumbnails 
+     * @param {Object[]} artistThumbnails
+     * @param {EntityViews} [views]
      * @returns {Artist} The built Artist object.
      */
     #buildArtist(
         artistData,
         artistNames,
-        artistThumbnails
+        artistThumbnails,
+        views
     ) {
         // process names
         const names = []
@@ -82,7 +84,8 @@ module.exports = class SongsDataProxy {
             artistData.base_artist_id,
             artistData.average_color,
             artistData.dark_color,
-            artistData.light_color
+            artistData.light_color,
+            views
         )
     }
 
@@ -146,15 +149,16 @@ module.exports = class SongsDataProxy {
     /**
      * Builds an SongViews object using data provided from the database.
      * 
-     * @param {Object} viewsTotal
      * @param {Object[]} viewsBreakdowns 
+     * @param {string} [timestamp]
      * @returns {EntityViews} The built SongViews object.
      */
     #buildEntityViews(
-        viewsTotal,
-        viewsBreakdowns
+        viewsBreakdowns,
+        timestamp
     ) {
         // process breakdown
+        var totalViews = 0
         const breakdown = []
         for (const [_, breakdownData] of viewsBreakdowns.entries()) {
             const type = breakdownData.view_type
@@ -164,15 +168,18 @@ module.exports = class SongsDataProxy {
                 breakdown[type] = bucket
             }
             // add breakdown to bucket
+            const views = breakdownData.views
             bucket.push(new VideoViews(
                 breakdownData.video_id,
-                breakdownData.views
+                views
             ))
+            // increment total
+            totalViews += views
         }
 
         return new EntityViews(
-            viewsTotal.timestamp,
-            viewsTotal.total,
+            timestamp,
+            totalViews,
             breakdown
         )
     }
@@ -191,15 +198,6 @@ module.exports = class SongsDataProxy {
     ) {
         const db = this.db
 
-        // get views totals
-        const viewsTotal = db.prepare(`
-        SELECT song_id, timestamp, total
-        FROM views_totals
-        WHERE song_id = ? AND timestamp = ?
-        ORDER BY total DESC`).get(songId, timestamp)
-
-        if (viewsTotal == undefined) { return null }
-
         const breakdowns = db.prepare(`
         SELECT views, video_id, view_type
         FROM views_breakdowns
@@ -207,8 +205,41 @@ module.exports = class SongsDataProxy {
         ORDER BY views DESC`).all(songId, timestamp)
 
         return this.#buildEntityViews(
-            viewsTotal,
-            breakdowns
+            breakdowns,
+            timestamp
+        )
+    }
+
+    /**
+     * Synchronously gets the views for the artist associated with the provided artist id.
+     * Returns null if the artist does not exist.
+     * 
+     * @param {number} artistId The ID of the artist to get.
+     * @param {string} [timestamp]
+     * @returns {EntityViews|null} The EntityViews associated with artistId or null.
+     */
+    #getArtistViewsSync(
+        artistId,
+        timestamp = this.#getMostRecentViewsTimestampSync()
+    ) {
+        const db = this.db
+
+        const viewsBreakdown = db.prepare(`
+        SELECT views_breakdowns.view_type, SUM(views_breakdowns.views) AS views, 0 AS video_id
+        FROM views_breakdowns
+        INNER JOIN songs_artists ON songs_artists.artist_id = :id
+        WHERE (views_breakdowns.timestamp = :timestamp)
+            AND (views_breakdowns.song_id = songs_artists.song_id)
+        GROUP BY views_breakdowns.view_type`).all({
+            id: artistId,
+            timestamp: timestamp
+        })
+
+        console.log(viewsBreakdown)
+
+        return this.#buildEntityViews(
+            viewsBreakdown,
+            timestamp
         )
     }
 
@@ -217,10 +248,12 @@ module.exports = class SongsDataProxy {
      * Returns null if the artist does not exist.
      * 
      * @param {number} artistId The ID of the artist to get.
+     * @param {boolean} getViews Whether or not to get the views & placement of the artist described by artistId.
      * @returns {Artist|null} The artist associated with artistId
      */
     #getArtistSync(
-        artistId
+        artistId,
+        getViews = true
     ) {
         const db = this.db
 
@@ -242,10 +275,13 @@ module.exports = class SongsDataProxy {
         FROM artists_thumbnails
         WHERE artist_id = ?`).all(artistId)
 
+        const views = getViews ? this.#getArtistViewsSync(artistId) : null
+
         return this.#buildArtist(
             artistData,
             artistNames,
-            artistThumbnails
+            artistThumbnails,
+            views
         )
     }
 
@@ -358,7 +394,7 @@ module.exports = class SongsDataProxy {
         // get artists data
         const artists = []
         for (const [_, songArtist] of songArtists.entries()) {
-            const artist = this.#getArtistSync(songArtist.artist_id)
+            const artist = this.#getArtistSync(songArtist.artist_id, false)
             artist.category = ArtistCategory.fromId(songArtist.artist_category)
             artists.push(artist)
         }
@@ -450,7 +486,7 @@ module.exports = class SongsDataProxy {
 
         const children = []
         result.forEach(artist => {
-            children.push(this.#getArtistSync(artist.id))
+            children.push(this.#getArtistSync(artist.id, false))
         })
         return children
     }
@@ -981,7 +1017,7 @@ module.exports = class SongsDataProxy {
                     (placement > previousPlacement ? PlacementChange.DOWN : PlacementChange.UP),
                 previousPlacement,
                 data.total_views,
-                this.#getArtistSync(artistId)
+                this.#getArtistSync(artistId, false)
             ))
         }
 
@@ -1057,7 +1093,7 @@ module.exports = class SongsDataProxy {
         return new SearchQueryResultItem(
             placement,
             type,
-            type == SearchQueryResultItemType.Song ? this.#getSongSync(id, true) : this.#getArtistSync(id),
+            type == SearchQueryResultItemType.Song ? this.#getSongSync(id, true) : this.#getArtistSync(id, true),
             distance
         )
     }
@@ -1396,7 +1432,7 @@ module.exports = class SongsDataProxy {
     getArtist(id) {
         return new Promise((resolve, reject) => {
             try {
-                resolve(this.#getArtistSync(id))
+                resolve(this.#getArtistSync(id, true))
             } catch (error) {
                 reject(error)
             }
@@ -1414,9 +1450,10 @@ module.exports = class SongsDataProxy {
             LIMIT 1`).get(name)
 
             if (id) {
-                resolve(this.#getArtistSync(id))
+                resolve(this.#getArtistSync(id, true))
+            } else {
+                reject(new Error(`No artist with name "${name}" was found.`))
             }
-
         })
     }
 

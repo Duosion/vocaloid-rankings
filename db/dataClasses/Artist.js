@@ -1,6 +1,8 @@
 const ArtistCategory = require("../enums/ArtistCategory")
 const ArtistType = require("../enums/ArtistType")
+const ArtistPlacement = require("./ArtistPlacement")
 const ArtistThumbnail = require("./ArtistThumbnail")
+const EntityViews = require("./EntityViews")
 
 module.exports = class Artist {
 
@@ -17,6 +19,8 @@ module.exports = class Artist {
      * @param {string} [averageColor] The average color of this artist's thumbnail.
      * @param {string} [darkColor] The dark color for this artist.
      * @param {string} [lightColor] The light color for this artist.
+     * @param {EntityViews} [views] The views for this artist.
+     * @param {ArtistPlacement} [placement] This artist's placement.
      */
     constructor(
         id,
@@ -29,7 +33,9 @@ module.exports = class Artist {
         baseArtistId,
         averageColor,
         darkColor,
-        lightColor
+        lightColor,
+        views,
+        placement
     ) {
         this.id = id
         this.type = type
@@ -42,6 +48,8 @@ module.exports = class Artist {
         this.averageColor = averageColor
         this.darkColor = darkColor
         this.lightColor = lightColor
+        this.views = views
+        this.placement = placement
     }
 
 }
