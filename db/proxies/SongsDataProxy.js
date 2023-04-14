@@ -75,11 +75,12 @@ module.exports = class SongsDataProxy {
                 thumbnailData.url
             )
         }
+        const type = ArtistType.fromId(artistData.artist_type)
 
         return new Artist(
             artistData.id,
-            ArtistType.fromId(artistData.artist_type),
-            null,
+            type,
+            type.category,
             artistData.publish_date,
             artistData.addition_date,
             names,
@@ -287,7 +288,7 @@ module.exports = class SongsDataProxy {
             // get placement
             const allTimePlacementFilterParams = new ArtistsRankingsFilterParams()
             allTimePlacementFilterParams.minViews = artistViews.total
-            allTimePlacementFilterParams.artistType = ArtistType.fromId(artistData.artist_type)
+            allTimePlacementFilterParams.artistCategory = ArtistType.fromId(artistData.artist_type).category
 
             allTimePlacement = this.#filterArtistsRankingsCountSync(this.#getFilterArtistsQueryParams(allTimePlacementFilterParams))
 
@@ -898,23 +899,24 @@ module.exports = class SongsDataProxy {
     #filterArtistsRankingsCountSync(queryParams) {
         const filterSongs = queryParams.filterSongs
         return this.db.prepare(`
-        SELECT count(DISTINCT CASE WHEN :combineSimilarArtists IS NULL THEN artists.id
-            WHEN artists.base_artist_id IS NULL THEN artists.id
-            ELSE artists.base_artist_id
-        END) AS count
+        SELECT DISTINCT 
+            CASE WHEN :combineSimilarArtists IS NULL THEN artists.id
+                WHEN artists.base_artist_id IS NULL THEN artists.id
+                ELSE artists.base_artist_id
+            END AS id,
+            SUM(DISTINCT views_breakdowns.views) AS total_views
         FROM views_breakdowns
         INNER JOIN songs ON views_breakdowns.song_id = songs.id
         INNER JOIN songs_artists ON songs_artists.song_id = views_breakdowns.song_id
         INNER JOIN artists ON artists.id = songs_artists.artist_id
         WHERE (views_breakdowns.timestamp = CASE WHEN :daysOffset IS NULL
-                THEN :timestamp
-                ELSE DATE(:timestamp, '-' || :daysOffset || ' day')
-                END)
+            THEN :timestamp
+            ELSE DATE(:timestamp, '-' || :daysOffset || ' day')
+            END)
             AND (views_breakdowns.view_type = :viewType OR :viewType IS NULL)
             AND (songs.song_type = :songType OR :songType IS NULL)
             AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
             AND (songs_artists.artist_category = :artistCategory OR :artistCategory IS NULL)
-            AND (artists.artist_type = :artistType OR :artistType IS NULL)
             AND (views_breakdowns.views = CASE WHEN :singleVideo IS NULL
                 THEN views_breakdowns.views
                 ELSE
@@ -929,7 +931,6 @@ module.exports = class SongsDataProxy {
                         AND (songs.song_type = :songType OR :songType IS NULL)
                         AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
                         AND (songs_artists.artist_category = :artistCategory OR :artistCategory IS NULL)
-                        AND (artists.artist_type = :artistType OR :artistType IS NULL)
                         ${filterSongs == '' ? '' : `AND (songs.id IN (${filterSongs}))`}
                     GROUP BY sub_vb.song_id)
                 END)
@@ -941,11 +942,11 @@ module.exports = class SongsDataProxy {
             END
         HAVING (CASE WHEN :minViews IS NULL
             THEN 1
-            ELSE SUM(DISTINCT views_breakdowns.views) >= :minViews END)
+            ELSE total_views >= :minViews END)
             AND (CASE WHEN :maxViews IS NULL
                 THEN 1
-                ELSE SUM(DISTINCT views_breakdowns.views) <= :maxViews 
-                END)`).get(queryParams.params)?.count
+                ELSE total_views <= :maxViews 
+                END)`).all(queryParams.params)?.length || 0
     }
 
     /**

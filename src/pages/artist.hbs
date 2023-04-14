@@ -74,13 +74,13 @@
                 <div class="body-large bold on-background-text section-title">Similar Artists</div>
                 <div class="card-grid">
                     {{#each artistData.children}}
-                            <a class="clickable-content-card" href="/artist/{{id}}">
-                                <img class="cover" src="{{thumbnails.[1].url}}">
-                                <div class="card-content">
-                                    <div class="body-large clickable-content-card-highlight">{{preferredName}}</div>
-                                    <div class="body-medium">{{localize type.name}}</div>
-                                </div>
-                            </a>
+                        <a class="clickable-content-card" href="/artist/{{id}}">
+                            <img class="cover" src="{{thumbnails.[1].url}}">
+                            <div class="card-content">
+                                <div class="body-large clickable-content-card-highlight">{{preferredName}}</div>
+                                <div class="body-medium">{{localize type.name}}</div>
+                            </div>
+                        </a>
                     {{/each}}
                 </div>
             </div>
