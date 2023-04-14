@@ -8,6 +8,7 @@ const songsDataDb = database.songsData
 
 // import modules
 const { argbFromHex, themeFromSourceColor, hexFromArgb, redFromArgb, greenFromArgb, blueFromArgb } = require("@importantimport/material-color-utilities");
+const ArtistCategory = require("../../../db/enums/ArtistCategory")
 const { getHasherAsync, caches } = require(modulePath + "/shared")
 const { getPreferredLanguageName } = require(modulePath + "/locale")
 
@@ -173,15 +174,16 @@ const getArtist = async (request, reply) => {
 
             // get placement display data
             {
+                const isVocalist = artistData.category == ArtistCategory.Vocalist
                 const displayPlacements = []
 
                 // all time
                 {
                     const allTimePlacement = artistData.placement.allTime
-                    const toFormat = request.hbParams.localization.song_placement_all_time
+                    const toFormat = isVocalist ? "#:placement Most Viewed Singer All Time" : "#:placement Most Viewed Producer All Time"
                     displayPlacements.push({
                         type: "views",
-                        url: "/rankings/singers/filter/set?startAt=" + (allTimePlacement - 1),
+                        url: `/rankings/filter/set?artistCategory=${artistData.category.id}&startAt=${allTimePlacement - 1}&referer=/rankings/${isVocalist ? 'singers' : 'producers'}`,
                         text: toFormat.replace(':placement', allTimePlacement)
                     })
                 }
