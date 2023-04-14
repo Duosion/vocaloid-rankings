@@ -16,6 +16,14 @@
 <div id="info-container">
 
     <div id="info-sidebar">
+        <div id="sidebar-placements">
+            {{#each displayPlacements}}
+                <a class="placement-card {{type}} outgoing-link clickable-sidebar-card text-centered body-small on-surface-text" href="{{url}}">
+                <span class="material-symbols-rounded">star</span>
+                <div>{{text}}</div>
+                </a>
+            {{/each}}
+        </div>
         {{#if artistData.baseArtist}}
         <div>
             <div class="body-large bold on-background-text section-title">Based On</div>

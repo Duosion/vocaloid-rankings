@@ -26,6 +26,8 @@ module.exports = class ArtistsRankingsFilterParams {
      * @param {boolean} [combineSimilarArtists] If true, combines similar artists. I.E Hatsune Miku V4's views will be combined with Hatsune Miku's views.
      * @param {number} [maxEntries] The maximum number of rankings entries to return. Default: 50.
      * @param {number} [startAt] The amount to offset the resulting rankings entries. Default: 0.
+     * @param {number} [minViews] The minimum amount of views a song must have to be included in the result.
+     * @param {number} [maxViews] The maximum amount of views a song must have to be included in the result.
      */
     constructor(
         timestamp,
@@ -44,6 +46,8 @@ module.exports = class ArtistsRankingsFilterParams {
         combineSimilarArtists,
         maxEntries = 50,
         startAt = 0,
+        minViews,
+        maxViews,
     ) {
         this.timestamp = timestamp
         this.timePeriodOffset = timePeriodOffset
@@ -61,5 +65,7 @@ module.exports = class ArtistsRankingsFilterParams {
         this.songs = songs
         this.maxEntries = maxEntries
         this.startAt = startAt
+        this.minViews = minViews
+        this.maxViews = maxViews
     }
 }

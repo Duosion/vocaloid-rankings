@@ -24,6 +24,7 @@ const SearchQueryParams = require("../dataClasses/SearchQueryParams")
 const SearchQueryResult = require("../dataClasses/SearchQueryResult")
 const SearchQueryResultItem = require("../dataClasses/SearchQueryResultItem")
 const SearchQueryResultItemType = require("../enums/SearchQueryResultItemType")
+const ArtistPlacement = require("../dataClasses/ArtistPlacement")
 
 function generateISOTimestamp() {
     return new Date().toISOString()
@@ -49,13 +50,15 @@ module.exports = class SongsDataProxy {
      * @param {Object[]} artistNames 
      * @param {Object[]} artistThumbnails
      * @param {EntityViews} [views]
+     * @param {ArtistPlacement} [placement]
      * @returns {Artist} The built Artist object.
      */
     #buildArtist(
         artistData,
         artistNames,
         artistThumbnails,
-        views
+        views,
+        placement
     ) {
         // process names
         const names = []
@@ -85,7 +88,8 @@ module.exports = class SongsDataProxy {
             artistData.average_color,
             artistData.dark_color,
             artistData.light_color,
-            views
+            views,
+            placement
         )
     }
 
@@ -244,6 +248,58 @@ module.exports = class SongsDataProxy {
     }
 
     /**
+     * Builds an artist placement object from rankings.
+     * Contains placement information for various rankings.
+     * 
+     * @param {number} [allTimePlacement] The data for this artist (raw from the database).
+     * @returns {ArtistPlacement} The built placement object
+     */
+    #buildArtistPlacement(
+        allTimePlacement = -1
+    ) {
+        return new ArtistPlacement(
+            allTimePlacement
+        )
+    }
+
+    /**
+     * Builds an artist placement object from a artist's data.
+     * Contains placement information for various rankings.
+     * 
+     * @param {Object} artistData The data for this artist (raw from the database).
+     * @param {EntityViews} [artistViews] The views data for this artist.
+     * @returns {ArtistPlacement} The built ArtistPlacement object
+     */
+    #getArtistPlacement(
+        artistData,
+        artistViews
+    ) {
+        if (!artistViews) {
+            artistViews = this.#getSongViewsSync(artistData.id)
+        }
+        if (!artistViews) {
+            return null
+        }
+
+        let allTimePlacement
+        // get all time placement
+        {
+            // get placement
+            const allTimePlacementFilterParams = new ArtistsRankingsFilterParams()
+            allTimePlacementFilterParams.minViews = artistViews.total
+            allTimePlacementFilterParams.artistType = ArtistType.fromId(artistData.artist_type)
+
+            allTimePlacement = this.#filterArtistsRankingsCountSync(this.#getFilterArtistsQueryParams(allTimePlacementFilterParams))
+
+            console.log(artistData, artistViews, allTimePlacement)
+        }
+
+        return this.#buildArtistPlacement(
+            allTimePlacement
+        )
+    }
+
+    /**
      * Synchronously gets the artist associated with the provided artist id.
      * Returns null if the artist does not exist.
      * 
@@ -276,12 +332,14 @@ module.exports = class SongsDataProxy {
         WHERE artist_id = ?`).all(artistId)
 
         const views = getViews ? this.#getArtistViewsSync(artistId) : null
+        const placement = views ? this.#getArtistPlacement(artistData, views) : null
 
         return this.#buildArtist(
             artistData,
             artistNames,
             artistThumbnails,
-            views
+            views,
+            placement
         )
     }
 
@@ -807,7 +865,9 @@ module.exports = class SongsDataProxy {
             singleVideo: filterParams.singleVideo && 1,
             combineSimilarArtists: filterParams.combineSimilarArtists && 1,
             maxEntries: filterParams.maxEntries,
-            startAt: filterParams.startAt
+            startAt: filterParams.startAt,
+            minViews: filterParams.minViews,
+            maxViews: filterParams.maxViews
         }
 
         // build artists statement
@@ -873,13 +933,19 @@ module.exports = class SongsDataProxy {
                         ${filterSongs == '' ? '' : `AND (songs.id IN (${filterSongs}))`}
                     GROUP BY sub_vb.song_id)
                 END)
-            ${filterSongs == '' ? '' : `AND (songs.id IN (${filterSongs}))
+            ${filterSongs == '' ? '' : `AND (songs.id IN (${filterSongs}))`}
         GROUP BY 
             CASE WHEN :combineSimilarArtists IS NULL THEN artists.id
             WHEN artists.base_artist_id IS NULL then artists.id
             ELSE artists.base_artist_id
-            END`}
-        `).get(queryParams.params)?.count
+            END
+        HAVING (CASE WHEN :minViews IS NULL
+            THEN 1
+            ELSE SUM(DISTINCT views_breakdowns.views) >= :minViews END)
+            AND (CASE WHEN :maxViews IS NULL
+                THEN 1
+                ELSE SUM(DISTINCT views_breakdowns.views) <= :maxViews 
+                END)`).get(queryParams.params)?.count
     }
 
     /**
@@ -936,6 +1002,13 @@ module.exports = class SongsDataProxy {
             WHEN artists.base_artist_id IS NULL then artists.id
             ELSE artists.base_artist_id
             END
+        HAVING (CASE WHEN :minViews IS NULL
+            THEN 1
+            ELSE total_views >= :minViews END)
+            AND (CASE WHEN :maxViews IS NULL
+                THEN 1
+                ELSE total_views <= :maxViews 
+                END)
         ORDER BY
             CASE WHEN :direction = 0 THEN 1
             ELSE

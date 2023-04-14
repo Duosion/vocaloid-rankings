@@ -111,8 +111,6 @@ const queryArtist = (artistIdString, options) => {
                             return localized
                         })
                         .catch(error => reject(error))) || []
-                        
-                    
                     artistData.children = children.length == 0 ? null : children
 
                     // cache return data
@@ -173,6 +171,22 @@ const getArtist = async (request, reply) => {
                 request.addHbParam('displayNames', artistNames)
             }
 
+            // get placement display data
+            {
+                const displayPlacements = []
+
+                // all time
+                {
+                    const allTimePlacement = artistData.placement.allTime
+                    const toFormat = request.hbParams.localization.song_placement_all_time
+                    displayPlacements.push({
+                        type: "views",
+                        url: "/rankings/singers/filter/set?startAt=" + (allTimePlacement - 1),
+                        text: toFormat.replace(':placement', allTimePlacement)
+                    })
+                }
+                request.addHbParam('displayPlacements',displayPlacements)
+            }
 
             return reply.view("pages/artist.hbs", request.hbParams)
         })
