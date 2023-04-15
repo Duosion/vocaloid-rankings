@@ -4,3 +4,9 @@
     width: 150px;
     object-fit: contain;
 }
+
+.songs-content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}

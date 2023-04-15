@@ -5,6 +5,7 @@
 </style>
 <link rel="stylesheet" href="/css/entry_info.css">
 <link rel="stylesheet" href="/css/artist.css">
+<link rel="stylesheet" href="/css/rankings.css">
 <div id="info-header" class="on-surface-text">
     <div id="info-header-content">
         {{> back-button referer=referer class='filled-tonal floating top left' id='home-button'}}
@@ -27,7 +28,7 @@
         {{#if artistData.baseArtist}}
         <div>
             <div class="body-large bold on-background-text section-title">Based On</div>
-            <a class="clickable-content-card small" href="/artist/{{artistData.baseArtist.id}}">
+            <a class="clickable-content-card small static" href="/artist/{{artistData.baseArtist.id}}">
                 <img class="cover" src="{{artistData.baseArtist.thumbnails.[1].url}}">
                 <div class="card-content">
                     <div class="body-large clickable-content-card-highlight">{{artistData.baseArtist.preferredName}}
@@ -64,10 +65,85 @@
             <img src="/images/voca-db-icon.png">
             VocaDB
         </a>
-
     </div>
 
     <div id="info-content">
+        {{!stats}}
+        <div class="content-grid">
+            <div id="views-breakdown-section">
+                <div class="body-large bold on-background-text section-title">{{localization.song_views_breakdown}}</div>
+                <div id="views-breakdown" class="content-section">
+                <div class="content">
+                    {{#each artistData.displayBreakdown}}
+                        <div class="section">
+                            <div class="label body-medium" style="background-color:{{color}};color:{{displayData.textColor}}">
+                            {{localize displayData.displayName}}</div>
+                            <div class="body-medium" title="{{longFormat views}}">
+                            <span style="color:{{color}}">{{shortFormat views}}</span> {{../localization.rankings_views}}
+                            </div>
+                        </div>
+                    {{/each}}
+                </div>
+                <div class="share-container">
+                    <div class="share-bar">
+                    {{#each artistData.displayBreakdown}}
+                    <div class="share" style="background-color:{{color}};flex:{{share}}"></div>
+                    {{/each}}
+                    </div>
+                </div>
+                </div>
+            </div>
+            <div>
+                <div class="body-large bold on-background-text section-title">{{localization.song_daily_views}}</div>
+                <div id="daily-views" class="content-section">
+                    <div class="views-bar-graph">
+                    {{#each artistData.historicalViews}}
+                        <div class="views-bar-graph-entry body-medium">
+                        <div class="share" style="flex:{{share}}"></div>
+                        <div class="count bold" title="{{longFormat this.views}}">{{shortFormat this.views}}</div>
+                        <div class="date">{{this.dateString}}</div>
+                        </div>
+                    {{/each}}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{!songs}}
+        <div id="songs">
+            <div class="body-large bold on-background-text section-title">Top Songs</div>
+            <div class="content-grid">
+                <div class="songs-content">
+                    {{#each artistData.songsOne}}
+                        <div id="e{{placement}}" class="rankings-entry">
+                            <div class="rank title-large">{{placement}}</div>
+                            <a class="cover" style="background-image:url(/song/thumbnail/{{song.id}})" href="/song/{{song.id}}?referer=/rankings"></a>
+                            <div class="title">
+                                <a class="main-title title-medium-large" href="/song/{{song.id}}?referer=/rankings">{{preferredName}}</a>
+                            </div>
+                            <div class="views">
+                                <div class="title-medium-large">{{longFormat views}}</div>
+                                <div class="label title-small">{{../localization.rankings_views}}</div>
+                            </div>
+                        </div>
+                    {{/each}}
+                </div>
+                <div class="songs-content">
+                    {{#each artistData.songsTwo}}
+                        <div id="e{{placement}}" class="rankings-entry">
+                            <div class="rank title-large">{{placement}}</div>
+                            <a class="cover" style="background-image:url(/song/thumbnail/{{song.id}})" href="/song/{{song.id}}?referer=/rankings"></a>
+                            <div class="title">
+                                <a class="main-title title-medium-large" href="/song/{{song.id}}?referer=/rankings">{{preferredName}}</a>
+                            </div>
+                            <div class="views">
+                                <div class="title-medium-large">{{longFormat views}}</div>
+                                <div class="label title-small">{{../localization.rankings_views}}</div>
+                            </div>
+                        </div>
+                    {{/each}}
+                </div>
+            </div>
+        </div>
         {{! similar artists}}
         {{#if artistData.children}}
             <div id="similar-artists">

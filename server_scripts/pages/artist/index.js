@@ -9,7 +9,8 @@ const songsDataDb = database.songsData
 // import modules
 const { argbFromHex, themeFromSourceColor, hexFromArgb, redFromArgb, greenFromArgb, blueFromArgb } = require("@importantimport/material-color-utilities");
 const ArtistCategory = require("../../../db/enums/ArtistCategory")
-const { getHasherAsync, caches } = require(modulePath + "/shared")
+const RankingsFilterParams = require("../../../db/dataClasses/RankingsFilterParams")
+const { getHasherAsync, viewTypesDisplayData, caches } = require(modulePath + "/shared")
 const { getPreferredLanguageName } = require(modulePath + "/locale")
 
 // load cache
@@ -114,6 +115,65 @@ const queryArtist = (artistIdString, options) => {
                         .catch(error => reject(error))) || []
                     artistData.children = children.length == 0 ? null : children
 
+                    // get breakdown
+                    const breakdown = []
+                    {
+                        const artistViews = artistData.views
+                        const totalViews = artistViews.total
+
+                        for (const [typeId, breakdowns] of Object.entries(artistViews.breakdown)) {
+                            const displayData = viewTypesDisplayData[typeId]
+
+                            const views = breakdowns[0].views
+                            breakdown.push({
+                                views: views,
+                                share: views / totalViews,
+                                color: displayData.colors[0],
+                                displayData: displayData
+                            })
+                        }
+
+                        breakdown.sort((a, b) => {
+                            return b.views - a.views
+                        })
+                        artistData.displayBreakdown = breakdown
+                    }
+                    // get historical views
+                    {
+                        const historicalViews = await songsDataDb.getArtistHistoricalViews(artistId)
+
+                        highestViews = 0
+                        historicalViews.forEach(entry => {
+                            const date = new Date(entry.timestamp)
+
+                            const dateString = `${(date.getMonth() + 1).toString().padStart(2, "0")}/${date.getDate().toString().padStart(2, "0")}`
+
+                            highestViews = Math.max(highestViews, entry.views)
+
+                            entry.dateString = dateString
+                        })
+                        //calculate share
+                        historicalViews.forEach(entry => {
+                            entry.share = entry.views / highestViews
+                        })
+
+                        artistData.historicalViews = historicalViews
+                    }
+                    // get top 10 songs
+                    {
+                        const params = new RankingsFilterParams()
+                        params.artists = [artistId]
+                        params.maxEntries = 10
+                        const topTen = (await songsDataDb.filterRankings(params))?.results || []
+
+                        topTen.forEach(resultItem => {
+                            resultItem.preferredName = getPreferredName(resultItem.song.names)
+                        })
+
+                        artistData.songsOne = topTen.slice(0, 5)
+                        artistData.songsTwo = topTen.slice(5, 10)
+                    }
+
                     // cache return data
                     artistsDataCache.set(queryHash, artistData)
 
@@ -187,7 +247,7 @@ const getArtist = async (request, reply) => {
                         text: toFormat.replace(':placement', allTimePlacement)
                     })
                 }
-                request.addHbParam('displayPlacements',displayPlacements)
+                request.addHbParam('displayPlacements', displayPlacements)
             }
 
             return reply.view("pages/artist.hbs", request.hbParams)

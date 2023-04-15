@@ -240,8 +240,6 @@ module.exports = class SongsDataProxy {
             timestamp: timestamp
         })
 
-        console.log(viewsBreakdown)
-
         return this.#buildEntityViews(
             viewsBreakdown,
             timestamp
@@ -291,8 +289,6 @@ module.exports = class SongsDataProxy {
             allTimePlacementFilterParams.artistCategory = ArtistType.fromId(artistData.artist_type).category
 
             allTimePlacement = this.#filterArtistsRankingsCountSync(this.#getFilterArtistsQueryParams(allTimePlacementFilterParams))
-
-            console.log(artistData, artistViews, allTimePlacement)
         }
 
         return this.#buildArtistPlacement(
@@ -1106,16 +1102,18 @@ module.exports = class SongsDataProxy {
     }
 
     /**
-     * Gets a song's historical views.
+     * Gets a historical views from a prepared statement.
      * 
-     * @param {number} id The id of the song to get the historical views data of.
+     * @param {PreparedStatement} statement The BetterSqlite3 PreparedStatement to use to get view data.
+     * @param {Object} params Paramaters to pass to the PreparedStatement.
      * @param {number} [range] In days. The number of days in the past to get the historical data of.
      * @param {number} [period] In days. The amount of days between each entry.
      * @param {string} [timestamp] The timestamp to start getting the historical data from.
-     * @returns {HistoricalViews[]} An array of HistoricalViews objects depicting the historical views of this song.
+     * @returns {HistoricalViews[]} An array of HistoricalViews objects depicting the historical views of this artist.
      */
-    #getSongHistoricalViewsSync(
-        id,
+    #getHistoricalViewsSync(
+        statement,
+        params,
         range = 7,
         period = 1,
         timestamp = this.#getMostRecentViewsTimestampSync()
@@ -1124,13 +1122,8 @@ module.exports = class SongsDataProxy {
         const timestamps = []
         const historicalViews = []
         for (let i = 0; i < range + 1; i++) {
-            const dbResult = this.db.prepare(`
-            SELECT SUM(views) AS views, MIN(timestamp) AS timestamp
-            FROM views_breakdowns
-            WHERE (song_id = :id)
-                AND (timestamp = DATE(:timestamp, '-' || :daysOffset || ' day'))
-            `).get({
-                id: id,
+            const dbResult = statement.get({
+                ...params,
                 daysOffset: i * period,
                 timestamp: timestamp
             })
@@ -1146,6 +1139,68 @@ module.exports = class SongsDataProxy {
             ))
         }
         return historicalViews
+    }
+
+    /**
+     * Gets a artist's historical views.
+     * 
+     * @param {number} id The id of the artist to get the historical views data of.
+     * @param {number} [range] In days. The number of days in the past to get the historical data of.
+     * @param {number} [period] In days. The amount of days between each entry.
+     * @param {string} [timestamp] The timestamp to start getting the historical data from.
+     * @returns {HistoricalViews[]} An array of HistoricalViews objects depicting the historical views of this artist.
+     */
+    #getArtistHistoricalViewsSync(
+        id,
+        range = 7,
+        period = 1,
+        timestamp = this.#getMostRecentViewsTimestampSync()
+    ) {
+        return this.#getHistoricalViewsSync(
+            this.db.prepare(`
+                SELECT SUM(views) AS views, 
+                    MIN(timestamp) AS timestamp
+                FROM views_breakdowns
+                INNER JOIN songs_artists ON songs_artists.song_id = views_breakdowns.song_id
+                WHERE (songs_artists.artist_id = :id)
+                AND (timestamp = DATE(:timestamp, '-' || :daysOffset || ' day'))`),
+            {
+                id: id
+            },
+            range,
+            period,
+            timestamp
+        )
+    }
+
+    /**
+     * Gets a song's historical views.
+     * 
+     * @param {number} id The id of the song to get the historical views data of.
+     * @param {number} [range] In days. The number of days in the past to get the historical data of.
+     * @param {number} [period] In days. The amount of days between each entry.
+     * @param {string} [timestamp] The timestamp to start getting the historical data from.
+     * @returns {HistoricalViews[]} An array of HistoricalViews objects depicting the historical views of this song.
+     */
+    #getSongHistoricalViewsSync(
+        id,
+        range = 7,
+        period = 1,
+        timestamp = this.#getMostRecentViewsTimestampSync()
+    ) {
+        return this.#getHistoricalViewsSync(
+            this.db.prepare(`
+                SELECT SUM(views) AS views, MIN(timestamp) AS timestamp
+                FROM views_breakdowns
+                WHERE (song_id = :id)
+                    AND (timestamp = DATE(:timestamp, '-' || :daysOffset || ' day'))`),
+                {
+                    id: id
+                },
+                range,
+                period,
+                timestamp
+        )
     }
 
     /**
@@ -1421,6 +1476,35 @@ module.exports = class SongsDataProxy {
         return new Promise((resolve, reject) => {
             try {
                 resolve(this.#filterArtistsRankingsSync(filterParams))
+            } catch (error) {
+                reject(error)
+            }
+        })
+    }
+
+    /**
+     * Gets an artists's historical views.
+     * 
+     * @param {number} id The id of the artists to get the historical views data of.
+     * @param {number} [range] In days. The number of days in the past to get the historical data of.
+     * @param {number} [period] In days. The amount of days between each entry.
+     * @param {string} [timestamp] The timestamp to start getting the historical data from.
+     * @returns {HistoricalViews[]} An array of HistoricalViews objects depicting the historical views of this artists.
+     */
+    getArtistHistoricalViews(
+        id,
+        range,
+        period,
+        timestamp
+    ) {
+        return new Promise((resolve, reject) => {
+            try {
+                resolve(this.#getArtistHistoricalViewsSync(
+                    id,
+                    range,
+                    period,
+                    timestamp
+                ))
             } catch (error) {
                 reject(error)
             }
