@@ -850,7 +850,7 @@ const migrateViewsData = () => {
     }
   })
 }
-migrateViewsData()
+//migrateViewsData()
 
 // export variables
 exports.viewsDataSortingFunctions = viewsDataSortingFunctions

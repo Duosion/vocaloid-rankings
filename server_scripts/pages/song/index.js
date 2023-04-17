@@ -382,10 +382,14 @@ const getThumbnail = (request, reply) => {
   const cached = thumbnailCache.get(cacheKey)
 
   const sendThumbnail = (data) => {
-    if (data.type == ViewType.bilibili) {
-      reply.type('image/jpg').send(data.data)
-    } else {
-      reply.redirect(data.data)
+    try {
+      if (data.type == ViewType.bilibili) {
+        reply.type('image/jpg').send(data.data)
+      } else {
+        reply.redirect(data.data)
+      }
+    } catch (error) {
+      reply.redirect("/")
     }
   }
 
