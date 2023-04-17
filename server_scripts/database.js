@@ -826,11 +826,14 @@ const migrateViewsData = () => {
                 }
               }
 
-              songsDataProxy.insertSongViews(new EntityViews(
-                timestamp,
-                viewData.total,
-                newBreakdown
-              ))
+              songsDataProxy.insertSongViews(
+                songId,
+                new EntityViews(
+                  timestamp,
+                  viewData.total,
+                  newBreakdown
+                )
+              )
             }
 
           }
@@ -847,7 +850,7 @@ const migrateViewsData = () => {
     }
   })
 }
-//migrateViewsData()
+migrateViewsData()
 
 // export variables
 exports.viewsDataSortingFunctions = viewsDataSortingFunctions

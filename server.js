@@ -202,7 +202,7 @@ const updateSongsData = () => {
               /** @type {SongViews} */
               const songViews = await scraper.getSongViewsAsync(song, timestamp)
 
-              await songsDataProxy.insertSongViews(songViews)
+              await songsDataProxy.insertSongViews(songId, songViews)
             }
 
             databaseProxy.setUpdatingProgress(++progress / problemSize)

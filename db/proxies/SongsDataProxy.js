@@ -1771,7 +1771,7 @@ module.exports = class SongsDataProxy {
                 // insert views
                 const views = song.views
                 if (views) {
-                    await this.insertSongViews(views)
+                    await this.insertSongViews(songId, views)
                 }
 
                 resolve()
@@ -1806,14 +1806,17 @@ module.exports = class SongsDataProxy {
     /**
      * Inserts a song's views into the database.
      * 
+     * @param {Number} songId The id of the song to insert the views of.
      * @param {EntityViews} songViews The views to insert into the database.
      * @returns {Promise} A promise that resolves upon insertion completion.
      */
-    insertSongViews(songViews) {
+    insertSongViews(
+        songId,
+        songViews
+    ) {
         return new Promise((resolve, reject) => {
             try {
                 const db = this.db
-                const songId = songViews.songId
                 // get the timestamp
                 const timestamp = songViews.timestamp || this.#getMostRecentViewsTimestampSync() || generateTimestamp().Timestamp
 
