@@ -71,6 +71,8 @@
     "settings_animations": "アニメーション",
     "settings_animations_enabled": "有効",
     "settings_animations_disabled": "無効",
+    "settings_analytics": "Google アナリティクス",
+    "settings_analytics_description": "このウェブサイトでページビューなどの統計情報を収集するために Google アナリティクスを使用することを許可します。",
     "song_singers": "シンガー",
     "song_producers": "プロデューサー",
     "song_views_breakdown": "回視聴回数の内訳",

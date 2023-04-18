@@ -1,3 +1,4 @@
+const AnalyticsToggleSetting = require("./enums/AnalyticsToggleSetting")
 const AnimationToggleSetting = require("./enums/AnimationToggleSetting")
 const LanguageSetting = require("./enums/LanguageSetting")
 const ThemeSetting = require("./enums/ThemeSetting")
@@ -30,6 +31,12 @@ const settingsPageOptions = {
         displayName: "settings_animations",
         defaultValue: AnimationToggleSetting.Enabled,
         values: AnimationToggleSetting.values
+    },
+    'analyticsToggle': {
+        displayName: "settings_analytics",
+        description: "settings_analytics_description",
+        defaultValue: AnalyticsToggleSetting.Enabled,
+        values: AnalyticsToggleSetting.values
     }
 }
   

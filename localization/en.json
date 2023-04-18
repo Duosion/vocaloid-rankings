@@ -71,6 +71,8 @@
     "settings_animations": "Animations",
     "settings_animations_enabled": "Enabled",
     "settings_animations_disabled": "Disabled",
+    "settings_analytics": "Google Analytics",
+    "settings_analytics_description": "Allow this website to use Google Analytics for statistics such as page visits.",
     "song_singers": "Singers",
     "song_producers": "Producers",
     "song_views_breakdown": "Views Breakdown",

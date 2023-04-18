@@ -3,6 +3,7 @@ const AnimationToggleSetting = require("../pages/settings/enums/AnimationToggleS
 const LanguageSetting = require("../pages/settings/enums/LanguageSetting")
 const ThemeSetting = require("../pages/settings/enums/ThemeSetting")
 const TitleLanguageSetting = require("../pages/settings/enums/TitleLanguageSetting")
+const AnalyticsToggleSetting = require("../pages/settings/enums/AnalyticsToggleSetting")
 
 const paramCookies = {
   // [cookie name]: [default value]
@@ -10,21 +11,31 @@ const paramCookies = {
     DefaultValue: TitleLanguageSetting.English.id,
     AllowedValues: [TitleLanguageSetting.Native.id, TitleLanguageSetting.Romaji.id, TitleLanguageSetting.English.id],
     MaxAge: 31536000,
+    AutoRenew: true,
   },
   theme: {
     DefaultValue: ThemeSetting.DeviceTheme.id,
     AllowedValues: [ThemeSetting.DeviceTheme.id, ThemeSetting.Light.id, ThemeSetting.Dark.id],
     MaxAge: 31536000,
+    AutoRenew: true,
   },
   language: {
     DefaultValue: LanguageSetting.English.id,
     AllowedValues: [LanguageSetting.Default.id, LanguageSetting.English.id, LanguageSetting.Japanese.id],
     MaxAge: 31536000,
+    AutoRenew: true,
   },
   animationToggle: {
     DefaultValue: AnimationToggleSetting.Enabled.id,
     AllowedValues: [AnimationToggleSetting.Enabled.id, AnimationToggleSetting.Disabled.id],
     MaxAge: 31536000,
+    AutoRenew: true,
+  },
+  analyticsToggle: {
+    DefaultValue: AnalyticsToggleSetting.Enabled.id,
+    AllowedValues: [AnalyticsToggleSetting.Enabled.id, AnalyticsToggleSetting.Disabled.id],
+    MaxAge: 31536000,
+    AutoRenew: true,
   }
 }
 
@@ -124,8 +135,8 @@ const parseObjectCookies = (request) => {
         }
 
       })
-
-
+      
+      
       parsedCookies[cookieName] = parsedCookie || cookieData.DefaultValue
 
     }
