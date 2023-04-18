@@ -163,15 +163,21 @@ const queryArtist = (artistIdString, options) => {
                     {
                         const params = new RankingsFilterParams()
                         params.artists = [artistId]
-                        params.maxEntries = 10
-                        const topTen = (await songsDataDb.filterRankings(params))?.results || []
+                        params.maxEntries = 9
+                        const dbResponse = await songsDataDb.filterRankings(params)
+                        const totalCount = dbResponse.totalCount
+                        const topTen = dbResponse?.results || []
 
                         topTen.forEach(resultItem => {
                             resultItem.preferredName = getPreferredName(resultItem.song.names)
                         })
-
                         artistData.songsOne = topTen.slice(0, 5)
-                        artistData.songsTwo = topTen.slice(5, 10)
+                        if (dbResponse.totalCount >= 10) {
+                            artistData.moreSongs = true
+                        }
+                        if (totalCount > 5) {
+                            artistData.songsTwo = topTen.slice(5, 10)
+                        }
                     }
 
                     // cache return data
@@ -186,7 +192,6 @@ const queryArtist = (artistIdString, options) => {
         }
     })
 }
-
 
 // route functions
 const getArtist = async (request, reply) => {

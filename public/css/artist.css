@@ -10,3 +10,11 @@
     flex-direction: column;
     gap: 10px;
 }
+
+#songs .content-grid {
+    gap: 10px;
+}
+
+#more-songs-button {
+  margin: auto;
+}

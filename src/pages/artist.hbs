@@ -2,6 +2,30 @@
     :root {
         {{customTheme}}
     }
+    @media (prefers-color-scheme: dark) {
+        {{#each artistData.songsOne}} 
+            #e{{placement}} .title .main-title:hover {
+                color: {{song.darkColor}}
+            }
+        {{/each}}
+        {{#each artistData.songsTwo}} 
+            #e{{placement}} .title .main-title:hover {
+                color: {{song.darkColor}}
+            }
+        {{/each}}
+    }
+    @media (prefers-color-scheme: light) {
+        {{#each artistData.songs}} 
+            #e{{placement}} .title .main-title:hover {
+                color: {{song.lightColor}}
+            }
+        {{/each}}
+        {{#each artistData.songsTwo}} 
+            #e{{placement}} .title .main-title:hover {
+                color: {{song.lightColor}}
+            }
+        {{/each}}
+    }
 </style>
 <link rel="stylesheet" href="/css/entry_info.css">
 <link rel="stylesheet" href="/css/artist.css">
@@ -111,7 +135,45 @@
         {{!songs}}
         <div id="songs">
             <div class="body-large bold on-background-text section-title">Top Songs</div>
-            <div class="content-grid">
+            {{#if artistData.songsTwo}}
+                <div class="content-grid">
+                    <div class="songs-content">
+                        {{#each artistData.songsOne}}
+                            <div id="e{{placement}}" class="rankings-entry">
+                                <div class="rank title-large">{{placement}}</div>
+                                <a class="cover" style="background-image:url(/song/thumbnail/{{song.id}})" href="/song/{{song.id}}?referer=/rankings"></a>
+                                <div class="title">
+                                    <a class="main-title title-medium-large" href="/song/{{song.id}}?referer=/rankings">{{preferredName}}</a>
+                                </div>
+                                <div class="views">
+                                    <div class="title-medium-large">{{longFormat views}}</div>
+                                    <div class="label title-small">{{../localization.rankings_views}}</div>
+                                </div>
+                            </div>
+                        {{/each}}
+                    </div>
+                    <div class="songs-content">
+                        {{#each artistData.songsTwo}}
+                            <div id="e{{placement}}" class="rankings-entry">
+                                <div class="rank title-large">{{placement}}</div>
+                                <a class="cover" style="background-image:url(/song/thumbnail/{{song.id}})" href="/song/{{song.id}}?referer=/rankings"></a>
+                                <div class="title">
+                                    <a class="main-title title-medium-large" href="/song/{{song.id}}?referer=/rankings">{{preferredName}}</a>
+                                </div>
+                                <div class="views">
+                                    <div class="title-medium-large">{{longFormat views}}</div>
+                                    <div class="label title-small">{{../localization.rankings_views}}</div>
+                                </div>
+                            </div>
+                        {{/each}}
+                        {{#if artistData.moreSongs}}
+                        <a id="more-songs-button" class="material-button with-icon inverse label-large" href="/rankings/filter/set?artists={{artistData.id}}">
+                            View All
+                        </a>
+                        {{/if}}
+                    </div>
+                </div>
+            {{else}}
                 <div class="songs-content">
                     {{#each artistData.songsOne}}
                         <div id="e{{placement}}" class="rankings-entry">
@@ -127,22 +189,7 @@
                         </div>
                     {{/each}}
                 </div>
-                <div class="songs-content">
-                    {{#each artistData.songsTwo}}
-                        <div id="e{{placement}}" class="rankings-entry">
-                            <div class="rank title-large">{{placement}}</div>
-                            <a class="cover" style="background-image:url(/song/thumbnail/{{song.id}})" href="/song/{{song.id}}?referer=/rankings"></a>
-                            <div class="title">
-                                <a class="main-title title-medium-large" href="/song/{{song.id}}?referer=/rankings">{{preferredName}}</a>
-                            </div>
-                            <div class="views">
-                                <div class="title-medium-large">{{longFormat views}}</div>
-                                <div class="label title-small">{{../localization.rankings_views}}</div>
-                            </div>
-                        </div>
-                    {{/each}}
-                </div>
-            </div>
+            {{/if}}
         </div>
         {{! similar artists}}
         {{#if artistData.children}}
