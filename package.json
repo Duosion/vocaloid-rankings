@@ -26,7 +26,7 @@
     "@importantimport/material-color-utilities": "0.2.1-alpha.0"
   },
   "engines": {
-    "node": "19.x"
+    "node": "20.x"
   },
   "repository": {
     "url": "https://glitch.com/edit/#!/glitch-hello-node"

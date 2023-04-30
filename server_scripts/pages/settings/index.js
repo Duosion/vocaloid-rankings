@@ -76,7 +76,7 @@ const postSettings = (request, reply) => {
 const getSettings = (request, reply) => {
 
     request.addHbParam('filterOptions', settingsPageOptions)
-    request.addHbParam('pageTitle', 'Settings')
+    request.addHbParam('pageTitle', (request.localization || {})['settings'])
     request.addHbParam('referer', request.query.referer || "/")
     
     return reply.view("pages/settings.hbs", request.hbParams)

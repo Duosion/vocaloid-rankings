@@ -5,6 +5,10 @@
     object-fit: contain;
 }
 
+#home-button {
+    top: calc(100% - 40px);
+}
+
 .songs-content {
     display: flex;
     flex-direction: column;
@@ -17,4 +21,8 @@
 
 #more-songs-button {
   margin: auto;
+}
+
+#info-header {
+    background-color: transparent; 
 }

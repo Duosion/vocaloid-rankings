@@ -4,6 +4,15 @@
   width: 100%;
 }
 
+#nav-bar::before {
+  background-color: var(--md-sys-color-surface-1-2);
+}
+
+.search-bar {
+  background-color: var(--md-sys-color-background);
+  border: none;
+}
+
 .song-info-cover {
   border-radius: 10px;
   height: 150px;
@@ -62,4 +71,13 @@
   right: 0;
   display: flex;
   gap: 20px;
+}
+
+@media (max-width: 900px) {
+
+  #nav-bar {
+    position: sticky;
+    background-color: var(--md-sys-color-background);
+  }
+
 }

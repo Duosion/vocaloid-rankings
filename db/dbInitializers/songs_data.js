@@ -21,8 +21,9 @@ module.exports = (db, exists) => {
         artist_id INTEGER NOT NULL,
         artist_category INTEGER NOT NULL,
         PRIMARY KEY (song_id, artist_id, artist_category),
-        FOREIGN KEY (song_id) REFERENCES songs (id),
-        FOREIGN KEY (artist_id) REFERENCES artists (id))`).run()
+        FOREIGN KEY (song_id) REFERENCES songs (id) ON DELETE CASCADE,
+        FOREIGN KEY (artist_id) REFERENCES artists (id)
+    )`).run()
     db.prepare(`CREATE INDEX idx_songs_artists_artist_id_song_id
         ON songs_artists (artist_id, song_id);`).run()
 
@@ -32,7 +33,7 @@ module.exports = (db, exists) => {
         name TEXT NOT NULL,
         name_type INTEGER NOT NULL,
         PRIMARY KEY (song_id, name_type),
-        FOREIGN KEY (song_id) REFERENCES songs (id))`).run()
+        FOREIGN KEY (song_id) REFERENCES songs (id) ON DELETE CASCADE)`).run()
 
     // create songs video ids table
     db.prepare(`CREATE TABLE IF NOT EXISTS songs_video_ids (
@@ -40,7 +41,7 @@ module.exports = (db, exists) => {
         video_id TEXT NOT NULL,
         video_type INTEGER NOT NULL,
         PRIMARY KEY (song_id, video_id),
-        FOREIGN KEY (song_id) REFERENCES songs (id))`).run()
+        FOREIGN KEY (song_id) REFERENCES songs (id) ON DELETE CASCADE)`).run()
 
     // create artists table
     db.prepare(`CREATE TABLE IF NOT EXISTS artists (
@@ -60,7 +61,7 @@ module.exports = (db, exists) => {
         name TEXT NOT NULL,
         name_type INTEGER NOT NULL,
         PRIMARY KEY (artist_id, name_type),
-        FOREIGN KEY (artist_id) REFERENCES artists (id))`).run()
+        FOREIGN KEY (artist_id) REFERENCES artists (id) ON DELETE CASCADE)`).run()
 
     // create artists thumbnails table
     db.prepare(`CREATE TABLE IF NOT EXISTS artists_thumbnails (
@@ -68,7 +69,7 @@ module.exports = (db, exists) => {
         url TEXT NOT NULL,
         artist_id INTEGER NOT NULL,
         PRIMARY KEY (artist_id, thumbnail_type),
-        FOREIGN KEY (artist_id) REFERENCES artists (id))`).run()
+        FOREIGN KEY (artist_id) REFERENCES artists (id) ON DELETE CASCADE)`).run()
 
     // create views totals table
     db.prepare(`CREATE TABLE IF NOT EXISTS views_totals (

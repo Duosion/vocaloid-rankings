@@ -27,7 +27,7 @@
 }
 
 #search-form .search-bar {
-    background-color: var(--md-sys-color-surface-2);
+    background-color: var(--md-sys-color-surface-1);
 }
 
 #no-results-text {

@@ -19,12 +19,16 @@ const localizations = [
 
 const plugin = (fastify, options, done) => {
 
+    fastify.decorateRequest('localization', null)
+
 
     fastify.addHook('onRequest', (request, reply, done) => {
         const cookies = request.parsedCookies
 
         const localization = localizations[cookies.language || LanguageSetting.Default.id]
-        request.addHbParam('localization', {...localizations[LanguageSetting.English.id].localization, ...localization.localization})
+        const table = {...localizations[LanguageSetting.English.id].localization, ...localization.localization}
+        request.localization = table
+        request.addHbParam('localization', table)
         request.addHbParam('localizationIsoCode', localization.isoCode)
 
         done()

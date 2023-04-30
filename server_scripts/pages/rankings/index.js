@@ -515,11 +515,19 @@ const getFilterPage = async (request, reply) => {
         ...parsedCookies[artistCategoryCookieNameMap[requestQuery.artistCategory] || 'filter'] || {},
         ...requestQuery,
     }
+    
 
     const filterValues = []
 
     const artistCategory = query["artistCategory"]
     const isArtistsFilterPage = artistCategory ? true : false
+
+    // add page title
+    {
+        const localization = request.localization || {}
+        request.addHbParam('pageTitle', isArtistsFilterPage ? localization['filter_page_title_artists'] : localization['filter_page_title_default'])
+    }
+    
 
     const filterOptions = isArtistsFilterPage ? filterArtistsPageOptions : filterPageOptions
 
@@ -553,7 +561,6 @@ const getFilterPage = async (request, reply) => {
     request.addHbParams({
         referer: requestQuery.referer,
         ['filterValues']: filterValues,
-        pageTitle: "Filter Rankings",
         minimumDate: viewsTimestamps[viewsTimestamps.length - 1].timestamp,
         defaultDate: query['timestamp'] || maximumDate,
         maximumDate: maximumDate,
@@ -660,8 +667,8 @@ const getRankings = async (request, reply) => {
     const parsedCookies = request.parsedCookies || {}
     const hbParams = request.hbParams
 
-    // parse locale
-    const locale = (request.headers["accept-language"] || "").split(",")[0]
+    // add page title
+    request.addHbParam('pageTitle', (request.localization || {})['rankings_page_title'])
 
     // validate query
     const requestQuery = {
@@ -737,9 +744,14 @@ const getArtistsRankings = async (request, reply, artistCategory = ArtistCategor
     const hbParams = request.hbParams
 
     // parse locale
-    const locale = (request.headers["accept-language"] || "").split(",")[0]
 
-    const pageName = artistCategory == ArtistCategory.Vocalist ? "singers" : "producers"
+    const isSinger = artistCategory == ArtistCategory.Vocalist
+    const pageName = isSinger ? "singers" : "producers"
+
+    {
+        const localization = request.localization || {}
+        request.addHbParam('pageTitle', isSinger ? localization['singer_rankings_page_title'] : localization['producer_rankings_page_title'])
+    }
 
     // pass artist category to hb params
     hbParams.artistCategory = artistCategory.id

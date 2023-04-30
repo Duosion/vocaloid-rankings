@@ -455,6 +455,7 @@ hr.default {
 .outlined.material-button:not(.selected) {
   color: var(--md-sys-color-on-surface-variant);
   border: 1px solid var(--md-sys-color-outline);
+  background: none;
 }
 .outlined.icon-button:not(.selected)::before
 .outlined.material-button:not(.selected)::before {
@@ -616,10 +617,10 @@ select::-ms-expand {
 
 /* search bar */
 .search-bar {
-  background-color: var(--md-sys-color-background);
+  background-color: var(--md-sys-color-surface-1);
   padding: 0px 15px;
   box-sizing: border-box;
-  border: none;
+  border: 1px solid var(--md-sys-color-outline-variant);
   border-radius: 60px;
   display: flex;
   align-items: center;

@@ -194,6 +194,7 @@ const addSongRoute = async (request, reply) => {
 
     const song = await scraper.scrapeVocaDBSongAsync(url)
       .catch(msg => {
+        console.log(msg)
         return reply.send({ code: 400, message: msg.message })
       })
 
@@ -276,6 +277,9 @@ const getSong = async (request, reply) => {
       return;
     })
   hbParams['songData'] = songData
+
+  // set page title
+  request.addHbParam('pageTitle', songData.preferredName)
 
   // load custom theme 
   {

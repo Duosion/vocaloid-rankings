@@ -13,7 +13,7 @@
   <div id="info-header-content">
     {{> back-button referer=referer class='filled-tonal floating top left' id='home-button'}}
     <img class="song-info-cover" src="/song/thumbnail/{{songData.id}}">
-    <div class="display-small title text-centered">{{songData.preferredName}}</div>
+    <div id="info-header-title" class="display-small title text-centered">{{songData.preferredName}}</div>
     <div class="headline-small bold text-centered">{{longFormat songData.views.total}} {{localization.rankings_views}}</div>
     <div id="song-actions">
       <a class="icon-button filled-tonal" href="/song/{{songData.id}}/refresh">

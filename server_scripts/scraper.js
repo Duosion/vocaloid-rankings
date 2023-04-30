@@ -241,7 +241,7 @@ const songTypeMap = {
  * 
  * @param {Array.<string>[]} videoIds The video ids to retrieve the views of.
  * @param {string} [timestamp] The timestamp of the views.
- * @returns {Promise<SongViews>}
+ * @returns {Promise<EntityViews>}
  */
 
 const getVideoIdsViewsAsync = (
@@ -431,6 +431,8 @@ const processVocaDBArtistDataAsync = (artistData) => {
                 averageColor,
                 hexFromArgb(colorSchemes.dark.props.primary),
                 hexFromArgb(colorSchemes.light.props.primary),
+                null,
+                null
             ))
         } catch (error) {
             reject(error)
@@ -540,6 +542,7 @@ const processVocaDBSongDataAsync = (songData) => {
             // get thumbnails, views and video ids
             const videoIds = []
             var thumbnail = null
+            var thumbnailType = null
             var maxResThumbnail = null
 
             const viewsBreakdown = []
@@ -567,6 +570,7 @@ const processVocaDBSongDataAsync = (songData) => {
                         idBucket.push(pvID)
 
                         const viewsAndThumbnails = await poller.getBoth(pvID)
+                        viewsAndThumbnails.type = pvType
 
                         // add to total views
                         const views = viewsAndThumbnails.views
@@ -595,6 +599,7 @@ const processVocaDBSongDataAsync = (songData) => {
                     if (thumbnails) {
                         thumbnail = thumbnails.default
                         maxResThumbnail = thumbnails.maxRes
+                        thumbnailType = thumbnails.type
                         break;
                     }
                 }
@@ -636,7 +641,8 @@ const processVocaDBSongDataAsync = (songData) => {
                     totalViews,
                     viewsBreakdown
                 ),
-                null
+                null,
+                thumbnailType
             ))
 
         } catch (error) {
@@ -666,6 +672,7 @@ const scrapeVocaDBSongAsync = (vocaDbURL) => {
         resolve(processVocaDBSongDataAsync(serverResponse))
     })
 }
+
 
 /**
  * Generates an Artist obejct based on VocaDB API data.

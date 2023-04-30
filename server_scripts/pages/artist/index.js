@@ -196,7 +196,7 @@ const queryArtist = (artistIdString, options) => {
 // route functions
 const getArtist = async (request, reply) => {
     const parsedCookies = request.parsedCookies || {}
-
+    
     // get artist id
     const artistId = request.params.artistId
     if (!artistId) {
@@ -214,6 +214,8 @@ const getArtist = async (request, reply) => {
     })
         .then(artistData => {
             request.addHbParam('artistData', artistData)
+            // add page name
+            request.addHbParam('pageTitle', artistData.preferredName)
 
             // load custom theme 
             {

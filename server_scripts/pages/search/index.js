@@ -84,9 +84,13 @@ const querySearchAsync = (queryParams, options) => {
 const getSearchRoute = async (request, reply) => {
   const params = request.query
   const parsedCookies = request.parsedCookies || {}
+
   // process search query
   const searchQuery = params.query || ''
   request.addHbParam('searchQuery', searchQuery)
+
+  //add page title
+  request.addHbParam('pageTitle', `${(request.localization || {})['search_hint']} - ${searchQuery}`)
 
   const queryParams = new SearchQueryParams(
     searchQuery,

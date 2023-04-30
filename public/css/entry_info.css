@@ -43,6 +43,10 @@
     gap: 10px;
 }
 
+#info-header-title {
+    word-break: break-word;
+}
+
 /* song info container */
 #info-container {
 
@@ -84,6 +88,7 @@
 .sidebar-card-dataset .value {
     text-decoration: none;
     color: inherit;
+    word-break: break-word;
 }
 
 .sidebar-card,

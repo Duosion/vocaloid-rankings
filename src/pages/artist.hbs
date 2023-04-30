@@ -34,7 +34,7 @@
     <div id="info-header-content">
         {{> back-button referer=referer class='filled-tonal floating top left' id='home-button'}}
         <img class="artist-info-cover" src="{{artistData.thumbnails.[1].url}}">
-        <div class="display-small title text-centered">{{artistData.preferredName}}</div>
+        <div id="info-header-title" class="display-small title text-centered">{{artistData.preferredName}}</div>
         <div class="headline-small bold text-centered">{{longFormat artistData.views.total}} {{localization.rankings_views}}</div>
     </div>
 </div>
@@ -167,7 +167,7 @@
                             </div>
                         {{/each}}
                         {{#if artistData.moreSongs}}
-                        <a id="more-songs-button" class="material-button with-icon inverse label-large" href="/rankings/filter/set?artists={{artistData.id}}">
+                        <a id="more-songs-button" class="outlined material-button with-icon inverse label-large" href="/rankings/filter/set?artists={{artistData.id}}">
                             View All
                         </a>
                         {{/if}}
