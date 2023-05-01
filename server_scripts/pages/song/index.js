@@ -182,7 +182,7 @@ const toBuffer = (arrayBuffer) => {
 // route functions
 const addSongRoute = async (request, reply) => {
   const query = request.query
-  request.addHbParam('pageTitle', 'Add Song')
+  request.addHbParam('pageTitle', (request.localization || {}).add_song)
 
   // get the url to add
   const url = query["url"]
@@ -195,7 +195,7 @@ const addSongRoute = async (request, reply) => {
         console.log(msg)
         return reply.send({ code: 400, message: msg.message })
       })
-      
+
     if (song == undefined) {
       params.errorMessage = 'Invalid URL provided.'
       return reply.view("pages/addSong.hbs", params)

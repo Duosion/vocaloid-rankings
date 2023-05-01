@@ -9,50 +9,28 @@
 </div>
 <div id="page-body">
   <div class="section">
-    <div class="title-medium-large on-surface-text label">Data</div>
-    <div class="card on-surface-text">
-      <div class="title-medium-large">
-        All song data for this website is provided by <a href="https://vocadb.net">VocaDB</a>.
-      </div>
-      <div class="title-medium-large">
-        View data is acquired from the APIs provided by
-        <a href=https://www.youtube.com>YouTube</a>,
-        <a href="https://www.nicovideo.jp">Niconico</a>, and
-        <a href="https://www.bilibili.com">bilibili</a>.
-      </div>
-    </div>
-  </div>
-  <div class="section">
-    <div class="title-medium-large on-surface-text label">Song Ids</div>
+    <div class="title-medium-large on-surface-text label">{{localization.about_data_title}}</div>
     <div class="card on-surface-text title-medium-large">
-      <div>
-        Songs on this site use the same IDs as VocaDB songs, so for example:
-      </div>
-      <div>
-        Traffic Jam on VocaDB uses the URL <a href="https://vocadb.net/S/251205">https://vocadb.net/S/251205</a>.
-      </div>
-      <div>
-        Here, Traffic Jam uses the URL <a
-          href="https://vocaloid-rankings.glitch.me/song/251205">https://vocaloid-rankings.glitch.me/song/251205</a>.
-      </div>
-      <div class="bold">
-        Both use the ID "251205".
-      </div>
+      {{localization.about_data}}
     </div>
   </div>
   <div class="section">
-    <div class="title-medium-large on-surface-text label">View Data</div>
-    <div class="card on-surface-text">
-      <div class="title-medium-large">
-        View data is refreshed every day at <b>0:00 UTC</b>.
-      </div>
+    <div class="title-medium-large on-surface-text label">{{localization.about_song_ids_title}}</div>
+    <div class="card on-surface-text title-medium-large">
+      {{localization.about_song_ids}}
     </div>
   </div>
   <div class="section">
-    <div class="title-medium-large on-surface-text label">Datasets</div>
+    <div class="title-medium-large on-surface-text label">{{localization.about_view_data_title}}</div>
+    <div class="card on-surface-text title-medium-large">
+      {{localization.about_view_data}}
+    </div>
+  </div>
+  <div class="section">
+    <div class="title-medium-large on-surface-text label">{{localization.about_datasets_title}}</div>
     {{#each scrapeDomains}}
     <details class="on-surface-text">
-      <summary class="title-medium-large">{{@key}} Dataset</summary>
+      <summary class="title-medium-large">{{@key}}{{../localization.about_datasets}}</summary>
       {{#each ListURLs}}
       <div class="title-medium-large">
         <a class="dataset-entry" href="{{../Domain}}{{this}}">{{this}}</a>
