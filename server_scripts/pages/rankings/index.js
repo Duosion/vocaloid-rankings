@@ -821,6 +821,34 @@ const getArtistsRankings = async (request, reply, artistCategory = ArtistCategor
     return reply.view("pages/artistsRankings.hbs", hbParams);
 }
 
+const getTrending = async (request, reply) => {
+    const parsedCookies = request.parsedCookies || {}
+    const query = request.query
+
+    // set page title
+    request.addHbParam('pageTitle', (request.localization || {})['trending_page_title'])
+
+    // get the range
+    const rangeId = Number(query['range']) || 0
+    const rangeMap = {
+        [0]: 1,
+        [1]: 7,
+        [2]: 30
+    }
+
+    const filterParams = new RankingsFilterParams()
+    filterParams.orderBy = FilterOrder.Popularity
+    filterParams.timePeriodOffset = rangeMap[rangeId] || rangeMap[0]
+
+    const filteredRankings = await filterRankingsAsync(filterParams, {
+        preferredLanguage: NameType.fromId(parsedCookies.titleLanguage)
+    })
+
+    request.addHbParam('trending', filteredRankings.results)
+
+    return reply.view("pages/trending.hbs", request.hbParams)
+}
+
 const getSingersRankings = async (request, reply) => {
     return await getArtistsRankings(request, reply, ArtistCategory.Vocalist)
 }
@@ -852,6 +880,12 @@ exports.register = (fastify, options, done) => {
             analyticsParams: { 'page_name': "producers_rankings" }
         }
     }, getProducersRankings)
+    fastify.get('/trending', {
+        config: {
+            analyticsEvent: "page_visit",
+            analyticsParams: { 'page_name': "trending" }
+        }
+    }, getTrending)
 
     fastify.get("/filter", {
       config: {

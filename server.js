@@ -293,9 +293,14 @@ fastify.get("/", async function (request, reply) {
 fastify.get("/about", async (request, reply) => {
   const parsedCookies = request.parsedCookies
 
-  const viewParams = { seo: seo, cookies: parsedCookies, scrapeDomains: scraper.scrapeDomains, pageTitle: "About" };
+  request.addHbParams({ 
+    seo: seo, 
+    cookies: parsedCookies, 
+    scrapeDomains: scraper.scrapeDomains, 
+    pageTitle: request.localization['about_page_title']
+  })
 
-  return reply.view("pages/about.hbs", viewParams)
+  return reply.view("pages/about.hbs", request.hbParams)
 })
 
 // download db

@@ -88,20 +88,13 @@ const queryArtist = (artistIdString, options) => {
                     artistData.preferredName = getPreferredName(artistData.names)
 
                     // get base artist if it exists
-                    const baseArtistId = artistData.baseArtistId
-                    if (baseArtistId) {
-                        artistData.baseArtist = await songsDataDb.getArtist(baseArtistId)
-                            .then(artistData => {
-                                if (artistData) {
-                                    artistData.preferredName = getPreferredName(artistData.names)
-                                }
-                                return artistData
-                            })
-                            .catch(error => reject(error))
+                    const baseArtist = artistData.baseArtist
+                    if (baseArtist) {
+                        baseArtist.preferredName = getPreferredName(baseArtist.names)
                     }
 
                     // get similar voicebanks
-                    const children = (await songsDataDb.getArtistChildren(baseArtistId || artistId)
+                    const children = (await songsDataDb.getArtistChildren(baseArtist ? baseArtist.id : artistId)
                         .then(children => {
                             const localized = []
                             children.forEach(child => {

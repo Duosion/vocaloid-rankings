@@ -15,7 +15,7 @@ module.exports = class Artist {
      * @param {string} additionDate When this artist was added to the database.
      * @param {string[]} names This artist's name.
      * @param {ArtistThumbnail[]} thumbnails The thumbnails for this artist.
-     * @param {number} [baseArtistId] The id of this artist's base artist.
+     * @param {Artist} [baseArtist] The id of this artist's base artist.
      * @param {string} [averageColor] The average color of this artist's thumbnail.
      * @param {string} [darkColor] The dark color for this artist.
      * @param {string} [lightColor] The light color for this artist.
@@ -30,7 +30,7 @@ module.exports = class Artist {
         additionDate,
         names,
         thumbnails,
-        baseArtistId,
+        baseArtist,
         averageColor,
         darkColor,
         lightColor,
@@ -44,7 +44,7 @@ module.exports = class Artist {
         this.additionDate = additionDate
         this.names = names
         this.thumbnails = thumbnails
-        this.baseArtistId = baseArtistId
+        this.baseArtist = baseArtist
         this.averageColor = averageColor
         this.darkColor = darkColor
         this.lightColor = lightColor

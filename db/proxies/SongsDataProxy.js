@@ -77,6 +77,8 @@ module.exports = class SongsDataProxy {
         }
         const type = ArtistType.fromId(artistData.artist_type)
 
+        const baseArtistId = artistData.base_artist_id
+
         return new Artist(
             artistData.id,
             type,
@@ -85,7 +87,7 @@ module.exports = class SongsDataProxy {
             artistData.addition_date,
             names,
             thumbnails,
-            artistData.base_artist_id,
+            baseArtistId ? this.#getArtistSync(baseArtistId) : null,
             artistData.average_color,
             artistData.dark_color,
             artistData.light_color,
@@ -661,8 +663,7 @@ module.exports = class SongsDataProxy {
         return this.db.prepare(`
         SELECT DISTINCT views_breakdowns.song_id,
             CASE :orderBy
-                WHEN 3
-                    THEN (1 - 0.1) * (log10((SUM(DISTINCT views_breakdowns.views) - CASE WHEN :timePeriodOffset IS NULL
+                WHEN 3 THEN (SUM(DISTINCT views_breakdowns.views) - CASE WHEN :timePeriodOffset IS NULL
                     THEN 0
                     ELSE ifnull((
                         SELECT SUM(DISTINCT offset_breakdowns.views) AS offset_views
@@ -697,7 +698,7 @@ module.exports = class SongsDataProxy {
                                 END)${filterArtistsStatement}${filterSongsStatement}
                         GROUP BY offset_breakdowns.song_id
                     ),0)
-                END) + 1) + 1) + 0.8 * (1 - exp(-(julianday('now') - julianday(songs.publish_date)/365)))
+                END) * (1 / (julianday('now') - julianday(songs.publish_date)))
                 ELSE SUM(DISTINCT views_breakdowns.views) - CASE WHEN :timePeriodOffset IS NULL
                     THEN 0
                     ELSE ifnull((
@@ -1622,7 +1623,7 @@ module.exports = class SongsDataProxy {
      * @returns {Promise} A promise that resolves upon the artist being inserted.
      */
     insertArtist(artist) {
-        return new Promise((resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
             try {
 
                 const db = this.db
@@ -1641,13 +1642,21 @@ module.exports = class SongsDataProxy {
                 REPLACE INTO artists_thumbnails (thumbnail_type, url, artist_id)
                 VALUES (?, ?, ?)`)
 
+                // handle base artist
+                // insert the base artist if it doesn't exist within the database
+                const baseArtist = artist.baseArtist
+                const baseArtistId = baseArtist ? baseArtist.id : null
+                if (baseArtistId && !(await this.artistExists(baseArtistId))) {
+                    this.insertArtist(baseArtist)
+                }
+
                 // insert artist into artists
                 artistsInsertStatement.run(
                     artistId,
                     artist.type.id,
                     artist.publishDate,
                     artist.additionDate,
-                    artist.baseArtistId,
+                    baseArtistId,
                     artist.averageColor,
                     artist.darkColor,
                     artist.lightColor
@@ -1814,11 +1823,16 @@ module.exports = class SongsDataProxy {
         songId,
         songViews
     ) {
-        return new Promise((resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
             try {
                 const db = this.db
                 // get the timestamp
-                const timestamp = songViews.timestamp || this.#getMostRecentViewsTimestampSync() || generateTimestamp().Timestamp
+                let timestamp = songViews.timestamp || this.#getMostRecentViewsTimestampSync()
+                if (!timestamp) {
+                    // generate a new timestamp
+                    timestamp = generateTimestamp().Name
+                    await this.insertViewsTimestamp(timestamp)
+                }
 
                 // prepare the views totals replace statement
                 const viewsTotalsReplaceStatement = db.prepare(`

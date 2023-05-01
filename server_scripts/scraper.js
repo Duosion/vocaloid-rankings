@@ -81,7 +81,7 @@ const msInDay = 24 * 60 * 60 * 1000 // one day in ms
 // vocaDB api strings
 const vocaDBApiUrl = "https://vocadb.net/api/";
 // entries api
-const vocaDBRecentSongsApiUrl = "https://vocadb.net/api/songs?sort=AdditionDate&onlyWithPVs=true&status=Finished&fields=Names,PVs,Artists"
+const vocaDBRecentSongsApiUrl = vocaDBApiUrl + "songs?sort=AdditionDate&onlyWithPVs=true&status=Finished&fields=Names,PVs,Artists"
 const vocaDBRecentSongsViewsThreshold = 10000 // how many views a recent song must have to be entered into this database
 const vocaDBRecentSongsUploadDateThreshold = msInDay * 3 // (in ms) the maximum age in days of a song to be entered into this database
 const vocaDBRecentSongsSearchDateThreshold = msInDay * 1 // (in ms) how many days back the getRecentSongs function searches.
@@ -91,7 +91,7 @@ const vocaDBSongApiUrl = vocaDBApiUrl + "songs/"
 const vocaDBSongApiParams = "?fields=Artists,Names,PVs&lang=Default"
 // artists api
 const vocaDBArtistsApiUrl = vocaDBApiUrl + "artists/"
-const vocaDBArtistsApiParams = "?fields=Names,MainPicture"
+const vocaDBArtistsApiParams = "?fields=Names,MainPicture,BaseVoicebank"
 
 //bilibili API
 const bilibiliVideoDataEndpoint = "https://api.bilibili.com/x/web-interface/view?aid="
@@ -419,6 +419,10 @@ const processVocaDBArtistDataAsync = (artistData) => {
 
             const artistIdNumber = Number(artistData.id)
 
+            // get the base artist
+            const baseArtist = artistData.baseVoicebank
+            const baseArtistId = baseArtist ? baseArtist.id : null
+
             resolve(new Artist(
                 artistIdNumber,
                 artistTypeMap[artistData.artistType],
@@ -427,7 +431,7 @@ const processVocaDBArtistDataAsync = (artistData) => {
                 new Date().toISOString(),
                 names,
                 thumbnails,
-                await database.songsData.getBaseArtist(artistIdNumber, names[NameType.Original.id]),
+                baseArtistId ? await database.songsData.getArtist(baseArtistId) || await scrapeVocaDBArtistAsync(baseArtistId) : null,
                 averageColor,
                 hexFromArgb(colorSchemes.dark.props.primary),
                 hexFromArgb(colorSchemes.light.props.primary),

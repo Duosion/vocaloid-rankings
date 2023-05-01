@@ -181,8 +181,6 @@ const toBuffer = (arrayBuffer) => {
 
 // route functions
 const addSongRoute = async (request, reply) => {
-  const parsedCookies = request.parsedCookies
-
   const query = request.query
   request.addHbParam('pageTitle', 'Add Song')
 
@@ -197,7 +195,7 @@ const addSongRoute = async (request, reply) => {
         console.log(msg)
         return reply.send({ code: 400, message: msg.message })
       })
-
+      
     if (song == undefined) {
       params.errorMessage = 'Invalid URL provided.'
       return reply.view("pages/addSong.hbs", params)
@@ -403,6 +401,7 @@ const getThumbnail = (request, reply) => {
   } else {
     database.songsData.getSong(songId)
       .then(song => {
+        if (!song) { throw 'No song data found.'}
         const thumbnail = useMaxresThumbnail ? song.maxresThumbnail : song.thumbnail
         const thumbnailType = song.thumbnailType
         const cachedThumbnail = new CachedThumbnail(null, thumbnailType)
