@@ -646,7 +646,7 @@ const processVocaDBSongDataAsync = (songData) => {
                     viewsBreakdown
                 ),
                 null,
-                thumbnailType
+                thumbnailType || ViewType.YouTube
             ))
 
         } catch (error) {

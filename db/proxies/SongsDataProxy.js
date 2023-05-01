@@ -511,25 +511,6 @@ module.exports = class SongsDataProxy {
     }
 
     /**
-     * Gets an artist's base artist if it exists.
-     * 
-     * @param {number} artistId The id of the artist to get the base artist of.
-     * @param {string} artistName The name of the artist to get the base artist of.
-     * @returns {number?}
-     */
-    #getBaseArtistSync(artistId, artistName) {
-        const result = this.db.prepare(`
-        SELECT DISTINCT artists.id
-        FROM artists
-        JOIN artists_names ON artists.id = artists_names.artist_id
-        WHERE INSTR(?, artists_names.name)
-        ORDER BY artists.id ASC
-        LIMIT 1`).get(artistName)
-        const baseArtistId = result ? result.id : artistId
-        return baseArtistId != artistId ? baseArtistId : null
-    }
-
-    /**
      * Gets every artist that has their base artist ID equal to artistID.
      * 
      * @param {number} artistId The ID of the artist to find the children of.
@@ -1339,26 +1320,6 @@ module.exports = class SongsDataProxy {
     // public functions
 
     /**
-     * Gets an artist's base artist if it exists.
-     * 
-     * @param {number} artistId The id of the artist to get the base artist of.
-     * @param {string} artistName The name of the artist to get the base artist of.
-     * @returns {Promise<number?>} A promise that resolves with the output of this function.
-     */
-    getBaseArtist(
-        artistId,
-        artistName
-    ) {
-        return new Promise((resolve, reject) => {
-            try {
-                resolve(this.#getBaseArtistSync(artistId, artistName))
-            } catch (error) {
-                reject(error)
-            }
-        })
-    }
-
-    /**
      * Gets every artist that has its base artist id equal to the provided artistId.
      * 
      * @param {number} artistId The artist id to get the children of.
@@ -1647,7 +1608,7 @@ module.exports = class SongsDataProxy {
                 const baseArtist = artist.baseArtist
                 const baseArtistId = baseArtist ? baseArtist.id : null
                 if (baseArtistId && !(await this.artistExists(baseArtistId))) {
-                    this.insertArtist(baseArtist)
+                    await this.insertArtist(baseArtist)
                 }
 
                 // insert artist into artists

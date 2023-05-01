@@ -94,7 +94,7 @@ const queryArtist = (artistIdString, options) => {
                     }
 
                     // get similar voicebanks
-                    const children = (await songsDataDb.getArtistChildren(baseArtist ? baseArtist.id : artistId)
+                    const children = (await songsDataDb.getArtistChildren(artistId)
                         .then(children => {
                             const localized = []
                             children.forEach(child => {
