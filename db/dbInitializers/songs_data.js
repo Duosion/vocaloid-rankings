@@ -22,7 +22,7 @@ module.exports = (db, exists) => {
         artist_category INTEGER NOT NULL,
         PRIMARY KEY (song_id, artist_id, artist_category),
         FOREIGN KEY (song_id) REFERENCES songs (id) ON DELETE CASCADE,
-        FOREIGN KEY (artist_id) REFERENCES artists (id)
+        FOREIGN KEY (artist_id) REFERENCES artists (id) ON DELETE CASCADE
     )`).run()
     db.prepare(`CREATE INDEX idx_songs_artists_artist_id_song_id
         ON songs_artists (artist_id, song_id);`).run()
@@ -53,7 +53,7 @@ module.exports = (db, exists) => {
         average_color TEXT NOT NULL,
         dark_color TEXT NOT NULL,
         light_color TEXT NOT NULL,
-        FOREIGN KEY (base_artist_id) REFERENCES artists (id))`).run()
+        FOREIGN KEY (base_artist_id) REFERENCES artists (id) ON DELETE SET NULL)`).run()
     
     // create artists names table
     db.prepare(`CREATE TABLE IF NOT EXISTS artists_names (
@@ -77,7 +77,7 @@ module.exports = (db, exists) => {
         timestamp TEXT NOT NULL,
         total INTEGER NOT NULL,
         PRIMARY KEY (song_id, timestamp),
-        FOREIGN KEY (song_id) REFERENCES songs (id))`).run()
+        FOREIGN KEY (song_id) REFERENCES songs (id) ON DELETE NO ACTION)`).run()
     db.prepare(`CREATE INDEX idx_views_totals_timestamp_song_id
     ON views_totals (timestamp, song_id);`).run()
 
@@ -89,7 +89,7 @@ module.exports = (db, exists) => {
         video_id TEXT NOT NULL,
         view_type INTEGER NOT NULL,
         PRIMARY KEY (song_id, timestamp, video_id),
-        FOREIGN KEY (song_id) REFERENCES songs (id))`).run()
+        FOREIGN KEY (song_id) REFERENCES songs (id) ON DELETE NO ACTION)`).run()
     db.prepare(`CREATE INDEX idx_views_breakdowns_timestamp_song_id
     ON views_breakdowns (timestamp, song_id);`).run()
 

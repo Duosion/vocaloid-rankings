@@ -164,8 +164,6 @@ const updateSongsData = () => {
 
     databaseProxy.setUpdating(true)
 
-    songsDataProxy.insertViewsTimestamp(timestamp, new Date().toISOString())
-
     // variables
     const updateStartTime = new Date()
     console.log("Updating database.")
@@ -259,6 +257,9 @@ const updateSongsData = () => {
       }
 
     }
+
+    // add timestamp
+    songsDataProxy.insertViewsTimestamp(timestamp, new Date().toISOString())
 
     // purge caches
     caches.rankingsCache.purge()

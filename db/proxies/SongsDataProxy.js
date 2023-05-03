@@ -1317,6 +1317,32 @@ module.exports = class SongsDataProxy {
         )
     }
 
+    /**
+     * Deletes a song from the database with the specified id.
+     * 
+     * @param {number} songId The id of the song to delete.
+     */
+    #deleteSongSync(
+        songId
+    ) {
+        this.db.prepare(`
+        DELETE FROM songs
+        WHERE id = ?`).run(songId)
+    }
+
+    /**
+     * Deletes an artist from the database with a specified id.
+     * 
+     * @param {number} artistId The id of the artist to delete.
+     */
+    #deleteArtistSync(
+        artistId
+    ) {
+        this.db.prepare(`
+        DELETE FROM artists
+        WHERE id = ?`).run(artistId)
+    }
+
     // public functions
 
     /**
@@ -1576,6 +1602,46 @@ module.exports = class SongsDataProxy {
             }
         })
     }
+
+    // delete functions
+
+    /**
+     * Deletes a song from the database with a specified id.
+     * 
+     * @param {number} songId The id of the song to delete.
+     * @returns {Promise<null>}
+     */
+    deleteSong(
+        songId
+    ) {
+        return new Promise((resolve, reject) => {
+            try {
+                resolve(this.#deleteSongSync(songId))
+            } catch (error) {
+                reject(error)
+            }
+        })
+    }
+
+    /**
+     * Deletes an artist from the database with a specified id.
+     * 
+     * @param {number} artistId The id of the artist to delete.
+     * @returns {Promise<null>}
+     */
+    deleteArtist(
+        artistId
+    ) {
+        return new Promise((resolve, reject) => {
+            try {
+                resolve(this.#deleteArtistSync(artistId))
+            } catch (error) {
+                reject(error)
+            }
+        })
+    }
+
+    // insert functions
 
     /**
      * Inserts an artist into the database.

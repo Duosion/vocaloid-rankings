@@ -677,7 +677,6 @@ const scrapeVocaDBSongAsync = (vocaDbURL) => {
     })
 }
 
-
 /**
  * Generates an Artist obejct based on VocaDB API data.
  * 

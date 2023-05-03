@@ -398,6 +398,10 @@ hr.default {
   color: var(--md-sys-color-on-surface-variant);
 }
 
+.material-button.blocky {
+  border-radius: 10px;
+}
+
 .material-button.with-icon {
   padding: 0px 24px 0px 16px
 }
@@ -423,6 +427,10 @@ hr.default {
   transition-property: opacity;
   transition-timing-function: var(--cubic-tween);
   transition-duration: var(--transition-duration)
+}
+
+.material-button.blocky::before {
+  border-radius: 10px;
 }
 
 .icon-button:hover:not(.active)::before,

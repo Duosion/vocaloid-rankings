@@ -219,13 +219,27 @@ const addSongRoute = async (request, reply) => {
 }
 
 const refreshSongRoute = async (request, reply) => {
-  const songId = request.params.songId
-  if (!songId) {
+  const reject = (code, message) => {
     reply.send({
-      code: 400,
-      message: "Invalid parameters provided",
+      code: code,
+      message: message,
     });
     return;
+  }
+
+  const songId = request.params.songId
+  if (!songId) {
+    return reject(400, "Invalid parameters provided.");
+  }
+
+  // check if the song exists
+  const exists = await database.songsData.songExists(songId)
+    .catch(error => {
+      console.log(error)
+      return reject(400, error.message)
+    })
+  if (!exists) {
+    return reject(400, `Song with id "${songId}" does not exist.`)
   }
 
   const song = await scraper.scrapeVocaDBSongAsync(Number(songId) || 0)
@@ -244,6 +258,41 @@ const refreshSongRoute = async (request, reply) => {
   songsDataCache.purge()
 
   return reply.redirect("/song/" + songId)
+}
+
+const deleteSongRoute = async (request, reply) => {
+  const reject = (code, message) => {
+    reply.send({
+      code: code,
+      message: message,
+    });
+    return;
+  }
+
+  const songId = request.params.songId
+  if (!songId) {
+    return reject(400, 'Invalid parameters provided.')
+  }
+
+  // check if the song exists
+  const exists = await database.songsData.songExists(songId)
+    .catch(error => {
+      console.log(error)
+      return reject(400, error.message)
+    })
+  if (!exists) {
+    return reject(400, `Song with id "${songId}" does not exist.`)
+  }
+
+  await database.songsData.deleteSong(songId)
+    .catch(error => {
+      console.log(error)
+      return reject(400, error.message)
+    })
+  
+  songsDataCache.purge()
+  
+  return reply.redirect('/rankings')
 }
 
 // song page
@@ -440,6 +489,7 @@ exports.register = (fastify, options, done) => {
   }, getSong)
   fastify.get("/add", addSongRoute)
   fastify.get("/:songId/refresh", refreshSongRoute)
+  fastify.get('/:songId/delete', deleteSongRoute)
   fastify.get('/thumbnail/:songId', getThumbnail)
 
   done();

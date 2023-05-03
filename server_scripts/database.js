@@ -717,6 +717,276 @@ const migrateViewsData = () => {
     }
   })
 }
+const migrateViewsDataOld = () => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      console.time("migration took")
+      console.log("------------- MIGRATING VIEWS DATA -------------")
+
+      const viewTypeMap = ViewType.map
+      const songsDataProxy = database.songsData
+
+      const artistTypeMap = {
+        'Vocaloid': ArtistType.Vocaloid,
+        'CeVIO': ArtistType.CeVIO,
+        'SynthesizerV': ArtistType.SynthesizerV,
+        'Illustrator': ArtistType.Illustrator,
+        'CoverArtist': ArtistType.CoverArtist,
+        'Animator': ArtistType.Animator,
+        'Producer': ArtistType.Producer,
+        'OtherVocalist': ArtistType.OtherVocalist,
+        'OtherVoiceSynthesizer': ArtistType.OtherVoiceSynthesizer,
+        'OtherIndividual': ArtistType.OtherIndividual,
+        'OtherGroup': ArtistType.OtherGroup,
+        'UTAU': ArtistType.UTAU
+      }
+
+      const songThumbnailTypeRegExps = [
+        {
+          regExp: /https:\/\/img\.youtube\.com\/vi\/([^\/\\]+)\/hqdefault\.jpg/,
+          type: ViewType.YouTube
+        },
+        {
+          regExp: /https:\/\/nicovideo\.cdn\.nimg\.jp\/thumbnails\/.+/,
+          type: ViewType.Niconico
+        },
+        {
+          regExp: /http:\/\/i\d\.hdslb\.com\/bfs\/archive.+/,
+          type: ViewType.bilibili
+        }
+      ]
+
+      // migrate songs
+      console.log("----[ Migrating Songs ]----")
+      const songsMap = {}
+      const artistsMap = {}
+      {
+        const songs = await database.songs.getSongs()
+        const length = songs.length
+
+        for (const [n, song] of songs.entries()) {
+          const songId = song.songId
+          const numberSongId = Number.parseInt(songId)
+          console.log(`[${n}/${length}] Migrating ${songId}...`)
+          if (await songsDataProxy.songExists(numberSongId)) {
+            songsMap[songId] = await songsDataProxy.getSong(numberSongId)
+            continue
+          }
+          // create song
+          const thumbnail = song.thumbnail
+          let maxresThumbnail = thumbnail
+
+          // get thumbnail type
+          let thumbnailType = ViewType.YouTube
+          for (const [_, regExpData] of songThumbnailTypeRegExps.entries()) {
+            const match = thumbnail.match(regExpData.regExp)
+            const viewType = regExpData.type
+            if (match) {
+              thumbnailType = viewType
+              if (viewType == ViewType.YouTube) {
+                maxresThumbnail = `https://img.youtube.com/vi/${match[1]}/maxresdefault.jpg`
+                // test the maxres thumbnail
+                const fetchResult = await fetch(maxresThumbnail)
+                  .then(res => {
+                    return res.status
+                  })
+                  .catch(_ => {
+                    return 404
+                  })
+                if (fetchResult == 404) {
+                  maxresThumbnail = thumbnail
+                }
+              }
+              break
+            }
+          }
+          // get average color
+          const averageColor = (await getAverageColorAsync(maxresThumbnail)).hex
+
+          // process dark and light colors
+          // Get the theme from a hex color
+          const theme = themeFromSourceColor(argbFromHex(averageColor));
+
+          const colorSchemes = theme.schemes
+
+          // get artists
+          const processedArtists = []
+          const thumbnailTypeMap = {
+            ["original"]: ArtistThumbnailType.Original,
+            ["medium"]: ArtistThumbnailType.Medium,
+            ["small"]: ArtistThumbnailType.Small,
+            ["tiny"]: ArtistThumbnailType.Tiny
+          }
+          const processArtists = async (artists, category) => {
+            for (const [_, artistId] of artists.entries()) {
+              const existsInMap = artistsMap[artistId + category.id]
+              if (existsInMap) {
+                processedArtists.push(existsInMap)
+              } else {
+                const artistData = await database.artists.getArtist(artistId)
+                if (artistData) {
+                  // process names
+                  const names = artistData.names
+                  const processedNames = []
+                  processedNames[NameType.Original.id] = names["Original"]
+                  processedNames[NameType.Japanese.id] = names["Japanese"]
+                  processedNames[NameType.English.id] = names["English"]
+                  processedNames[NameType.Romaji.id] = names["Romaji"]
+
+                  // process thumbnails
+                  const thumbnails = artistData.thumbnails
+                  let artistAverageColor = null
+                  const processedThumbnails = []
+                  for (const [original, mapped] of Object.entries(thumbnailTypeMap)) {
+                    const url = thumbnails[original]
+                    if (url) {
+                      if (!artistAverageColor) {
+                        artistAverageColor = (await getAverageColorAsync(url)).hex
+                      }
+                      processedThumbnails[mapped.id] = new ArtistThumbnail(
+                        mapped,
+                        url
+                      )
+                    } else {
+                      thumbnails[mapped.id] = null
+                    }
+                  }
+
+                  artistAverageColor = artistAverageColor || "#ffffff"
+
+                  const artistTheme = themeFromSourceColor(argbFromHex(artistAverageColor))
+                  const artistColorSchemes = artistTheme.schemes
+
+                  const newArtist = new Artist(
+                    Number.parseInt(artistId),
+                    artistTypeMap[artistData.artistType] || ArtistType.Producer,
+                    category,
+                    artistData.publishDate,
+                    artistData.additionDate,
+                    processedNames,
+                    processedThumbnails,
+                    null,
+                    artistAverageColor,
+                    hexFromArgb(artistColorSchemes.dark.props.primary),
+                    hexFromArgb(artistColorSchemes.light.props.primary),
+                  )
+
+                  artistsMap[artistId + category.id] = newArtist
+                  processedArtists.push(newArtist)
+                } else {
+                  console.log("Couldn't load artist with ID ", artistId)
+                }
+              }
+            }
+          }
+          // process artists
+          await processArtists(JSON.parse(song.singers), ArtistCategory.Vocalist)
+          await processArtists(JSON.parse(song.producers), ArtistCategory.Producer)
+
+          // build names
+          const songNames = JSON.parse(song.names)
+          const processedSongNames = []
+          processedSongNames[NameType.Original.id] = songNames["Original"]
+          processedSongNames[NameType.Japanese.id] = songNames["Japanese"]
+          processedSongNames[NameType.English.id] = songNames["English"]
+          processedSongNames[NameType.Romaji.id] = songNames["Romaji"]
+
+          // build video ids
+          const videoIds = JSON.parse(song.videoIds)
+          const processedVideoIds = []
+          for (const [viewType, ids] of Object.entries(videoIds)) {
+            processedVideoIds[viewTypeMap[viewType.toLowerCase()].id] = ids
+          }
+
+          // build song
+          const newSong = new Song(
+            numberSongId,
+            song.publishDate,
+            song.additionDate,
+            SongType.Original,
+            thumbnail,
+            maxresThumbnail,
+            averageColor,
+            hexFromArgb(colorSchemes.dark.props.primary),
+            hexFromArgb(colorSchemes.light.props.primary),
+            song.fandomURL,
+            processedArtists,
+            processedSongNames,
+            processedVideoIds,
+            null,
+            null,
+            thumbnailType
+          )
+
+          await songsDataProxy.insertSong(newSong)
+          songsMap[songId] = newSong
+        }
+      }
+
+      // migrate views
+      console.log("----[ Migrating Views ]----")
+      {
+        const metadata = await database.views.getMetadata()
+
+        for (const [_, timestampData] of metadata.entries()) {
+          const timestamp = timestampData.timestamp
+          songsDataProxy.insertViewsTimestamp(timestamp, timestampData.updated)
+
+          console.log("Migrate views for", timestamp)
+
+          // get views data
+          const viewsData = await database.views.getViewsData(timestamp)
+          if (viewsData) {
+
+            for (const [_, viewData] of viewsData.entries()) {
+              const songId = viewData.songId
+              const songData = songsMap[songId]
+              // process breakdown
+              const oldBreakdown = JSON.parse(viewData.breakdown)
+              const newBreakdown = []
+
+              for (const [platform, views] of Object.entries(oldBreakdown)) {
+                const viewType = viewTypeMap[platform.toLowerCase()]
+                if (viewType) {
+                  const viewTypeId = viewType.id
+                  const songVideoIdBucket = songData.videoIds[viewTypeId]
+                  const songVideoId = songVideoIdBucket && songVideoIdBucket[0]
+                  if (songVideoId) {
+                    newBreakdown[viewType.id] = [
+                      new VideoViews(
+                        songVideoId,
+                        views
+                      )
+                    ]
+                  }
+                }
+              }
+
+              songsDataProxy.insertSongViews(
+                songId,
+                new EntityViews(
+                  timestamp,
+                  viewData.total,
+                  newBreakdown
+                )
+              )
+            }
+
+          }
+        }
+
+      }
+
+      console.log("------------- MIGRATING VIEWS DATA COMPLETE -------------")
+      console.timeEnd("migration took")
+      resolve()
+    } catch (error) {
+      console.log("Error occurred when migrating views data. Error:", error)
+      reject(error)
+    }
+  })
+}
+//migrateViewsDataOld()
 //migrateViewsData()
 
 // export variables

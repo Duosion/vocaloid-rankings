@@ -76,8 +76,13 @@
 
 }
 
-#sidebar-info {
+#sidebar-info,
+#sidebar-controls {
     flex-direction: column;
+}
+
+#sidebar-controls .material-button {
+    background-color: var(--md-sys-color-surface-1);
 }
 
 .sidebar-card-dataset .title {
