@@ -7,7 +7,6 @@ const database = require("../db")
 const { getAverageColorAsync, generateTimestamp, verifyParams, rankingsFilterQueryTemplate, historicalDataQueryTemplate } = require("./shared")
 const { argbFromHex, themeFromSourceColor, hexFromArgb } = require("@importantimport/material-color-utilities");
 const scraper = require("./scraper")
-const { proxies } = require("../db/init")
 const Song = require("../db/dataClasses/song")
 const SongType = require("../db/enums/SongType")
 const Artist = require("../db/dataClasses/Artist")
@@ -580,7 +579,7 @@ const migrateViewsData = () => {
       console.log("------------- MIGRATING VIEWS DATA -------------")
 
       const viewTypeMap = ViewType.map
-      const songsDataProxy = database.songsData
+      const songsDataProxy = database.songsDataProxy
 
       const artistTypeMap = {
         'Vocaloid': ArtistType.Vocaloid,
@@ -724,7 +723,7 @@ const migrateViewsDataOld = () => {
       console.log("------------- MIGRATING VIEWS DATA -------------")
 
       const viewTypeMap = ViewType.map
-      const songsDataProxy = database.songsData
+      const songsDataProxy = database.songsDataProxy
 
       const artistTypeMap = {
         'Vocaloid': ArtistType.Vocaloid,
@@ -1010,7 +1009,7 @@ exports.setUpdatingProgress = setUpdatingProgress
 exports.addArtistsFromIds = addArtistsFromIds
 exports.populateArtists = populateArtists
 
-/*database.songsData.filterRankings(new RankingsFilterParams(
+/*database.songsDataProxy.filterRankings(new RankingsFilterParams(
   null, // timestamp
   1, // time period offset
   null, // change offset
@@ -1070,7 +1069,7 @@ exports.populateArtists = populateArtists
 
 /*setTimeout(() => {
   console.time('filtered rankings')
-  database.songsData.filterRankings(new RankingsFilterParams(
+  database.songsDataProxy.filterRankings(new RankingsFilterParams(
     null, // timestamp
     null, // time period offset
     null, // change offset
@@ -1095,7 +1094,7 @@ exports.populateArtists = populateArtists
     const filter = new RankingsFilterParams()
     filter.minViews = views
 
-    database.songsData.filterRankings(filter).then(finalResult => {
+    database.songsDataProxy.filterRankings(filter).then(finalResult => {
       console.timeEnd('filtered rankings')
       console.log(finalResult.totalCount)
     })
@@ -1103,7 +1102,7 @@ exports.populateArtists = populateArtists
 }, 1000)*/
 /*setTimeout(() => {
   console.time("filtered artists")
-  database.songsData.filterArtistsRankings(new ArtistsRankingsFilterParams(
+  database.songsDataProxy.filterArtistsRankings(new ArtistsRankingsFilterParams(
     null, // timestamp
     1, // time period offset
     null, // change offset
@@ -1128,7 +1127,7 @@ exports.populateArtists = populateArtists
 }, 1000)*/
 /*setTimeout(() => {
   console.time("search query")
-  database.songsData.searchQuery(new SearchQueryParams(
+  database.songsDataProxy.searchQuery(new SearchQueryParams(
     'かご め'
   )).then(result => {
     console.timeEnd("search query")

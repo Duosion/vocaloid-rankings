@@ -77,7 +77,7 @@ module.exports = (db, exists) => {
         timestamp TEXT NOT NULL,
         total INTEGER NOT NULL,
         PRIMARY KEY (song_id, timestamp),
-        FOREIGN KEY (song_id) REFERENCES songs (id) ON DELETE NO ACTION)`).run()
+        FOREIGN KEY (song_id) REFERENCES songs (id) ON DELETE CASCADE)`).run()
     db.prepare(`CREATE INDEX idx_views_totals_timestamp_song_id
     ON views_totals (timestamp, song_id);`).run()
 
@@ -89,7 +89,7 @@ module.exports = (db, exists) => {
         video_id TEXT NOT NULL,
         view_type INTEGER NOT NULL,
         PRIMARY KEY (song_id, timestamp, video_id),
-        FOREIGN KEY (song_id) REFERENCES songs (id) ON DELETE NO ACTION)`).run()
+        FOREIGN KEY (song_id) REFERENCES songs (id) ON DELETE CASCADE)`).run()
     db.prepare(`CREATE INDEX idx_views_breakdowns_timestamp_song_id
     ON views_breakdowns (timestamp, song_id);`).run()
 

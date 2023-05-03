@@ -431,7 +431,7 @@ const processVocaDBArtistDataAsync = (artistData) => {
                 new Date().toISOString(),
                 names,
                 thumbnails,
-                baseArtistId ? await database.songsData.getArtist(baseArtistId) || await scrapeVocaDBArtistAsync(baseArtistId) : null,
+                baseArtistId ? await database.songsDataProxy.getArtist(baseArtistId) || await scrapeVocaDBArtistAsync(baseArtistId) : null,
                 averageColor,
                 hexFromArgb(colorSchemes.dark.props.primary),
                 hexFromArgb(colorSchemes.light.props.primary),
@@ -492,7 +492,7 @@ const processVocaDBSongDataAsync = (songData) => {
             }
 
             // variables
-            const songDataProxy = database.songsData
+            const songDataProxy = database.songsDataProxy
             const songId = Number(songData.id)
 
             // check if this song is a cover

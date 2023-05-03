@@ -74,7 +74,7 @@ const querySongsDatabaseAsync = (queryData) => {
     // parse queryData
     const songId = Number.parseInt(queryData.songId)
 
-    database.songsData.getSong(songId)
+    database.songsDataProxy.getSong(songId)
       .then(async songData => {
         if (!songData) {
           reject("No data found for song '" + songId + "'.");
@@ -101,7 +101,7 @@ const querySongsDatabaseAsync = (queryData) => {
 
         // get historical views
         {
-          const historicalViews = await database.songsData.getSongHistoricalViews(songId)
+          const historicalViews = await database.songsDataProxy.getSongHistoricalViews(songId)
 
           highestViews = 0
           historicalViews.forEach(entry => {
@@ -202,7 +202,7 @@ const addSongRoute = async (request, reply) => {
     }
 
     // add the song
-    await database.songsData.insertSong(song)
+    await database.songsDataProxy.insertSong(song)
       .catch(msg => {
         return reply.send({ code: 400, message: msg.message })
       })
@@ -233,7 +233,7 @@ const refreshSongRoute = async (request, reply) => {
   }
 
   // check if the song exists
-  const exists = await database.songsData.songExists(songId)
+  const exists = await database.songsDataProxy.songExists(songId)
     .catch(error => {
       console.log(error)
       return reject(400, error.message)
@@ -249,7 +249,7 @@ const refreshSongRoute = async (request, reply) => {
     })
 
   // add the song
-  await database.songsData.insertSong(song)
+  await database.songsDataProxy.insertSong(song)
     .catch(msg => {
       console.log(msg)
       return reply.send({ code: 400, message: msg.message })
@@ -275,7 +275,7 @@ const deleteSongRoute = async (request, reply) => {
   }
 
   // check if the song exists
-  const exists = await database.songsData.songExists(songId)
+  const exists = await database.songsDataProxy.songExists(songId)
     .catch(error => {
       console.log(error)
       return reject(400, error.message)
@@ -284,7 +284,7 @@ const deleteSongRoute = async (request, reply) => {
     return reject(400, `Song with id "${songId}" does not exist.`)
   }
 
-  await database.songsData.deleteSong(songId)
+  await database.songsDataProxy.deleteSong(songId)
     .catch(error => {
       console.log(error)
       return reject(400, error.message)
@@ -448,7 +448,7 @@ const getThumbnail = (request, reply) => {
   if (cached) {
     sendThumbnail(cached.getData())
   } else {
-    database.songsData.getSong(songId)
+    database.songsDataProxy.getSong(songId)
       .then(song => {
         if (!song) { throw 'No song data found.'}
         const thumbnail = useMaxresThumbnail ? song.maxresThumbnail : song.thumbnail

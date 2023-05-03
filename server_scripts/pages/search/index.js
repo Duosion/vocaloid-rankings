@@ -33,7 +33,7 @@ const querySearchAsync = (queryParams, options) => {
         }
       }
 
-      database.songsData.searchQuery(queryParams).then(result => {
+      database.songsDataProxy.searchQuery(queryParams).then(result => {
 
         const preferredLanguage = options.preferredLanguage || NameType.Original
 

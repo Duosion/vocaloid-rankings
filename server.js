@@ -156,7 +156,7 @@ const updateSongsData = () => {
     const timestampData = generateTimestamp()
     const timestamp = timestampData.Name
 
-    const songsDataProxy = database.songsData
+    const songsDataProxy = database.songsDataProxy
 
     console.log("Trying to update db for timestamp:", timestamp)
     const isAlreadyUpdated = await songsDataProxy.viewsTimestampExists(timestamp)

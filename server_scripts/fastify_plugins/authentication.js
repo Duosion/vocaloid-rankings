@@ -4,15 +4,11 @@ const workingDirectory = process.cwd()
 const fp = require("fastify-plugin")
 const crypto = require("crypto-js")
 const bcrypt = require("bcrypt");
-const { analytics } = require("../../db");
-    const bcryptSaltRounds = 10;
-const { authentication } = require(workingDirectory + "/db")
+const AccessLevel = require("../../db/enums/AccessLevel");
+const bcryptSaltRounds = 10;
+const { accountsDataProxy } = require(workingDirectory + "/db")
 
-const authLevels = {
-    [0]: "Guest",
-    [1]: "User",
-    [4]: "Admin"
-}
+const sessionLifetime = 7 * 24 * 60 * 60 // in seconds, how long a login session lasts.
 
 // functions
 const generateSessionId = () => {
@@ -20,39 +16,35 @@ const generateSessionId = () => {
 }
 
 // fastify functions
-const loginPost = async (request, reply) => {
+const postLogin = async (request, reply) => {
     // logs in the user
     const body = request.body
-    const cookies = request.cookies
+    const query = request.query
 
-    const username = body["username"]
+    const username = body["username"] || ""
+    const stayLoggedIn = body['stayLoggedIn'] || ""
 
     const reject = (reason = "") => {
-        reply.status(400)
-        return reply.view("pages/login.hbs", { 
-            seo: request.seo,
-            cookies: request.parsedCookies || {},
-            errorMessage: reason
-        })
+        return reply.status(302).redirect(`/login?errorMessage=${reason}`)
     }
 
     // check if the user is already logged in
-    if (cookies["session"]) {
+    if (request.loggedIn) {
         // logout
         return reject("Already logged in.")
     }
 
     // compare query with database
     {
-        const passwordPlain = body["password"]
+        const passwordPlain = body["password"] || ""
         try {
             // get userdata from database
-            const userData = await authentication.getUser(username)
+            const userData = await accountsDataProxy.getUser(username)
 
-            if (!(await bcrypt.compare(passwordPlain, userData.passwordHash))) {
+            if (!(await bcrypt.compare(passwordPlain, userData.hash))) {
                 throw "Invalid Password."
             }
-        } catch(error) {
+        } catch (error) {
             return reject("Invalid username or password provided.")
         }
     }
@@ -61,12 +53,22 @@ const loginPost = async (request, reply) => {
     {
         // generate session id until it hasn't been found in the database
         var sessionId = generateSessionId()
-        while (await authentication.sessionExists(sessionId)) {
+        while (await accountsDataProxy.sessionExists(sessionId)) {
             sessionId = generateSessionId()
         }
 
         // save in the database
-        authentication.insertSession(sessionId, username)
+        const dateNow = new Date()
+        await accountsDataProxy.insertSession(
+            sessionId,
+            username,
+            dateNow,
+            new Date(dateNow.getTime() + (sessionLifetime * 1000)),
+            stayLoggedIn == 'on' ? true : false
+        )
+            .catch(error => {
+                reject(error.message)
+            })
 
         // set cookie
         reply.setCookie("session", sessionId, {
@@ -74,41 +76,59 @@ const loginPost = async (request, reply) => {
             signed: true,
             sameSite: true,
             ["maxAge"]: 31536000
-          })
+        })
+    }
+
+    return reply.status(302).redirect(query.referer || '/')
+}
+
+const getLogout = async (request, reply) => {
+    const query = request.query
+    const sessionCookie = request.cookies["session"]
+    const referer = query['referer']
+    if (sessionCookie) {
+        const unsignedCookie = request.unsignCookie(sessionCookie)
+        // delete the session
+        await accountsDataProxy.deleteSession(unsignedCookie.value || "")
+            .catch(error => { reply.status(400).send(error) })
+        // clear the cookie
+        reply.clearCookie("session")
+        // respond to the client
+        if (referer) {
+            reply.status(302).redirect(referer)
+        } else {
+            reply.status(200).send("Logged out.")
+        }
+    } else {
+        reply.status(400).send("Not logged in.")
+    }
+}
+
+const getLogin = async(request, reply) => {
+    const query = request.query
+    // add error message
+    const errorMessage = query['errorMessage']
+    if (errorMessage) {
+        request.addHbParam('errorMessage', errorMessage)
     }
     
-    reply.status(200)
-    reply.redirect("/")
-}
-
-const loginGet = async(request, reply) => {
-
-    return reply.view("pages/login.hbs", { 
-        seo: request.seo,
-        cookies: request.parsedCookies || {},
-    })
-
-}
-
-const createAccount = async (request, reply) => {
-    authentication.insertUser(
-        "admin",
-        await bcrypt.hash("9FgYx14d#1Xv3lxKv7Fq0Ey$iO",bcryptSaltRounds),
-        4
-    )
-    reply.status(200).send("Account Created")
+    return reply.view("pages/login.hbs", request.hbParams)
 }
 
 // plugin
 const plugin = (fastify, options, done) => {
+
+    fastify.decorateRequest('accessLevel', AccessLevel.Guest.id)
+    fastify.decorateRequest('loggedIn', false)
 
     // add a hook in the "preParsing" phase of request handling
     fastify.addHook("preParsing", async (req, reply, _) => {
         const config = req.routeConfig
 
         const requiredAuthLevel = config["authLevel"] || 0
+        const redirect = config['loginRedirect'] ? true : false
         const sessionCookie = req.cookies["session"]
-
+        
         if (requiredAuthLevel > 0) {
             // only check authentication if the required auth is "User" or higher.
             var userAuthLevel = 0;
@@ -116,20 +136,52 @@ const plugin = (fastify, options, done) => {
             try {
                 if (sessionCookie) {
                     const unsignedCookie = req.unsignCookie(sessionCookie)
-                    const sessionData = await authentication.getSession(unsignedCookie.value)
-    
-                    const userData = await authentication.getUser(sessionData.username)
-    
-                    userAuthLevel = userData.authLevel
+
+                    const sessionData = await accountsDataProxy.getSession(unsignedCookie.value)
+                    const userData = sessionData.user
+
+                    req.loggedIn = true
+                    req.addHbParam('loggedIn', true)
+
+                    // set last login
+                    const dateNow = new Date()
+                    userData.lastLogin = dateNow
+                    await accountsDataProxy.updateUser(userData)
+
+                    // renew session if applicable
+                    const sessionExpires = sessionData.expires
+                    if (dateNow >= sessionExpires) {
+                        // session is expired
+                        if (sessionData.stayLoggedIn) {
+                            console.log("renew")
+                            sessionData.expires = new Date(dateNow.getTime() + (sessionLifetime * 1000))
+                            accountsDataProxy.updateSession(sessionData)
+                        } else {
+                            console.log("expiry; delete")
+                            reply.clearCookie('session')
+                            accountsDataProxy.deleteSession(sessionData.id)
+                            throw new Error('Session Expiry')
+                        }
+                    }
+
+                    userAuthLevel = userData.accessLevel.id
                 }
             } catch (error) {
             }
 
+            // add access level to request & handlebars parameters
+            req.accessLevel = userAuthLevel
+            req.addHbParam('accessLevel', userAuthLevel)
+
             if (!(userAuthLevel >= requiredAuthLevel)) {
-                // 404
-                reply.status(404)
-                reply.send("Page not found.")
-                return
+                if (sessionCookie) {
+                    reply.clearCookie('session')
+                }
+                if (redirect) {
+                    return reply.status(302).redirect(`/login?referer=${req.url}`)
+                } else {
+                    return reply.status(userAuthLevel > 0 ? 403 : 401).send("Not Authorized")
+                }
             }
 
         }
@@ -137,9 +189,28 @@ const plugin = (fastify, options, done) => {
     })
 
     // requests
-    fastify.get("/login",loginGet)
-    fastify.post("/login", loginPost)
-    //fastify.get("/signup",createAccount)
+    fastify.get("/login", getLogin)
+    fastify.post("/login", postLogin)
+    
+    fastify.get('/logout', getLogout)
+
+    // add admin account
+    if (process.env.adminUsername && process.env.adminPassword) {
+        accountsDataProxy.userExists(process.env.adminUsername)
+            .then(async exists => {
+                if (!exists) {
+                    await accountsDataProxy.insertUser(
+                        process.env.adminUsername,
+                        bcrypt.hashSync(process.env.adminPassword, bcryptSaltRounds),
+                        AccessLevel.Admin
+                    )
+                    console.log("Admin account was created. Delete credentials from .env file.")
+                }
+            })
+            .catch(error => {
+                console.log("Error when creating admin account: ", error)
+            })
+    }
 
     done()
 }

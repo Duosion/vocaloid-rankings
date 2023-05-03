@@ -2,7 +2,7 @@ const workingDirectory = process.cwd()
 // imports
 const fp = require("fastify-plugin")
 const { getHasherAsync } = require(workingDirectory + "/server_scripts/shared")
-const { analytics } = require(workingDirectory + "/db")
+const { analyticsDataProxy } = require(workingDirectory + "/db")
 
 
 
@@ -54,12 +54,12 @@ const plugin = (fastify, options, done) => {
                         const names = params['name']
                         const values = params['value']
                         for (var i = 0; i<names.length; i++) {
-                            analytics.insertEvent(eventName, uid, {'name': names[i], 'value': values[i] || ''})
+                            analyticsDataProxy.insertEvent(eventName, uid, {'name': names[i], 'value': values[i] || ''})
                         }
                         return
                 }
                 // save analytics
-                analytics.insertEvent(eventName, uid, params)
+                analyticsDataProxy.insertEvent(eventName, uid, params)
             })
         }
         

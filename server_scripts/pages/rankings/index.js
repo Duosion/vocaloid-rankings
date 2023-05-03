@@ -128,7 +128,7 @@ const filterParamsDisplayData = {
             }
 
             for (const [_, artistId] of rawValue.entries()) {
-                const artist = await database.songsData.getArtist(artistId)
+                const artist = await database.songsDataProxy.getArtist(artistId)
                 if (artist) {
                     artistNames.push(getPreferredName(artist.names))
                 }
@@ -425,7 +425,7 @@ const filterRankingsAsync = (filterParams, options = {}) => {
             }
 
             /** @type {RankingsFilterResult} */
-            const filtered = await database.songsData.filterRankings(filterParams)
+            const filtered = await database.songsDataProxy.filterRankings(filterParams)
 
             // add preferred names based on user language setting
             const preferredLanguage = options.preferredLanguage || NameType.Original
@@ -482,7 +482,7 @@ const filterArtistsRankingsAsync = (filterParams, options = {}) => {
             }
 
             /** @type {ArtistsRankingsFilterResult} */
-            const filtered = await database.songsData.filterArtistsRankings(filterParams)
+            const filtered = await database.songsDataProxy.filterArtistsRankings(filterParams)
 
             // add preferred names based on user language setting
             const preferredLanguage = options.preferredLanguage || NameType.Original
@@ -554,7 +554,7 @@ const getFilterPage = async (request, reply) => {
         })
     }
 
-    const viewsTimestamps = await database.songsData.getViewsTimestamps()
+    const viewsTimestamps = await database.songsDataProxy.getViewsTimestamps()
 
     const maximumDate = viewsTimestamps[0].timestamp
 
@@ -883,7 +883,9 @@ exports.register = (fastify, options, done) => {
     fastify.get('/trending', {
         config: {
             analyticsEvent: "page_visit",
-            analyticsParams: { 'page_name': "trending" }
+            analyticsParams: { 'page_name': "trending" },
+            authLevel: 1,
+            loginRedirect: false
         }
     }, getTrending)
 

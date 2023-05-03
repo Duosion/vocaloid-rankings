@@ -4,7 +4,7 @@ const modulePath = workingDirectory + "/server_scripts"
 // import
 const NameType = require(workingDirectory + "/db/enums/NameType")
 const database = require(workingDirectory + "/db")
-const songsDataDb = database.songsData
+const songsDataDb = database.songsDataProxy
 
 // import modules
 const { argbFromHex, themeFromSourceColor, hexFromArgb, redFromArgb, greenFromArgb, blueFromArgb } = require("@importantimport/material-color-utilities");
