@@ -5,7 +5,7 @@ const workingDirectory = process.cwd()
 const plugin = (fastify, options, done) => {
 
     const seo = require(workingDirectory + "/src/seo.json");
-    
+
     fastify.decorateRequest("addHbParam", function(name, value) {
         this.hbParams[name] = value
     })

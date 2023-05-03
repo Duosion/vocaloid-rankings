@@ -1,14 +1,4 @@
-#login-form {
-    padding: 10px;
-}
-
-.login-container {
-    margin-top: 10px;
-    width: 100%;
-}
-
-.login-container button {
-  width: 100%;
-  
-  font-size: 1.3em
+#page-header,
+#page-body {
+  max-width: 550px;
 }

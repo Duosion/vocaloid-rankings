@@ -62,6 +62,17 @@
         </div>
         {{/if}}
 
+        <div id="sidebar-controls" class="sidebar-card body-medium on-surface-text">
+            <a class="material-button blocky" href="/artist/{{artistData.id}}/refresh">
+                <span class="material-symbols-rounded">refresh</span>
+                Refresh Song
+            </a>
+            <a class="material-button blocky" href="/artist/{{artistData.id}}/delete">
+                <span class="material-symbols-rounded">delete</span>
+                Delete Song
+            </a>
+        </div>
+
         <div id="sidebar-info" class="sidebar-card body-medium on-surface-text">
             <div class="sidebar-card-dataset">
                 <div class="title">Release Date</div>

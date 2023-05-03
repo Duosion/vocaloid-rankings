@@ -1,100 +1,100 @@
-<!DOCTYPE html> 
-  <link rel="stylesheet" href="/css/rankings.css">
-    <div class="list vertical"> 
-      
-      <div id="page-title" class="display-small on-background-text text-centered">{{year}} in Review</div>
-      <div class="title-medium-large on-background-text text-centered">The top Vocaloid songs released in {{year}}.</div>
-      
-      <div id="midpage" class="centering-flex">
-        
-        <div id="top-container">
-          <div id="top-controls-container">
-            <div id="applied-filters-container">
-              <a class="top-controls-button button-link" href="/rankings" title="Go Back">
-                <span class="material-symbols-rounded">home</span>
-              </a>
-            </div>
-            {{#if databaseUpdating}}      
-              {{> rankings-refresh-label}}
+<link rel="stylesheet" href="/css/rankings.css">
+<div class="list vertical">
+
+  <div id="page-title" class="display-small on-background-text text-centered">{{year}} in Review</div>
+  <div class="title-medium-large on-background-text text-centered">The top Vocaloid songs released in {{year}}.</div>
+
+  <div id="midpage" class="centering-flex">
+
+    <div id="top-container">
+      <div id="top-controls-container">
+        <div id="applied-filters-container">
+          <a class="top-controls-button button-link" href="/rankings" title="Go Back">
+            <span class="material-symbols-rounded">home</span>
+          </a>
+        </div>
+        {{#if databaseUpdating}}
+        {{> rankings-refresh-label}}
+        {{/if}}
+        <a class="top-controls-button button-link" href="/settings" title="Settings">
+          <span class="material-symbols-rounded">settings</span>
+        </a>
+      </div>
+    </div>
+
+    <div id="rankings-list">
+
+      <div class="rankings-list-header title-medium-large">
+        <div class="rankings-list-entry-item rank"></div>
+        <div class="rankings-list-entry-item cover"></div>
+        <div class="rankings-list-entry-item title">Song Name</div>
+        <div class="rankings-list-entry-item views">Views</div>
+      </div>
+
+      {{#each list}}
+
+      <div class="rankings-list-entry title-medium-large">
+
+        <div class="rankings-list-entry-item title-large rank">
+          {{inc @index (inc 1 ../filterParams.StartAt)}}
+        </div>
+
+        <div class="rankings-list-entry-item cover" style='background-image:url("{{thumbnail}}")'></div>
+
+        {{#if (notcomp change.status "SAME") }}
+        <div class="rankings-list-entry-item change {{change.status}}">
+          <span class="material-symbols-rounded">
+            {{#if (comp change.status "UP")}}
+            arrow_upward
+            {{else if (comp change.status "DOWN")}}
+            arrow_downward
             {{/if}}
-            <a class="top-controls-button button-link" href="/settings" title="Settings">
-              <span class="material-symbols-rounded">settings</span>
-            </a>
-          </div>
+          </span>
         </div>
+        {{/if}}
 
-        <div id="rankings-list">
-          
-          <div class="rankings-list-header title-medium-large">
-            <div class="rankings-list-entry-item rank"></div>
-            <div class="rankings-list-entry-item cover"></div>
-            <div class="rankings-list-entry-item title">Song Name</div>
-            <div class="rankings-list-entry-item views">Views</div>
-          </div>
-          
-          {{#each list}}
-
-            <div class="rankings-list-entry title-medium-large">
-              
-              <div class="rankings-list-entry-item title-large rank">
-                {{inc @index (inc 1 ../filterParams.StartAt)}}
-              </div>
-              
-              <div class="rankings-list-entry-item cover" style='background-image:url("{{thumbnail}}")'></div>
-              
-              {{#if (notcomp change.status "SAME") }}
-                <div class="rankings-list-entry-item change {{change.status}}">
-                  <span class="material-symbols-rounded">
-                    {{#if (comp change.status "UP")}}
-                      arrow_upward
-                    {{else if (comp change.status "DOWN")}}
-                      arrow_downward
-                    {{/if}}
-                  </span>
-                </div>
-              {{/if}}
-
-              <div class="rankings-list-entry-item title">
-                <a href="/song/{{songId}}?referer=/rankings/year-review/{{../year}}/full?StartAt={{../filterParams.StartAt}}">{{names.preferred}}</a>
-              </div>
-              <div class="rankings-list-entry-item views">{{longFormat total}}</div>
-              
-            </div> 
-
-          {{/each}}
-          
+        <div class="rankings-list-entry-item title">
+          <a
+            href="/song/{{songId}}?referer=/rankings/year-review/{{../year}}/full?StartAt={{../filterParams.StartAt}}">{{names.preferred}}</a>
         </div>
-        
-        <div id="page-selector-container">
-          {{#if previousPage}}
-            <a class="icon-button" href="{{previousPage}}">
-              <span class="material-symbols-rounded">arrow_back</span>
-            </a>
-          {{/if}}
-          {{#if firstPage}}
-            <a class="outlined icon-button" href="{{firstPage}}">
-              <div class="title-medium-large">1</div>
-            </a>
-            <span class="material-symbols-rounded">more_horiz</span>
-          {{/if}}
-          {{#each surroundingPages}}
-            <a class="outlined icon-button {{#if (comp @index ../currentPageNumber)}}selected active{{/if}}" href="{{this}}">
-              <div class="title-medium-large">{{inc @index 1}}</div>
-            </a>
-          {{/each}}
-          {{#if lastPage}}
-            <span class="material-symbols-rounded">more_horiz</span>
-            <a class="outlined icon-button" href="{{lastPage}}">
-              <div class="title-medium-large">{{lastPageNumber}}</div>
-            </a>
-          {{/if}}
-          {{#if nextPage}}
-            <a class="icon-button" href="{{nextPage}}">
-              <span class="material-symbols-rounded">arrow_forward</span>
-            </a>
-          {{/if}}
-        </div>
+        <div class="rankings-list-entry-item views">{{longFormat total}}</div>
 
       </div>
-      
+
+      {{/each}}
+
     </div>
+
+    <div id="page-selector-container">
+      {{#if previousPage}}
+      <a class="icon-button" href="{{previousPage}}">
+        <span class="material-symbols-rounded">arrow_back</span>
+      </a>
+      {{/if}}
+      {{#if firstPage}}
+      <a class="outlined icon-button" href="{{firstPage}}">
+        <div class="title-medium-large">1</div>
+      </a>
+      <span class="material-symbols-rounded">more_horiz</span>
+      {{/if}}
+      {{#each surroundingPages}}
+      <a class="outlined icon-button {{#if (comp @index ../currentPageNumber)}}selected active{{/if}}" href="{{this}}">
+        <div class="title-medium-large">{{inc @index 1}}</div>
+      </a>
+      {{/each}}
+      {{#if lastPage}}
+      <span class="material-symbols-rounded">more_horiz</span>
+      <a class="outlined icon-button" href="{{lastPage}}">
+        <div class="title-medium-large">{{lastPageNumber}}</div>
+      </a>
+      {{/if}}
+      {{#if nextPage}}
+      <a class="icon-button" href="{{nextPage}}">
+        <span class="material-symbols-rounded">arrow_forward</span>
+      </a>
+      {{/if}}
+    </div>
+
+  </div>
+
+</div>

@@ -21,11 +21,13 @@ const postLogin = async (request, reply) => {
     const body = request.body
     const query = request.query
 
+    const referer = query.referer
+
     const username = body["username"] || ""
     const stayLoggedIn = body['stayLoggedIn'] || ""
 
     const reject = (reason = "") => {
-        return reply.status(302).redirect(`/login?errorMessage=${reason}`)
+        return reply.status(302).redirect(`/login?errorMessage=${reason}&referer=${referer}`)
     }
 
     // check if the user is already logged in
@@ -78,8 +80,7 @@ const postLogin = async (request, reply) => {
             ["maxAge"]: 31536000
         })
     }
-
-    return reply.status(302).redirect(query.referer || '/')
+    return reply.status(302).redirect(referer || '/')
 }
 
 const getLogout = async (request, reply) => {
@@ -104,15 +105,24 @@ const getLogout = async (request, reply) => {
     }
 }
 
-const getLogin = async(request, reply) => {
+const getLogin = async (request, reply) => {
+    console.log(request.hbParams)
     const query = request.query
     // add error message
     const errorMessage = query['errorMessage']
     if (errorMessage) {
         request.addHbParam('errorMessage', errorMessage)
     }
-    
+
+    request.addHbParam('referer', query.referer)
     return reply.view("pages/login.hbs", request.hbParams)
+}
+
+const getAccount = async (request, reply) => {
+
+    request.addHbParam('canDownloadDatabase', request.accessLevel >= AccessLevel.Admin.id)
+
+    return reply.view('pages/account.hbs', request.hbParams)
 }
 
 // plugin
@@ -128,62 +138,56 @@ const plugin = (fastify, options, done) => {
         const requiredAuthLevel = config["authLevel"] || 0
         const redirect = config['loginRedirect'] ? true : false
         const sessionCookie = req.cookies["session"]
-        
-        if (requiredAuthLevel > 0) {
-            // only check authentication if the required auth is "User" or higher.
-            var userAuthLevel = 0;
 
-            try {
-                if (sessionCookie) {
-                    const unsignedCookie = req.unsignCookie(sessionCookie)
+        var userAuthLevel = 0;
 
-                    const sessionData = await accountsDataProxy.getSession(unsignedCookie.value)
-                    const userData = sessionData.user
+        try {
+            if (sessionCookie) {
+                const unsignedCookie = req.unsignCookie(sessionCookie)
 
-                    req.loggedIn = true
-                    req.addHbParam('loggedIn', true)
+                const sessionData = await accountsDataProxy.getSession(unsignedCookie.value)
+                const userData = sessionData.user
 
-                    // set last login
-                    const dateNow = new Date()
-                    userData.lastLogin = dateNow
-                    await accountsDataProxy.updateUser(userData)
+                req.loggedIn = true
+                req.addHbParam('loggedIn', true)
 
-                    // renew session if applicable
-                    const sessionExpires = sessionData.expires
-                    if (dateNow >= sessionExpires) {
-                        // session is expired
-                        if (sessionData.stayLoggedIn) {
-                            console.log("renew")
-                            sessionData.expires = new Date(dateNow.getTime() + (sessionLifetime * 1000))
-                            accountsDataProxy.updateSession(sessionData)
-                        } else {
-                            console.log("expiry; delete")
-                            reply.clearCookie('session')
-                            accountsDataProxy.deleteSession(sessionData.id)
-                            throw new Error('Session Expiry')
-                        }
+                // set last login
+                const dateNow = new Date()
+                userData.lastLogin = dateNow
+                await accountsDataProxy.updateUser(userData)
+
+                // renew session if applicable
+                const sessionExpires = sessionData.expires
+                if (dateNow >= sessionExpires) {
+                    // session is expired
+                    if (sessionData.stayLoggedIn) {
+                        sessionData.expires = new Date(dateNow.getTime() + (sessionLifetime * 1000))
+                        await accountsDataProxy.updateSession(sessionData)
+                    } else {
+                        reply.clearCookie('session')
+                        await accountsDataProxy.deleteSession(sessionData.id)
+                        throw new Error('Session Expiry')
                     }
-
-                    userAuthLevel = userData.accessLevel.id
                 }
-            } catch (error) {
+
+                userAuthLevel = userData.accessLevel.id
             }
+        } catch (error) {
+        }
 
-            // add access level to request & handlebars parameters
-            req.accessLevel = userAuthLevel
-            req.addHbParam('accessLevel', userAuthLevel)
+        // add access level to request & handlebars parameters
+        req.accessLevel = userAuthLevel
+        req.addHbParam('accessLevel', userAuthLevel)
 
-            if (!(userAuthLevel >= requiredAuthLevel)) {
-                if (sessionCookie) {
-                    reply.clearCookie('session')
-                }
-                if (redirect) {
-                    return reply.status(302).redirect(`/login?referer=${req.url}`)
-                } else {
-                    return reply.status(userAuthLevel > 0 ? 403 : 401).send("Not Authorized")
-                }
+        if (!(userAuthLevel >= requiredAuthLevel)) {
+            if (sessionCookie) {
+                reply.clearCookie('session')
             }
-
+            if (redirect) {
+                return reply.status(302).redirect(`/login?referer=${req.url}`)
+            } else {
+                return reply.status(userAuthLevel > 0 ? 403 : 401).send("Not Authorized")
+            }
         }
 
     })
@@ -191,8 +195,15 @@ const plugin = (fastify, options, done) => {
     // requests
     fastify.get("/login", getLogin)
     fastify.post("/login", postLogin)
-    
+
     fastify.get('/logout', getLogout)
+
+    fastify.get('/account', {
+        config: {
+            authLevel: AccessLevel.User.id,
+            loginRedirect: true
+        }
+    }, getAccount)
 
     // add admin account
     if (process.env.adminUsername && process.env.adminPassword) {

@@ -33,12 +33,22 @@
             <a id="settings-link" href="/settings" class="icon-button" title="{{localization.settings}}">
                 <span class="material-symbols-rounded">settings</span>
             </a>
+            {{#if loggedIn}}
+                <a id="settings-link" href="/account" class="icon-button" title="{{localization.account}}">
+                    <span class="material-symbols-rounded">account_circle</span>
+                </a>
+            {{/if}}
         </div>
     </div>
     <nav id="nav-drawer">
         <span id="nav-drawer-surface" class="surface level-2"></span>
         <div id="nav-drawer-content">
             <div id="nav-drawer-head" class="nav-drawer-column-group">
+                {{#if loggedIn}}
+                    <a id="settings-link" href="/account" class="icon-button" title="{{localization.account}}">
+                        <span class="material-symbols-rounded">account_circle</span>
+                    </a>
+                {{/if}}
                 <a id="nav-drawer-settings-link" href="/settings" class="icon-button" title="{{localization.settings}}">
                     <span class="material-symbols-rounded">settings</span>
                 </a>

@@ -119,6 +119,7 @@ const seo = require("./src/seo.json");
 const Song = require("./db/dataClasses/song");
 const EntityViews = require("./db/dataClasses/EntityViews");
 const ArtistThumbnail = require("./db/dataClasses/ArtistThumbnail");
+const AccessLevel = require("./db/enums/AccessLevel");
 if (seo.url === "glitch-default") {
   seo.url = `https://${process.env.PROJECT_DOMAIN}.glitch.me`;
 }
@@ -287,7 +288,7 @@ schedule.scheduleJob('0 0 * * *', () => {
 
 // redirect
 fastify.get("/", async function (request, reply) {
-  reply.redirect("/rankings")
+  reply.status(301).redirect("/rankings")
 });
 
 // about page
@@ -305,8 +306,12 @@ fastify.get("/about", async (request, reply) => {
 })
 
 // download db
-
-fastify.get("/download-db", (request, reply) => {
+fastify.get("/download-db", {
+  config: {
+    authLevel: AccessLevel.Admin.id,
+    loginRedirect: true
+  }
+}, (request, reply) => {
   const fs = require("fs");
   const archiver = require("archiver")
 

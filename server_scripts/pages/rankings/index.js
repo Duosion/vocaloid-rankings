@@ -883,9 +883,7 @@ exports.register = (fastify, options, done) => {
     fastify.get('/trending', {
         config: {
             analyticsEvent: "page_visit",
-            analyticsParams: { 'page_name': "trending" },
-            authLevel: 1,
-            loginRedirect: false
+            analyticsParams: { 'page_name': "trending" }
         }
     }, getTrending)
 
@@ -909,5 +907,14 @@ exports.register = (fastify, options, done) => {
     }, getSetFilter)
     fastify.get("/filter/remove", getRemoveFilter)
     fastify.get("/filter/remove-all", getRemoveAllFilters)
+
+    // year review
+    fastify.get("/year-review/:year", (_, reply) => {
+        reply.status(301).redirect('/')
+    })
+    fastify.get("/year-review/:year/full", (_, reply) => {
+        reply.status(301).redirect('/')
+    })
+
     done();
 }

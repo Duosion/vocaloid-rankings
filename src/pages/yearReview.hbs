@@ -1,118 +1,146 @@
-<!DOCTYPE html> 
-  <link rel="stylesheet" href="/css/rankings.css">
-  <link rel="stylesheet" href="/css/year_review.css">
-    <div class="list vertical"> 
-      
-      <div id="page-title" class="display-small on-surface-text text-centered">{{year}} in Review</div>
-      <div class="title-medium-large on-surface-text text-centered">The biggest songs, singers, and producers in {{year}}.</div>
-      
-      <div id="midpage" class="centering-flex">
-        
-        <div id="top-container">
-          <div id="top-controls-container">
-            <div id="applied-filters-container">
-              <a class="top-controls-button button-link" href="/rankings" title="Go Back">
-                <span class="material-symbols-rounded">home</span>
-              </a>
-            </div>
-            {{#if databaseUpdating}}      
-              {{> rankings-refresh-label}}
-            {{/if}}
-            <a class="top-controls-button button-link" href="/settings?referer=/rankings/year-review/{{year}}" title="Settings">
-              <span class="material-symbols-rounded">settings</span>
-            </a>
-          </div>
+<link rel="stylesheet" href="/css/rankings.css">
+<link rel="stylesheet" href="/css/year_review.css">
+<div class="list vertical">
+
+  <div id="page-title" class="display-small on-surface-text text-centered">{{year}} in Review</div>
+  <div class="title-medium-large on-surface-text text-centered">The biggest songs, singers, and producers in {{year}}.
+  </div>
+
+  <div id="midpage" class="centering-flex">
+
+    <div id="top-container">
+      <div id="top-controls-container">
+        <div id="applied-filters-container">
+          <a class="top-controls-button button-link" href="/rankings" title="Go Back">
+            <span class="material-symbols-rounded">home</span>
+          </a>
+        </div>
+        {{#if databaseUpdating}}
+        {{> rankings-refresh-label}}
+        {{/if}}
+        <a class="top-controls-button button-link" href="/settings?referer=/rankings/year-review/{{year}}"
+          title="Settings">
+          <span class="material-symbols-rounded">settings</span>
+        </a>
+      </div>
+    </div>
+
+    <style>
+      {
+          {
+          #each lists
+        }
+      }
+
+      .radio-tab. {
+          {
+          name
+        }
+      }
+
+      :checked~.radio-tab-content. {
+          {
+          name
+        }
+      }
+
+        {
+        display: flex !important;
+      }
+
+        {
+          {
+          /each
+        }
+      }
+    </style>
+    <div class="section-title centering-flex tab-container">
+      <div class="title-large on-surface-text">Top 10 Songs</div>
+      <div class="flex-divider"></div>
+      {{#each lists}}
+      <input class="radio-tab {{name}}" type="radio" name="rankings-tab" id="radio-views-{{name}}" {{#if (comp @index
+        0)}}checked{{/if}}>
+      <label class="title-medium-large" for="radio-views-{{name}}">{{name}}</label>
+      {{/each}}
+      {{#each lists}}
+      <div class="rankings-list radio-tab-content {{name}} title-medium-large on-surface-text">
+
+        <div class="rankings-list-header">
+          <div class="rankings-list-entry-item rank"></div>
+          <div class="rankings-list-entry-item cover"></div>
+          <div class="rankings-list-entry-item title">Song Name</div>
+          <div class="rankings-list-entry-item views">Views</div>
         </div>
 
-        <style>
-          {{#each lists}} 
-            .radio-tab.{{name}}:checked ~ .radio-tab-content.{{name}} { display: flex !important; }
-          {{/each}}
-        </style>
-        <div class="section-title centering-flex tab-container">
-          <div class="title-large on-surface-text">Top 10 Songs</div>
-          <div class="flex-divider"></div>
-          {{#each lists}}
-            <input class="radio-tab {{name}}" type="radio" name="rankings-tab" id="radio-views-{{name}}" {{#if (comp @index 0)}}checked{{/if}}>
-            <label class="title-medium-large" for="radio-views-{{name}}">{{name}}</label>
-          {{/each}}
-          {{#each lists}}
-          <div class="rankings-list radio-tab-content {{name}} title-medium-large on-surface-text">
-            
-            <div class="rankings-list-header">
-              <div class="rankings-list-entry-item rank"></div>
-              <div class="rankings-list-entry-item cover"></div>
-              <div class="rankings-list-entry-item title">Song Name</div>
-              <div class="rankings-list-entry-item views">Views</div>
+        {{#each data}}
+
+        <div class="rankings-list-entry">
+
+          <div class="rankings-list-entry-item rank">{{inc @index (inc 1 ../filterParams.StartAt)}}</div>
+
+          <div class="rankings-list-entry-item cover" style='background-image:url("{{thumbnail}}")'></div>
+
+          <div class="rankings-list-entry-item title">
+            <a href="/song/{{songId}}?referer=/rankings/year-review/{{../../year}}">{{names.preferred}}</a>
+            <div class="rankings-list-entry-item-producers">
+              {{#each producers}}
+              <a href="/rankings/filter/add?Producer={{artistId}}" class="producer">{{names.preferred}}</a>
+              {{/each}}
             </div>
-            
-            {{#each data}}
-
-              <div class="rankings-list-entry">
-                
-                <div class="rankings-list-entry-item rank">{{inc @index (inc 1 ../filterParams.StartAt)}}</div>
-                
-                <div class="rankings-list-entry-item cover" style='background-image:url("{{thumbnail}}")'></div>
-
-                <div class="rankings-list-entry-item title">
-                  <a href="/song/{{songId}}?referer=/rankings/year-review/{{../../year}}">{{names.preferred}}</a>
-                  <div class="rankings-list-entry-item-producers">
-                    {{#each producers}}
-                      <a href="/rankings/filter/add?Producer={{artistId}}" class="producer">{{names.preferred}}</a>
-                    {{/each}}
-                  </div>
-                </div>
-                <div class="rankings-list-entry-item views">{{longFormat total}}</div>
-                
-              </div> 
-
-            {{/each}}
-            
           </div>
-        {{/each}}
+          <div class="rankings-list-entry-item views">{{longFormat total}}</div>
 
         </div>
 
-        <a id="see-all-button" class="title-medium-large button-link rounded-button" href="/rankings/year-review/{{year}}/full" title="See All">See Full List</a>
-
-        {{#each topArtists}}
-          <div class="title-large on-surface-text section-title">{{title}}</div>
-          <div class="artist-list title-medium-large on-surface-text">
-            {{#each topFour}}
-              <div class="artist-card">
-                <div class="artist-card-bg" style='background-image:url("{{data.thumbnails.medium}}")'></div>
-                <div class="artist-card-info">
-                  <a href="/rankings/filter/add?{{../type}}={{data.artistId}}">{{data.names.preferred}}</a>
-                  <div>{{longFormat views}} Views</div>
-                </div>
-                <div class="artist-card-ranking">#{{inc @index (inc 1 ../filterParams.StartAt)}}</div>
-              </div> 
-            {{/each}}
-          </div>
-          <div class="rankings-list title-medium-large on-surface-text">  
-            <div class="rankings-list-header">
-              <div class="rankings-list-entry-item rank"></div>
-              <div class="rankings-list-entry-item cover"></div>
-              <div class="rankings-list-entry-item title">Artist Name</div>
-              <div class="rankings-list-entry-item views">Views</div>
-            </div>
-              
-            {{#each data}}
-
-              <div class="rankings-list-entry">
-                <div class="rankings-list-entry-item rank">{{inc @index (inc 5 ../filterParams.StartAt)}}</div>
-                  
-                <div class="rankings-list-entry-item cover {{../type}}" style='background-image:url("{{data.thumbnails.medium}}")'></div>
-
-                <div class="rankings-list-entry-item title">
-                  <a href="/rankings/filter/add?{{../type}}={{data.artistId}}">{{data.names.preferred}}</a>
-                </div>
-                <div class="rankings-list-entry-item views">{{longFormat views}}</div>
-              </div> 
-
-            {{/each}}
-          </div>
         {{/each}}
 
       </div>
+      {{/each}}
+
     </div>
+
+    <a id="see-all-button" class="title-medium-large button-link rounded-button"
+      href="/rankings/year-review/{{year}}/full" title="See All">See Full List</a>
+
+    {{#each topArtists}}
+    <div class="title-large on-surface-text section-title">{{title}}</div>
+    <div class="artist-list title-medium-large on-surface-text">
+      {{#each topFour}}
+      <div class="artist-card">
+        <div class="artist-card-bg" style='background-image:url("{{data.thumbnails.medium}}")'></div>
+        <div class="artist-card-info">
+          <a href="/rankings/filter/add?{{../type}}={{data.artistId}}">{{data.names.preferred}}</a>
+          <div>{{longFormat views}} Views</div>
+        </div>
+        <div class="artist-card-ranking">#{{inc @index (inc 1 ../filterParams.StartAt)}}</div>
+      </div>
+      {{/each}}
+    </div>
+    <div class="rankings-list title-medium-large on-surface-text">
+      <div class="rankings-list-header">
+        <div class="rankings-list-entry-item rank"></div>
+        <div class="rankings-list-entry-item cover"></div>
+        <div class="rankings-list-entry-item title">Artist Name</div>
+        <div class="rankings-list-entry-item views">Views</div>
+      </div>
+
+      {{#each data}}
+
+      <div class="rankings-list-entry">
+        <div class="rankings-list-entry-item rank">{{inc @index (inc 5 ../filterParams.StartAt)}}</div>
+
+        <div class="rankings-list-entry-item cover {{../type}}"
+          style='background-image:url("{{data.thumbnails.medium}}")'></div>
+
+        <div class="rankings-list-entry-item title">
+          <a href="/rankings/filter/add?{{../type}}={{data.artistId}}">{{data.names.preferred}}</a>
+        </div>
+        <div class="rankings-list-entry-item views">{{longFormat views}}</div>
+      </div>
+
+      {{/each}}
+    </div>
+    {{/each}}
+
+  </div>
+</div>
