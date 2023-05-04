@@ -242,7 +242,14 @@ const updateSongsData = () => {
     if (!isAlreadyUpdated) {
       const scraperSongs = await scraper.getFandomSongsData(timestamp, songsDataExcludeURLs, songsDataExcludeIDs)
       for (const [_, song] of scraperSongs.entries()) {
-        await songsDataProxy.insertSong(song)
+        const songId = song.id
+        const existing = await songsDataProxy.getSong(songId)
+        if (existing) {
+          existing.fandomUrl = song.fandomUrl
+          await songsDataProxy.updateSong(existing)
+        } else {
+          await songsDataProxy.insertSong(song)
+        }
       }
     }
 
@@ -281,7 +288,7 @@ const updateSongsDataSafe = () => {
   })
 }
 
-//updateSongsDataSafe()
+updateSongsDataSafe()
 schedule.scheduleJob('0 0 * * *', () => {
   updateSongsDataSafe()
 })

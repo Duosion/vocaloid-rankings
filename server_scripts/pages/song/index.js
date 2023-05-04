@@ -249,12 +249,11 @@ const refreshSongRoute = async (request, reply) => {
     })
 
   // add the song
-  await database.songsDataProxy.insertSong(song)
+  await database.songsDataProxy.updateSong(song)
     .catch(msg => {
       console.log(msg)
       return reply.send({ code: 400, message: msg.message })
     })
-
   songsDataCache.purge()
 
   return reply.redirect("/song/" + songId)

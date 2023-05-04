@@ -274,7 +274,6 @@ const getVideoIdsViewsAsync = (
                     }
                 }
             }
-
             // resolve with the view count
             resolve(new EntityViews(
                 timestamp,
@@ -864,7 +863,7 @@ const getFandomSongsData = (timestamp, excludeURLs, excludeIDs) => {
                     const songsData = await getFandomSongData(URL, songType).catch(err => { console.log(`URL ${URL} failed to parse. Error: ${err}`) })
 
                     if (songsData) {
-
+                        
                         for (let [_, song] of songsData.entries()) {
                             // add fandom URL
                             song.fandomUrl = URL

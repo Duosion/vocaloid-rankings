@@ -1714,27 +1714,16 @@ module.exports = class SongsDataProxy {
     }
 
     /**
-     * Inserts a new song into the database
+     * Internal function that inserts the values of a song into the song's foreign tables.
      * 
-     * @param {Song} song The song to insert.
-     * @returns {Promise} A promise that resolves upon the completion of this function.
+     * @param {Song} song
+     * @returns {Promise} A promise that resolves when this task completes.
      */
-    insertSong(song) {
+    #insertSongForeign(song) {
         return new Promise(async (resolve, reject) => {
             try {
-                if (!song || song == undefined) {
-                    return reject('undefined song provided to insertSong.')
-                }
                 const db = this.db
-
                 const songId = song.id
-
-                const existingSong = this.#getSongSync(songId, false)
-
-                // prepare statement to insert into songs
-                const songsInsertStatement = db.prepare(`
-                REPLACE INTO songs (id, publish_date, addition_date, song_type, thumbnail, maxres_thumbnail, thumbnail_type, average_color, dark_color, light_color, fandom_url)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
 
                 // prepare statement to insert into songs artists
                 const songsArtistsInsertStatement = db.prepare(`
@@ -1750,21 +1739,6 @@ module.exports = class SongsDataProxy {
                 const songsVideoIdsInsertStatement = db.prepare(`
                 REPLACE INTO songs_video_ids (song_id, video_id, video_type)
                 VALUES (?, ?, ?)`)
-
-                // insert into songs table
-                songsInsertStatement.run(
-                    songId,
-                    existingSong ? existingSong.publishDate : song.publishDate,
-                    existingSong ? existingSong.additionDate : song.additionDate,
-                    song.type.id,
-                    song.thumbnail,
-                    song.maxresThumbnail,
-                    song.thumbnailType.id,
-                    song.averageColor,
-                    song.darkColor,
-                    song.lightColor,
-                    song.fandomUrl
-                )
 
                 // insert artists into song artists table
                 for (const [_, artist] of song.artists.entries()) {
@@ -1803,6 +1777,128 @@ module.exports = class SongsDataProxy {
                         }
                     }
                 }
+                resolve()
+            } catch (error) {
+                reject(error)
+            }
+        })
+    }
+
+    /**
+     * Updates the provided song.
+     * 
+     * @param {Song} song The song to update.
+     * @returns {Promise} A promise that resolves when the song is updated.
+     */
+    updateSong(song) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                if (!song || song == undefined) {
+                    return reject('undefined song provided to updateSong.')
+                }
+
+                const db = this.db
+                const songId = song.id
+
+                const existingSong = this.#getSongSync(songId, false)
+                if (!existingSong) {
+                    return reject("Attemp to update a song that doesn't exist.")
+                }
+
+                // prepare statement to update into songs
+                const songsUpdateStatement = db.prepare(`
+                UPDATE songs
+                SET publish_date = ?,
+                    song_type = ?,
+                    thumbnail = ?,
+                    maxres_thumbnail = ?,
+                    thumbnail_type = ?,
+                    average_color = ?,
+                    dark_color = ?,
+                    light_color = ?,
+                    fandom_url = ?
+                WHERE id = ?`)
+
+                // delete songs artists
+                db.prepare(`
+                    DELETE FROM songs_artists
+                    WHERE song_id = ?
+                `).run(songId)
+
+                // delete songs names
+                db.prepare(`
+                    DELETE FROM songs_names
+                    WHERE song_id = ?
+                `).run(songId)
+
+                // delete song video ids
+                db.prepare(`
+                    DELETE FROM songs_video_ids
+                    WHERE song_id = ?
+                `).run(songId)
+
+                songsUpdateStatement.run(
+                    song.publishDate,
+                    song.type.id,
+                    song.thumbnail,
+                    song.maxresThumbnail,
+                    song.thumbnailType.id,
+                    song.averageColor,
+                    song.darkColor,
+                    song.lightColor,
+                    song.fandomUrl,
+                    songId
+                )
+
+                await this.#insertSongForeign(song)
+                resolve()
+            } catch (error) {
+                reject(error)
+            }
+        })
+    }
+
+    /**
+     * Inserts a new song into the database
+     * 
+     * @param {Song} song The song to insert.
+     * @returns {Promise} A promise that resolves upon the completion of this function.
+     */
+    insertSong(song) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                if (!song || song == undefined) {
+                    return reject('undefined song provided to insertSong.')
+                }
+                const db = this.db
+
+                const songId = song.id
+
+                // check if the song already exists
+                const existingSong = this.#getSongSync(songId, false)
+                if (existingSong) {
+                    return reject(`The song with id "${songId}" already exists within the database.`)
+                }
+
+                // insert into songs table
+                db.prepare(`
+                REPLACE INTO songs (id, publish_date, addition_date, song_type, thumbnail, maxres_thumbnail, thumbnail_type, average_color, dark_color, light_color, fandom_url)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
+                    songId,
+                    song.publishDate,
+                    song.additionDate,
+                    song.type.id,
+                    song.thumbnail,
+                    song.maxresThumbnail,
+                    song.thumbnailType.id,
+                    song.averageColor,
+                    song.darkColor,
+                    song.lightColor,
+                    song.fandomUrl
+                )
+
+                // insert foreign tables
+                await this.#insertSongForeign(song)
 
                 // insert views
                 const views = song.views
