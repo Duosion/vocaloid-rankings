@@ -185,12 +185,16 @@
         display: none;
     }
 
-    #artists-block-body-outgoing {
+    #artists-block-body-outgoing,
+    .info-block-outgoing,
+    #rankings-block-outgoing {
         flex-direction: column;
         width: 100%;
     }
 
-    #artists-block-body-outgoing a {
+    #artists-block-body-outgoing a,
+    .info-block-outgoing a,
+    #rankings-block-outgoing a {
         width: 100%;
     }
 }
