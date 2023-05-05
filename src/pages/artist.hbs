@@ -51,7 +51,7 @@
         </div>
         {{#if artistData.baseArtist}}
         <div>
-            <div class="body-large bold on-background-text section-title">Based On</div>
+            <div class="body-large bold on-background-text section-title">{{localization.artist_based_on}}</div>
             <a class="clickable-content-card small static" href="/artist/{{artistData.baseArtist.id}}">
                 <img class="cover" src="{{artistData.baseArtist.thumbnails.[1].url}}">
                 <div class="card-content">
@@ -67,13 +67,13 @@
             {{#if accessStates.canRefresh}}
             <a class="material-button blocky" href="{{artistData.id}}/refresh">
                 <span class="material-symbols-rounded">refresh</span>
-                Refresh Artist
+                {{localization.artist_refresh}}
             </a>
             {{/if}}
             {{#if accessStates.canRefresh}}
             <a class="material-button blocky" href="{{artistData.id}}/delete">
                 <span class="material-symbols-rounded">delete</span>
-                Delete Artist
+                {{localization.artist_delete}}
             </a>
             {{/if}}
         </div>
@@ -81,15 +81,15 @@
 
         <div id="sidebar-info" class="sidebar-card body-medium on-surface-text">
             <div class="sidebar-card-dataset">
-                <div class="title">Release Date</div>
+                <div class="title">{{localization.filter_publish_date}}</div>
                 <div class="value">{{timestampToDateString artistData.publishDate}}</div>
             </div>
             <div class="sidebar-card-dataset">
-                <div class="title">Addition Date</div>
+                <div class="title">{{localization.filter_order_by_addition}}</div>
                 <div class="value">{{timestampToDateString artistData.additionDate}}</div>
             </div>
             <div class="sidebar-card-dataset">
-                <div class="title">Artist Type</div>
+                <div class="title">{{localization.filter_song_type}}</div>
                 <div class="value">{{localize artistData.type.name}}</div>
             </div>
             {{#each displayNames}}

@@ -3,23 +3,23 @@
 <div id="page-header">
   <div id="page-header-content">
     {{> back-button referer=referer}}
-    <div class="on-background-text headline-small">Login</div>
+    <div class="on-background-text headline-small">{{localization.login_page_title}}</div>
   </div>
 </div>
 <div id="page-body">
   <form id="login-form" action="/login?referer={{referer}}" method="post" target="_self" class="list vertical">
-    <input type="text" class="login-input" id="username" name="username" placeholder="Username" spellcheck="false"
+    <input type="text" class="login-input" id="username" name="username" placeholder="{{localization.login_page_username}}" spellcheck="false"
       required>
-    <input type="password" class="login-input" id="password" name="password" placeholder="Password" required>
+    <input type="password" class="login-input" id="password" name="password" placeholder="{{localization.login_page_password}}" required>
     <div class="on-background-text title-medium-large">
       <input type="checkbox" id="stay-logged-in" name="stayLoggedIn">
-      <label for="stay-logged-in">Stay Logged In</label>
+      <label for="stay-logged-in">{{localization.login_page_stay_logged_in}}</label>
     </div>
     {{#if errorMessage}}
     <div class="title-medium-large error-text">{{errorMessage}}</div>
     {{/if}}
     <div class="login-container">
-      <button class="material-button inverse label-large">Login</button>
+      <button class="material-button inverse label-large">{{localization.login_page_title}}</button>
     </div>
   </form>
 </div>

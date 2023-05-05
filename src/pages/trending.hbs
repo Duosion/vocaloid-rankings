@@ -21,11 +21,11 @@
 <div id="rankings-container">
 
     <div id="rankings-sidebar">
-        <div class="body-large bold on-background-text section-title">Trending Within</div>
+        <div class="body-large bold on-background-text section-title">{{localization.trending_period}}</div>
         <div id="quick-filter-container" class="sidebar-card body-medium on-surface-text">
-          <a class="material-button outlined label-large" href="/rankings/trending?range=0">Past Day</a>
-          <a class="material-button outlined label-large" href="/rankings/trending?range=1">Past Week</a>
-          <a class="material-button outlined label-large" href="/rankings/trending?range=2">Past Month</a>
+          <a class="material-button {{#if (comp selectedRange 0)}}inverse{{else}}outlined{{/if}} label-large" href="/rankings/trending?range=0">{{localization.trending_past_day}}</a>
+          <a class="material-button {{#if (comp selectedRange 1)}}inverse{{else}}outlined{{/if}} label-large" href="/rankings/trending?range=1">{{localization.trending_past_week}}</a>
+          <a class="material-button {{#if (comp selectedRange 2)}}inverse{{else}}outlined{{/if}} label-large" href="/rankings/trending?range=2">{{localization.trending_past_month}}</a>
         </div>
     </div>
 

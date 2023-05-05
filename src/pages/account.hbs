@@ -2,12 +2,12 @@
 <div id="page-header">
   <div id="page-header-content">
     {{> back-button}}
-    <div class="on-background-text headline-small">Account</div>
+    <div class="on-background-text headline-small">{{localization.account_page_title}}</div>
   </div>
 </div>
 <div id="page-body">
     {{#if canDownloadDatabase}}
-        <a class="material-button outlined label-large" href="/download-db">Download Database</a>
+        <a class="material-button outlined label-large" href="/download-db">{{localization.account_page_download_database}}</a>
     {{/if}}
-    <a class="material-button inverse label-large" href="/logout?referer=/">Logout</a>
+    <a class="material-button inverse label-large" href="/logout?referer=/">{{localization.account_page_logout}}</a>
 </div>

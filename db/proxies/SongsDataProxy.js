@@ -8,7 +8,7 @@ const ArtistType = require("../enums/ArtistType")
 const SongType = require("../enums/SongType")
 const ViewType = require("../enums/ViewType")
 
-const { generateTimestamp } = require("../../server_scripts/shared")
+const { generateTimestamp, artistTypesWhitelists } = require("../../server_scripts/shared")
 const ArtistCategory = require("../enums/ArtistCategory")
 const RankingsFilterResultItem = require("../dataClasses/RankingsFilterResultItem")
 const RankingsFilterParams = require("../dataClasses/RankingsFilterParams")
@@ -288,7 +288,10 @@ module.exports = class SongsDataProxy {
             // get placement
             const allTimePlacementFilterParams = new ArtistsRankingsFilterParams()
             allTimePlacementFilterParams.minViews = artistViews.total
-            allTimePlacementFilterParams.artistCategory = ArtistType.fromId(artistData.artist_type).category
+            const category = ArtistType.fromId(artistData.artist_type).category
+            allTimePlacementFilterParams.artistCategory = category
+            allTimePlacementFilterParams.artistTypes = artistTypesWhitelists[category.id]
+
 
             allTimePlacement = this.#filterArtistsRankingsCountSync(this.#getFilterArtistsQueryParams(allTimePlacementFilterParams))
         }

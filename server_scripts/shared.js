@@ -1,6 +1,8 @@
 const xxhash = require("xxhash-wasm")
 const { cacher } = require("./cacher")
 const { getAverageColor } = require("fast-average-color-node")
+const ArtistCategory = require("../db/enums/ArtistCategory")
+const ArtistType = require("../db/enums/ArtistType")
 
 // shared variables
 
@@ -173,6 +175,11 @@ exports.rankingsFilterQueryTemplate = {
   PublishYear: {
     default: ""
   }
+}
+
+exports.artistTypesWhitelists = {
+  [ArtistCategory.Vocalist.id]: [ArtistType.Vocaloid, ArtistType.CeVIO, ArtistType.SynthesizerV, ArtistType.UTAU, ArtistType.OtherVocalist, ArtistType.OtherVoiceSynthesizer],
+  [ArtistCategory.Producer.id]: [ArtistType.Producer, ArtistType.Animator, ArtistType.CoverArtist, ArtistType.Illustrator, ArtistType.OtherGroup, ArtistType.OtherIndividual]
 }
 
 exports.historicalDataQueryTemplate = {

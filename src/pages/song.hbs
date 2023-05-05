@@ -34,13 +34,13 @@
         {{#if accessStates.canRefresh}}
           <a class="material-button blocky" href="/song/{{songData.id}}/refresh">
             <span class="material-symbols-rounded">refresh</span>
-            Refresh Song
+            {{localization.song_refresh}}
           </a>
         {{/if}}
         {{#if accessStates.canRefresh}}
           <a class="material-button blocky" href="/song/{{songData.id}}/delete">
             <span class="material-symbols-rounded">delete</span>
-            Delete Song
+            {{localization.song_delete}}
           </a>
         {{/if}}
       </div>
@@ -48,15 +48,15 @@
     
     <div id="sidebar-info" class="sidebar-card body-medium on-surface-text">
       <div class="sidebar-card-dataset">
-        <div class="title">Release Date</div>
+        <div class="title">{{localization.filter_publish_date}}</div>
         <div class="value">{{timestampToDateString songData.publishDate}}</div>
       </div>
       <div class="sidebar-card-dataset">
-        <div class="title">Addition Date</div>
+        <div class="title">{{localization.filter_order_by_addition}}</div>
         <div class="value">{{timestampToDateString songData.additionDate}}</div>
       </div>
       <div class="sidebar-card-dataset">
-        <div class="title">Song Type</div>
+        <div class="title">{{localization.filter_song_type}}</div>
         <a class="value" href="/rankings/filter/set?songType={{songData.type.id}}">{{localize songData.type.name}}</a>
       </div>
       {{#each displayNames}}

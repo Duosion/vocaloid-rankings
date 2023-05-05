@@ -26,25 +26,25 @@
                 <div id="rankings-block-body-logo">
                     {{> icon-svg}}
                 </div>
-                Vocaloid Rankings
+                {{localization.home_rankings}}
             </div>
             <div class="body-large">
-                Explore vocal-synth songs that are ranked based on their total view counts.
+                {{localization.home_rankings_info}}
             </div>
             <div id="rankings-block-outgoing">
-                <a class="material-button inverse label-large" href="/rankings">View Rankings</a>
+                <a class="material-button inverse label-large" href="/rankings">{{localization.home_rankings_view}}</a>
             </div>
         </div>
     </div>
     <div id="artists-block">
         <div id="artists-block-body" class="on-surface-text">
-            <div class="title-large">Artists</div>
+            <div class="title-large">{{localization.home_artists}}</div>
             <div class="body-large">
-                Interact with the most-viewed Vocaloids, CeVIO AI, producers, and more.
+                {{localization.home_artists_info}}
             </div>
             <div id="artists-block-body-outgoing">
-                <a class="material-button inverse label-large" href="/rankings/singers">Singers</a>
-                <a class="material-button inverse label-large" href="/rankings/producers">Producers</a>
+                <a class="material-button inverse label-large" href="/rankings/singers">{{localization.home_artists_view_singers}}</a>
+                <a class="material-button inverse label-large" href="/rankings/producers">{{localization.home_artists_view_producers}}</a>
             </div>
         </div>
         <div id="artists-block-display">
@@ -61,41 +61,41 @@
     </div>
     <div class="info-section">
         <div class="info-block on-surface-text">
-            <div class="title-large">Trending Songs</div>
+            <div class="title-large">{{localization.home_trending}}</div>
             <div class="body-large">
-                Find your next favorite song by exploring songs that have been trending within the past day, week, or month.
+                {{localization.home_trending_info}}
             </div>
             <div class="info-block-outgoing">
-                <a class="material-button inverse label-large" href="/rankings/trending">View Trending</a>
+                <a class="material-button inverse label-large" href="/rankings/trending">{{localization.home_trending_view}}</a>
             </div>
         </div>
         <div class="info-block on-surface-text">
-            <div class="title-large">Add a Song</div>
+            <div class="title-large">{{localization.home_add_song}}</div>
             <div class="body-large">
-                Can't find a song? Add it to the website to begin tracking its views.
+                {{localization.home_add_song_info}}
             </div>
             <div class="info-block-outgoing">
-                <a class="material-button inverse label-large" href="/song/add">Add Song</a>
+                <a class="material-button inverse label-large" href="/song/add">{{localization.home_add_song_add}}</a>
             </div>
         </div>
     </div>
     <div class="info-section">
         <div class="info-block on-surface-text">
-            <div class="title-large">About</div>
+            <div class="title-large">{{localization.home_about}}</div>
             <div class="body-large">
-                Want to know more about the site and how it works? Visit the about page.
+                {{localization.home_about_info}}
             </div>
             <div class="info-block-outgoing">
-                <a class="material-button inverse label-large" href="/about">View About</a>
+                <a class="material-button inverse label-large" href="/about">{{localization.home_about_view}}</a>
             </div>
         </div>
         <div class="info-block on-surface-text">
-            <div class="title-large">Settings</div>
+            <div class="title-large">{{localization.home_settings}}</div>
             <div class="body-large">
-                Looking for a change? Visit the settings page to change the website's theme, language, and more.
+                {{localization.home_settings_info}}
             </div>
             <div class="info-block-outgoing">
-                <a class="material-button inverse label-large" href="/settings">View Settings</a>
+                <a class="material-button inverse label-large" href="/settings">{{localization.home_settings_view}}</a>
             </div>
         </div>
     </div>

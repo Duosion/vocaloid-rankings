@@ -113,6 +113,7 @@ const getLogin = async (request, reply) => {
         request.addHbParam('errorMessage', errorMessage)
     }
 
+    request.addHbParam('pageTitle', (request.localization || {})['login_page_title'])
     request.addHbParam('referer', query.referer)
     return reply.view("pages/login.hbs", request.hbParams)
 }
@@ -120,6 +121,7 @@ const getLogin = async (request, reply) => {
 const getAccount = async (request, reply) => {
 
     request.addHbParam('canDownloadDatabase', request.accessLevel >= AccessLevel.Admin.id)
+    request.addHbParam('pageTitle', (request.localization || {})['account_page_title'])
 
     return reply.view('pages/account.hbs', request.hbParams)
 }

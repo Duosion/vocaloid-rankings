@@ -17,7 +17,7 @@ const ArtistsRankingsFilterResult = require("../../../db/dataClasses/ArtistsRank
 
 const database = require(workingDirectory + "/db")
 
-const { getHasherAsync, caches, rankingsFilterQueryTemplate, getRandomInt, generateTimestamp } = require(modulePath + "shared") // shared functions
+const { getHasherAsync, caches, rankingsFilterQueryTemplate, getRandomInt, generateTimestamp, artistTypesWhitelists } = require(modulePath + "shared") // shared functions
 const { getPreferredLanguageName } = require(modulePath + "/locale")
 
 // implement caches
@@ -50,11 +50,11 @@ const filterParamsDisplayData = {
         getValueAsync: (rawValue) => {
             switch (rawValue) {
                 case 1:
-                    return ["Past Day"]
+                    return ["filter_time_period_offset_day"]
                 case 7:
-                    return ['Past Week']
+                    return ['filter_time_period_offset_week']
                 case 30:
-                    return ['Past Month']
+                    return ['filter_time_period_offset_month']
                 default:
                     return [`Past ${rawValue} Days`]
             }
@@ -413,8 +413,7 @@ const buildArtistsFilterParamsAsync = (query, category) => {
             const rawArtistType = query['artistTypes']
             let artistType = rawArtistType && ArtistType.values[rawArtistType]
             if (!artistType) {
-                artistType = category == ArtistCategory.Vocalist ? [ArtistType.Vocaloid, ArtistType.CeVIO, ArtistType.SynthesizerV, ArtistType.UTAU, ArtistType.OtherVocalist, ArtistType.OtherVoiceSynthesizer]
-                : [ArtistType.Producer, ArtistType.Animator, ArtistType.CoverArtist, ArtistType.Illustrator, ArtistType.OtherGroup, ArtistType.OtherIndividual]
+                artistType = artistTypesWhitelists[category.id]
             } else {
                 artistType = [artistType]
             }
@@ -920,6 +919,7 @@ const getTrending = async (request, reply) => {
     })
 
     request.addHbParam('trending', filteredRankings.results)
+    request.addHbParam('selectedRange', rangeId)
 
     return reply.view("pages/trending.hbs", request.hbParams)
 }

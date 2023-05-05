@@ -238,15 +238,15 @@ const getArtist = async (request, reply) => {
             {
                 const isVocalist = artistData.category == ArtistCategory.Vocalist
                 const displayPlacements = []
-
+                const localization = request.localization || {}
                 // all time
                 {
                     const allTimePlacement = artistData.placement.allTime
-                    const toFormat = isVocalist ? "#:placement Most Viewed Singer All Time" : "#:placement Most Viewed Producer All Time"
+                    const toFormat = localization['artist_placement_all_time'] || ''
                     displayPlacements.push({
                         type: "views",
                         url: `/rankings/filter/set?artistCategory=${artistData.category.id}&startAt=${allTimePlacement - 1}&referer=/rankings/${isVocalist ? 'singers' : 'producers'}`,
-                        text: toFormat.replace(':placement', allTimePlacement)
+                        text: toFormat.replace(':placement', allTimePlacement).replace(':category', isVocalist ? localization['song_singers_singular'] : localization['song_producers_singular'])
                     })
                 }
                 request.addHbParam('displayPlacements', displayPlacements)
