@@ -118,8 +118,8 @@
           <div class="content">
             {{#each songData.displayBreakdown}}
               <div class="section">
-                <div class="label body-medium" style="background-color:{{color}};color:{{displayData.textColor}}">
-                  {{localize displayData.displayName}}</div>
+                <a class="label body-medium" style="background-color:{{color}};color:{{displayData.textColor}}" href="{{href}}">
+                  {{localize displayData.displayName}}</a>
                 <div class="body-medium" title="{{longFormat views}}">
                   <span style="color:{{color}}">{{shortFormat views}}</span> {{../localization.rankings_views}}
                 </div>

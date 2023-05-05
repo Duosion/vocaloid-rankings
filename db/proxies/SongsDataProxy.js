@@ -639,7 +639,7 @@ module.exports = class SongsDataProxy {
         const filterArtists = queryParams.filterArtists
         const filterSongs = queryParams.filterSongs
 
-        const filterArtistsStatement = filterArtists == '' ? '' : ` AND (songs_artists.artist_id IN (${filterArtists}) OR artists.base_artist_id IN (${filterArtists}))`
+        const filterArtistsStatement = filterArtists == '' ? '' : ` AND (songs_artists.artist_id IN (${filterArtists}))`
         const filterSongsStatement = filterSongs == '' ? '' : ` AND (songs.id IN (${filterSongs}))`
         return this.db.prepare(`
         SELECT DISTINCT views_breakdowns.song_id,
@@ -1372,7 +1372,7 @@ module.exports = class SongsDataProxy {
         DELETE FROM artists
         WHERE id = ?`).run(artistId)
     }
-    
+
     /**
      * Gets every artist that has its base artist id equal to the provided artistId.
      * 

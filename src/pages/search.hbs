@@ -38,7 +38,7 @@
         {{#each queryResult.results}}
             {{#if isSong}}
                 <div id="e{{placement}}" class="rankings-entry">
-                    <a class="cover" style="background-image:url({{data.thumbnail}})" href="song/{{data.id}}?referer=/search"></a>
+                    <a class="cover" style="background-image:url(/song/thumbnail/{{data.id}})" href="song/{{data.id}}?referer=/search"></a>
                     <div class="title">
                         <a class="main-title title-medium-large" href="song/{{data.id}}?referer=/search">{{preferredName}}</a>
                         <div class="label song title-small">{{../localization.search_song}}</div>
@@ -58,6 +58,14 @@
                     <div class="title">
                         <a class="main-title title-medium-large" href="/artist/{{data.id}}?referer=/search">{{preferredName}}</a>
                         <div class="label artist title-small">{{../localization.search_artist}}</div>
+                    </div>
+                    <div class="placements">
+                        {{#each placements}}
+                            <div class="placement">
+                                <div class="rank title-large">#{{placement}}</div>
+                                <div class="label title-small">{{localize text}}</div>
+                            </div>
+                        {{/each}}
                     </div>
                 </div>
             {{/if}}

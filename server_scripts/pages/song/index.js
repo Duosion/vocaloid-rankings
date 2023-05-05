@@ -39,13 +39,15 @@ const getViewsBreakdownDisplayData = (songViews) => {
 
     for (const [n, videoViews] of breakdowns.entries()) {
       const views = videoViews.views
+      const videoId = videoViews.id
       breakdown.push({
         number: n,
-        videoId: videoViews.id,
+        videoId: videoId,
         views: views,
         share: views / total,
         color: colors[n % colorCount],
-        displayData: displayData
+        displayData: displayData,
+        href: displayData.videoURL.replace('{VideoID}', videoId)
       })
     }
   }

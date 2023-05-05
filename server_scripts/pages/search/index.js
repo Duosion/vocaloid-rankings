@@ -65,6 +65,20 @@ const querySearchAsync = (queryParams, options) => {
             case SearchQueryResultItemType.Artist:
               result.preferredName = getPreferredName(data.names)
               result.isArtist = true
+
+              // handle placements
+              {
+                const placements = []
+
+                // all time
+                placements.push({
+                  placement: data.placement.allTime,
+                  text: "search_placement_all_time"
+                })
+
+                result.placements = placements
+              }
+
               break
           }
         })
