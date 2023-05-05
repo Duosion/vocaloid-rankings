@@ -117,8 +117,6 @@ partializer.registerAll(handlebars)
 // load and parse seo data
 const seo = require("./src/seo.json");
 const Song = require("./db/dataClasses/song");
-const EntityViews = require("./db/dataClasses/EntityViews");
-const ArtistThumbnail = require("./db/dataClasses/ArtistThumbnail");
 const AccessLevel = require("./db/enums/AccessLevel");
 if (seo.url === "glitch-default") {
   seo.url = `https://${process.env.PROJECT_DOMAIN}.glitch.me`;
@@ -128,6 +126,7 @@ if (seo.url === "glitch-default") {
 {
   const pagesDirectory = "./server_scripts/pages/"
   const pageScripts = [
+    'home',
     "rankings", // the rankings page
     "settings", // settings
     "song", // song pages (add/view)
@@ -292,11 +291,6 @@ const updateSongsDataSafe = () => {
 schedule.scheduleJob('0 0 * * *', () => {
   updateSongsDataSafe()
 })
-
-// redirect
-fastify.get("/", async function (request, reply) {
-  reply.status(301).redirect("/rankings")
-});
 
 // about page
 fastify.get("/about", async (request, reply) => {

@@ -1,0 +1,196 @@
+#page-content {
+    width: 100%;
+    max-width: 1028px;
+    padding: 0px 20px 0px 20px;
+    margin: 20px auto 20px auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    box-sizing: border-box;
+}
+
+.surface-block {
+    border-radius: 15px;
+    background-color: var(--md-sys-color-surface-2);
+}
+
+#rankings-block,
+#artists-block {
+    width: 100%;
+    padding: 40px 40px;
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px
+}
+
+#rankings-block-body,
+#artists-block-body,
+.info-block {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+#rankings-block-body-title {
+    display: flex;
+    gap: 10px;
+    flex-direction: row;
+    align-items: center;
+}
+
+#rankings-block-body-logo,
+#rankings-block-body-logo svg {
+    height: 28px;
+    width: 28px;
+}
+
+#rankings-block-fake-rankings {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    justify-content: center;
+    align-items: center;
+}
+
+.fake-rankings-entry {
+    color: var(--md-sys-color-on-surface);
+    box-sizing: border-box;
+    width: 100%;
+    height: fit-content;
+    position: relative;
+    background-color: var(--md-sys-color-surface-2);
+    border-radius: 10px;
+    padding: 8px 15px 8px 10px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.fake-rankings-entry .rank {
+    box-sizing: border-box;
+    height: 30px;
+    width: 30px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.fake-rankings-entry .cover {
+    box-sizing: border-box;
+    width: 35px;
+    height: 35px;
+    border-radius: 10px;
+    background-size: auto 60px;
+    background-position: center;
+    border: 1px solid var(--md-sys-color-surface-1);
+}
+
+.fake-rankings-entry .title {
+    flex: 5
+}
+
+.fake-rankings-entry .views {
+    flex: 1
+}
+
+.fake-rankings-entry .title,
+.fake-rankings-entry .views {
+    border-radius: 20px;
+    height: 15px;
+    background-color: var(--md-sys-color-surface-1);
+}
+
+/* artists block */
+
+#artists-block-body-outgoing {
+    display: flex;
+    gap: 20px;
+    flex-direction: row;
+}
+
+#artists-block-display {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.artists-block-display-singer {
+    padding: 10px;
+    box-sizing: border-box;
+    border-radius: 10px;
+    background-color: var(--md-sys-color-surface-2);
+}
+
+#artists-block-display-producers,
+.artists-block-display-singer {
+    height: 200px;
+}
+
+#artists-block-display-producers {
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    gap: 20px;
+}
+
+.artists-block-display-producer {
+    border-radius: 10px;
+    height: 90px;
+    width: 90px;
+}
+
+/* info section/blocks */
+.info-section {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    box-sizing: border-box;
+    gap: 20px
+}
+
+.info-block {
+    padding: 40px;
+    box-sizing: border-box;
+    border-radius: 15px;
+    border: 1px solid var(--md-sys-color-outline)
+}
+
+/* screen resize support */
+@media (max-width: 820px) {
+
+    #artists-block {
+        grid-template-columns: 1fr;
+    }
+
+    #artists-block-display {
+        justify-content: center;
+    }
+
+}
+
+@media (max-width: 660px) {
+    #rankings-block,
+    .info-section {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 550px) {
+    #artists-block-display {
+        display: none;
+    }
+
+    #artists-block-body-outgoing {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    #artists-block-body-outgoing a {
+        width: 100%;
+    }
+}
