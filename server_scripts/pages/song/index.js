@@ -46,6 +46,7 @@ const getViewsBreakdownDisplayData = (songViews) => {
         views: views,
         share: views / total,
         color: colors[n % colorCount],
+        textShadow: displayData.textShadow,
         displayData: displayData,
         href: displayData.videoURL.replace('{VideoID}', videoId)
       })
@@ -325,6 +326,8 @@ const getSong = async (request, reply) => {
       return;
     })
   hbParams['songData'] = songData
+
+  hbParams['compactArtists'] = songData.artists.length == 2
 
   // set page title
   request.addHbParam('pageTitle', songData.preferredName)
