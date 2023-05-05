@@ -585,7 +585,7 @@ module.exports = class SongsDataProxy {
         const filterArtists = queryParams.filterArtists
         const filterSongs = queryParams.filterSongs
 
-        const filterArtistsStatement = filterArtists == '' ? '' : ` AND (songs_artists.artist_id IN (${filterArtists}) OR artists.base_artist_id IN (${filterArtists}))`
+        const filterArtistsStatement = filterArtists == '' ? '' : ` AND (songs_artists.artist_id IN (${filterArtists}))`
         const filterSongsStatement = filterSongs == '' ? '' : ` AND (songs.id IN (${filterSongs}))`
         return this.db.prepare(`
         SELECT views_breakdowns.song_id
@@ -836,7 +836,6 @@ module.exports = class SongsDataProxy {
             daysOffset: daysOffset == null ? filterParams.daysOffset : daysOffset + filterParams.daysOffset,
             viewType: filterParams.viewType?.id,
             songType: filterParams.songType?.id,
-            artistType: filterParams.artistType?.id,
             artistCategory: filterParams.artistCategory?.id,
             publishDate: filterParams.publishDate,
             orderBy: filterParams.orderBy?.id,
@@ -861,9 +860,23 @@ module.exports = class SongsDataProxy {
             }
             filterSongs = artists.join(',')
         }
+        
+        // build artists types statement
+        const filterParamsArtistsTypes = filterParams.artistTypes
+        let filterArtistsTypes = ``
+        if (filterParamsArtistsTypes) {
+            const types = []
+            for (const [n, type] of filterParamsArtistsTypes.entries()) {
+                const key = `artist_type${n}`
+                types.push(`:${key}`)
+                queryParams[key] = type.id
+            }
+            filterArtistsTypes = types.join(',')
+        }
 
         return {
             filterSongs: filterSongs,
+            filterArtistsTypes: filterArtistsTypes,
             params: queryParams
         }
     }
@@ -876,11 +889,27 @@ module.exports = class SongsDataProxy {
      */
     #filterArtistsRankingsCountSync(queryParams) {
         const filterSongs = queryParams.filterSongs
+        const filterArtistsTypes = queryParams.filterArtistsTypes
         return this.db.prepare(`
         SELECT DISTINCT 
             CASE WHEN :combineSimilarArtists IS NULL THEN artists.id
                 WHEN artists.base_artist_id IS NULL THEN artists.id
-                ELSE artists.base_artist_id
+                ELSE (
+                    WITH RECURSIVE ancestor_path(id, base_artist_id) AS (
+                        SELECT sub_artists.id, sub_artists.base_artist_id
+                        FROM artists AS sub_artists
+                        WHERE id = artists.id
+                      
+                        UNION ALL
+    
+                        SELECT a.id, a.base_artist_id
+                        FROM artists a
+                        JOIN ancestor_path ap ON a.id = ap.base_artist_id
+                      )
+                    SELECT id
+                    FROM ancestor_path
+                    WHERE base_artist_id IS NULL
+                )
             END AS id,
             SUM(DISTINCT views_breakdowns.views) AS total_views
         FROM views_breakdowns
@@ -895,6 +924,7 @@ module.exports = class SongsDataProxy {
             AND (songs.song_type = :songType OR :songType IS NULL)
             AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
             AND (songs_artists.artist_category = :artistCategory OR :artistCategory IS NULL)
+            ${filterArtistsTypes == '' ? '' : `AND (artists.artist_type IN (${filterArtistsTypes}))`}
             AND (views_breakdowns.views = CASE WHEN :singleVideo IS NULL
                 THEN views_breakdowns.views
                 ELSE
@@ -909,6 +939,7 @@ module.exports = class SongsDataProxy {
                         AND (songs.song_type = :songType OR :songType IS NULL)
                         AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
                         AND (songs_artists.artist_category = :artistCategory OR :artistCategory IS NULL)
+                        ${filterArtistsTypes == '' ? '' : `AND (artists.artist_type IN (${filterArtistsTypes}))`}
                         ${filterSongs == '' ? '' : `AND (songs.id IN (${filterSongs}))`}
                     GROUP BY sub_vb.song_id)
                 END)
@@ -916,7 +947,22 @@ module.exports = class SongsDataProxy {
         GROUP BY 
             CASE WHEN :combineSimilarArtists IS NULL THEN artists.id
             WHEN artists.base_artist_id IS NULL then artists.id
-            ELSE artists.base_artist_id
+            ELSE (
+                WITH RECURSIVE ancestor_path(id, base_artist_id) AS (
+                    SELECT sub_artists.id, sub_artists.base_artist_id
+                    FROM artists AS sub_artists
+                    WHERE id = artists.id
+                  
+                    UNION ALL
+
+                    SELECT a.id, a.base_artist_id
+                    FROM artists a
+                    JOIN ancestor_path ap ON a.id = ap.base_artist_id
+                  )
+                SELECT id
+                FROM ancestor_path
+                WHERE base_artist_id IS NULL
+            )
             END
         HAVING (CASE WHEN :minViews IS NULL
             THEN 1
@@ -937,6 +983,7 @@ module.exports = class SongsDataProxy {
      */
     #filterArtistsRankingsRawSync(queryParams) {
         const filterSongs = queryParams.filterSongs
+        const filterArtistsTypes = queryParams.filterArtistsTypes
         return this.db.prepare(`
         SELECT DISTINCT 
             CASE WHEN :combineSimilarArtists IS NULL THEN artists.id
@@ -971,7 +1018,7 @@ module.exports = class SongsDataProxy {
             AND (songs.song_type = :songType OR :songType IS NULL)
             AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
             AND (songs_artists.artist_category = :artistCategory OR :artistCategory IS NULL)
-            AND (artists.artist_type = :artistType OR :artistType IS NULL)
+            ${filterArtistsTypes == '' ? '' : `AND (artists.artist_type IN (${filterArtistsTypes}))`}
             AND (views_breakdowns.views = CASE WHEN :singleVideo IS NULL
                 THEN views_breakdowns.views
                 ELSE
@@ -986,7 +1033,7 @@ module.exports = class SongsDataProxy {
                         AND (songs.song_type = :songType OR :songType IS NULL)
                         AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
                         AND (songs_artists.artist_category = :artistCategory OR :artistCategory IS NULL)
-                        AND (artists.artist_type = :artistType OR :artistType IS NULL)
+                        ${filterArtistsTypes == '' ? '' : `AND (artists.artist_type IN (${filterArtistsTypes}))`}
                         ${filterSongs == '' ? '' : `AND (songs.id IN (${filterSongs}))`}
                     GROUP BY sub_vb.song_id)
                 END)

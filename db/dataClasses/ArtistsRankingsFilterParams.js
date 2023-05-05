@@ -16,7 +16,7 @@ module.exports = class ArtistsRankingsFilterParams {
      * @param {number} [daysOffset] In days. The amount of days to offset the timestamp by.
      * @param {ViewType} [viewType] If provided, only gets the rankings for songs with the provided view type.
      * @param {SongType} [songType] If provided, only gets the rankings for songs with the provided song type.
-     * @param {ArtistType} [artistType] If provided, only gets the rankings for songs where one of the artists is of the provided artist type.
+     * @param {ArtistType[]} [artistTypes] If provided, only gets the rankings for songs where one of the artists is of the provided artist type.
      * @param {ArtistCategory} [artistCategory] If provided, only gets the rankings for songs where artists are of category artistCategory.
      * @param {string} [publishDate] Similar to timestamp, however, if provided, gets the rankings for songs that were published in the provided publish date. Example: 2022, 2023-02, 2022-05-12 
      * @param {FilterOrder} [orderBy] What to order the ranking results by. By default, orders by views
@@ -36,7 +36,7 @@ module.exports = class ArtistsRankingsFilterParams {
         daysOffset,
         viewType,
         songType,
-        artistType,
+        artistTypes,
         artistCategory,
         publishDate,
         orderBy = FilterOrder.Views,
@@ -55,7 +55,7 @@ module.exports = class ArtistsRankingsFilterParams {
         this.daysOffset = daysOffset
         this.viewType = viewType
         this.songType = songType
-        this.artistType = artistType
+        this.artistTypes = artistTypes
         this.artistCategory = artistCategory
         this.publishDate = publishDate
         this.orderBy = orderBy

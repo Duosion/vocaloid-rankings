@@ -81,6 +81,13 @@ const filterParamsDisplayData = {
             return [rawValue.name]
         }
     },
+    'artistTypes': {
+        displayName: "filter_artist_type",
+        defaultValue: null,
+        getValueAsync: (rawValue) => {
+            return rawValue.length == 1 ? [rawValue[0].name] : null
+        }
+    },
     'publishDate': {
         displayName: "filter_publish_date",
         defaultValue: null,
@@ -139,78 +146,101 @@ const filterParamsDisplayData = {
     },
 }
 
+const filterViewTypeOption = {
+    displayName: 'filter_view_type',
+    name: "viewType",
+    isChip: true,
+    default: 0,
+    values: [
+        { name: 'filter_view_type_combined', value: null },
+        { name: 'youtube', value: ViewType.YouTube.id },
+        { name: 'niconico', value: ViewType.Niconico.id },
+        { name: 'bilibili', value: ViewType.bilibili.id }
+    ]
+}
+
+const filterTimePeriodOffsetOption = {
+    displayName: 'filter_time_period_offset',
+    name: "timePeriodOffset",
+    isChip: true,
+    default: 0,
+    values: [
+        { name: 'filter_time_period_offset_all_time', value: null },
+        { name: 'filter_time_period_offset_day', value: 1 },
+        { name: 'filter_time_period_offset_week', value: 7 },
+        { name: 'filter_time_period_offset_month', value: 30 }
+    ]
+}
+
+const filterDirectionOption = {
+    displayName: 'filter_direction',
+    name: "direction",
+    isChip: true,
+    default: 0,
+    values: [
+        { name: 'filter_direction_descending', value: FilterDirection.Descending.id },
+        { name: 'filter_direction_ascending', value: FilterDirection.Ascending.id }
+    ]
+}
+
+const filterOrderByOption = {
+    displayName: 'filter_order_by',
+    name: "orderBy",
+    isChip: true,
+    default: 0,
+    values: [
+        { name: 'filter_order_by_views', value: FilterOrder.Views.id },
+        { name: 'filter_order_by_publish', value: FilterOrder.PublishDate.id },
+        { name: 'filter_order_by_addition', value: FilterOrder.AdditionDate.id }
+    ]
+}
+const filterSingleVideoOption = {
+    displayName: 'filter_single_video',
+    description: "filter_single_video_description",
+    name: "singleVideo",
+    isChip: true,
+    default: 0,
+    values: [
+        { name: 'filter_single_video_all', value: null },
+        { name: 'filter_single_video_single', value: 1 }
+    ]
+}
+
+const filterSongTypeOption = {
+    displayName: "filter_song_type",
+    name: "songType",
+    isChip: true,
+    default: 0,
+    values: [
+        { name: 'filter_song_type_all', value: null },
+        { name: 'filter_song_type_original', value: SongType.Original.id },
+        { name: 'filter_song_type_remix', value: SongType.Remix.id },
+        { name: 'filter_song_type_other', value: SongType.Other.id }
+    ]
+}
+
+const filterCombineSimilarArtistsOption = {
+    displayName: 'filter_combine_similar_artists',
+    description: 'filter_combine_similar_artists_description',
+    name: "combineSimilarArtists",
+    isChip: true,
+    default: 0,
+    values: [
+        { name: 'filter_combine_similar_artists_disabled', value: null },
+        { name: 'filter_combine_similar_artists_enabled', value: 1 }
+    ]
+}
+
 const filterPageOptions = [
-    {
-        displayName: 'filter_view_type',
-        name: "viewType",
-        isChip: true,
-        default: 0,
-        values: [
-            { name: 'filter_view_type_combined', value: null },
-            { name: 'youtube', value: ViewType.YouTube.id },
-            { name: 'niconico', value: ViewType.Niconico.id },
-            { name: 'bilibili', value: ViewType.bilibili.id }
-        ]
-    },
-    {
-        displayName: 'filter_time_period_offset',
-        name: "timePeriodOffset",
-        isChip: true,
-        default: 0,
-        values: [
-            { name: 'filter_time_period_offset_all_time', value: null },
-            { name: 'filter_time_period_offset_day', value: 1 },
-            { name: 'filter_time_period_offset_week', value: 7 },
-            { name: 'filter_time_period_offset_month', value: 30 }
-        ]
-    },
-    {
-        displayName: 'filter_direction',
-        name: "direction",
-        isChip: true,
-        default: 0,
-        values: [
-            { name: 'filter_direction_descending', value: FilterDirection.Descending.id },
-            { name: 'filter_direction_ascending', value: FilterDirection.Ascending.id }
-        ]
-    },
-    {
-        displayName: 'filter_order_by',
-        name: "orderBy",
-        isChip: true,
-        default: 0,
-        values: [
-            { name: 'filter_order_by_views', value: FilterOrder.Views.id },
-            { name: 'filter_order_by_publish', value: FilterOrder.PublishDate.id },
-            { name: 'filter_order_by_addition', value: FilterOrder.AdditionDate.id }
-        ]
-    },
-    {
-        displayName: 'filter_single_video',
-        description: "filter_single_video_description",
-        name: "singleVideo",
-        isChip: true,
-        default: 0,
-        values: [
-            { name: 'filter_single_video_all', value: null },
-            { name: 'filter_single_video_single', value: 1 }
-        ]
-    },
-    {
-        displayName: "filter_song_type",
-        name: "songType",
-        isChip: true,
-        default: 0,
-        values: [
-            { name: 'filter_song_type_all', value: null },
-            { name: 'filter_song_type_original', value: SongType.Original.id },
-            { name: 'filter_song_type_remix', value: SongType.Remix.id },
-            { name: 'filter_song_type_other', value: SongType.Other.id }
-        ]
-    },
+    filterViewTypeOption,
+    filterTimePeriodOffsetOption,
+    filterDirectionOption,
+    filterOrderByOption,
+    filterSingleVideoOption,
+    filterSongTypeOption,
     {
         displayName: "filter_artist_type",
-        name: "artistType",
+        name: "artistTypes",
         isSelect: true,
         default: 0,
         values: [
@@ -218,6 +248,7 @@ const filterPageOptions = [
             { name: 'filter_artist_type_vocaloid', value: ArtistType.Vocaloid.id },
             { name: 'filter_artist_type_cevio', value: ArtistType.CeVIO.id },
             { name: 'filter_artist_type_synth_v', value: ArtistType.SynthesizerV.id },
+            { name: 'filter_artist_type_utau', value: ArtistType.UTAU.id },
             { name: 'filter_artist_type_illustrator', value: ArtistType.Illustrator.id },
             { name: 'filter_artist_type_cover_artist', value: ArtistType.CoverArtist.id },
             { name: 'filter_artist_type_animator', value: ArtistType.Animator.id },
@@ -230,19 +261,54 @@ const filterPageOptions = [
     },
 ]
 
-const filterArtistsPageOptions = [
-    ...filterPageOptions,
+const filterSingersPageOptions = [
+    filterViewTypeOption,
+    filterTimePeriodOffsetOption,
+    filterDirectionOption,
+    filterOrderByOption,
+    filterSingleVideoOption,
+    filterSongTypeOption,
     {
-        displayName: 'filter_combine_similar_artists',
-        description: 'filter_combine_similar_artists_description',
-        name: "combineSimilarArtists",
-        isChip: true,
+        displayName: "filter_artist_type",
+        name: "artistTypes",
+        isSelect: true,
         default: 0,
         values: [
-            { name: 'filter_combine_similar_artists_disabled', value: null },
-            { name: 'filter_combine_similar_artists_enabled', value: 1 }
+            { name: 'filter_artist_type_all', value: null },
+            { name: 'filter_artist_type_vocaloid', value: ArtistType.Vocaloid.id },
+            { name: 'filter_artist_type_cevio', value: ArtistType.CeVIO.id },
+            { name: 'filter_artist_type_synth_v', value: ArtistType.SynthesizerV.id },
+            { name: 'filter_artist_type_utau', value: ArtistType.UTAU.id },
+            { name: 'filter_artist_type_other_vocalist', value: ArtistType.OtherVocalist.id },
+            { name: 'filter_artist_type_other_voice_synth', value: ArtistType.OtherVoiceSynthesizer.id }
         ]
     },
+    filterCombineSimilarArtistsOption
+]
+
+const filterProducersPageOptions = [
+    filterViewTypeOption,
+    filterTimePeriodOffsetOption,
+    filterDirectionOption,
+    filterOrderByOption,
+    filterSingleVideoOption,
+    filterSongTypeOption,
+    {
+        displayName: "filter_artist_type",
+        name: "artistTypes",
+        isSelect: true,
+        default: 0,
+        values: [
+            { name: 'filter_artist_type_all', value: null },
+            { name: 'filter_artist_type_illustrator', value: ArtistType.Illustrator.id },
+            { name: 'filter_artist_type_cover_artist', value: ArtistType.CoverArtist.id },
+            { name: 'filter_artist_type_animator', value: ArtistType.Animator.id },
+            { name: 'filter_artist_type_producer', value: ArtistType.Producer.id },
+            { name: 'filter_artist_type_other_individual', value: ArtistType.OtherIndividual.id },
+            { name: 'filter_artist_type_other_group', value: ArtistType.OtherGroup.id }
+        ]
+    },
+    filterCombineSimilarArtistsOption
 ]
 
 const artistCategoryCookieNameMap = {
@@ -314,12 +380,13 @@ const buildFilterParamsAsync = (query) => {
  * Turns a fastify request.query object into a filterParams object for artists rankings querying
  * 
  * @param {Object<string, string>} query The query to turn into a filter params.
+ * @param {ArtistCategory} category
  */
-const buildArtistsFilterParamsAsync = (query) => {
+const buildArtistsFilterParamsAsync = (query, category) => {
     return new Promise(async (resolve, reject) => {
         try {
             // calculate the hash
-            const hash = (await getHasherAsync())(JSON.stringify(query)) + 'artists'
+            const hash = (await getHasherAsync())(JSON.stringify(query)) + `artists${category.id}`
             {
                 // check if we already have this filter param cached
                 const cached = queryCache.get(hash)
@@ -342,6 +409,16 @@ const buildArtistsFilterParamsAsync = (query) => {
                 })
             }
 
+            // get artist type
+            const rawArtistType = query['artistTypes']
+            let artistType = rawArtistType && ArtistType.values[rawArtistType]
+            if (!artistType) {
+                artistType = category == ArtistCategory.Vocalist ? [ArtistType.Vocaloid, ArtistType.CeVIO, ArtistType.SynthesizerV, ArtistType.UTAU, ArtistType.OtherVocalist, ArtistType.OtherVoiceSynthesizer]
+                : [ArtistType.Producer, ArtistType.Animator, ArtistType.CoverArtist, ArtistType.Illustrator, ArtistType.OtherGroup, ArtistType.OtherIndividual]
+            } else {
+                artistType = [artistType]
+            }
+
             // generate filter params
             const params = new ArtistsRankingsFilterParams(
                 query['timestamp'] || null,
@@ -350,7 +427,7 @@ const buildArtistsFilterParamsAsync = (query) => {
                 Number(query['daysOffset']) || null,
                 ViewType.values[query['viewType']],
                 SongType.values[query['songType']],
-                ArtistType.values[query['artistType']],
+                artistType,
                 null,
                 query['publishDate'] && query.publishDate + "%" || null,
                 FilterOrder.values[query['orderBy']],
@@ -468,7 +545,7 @@ const filterRankingsAsync = (filterParams, options = {}) => {
 const filterArtistsRankingsAsync = (filterParams, options = {}) => {
     return new Promise(async (resolve, reject) => {
         try {
-            const queryHash = (await getHasherAsync())(JSON.stringify({...filterParams, ...options})) + "artists"
+            const queryHash = (await getHasherAsync())(JSON.stringify({ ...filterParams, ...options })) + "artists"
             {
                 // check for cache
                 const cachedData = rankingsCache.get(queryHash)
@@ -515,11 +592,11 @@ const getFilterPage = async (request, reply) => {
         ...parsedCookies[artistCategoryCookieNameMap[requestQuery.artistCategory] || 'filter'] || {},
         ...requestQuery,
     }
-    
+
 
     const filterValues = []
 
-    const artistCategory = query["artistCategory"]
+    const artistCategory = query["artistCategory"] ? ArtistCategory.fromId(Number.parseInt(query['artistCategory'])) || ArtistCategory.Vocalist : null
     const isArtistsFilterPage = artistCategory ? true : false
 
     // add page title
@@ -527,10 +604,8 @@ const getFilterPage = async (request, reply) => {
         const localization = request.localization || {}
         request.addHbParam('pageTitle', isArtistsFilterPage ? localization['filter_page_title_artists'] : localization['filter_page_title_default'])
     }
-    
 
-    const filterOptions = isArtistsFilterPage ? filterArtistsPageOptions : filterPageOptions
-
+    const filterOptions = isArtistsFilterPage ? (artistCategory == ArtistCategory.Vocalist ? filterSingersPageOptions : filterProducersPageOptions) : filterPageOptions
 
     for (const [_, filterOption] of filterOptions.entries()) {
         const name = filterOption.name
@@ -565,7 +640,7 @@ const getFilterPage = async (request, reply) => {
         defaultDate: query['timestamp'] || maximumDate,
         maximumDate: maximumDate,
         isArtistsFilterPage: isArtistsFilterPage,
-        artistCategory: artistCategory
+        artistCategory: artistCategory && artistCategory.id
     })
 
     return reply.view("pages/filterRankings.hbs", request.hbParams);
@@ -582,7 +657,7 @@ const getRemoveFilter = async (request, reply) => {
     const query = request.query
     const referer = query.referer || '/rankings'
     delete query.referer
-    
+
     const filterCookieName = artistCategoryCookieNameMap[query.artistCategory] || 'filter'
     delete query.artistCategory
 
@@ -611,9 +686,9 @@ const getRemoveFilter = async (request, reply) => {
     reply.redirect(referer)
 }
 
-const getSetFilter = async(request, reply) => {
+const getSetFilter = async (request, reply) => {
     reply.setObjectCookie(artistCategoryCookieNameMap[request.query.artistCategory] || 'filter', {})
-    
+
     var newQuery = ""
 
     // build query again
@@ -764,7 +839,7 @@ const getArtistsRankings = async (request, reply, artistCategory = ArtistCategor
     }
 
     // generate filter params
-    const filterParams = await buildArtistsFilterParamsAsync(requestQuery)
+    const filterParams = await buildArtistsFilterParamsAsync(requestQuery, artistCategory)
     filterParams.artistCategory = artistCategory
 
     const filteredRankings = await filterArtistsRankingsAsync(filterParams, {
@@ -888,10 +963,10 @@ exports.register = (fastify, options, done) => {
     }, getTrending)
 
     fastify.get("/filter", {
-      config: {
-        analyticsEvent: "page_visit",
-        analyticsParams: {'page_name': "filter"}
-      },
+        config: {
+            analyticsEvent: "page_visit",
+            analyticsParams: { 'page_name': "filter" }
+        },
     }, getFilterPage)
     fastify.get("/filter/add", {
         config: {

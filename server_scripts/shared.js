@@ -31,6 +31,7 @@ exports.viewTypesDisplayData = [
     color: "#ffffff",
     colors: ['#ffffff', '#d5d5d5', '#bbbbbb', '#a5a5a5', '#888888'],
     textColor: '#000000',
+    textShadow: '1px 1px 0 #000, 1px 1px 0 #000, 1px 1px 0 #000;',
     icon: '/images/nico_icon.png'
   },
   {

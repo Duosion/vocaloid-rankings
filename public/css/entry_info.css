@@ -265,6 +265,7 @@
     flex-direction: column;
     white-space: nowrap;
     row-gap: 10px;
+    min-width: 54px;
 }
 
 #views-breakdown .content .section .label {
