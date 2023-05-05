@@ -1653,6 +1653,95 @@ module.exports = class SongsDataProxy {
 
     // insert functions
 
+    #insertArtistForeignSync(artist) {
+        const db = this.db
+        const artistId = artist.id
+
+        // prepare statement to insert into artists names
+        const artistsNamesInsertStatement = db.prepare(`
+        REPLACE INTO artists_names (artist_id, name, name_type)
+        VALUES (?, ?, ?)`)
+        // prepare statement to insert into artists thumbnails
+        const artistsThumnailsInsertStatement = db.prepare(`
+        REPLACE INTO artists_thumbnails (thumbnail_type, url, artist_id)
+        VALUES (?, ?, ?)`)
+
+        // insert names
+        for (const [nameType, name] of Object.entries(artist.names)) {
+            if (name != undefined) {
+                artistsNamesInsertStatement.run(
+                    artistId,
+                    name,
+                    nameType
+                )
+            }
+        }
+        // insert thumbnails
+        for (const [thumbnailType, thumbnail] of Object.entries(artist.thumbnails)) {
+            artistsThumnailsInsertStatement.run(
+                thumbnailType,
+                thumbnail.url,
+                artistId
+            )
+        }
+    }
+
+    updateArtist(artist) {
+        return new Promise((resolve, reject) => {
+            try {
+                const db = this.db
+                const artistId = artist.id
+
+                if (!this.#getArtistSync(artistId, false)) {
+                    return reject("Attempt to update an artist that doesn't exist.")
+                }
+
+                
+
+                // prepare statement to update into songs
+                const updateStatement = db.prepare(`
+                UPDATE artists
+                SET artist_type = ?,
+                    publish_date = ?,
+                    base_artist_id = ?,
+                    average_color = ?,
+                    dark_color = ?,
+                    light_color = ?
+                WHERE id = ?`)
+
+                // delete names
+                db.prepare(`
+                DELETE FROM artists_names
+                WHERE artist_id = ?`).run(artistId)
+
+                // delete thumbnails
+                db.prepare(`
+                DELETE FROM artists_thumbnails
+                WHERE artist_id = ?`).run(artistId)
+
+                
+                // update artist
+                const baseArtist = artist.baseArtist // get the base artist
+                updateStatement.run(
+                    artist.type.id,
+                    artist.publishDate,
+                    baseArtist ? baseArtist.id : null,
+                    artist.averageColor,
+                    artist.darkColor,
+                    artist.lightColor,
+                    artistId,
+                )
+
+                // insert foreign
+                this.#insertArtistForeignSync(artist)
+
+                resolve()
+            } catch (error) {
+                reject(error)
+            }
+        })
+    }
+
     /**
      * Inserts an artist into the database.
      * 
@@ -1670,14 +1759,7 @@ module.exports = class SongsDataProxy {
                 const artistsInsertStatement = db.prepare(`
                 REPLACE INTO artists (id, artist_type, publish_date, addition_date, base_artist_id, average_color, dark_color, light_color)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`)
-                // prepare statement to insert into artists names
-                const artistsNamesInsertStatement = db.prepare(`
-                REPLACE INTO artists_names (artist_id, name, name_type)
-                VALUES (?, ?, ?)`)
-                // prepare statement to insert into artists thumbnails
-                const artistsThumnailsInsertStatement = db.prepare(`
-                REPLACE INTO artists_thumbnails (thumbnail_type, url, artist_id)
-                VALUES (?, ?, ?)`)
+                
 
                 // handle base artist
                 // insert the base artist if it doesn't exist within the database
@@ -1698,24 +1780,9 @@ module.exports = class SongsDataProxy {
                     artist.darkColor,
                     artist.lightColor
                 )
-                // insert names
-                for (const [nameType, name] of Object.entries(artist.names)) {
-                    if (name != undefined) {
-                        artistsNamesInsertStatement.run(
-                            artistId,
-                            name,
-                            nameType
-                        )
-                    }
-                }
-                // insert thumbnails
-                for (const [thumbnailType, thumbnail] of Object.entries(artist.thumbnails)) {
-                    artistsThumnailsInsertStatement.run(
-                        thumbnailType,
-                        thumbnail.url,
-                        artistId
-                    )
-                }
+                
+                this.#insertArtistForeignSync(artist)
+
                 resolve()
             } catch (error) {
                 reject(error)
@@ -1812,7 +1879,7 @@ module.exports = class SongsDataProxy {
 
                 const existingSong = this.#getSongSync(songId, false)
                 if (!existingSong) {
-                    return reject("Attemp to update a song that doesn't exist.")
+                    return reject("Attempt to update a song that doesn't exist.")
                 }
 
                 // prepare statement to update into songs

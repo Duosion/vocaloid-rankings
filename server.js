@@ -315,7 +315,7 @@ fastify.get("/about", async (request, reply) => {
 // download db
 fastify.get("/download-db", {
   config: {
-    authLevel: AccessLevel.Admin.id,
+    accessLevel: AccessLevel.Admin.id,
     loginRedirect: true
   }
 }, (request, reply) => {

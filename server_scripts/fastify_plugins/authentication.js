@@ -106,7 +106,6 @@ const getLogout = async (request, reply) => {
 }
 
 const getLogin = async (request, reply) => {
-    console.log(request.hbParams)
     const query = request.query
     // add error message
     const errorMessage = query['errorMessage']
@@ -135,7 +134,7 @@ const plugin = (fastify, options, done) => {
     fastify.addHook("preParsing", async (req, reply, _) => {
         const config = req.routeConfig
 
-        const requiredAuthLevel = config["authLevel"] || 0
+        const requiredAuthLevel = config["accessLevel"] || 0
         const redirect = config['loginRedirect'] ? true : false
         const sessionCookie = req.cookies["session"]
 
@@ -200,7 +199,7 @@ const plugin = (fastify, options, done) => {
 
     fastify.get('/account', {
         config: {
-            authLevel: AccessLevel.User.id,
+            accessLevel: AccessLevel.User.id,
             loginRedirect: true
         }
     }, getAccount)

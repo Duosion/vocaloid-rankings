@@ -3,13 +3,13 @@ const modulePath = workingDirectory + "/server_scripts"
 // imports
 const scraper = require(modulePath + "/scraper")
 const database = require(workingDirectory + "/db")
-const databaseProxy = require(modulePath + "/database")
 
 const { argbFromHex, themeFromSourceColor, hexFromArgb, redFromArgb, greenFromArgb, blueFromArgb } = require("@importantimport/material-color-utilities");
 const EntityViews = require("../../../db/dataClasses/EntityViews")
 const ViewType = require("../../../db/enums/ViewType")
 const NameType = require("../../../db/enums/NameType")
 const CachedThumbnail = require("../../../db/dataClasses/CachedThumbnail")
+const AccessLevel = require("../../../db/enums/AccessLevel")
 const { getHasherAsync, viewTypesDisplayData, caches } = require(modulePath + "/shared")
 const { getPreferredLanguageName } = require(modulePath + "/locale")
 
@@ -411,6 +411,21 @@ const getSong = async (request, reply) => {
     hbParams.displayPlacements = displayPlacements
   }
 
+  // handle access level stuff
+  {
+    const accessLevel = request.accessLevel
+
+    const canSeeControls = accessLevel > AccessLevel.Editor.id
+    const canRefresh = canSeeControls
+    const canDelete = accessLevel > AccessLevel.Admin.id
+
+    hbParams.accessStates = {
+      canSeeControls: canSeeControls,
+      canRefresh: canRefresh,
+      canDelete: canDelete
+    }
+  }
+
   return reply.view("pages/song.hbs", hbParams)
 }
 
@@ -489,8 +504,18 @@ exports.register = (fastify, options, done) => {
     },
   }, getSong)
   fastify.get("/add", addSongRoute)
-  fastify.get("/:songId/refresh", refreshSongRoute)
-  fastify.get('/:songId/delete', deleteSongRoute)
+  fastify.get("/:songId/refresh", {
+    config: {
+      accessLevel: AccessLevel.Editor.id,
+      loginRedirect: true
+    }
+  }, refreshSongRoute)
+  fastify.get('/:songId/delete', {
+    config: {
+      accessLevel: AccessLevel.Admin.id,
+      loginRedirect: true
+    }
+  }, deleteSongRoute)
   fastify.get('/thumbnail/:songId', getThumbnail)
 
   done();

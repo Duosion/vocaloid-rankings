@@ -34,16 +34,22 @@
       {{/each}}
     </div>
 
-    <div id="sidebar-controls" class="sidebar-card body-medium on-surface-text">
-      <a class="material-button blocky" href="/song/{{songData.id}}/refresh">
-        <span class="material-symbols-rounded">refresh</span>
-        Refresh Song
-      </a>
-      <a class="material-button blocky" href="/song/{{songData.id}}/delete">
-        <span class="material-symbols-rounded">delete</span>
-        Delete Song
-      </a>
-    </div>
+    {{#if accessStates.canSeeControls}}
+      <div id="sidebar-controls" class="sidebar-card body-medium on-surface-text">
+        {{#if accessStates.canRefresh}}
+          <a class="material-button blocky" href="/song/{{songData.id}}/refresh">
+            <span class="material-symbols-rounded">refresh</span>
+            Refresh Song
+          </a>
+        {{/if}}
+        {{#if accessStates.canRefresh}}
+          <a class="material-button blocky" href="/song/{{songData.id}}/delete">
+            <span class="material-symbols-rounded">delete</span>
+            Delete Song
+          </a>
+        {{/if}}
+      </div>
+    {{/if}}
     
     <div id="sidebar-info" class="sidebar-card body-medium on-surface-text">
       <div class="sidebar-card-dataset">

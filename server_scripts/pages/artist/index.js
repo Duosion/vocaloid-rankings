@@ -4,12 +4,14 @@ const modulePath = workingDirectory + "/server_scripts"
 // import
 const NameType = require(workingDirectory + "/db/enums/NameType")
 const database = require(workingDirectory + "/db")
+const scraper = require(modulePath + "/scraper")
 const songsDataDb = database.songsDataProxy
 
 // import modules
 const { argbFromHex, themeFromSourceColor, hexFromArgb, redFromArgb, greenFromArgb, blueFromArgb } = require("@importantimport/material-color-utilities");
 const ArtistCategory = require("../../../db/enums/ArtistCategory")
 const RankingsFilterParams = require("../../../db/dataClasses/RankingsFilterParams")
+const AccessLevel = require("../../../db/enums/AccessLevel")
 const { getHasherAsync, viewTypesDisplayData, caches } = require(modulePath + "/shared")
 const { getPreferredLanguageName } = require(modulePath + "/locale")
 
@@ -189,7 +191,7 @@ const queryArtist = (artistIdString, options) => {
 // route functions
 const getArtist = async (request, reply) => {
     const parsedCookies = request.parsedCookies || {}
-    
+
     // get artist id
     const artistId = request.params.artistId
     if (!artistId) {
@@ -250,6 +252,21 @@ const getArtist = async (request, reply) => {
                 request.addHbParam('displayPlacements', displayPlacements)
             }
 
+            // handle access level stuff
+            {
+                const accessLevel = request.accessLevel
+
+                const canSeeControls = accessLevel > AccessLevel.Editor.id
+                const canRefresh = canSeeControls
+                const canDelete = accessLevel > AccessLevel.Admin.id
+
+                request.addHbParam('accessStates',{
+                    canSeeControls: canSeeControls,
+                    canRefresh: canRefresh,
+                    canDelete: canDelete
+                })
+            }
+
             return reply.view("pages/artist.hbs", request.hbParams)
         })
         .catch(error => {
@@ -260,6 +277,81 @@ const getArtist = async (request, reply) => {
         })
 }
 
+const getRefresh = async (request, reply) => {
+    const reject = (code, message) => {
+        reply.send({
+            code: code,
+            message: message,
+        });
+        return;
+    }
+
+    const artistId = request.params.artistId
+    if (!artistId) {
+        return reject(400, "Invalid parameters provided.");
+    }
+
+    // check if the artist exists
+    const exists = await database.songsDataProxy.artistExists(artistId)
+        .catch(error => {
+            console.log(error)
+            return reject(400, error.message)
+        })
+    if (!exists) {
+        return reject(400, `Artist with id "${artistId}" does not exist.`)
+    }
+
+    const artist = await scraper.scrapeVocaDBArtistAsync(Number(artistId) || 0)
+        .catch(msg => {
+            console.log(msg)
+            return reply.send({ code: 400, message: msg.message })
+        })
+
+    // add the song
+    await database.songsDataProxy.updateArtist(artist)
+        .catch(msg => {
+            console.log(msg)
+            return reply.send({ code: 400, message: msg.message })
+        })
+    artistsDataCache.purge()
+
+    return reply.redirect("/artist/" + artistId)
+}
+
+
+const getDelete = async (request, reply) => {
+    const reject = (code, message) => {
+        reply.send({
+            code: code,
+            message: message,
+        });
+        return;
+    }
+
+    const artistId = request.params.artistId
+    if (!artistId) {
+        return reject(400, 'Invalid parameters provided.')
+    }
+
+    // check if the artist exists
+    const exists = await database.songsDataProxy.artistExists(artistId)
+        .catch(error => {
+            console.log(error)
+            return reject(400, error.message)
+        })
+    if (!exists) {
+        return reject(400, `Artist with id "${artistId}" does not exist.`)
+    }
+
+    await database.songsDataProxy.deleteArtist(artistId)
+        .catch(error => {
+            console.log(error)
+            return reject(400, error.message)
+        })
+    artistsDataCache.purge()
+
+    return reply.redirect('/')
+}
 
 // exports
 exports.prefix = "/artist"
@@ -271,6 +363,18 @@ exports.register = (fastify, options, done) => {
             analyticsParams: { 'page_name': "" }
         },
     }, getArtist)
+    fastify.get("/:artistId/refresh", {
+        config: {
+            accessLevel: AccessLevel.Editor.id,
+            loginRedirect: true
+        }
+    }, getRefresh)
+    fastify.get('/:artistId/delete', {
+        config: {
+            accessLevel: AccessLevel.Admin.id,
+            loginRedirect: true
+        }
+    }, getDelete)
 
     done();
 }

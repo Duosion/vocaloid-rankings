@@ -62,16 +62,22 @@
         </div>
         {{/if}}
 
+        {{#if accessStates.canSeeControls}}
         <div id="sidebar-controls" class="sidebar-card body-medium on-surface-text">
-            <a class="material-button blocky" href="/artist/{{artistData.id}}/refresh">
+            {{#if accessStates.canRefresh}}
+            <a class="material-button blocky" href="{{artistData.id}}/refresh">
                 <span class="material-symbols-rounded">refresh</span>
-                Refresh Song
+                Refresh Artist
             </a>
-            <a class="material-button blocky" href="/artist/{{artistData.id}}/delete">
+            {{/if}}
+            {{#if accessStates.canRefresh}}
+            <a class="material-button blocky" href="{{artistData.id}}/delete">
                 <span class="material-symbols-rounded">delete</span>
-                Delete Song
+                Delete Artist
             </a>
+            {{/if}}
         </div>
+        {{/if}}
 
         <div id="sidebar-info" class="sidebar-card body-medium on-surface-text">
             <div class="sidebar-card-dataset">
