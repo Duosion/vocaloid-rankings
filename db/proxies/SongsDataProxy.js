@@ -941,7 +941,22 @@ module.exports = class SongsDataProxy {
         SELECT DISTINCT 
             CASE WHEN :combineSimilarArtists IS NULL THEN artists.id
                 WHEN artists.base_artist_id IS NULL THEN artists.id
-                ELSE artists.base_artist_id
+                ELSE (
+                    WITH RECURSIVE ancestor_path(id, base_artist_id) AS (
+                        SELECT sub_artists.id, sub_artists.base_artist_id
+                        FROM artists AS sub_artists
+                        WHERE id = artists.id
+                      
+                        UNION ALL
+
+                        SELECT a.id, a.base_artist_id
+                        FROM artists a
+                        JOIN ancestor_path ap ON a.id = ap.base_artist_id
+                      )
+                    SELECT id
+                    FROM ancestor_path
+                    WHERE base_artist_id IS NULL
+                )
             END AS id,
             SUM(DISTINCT views_breakdowns.views) AS total_views
         FROM views_breakdowns
@@ -979,7 +994,22 @@ module.exports = class SongsDataProxy {
         GROUP BY 
             CASE WHEN :combineSimilarArtists IS NULL THEN artists.id
             WHEN artists.base_artist_id IS NULL then artists.id
-            ELSE artists.base_artist_id
+            ELSE (
+                WITH RECURSIVE ancestor_path(id, base_artist_id) AS (
+                    SELECT sub_artists.id, sub_artists.base_artist_id
+                    FROM artists AS sub_artists
+                    WHERE id = artists.id
+                  
+                    UNION ALL
+
+                    SELECT a.id, a.base_artist_id
+                    FROM artists a
+                    JOIN ancestor_path ap ON a.id = ap.base_artist_id
+                  )
+                SELECT id
+                FROM ancestor_path
+                WHERE base_artist_id IS NULL
+            )
             END
         HAVING (CASE WHEN :minViews IS NULL
             THEN 1
@@ -1342,9 +1372,7 @@ module.exports = class SongsDataProxy {
         DELETE FROM artists
         WHERE id = ?`).run(artistId)
     }
-
-    // public functions
-
+    
     /**
      * Gets every artist that has its base artist id equal to the provided artistId.
      * 
@@ -1581,24 +1609,6 @@ module.exports = class SongsDataProxy {
                 resolve(this.#getArtistSync(id, true))
             } catch (error) {
                 reject(error)
-            }
-        })
-    }
-
-    getArtistFromName(name) {
-        return new Promise((resolve, reject) => {
-            const db = this.db
-
-            const id = db.prepare(`
-            SELECT song_id
-            FROM songs_names
-            WHERE name = ?
-            LIMIT 1`).get(name)
-
-            if (id) {
-                resolve(this.#getArtistSync(id, true))
-            } else {
-                reject(new Error(`No artist with name "${name}" was found.`))
             }
         })
     }
