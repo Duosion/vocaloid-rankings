@@ -6,7 +6,7 @@ const { parseHTML } = require("linkedom")
 // import database classes
 const EntityViews = require("../db/dataClasses/EntityViews")
 const ArtistThumbnail = require("../db/dataClasses/ArtistThumbnail")
-const Song = require("../db/dataClasses/song")
+const Song = require("../db/dataClasses/Song")
 // import database enums
 const Artist = require("../db/dataClasses/Artist")
 const ArtistType = require("../db/enums/ArtistType")

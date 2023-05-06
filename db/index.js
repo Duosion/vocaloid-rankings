@@ -23,7 +23,7 @@ const databases = [
             console.log(output)
         },*/
         init: (db, exists) => require("./initializers/songs_data.js")(db, exists),
-        extensions: [process.cwd() + "/db/extensions/spellfix.dll"]
+        extensions: [process.cwd() + "/db/extensions/spellfix"]
     },
     {
         name: "analytics",
