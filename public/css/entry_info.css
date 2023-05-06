@@ -251,12 +251,15 @@
 
 #views-breakdown .content {
     box-sizing: border-box;
-    overflow: scroll hidden;
+    overflow: auto hidden;
     padding: 15px;
     display: flex;
     column-gap: 15px;
     align-items: center;
-    justify-content: center;
+    justify-content: start;
+    width: fit-content;
+    max-width: 100%;
+    margin: auto;
     height: 125px;
 }
 
@@ -265,7 +268,6 @@
     flex-direction: column;
     white-space: nowrap;
     row-gap: 10px;
-    min-width: 54px;
 }
 
 #views-breakdown .content .section .label {

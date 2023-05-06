@@ -287,7 +287,7 @@ const updateSongsDataSafe = () => {
   })
 }
 
-//updateSongsDataSafe()
+updateSongsDataSafe()
 schedule.scheduleJob('0 0 * * *', () => {
   updateSongsDataSafe()
 })

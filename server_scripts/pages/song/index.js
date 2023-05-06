@@ -332,6 +332,13 @@ const getSong = async (request, reply) => {
   // set page title
   request.addHbParam('pageTitle', songData.preferredName)
 
+  // set analytics page name
+  const config = request.routeConfig
+  const analyticsParams = config.analyticsParams
+  if (analyticsParams) {
+    analyticsParams['page_name'] = songData.preferredName
+  }
+
   // load custom theme 
   {
     const theme = themeFromSourceColor(argbFromHex(songData.averageColor), [

@@ -10,7 +10,12 @@ const getPage = (request, reply) => {
 }
 
 exports.register = (fastify, options, done) => {
-  fastify.get("/", getPage)
+  fastify.get("/", {
+    config: {
+      analyticsEvent: "page_visit",
+      analyticsParams: { 'page_name': "home" }
+    },
+  }, getPage)
 
   done()
 }

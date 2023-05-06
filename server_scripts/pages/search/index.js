@@ -106,6 +106,13 @@ const getSearchRoute = async (request, reply) => {
   //add page title
   request.addHbParam('pageTitle', `${(request.localization || {})['search_hint']} - ${searchQuery}`)
 
+  // set analytics query
+  const config = request.routeConfig
+  const analyticsParams = config.analyticsParams
+  if (analyticsParams) {
+    analyticsParams['query'] = searchQuery
+  }
+
   const queryParams = new SearchQueryParams(
     searchQuery,
     25,
@@ -173,7 +180,12 @@ const getSearchRoute = async (request, reply) => {
 exports.prefix = "/search"
 
 exports.register = (fastify, options, done) => {
-  fastify.get("/", getSearchRoute)
+  fastify.get("/", {
+    config: {
+        analyticsEvent: "search",
+        analyticsParams: { 'query': "" }
+    }
+  }, getSearchRoute)
 
   done()
 }

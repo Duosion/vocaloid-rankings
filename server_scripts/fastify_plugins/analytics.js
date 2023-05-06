@@ -12,7 +12,8 @@ const analyticsEvents = {
     "page_visit": {"page_name": '', 'page_url': ''},
     "filter_add": {'name': [], 'value': []},
     "setting_change": {'name': [], 'value': []},
-    "outgoing_url": {'url': ''}
+    "outgoing_url": {'url': ''},
+    "search": {'query': ''}
 }
 
 // functions

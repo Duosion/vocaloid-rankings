@@ -212,6 +212,13 @@ const getArtist = async (request, reply) => {
             // add page name
             request.addHbParam('pageTitle', artistData.preferredName)
 
+            // set analytics page name
+            const config = request.routeConfig
+            const analyticsParams = config.analyticsParams
+            if (analyticsParams) {
+                analyticsParams['page_name'] = artistData.preferredName
+            }
+
             // load custom theme 
             {
                 const theme = themeFromSourceColor(argbFromHex(artistData.averageColor));
