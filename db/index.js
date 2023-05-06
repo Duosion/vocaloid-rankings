@@ -44,6 +44,11 @@ const loadedDatabases = {} // databases that have been laoded
 {
     const copyDirectory = "./.toClone/"
     if (fs.existsSync(copyDirectory)) {
+        // delete database file
+        /*console.log("Remove old data directory.")
+        fs.rmSync(dataDirectory, { recursive: true, force: true })
+        console.log("Make new data directory.")
+        fs.mkdirSync(dataDirectory)*/
         // copy files to data
         fs.readdirSync(copyDirectory).forEach(file => {
             //fs.rmSync(dataDirectory + file)
