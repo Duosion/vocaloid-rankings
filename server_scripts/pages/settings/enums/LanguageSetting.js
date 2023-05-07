@@ -3,6 +3,7 @@ const Enum = require("../../../../db/enums/Enum")
 module.exports = class LanguageSetting extends Enum {
     static Default = new LanguageSetting('language_system', 0)
     static English = new LanguageSetting("language_english", 1)
+    static Spanish = new LanguageSetting('language_spanish', 3)
     static Japanese = new LanguageSetting("language_japanese", 2)
 
     static {

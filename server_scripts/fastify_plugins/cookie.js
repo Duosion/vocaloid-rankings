@@ -21,7 +21,7 @@ const paramCookies = {
   },
   language: {
     DefaultValue: LanguageSetting.English.id,
-    AllowedValues: [LanguageSetting.Default.id, LanguageSetting.English.id, LanguageSetting.Japanese.id],
+    AllowedValues: [LanguageSetting.Default.id, LanguageSetting.English.id, LanguageSetting.Japanese.id, LanguageSetting.Spanish.id],
     MaxAge: 31536000,
     AutoRenew: true,
   },

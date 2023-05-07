@@ -4,7 +4,8 @@ const acceptLanguageParser = require('accept-language-parser');
 
 const localeLookup = {
     'en': require("../../localization/en.json"),
-    'ja': require("../../localization/jp.json")
+    'ja': require("../../localization/jp.json"),
+    "es": require("../../localization/es.json")
 }
 
 const plugin = (fastify, options, done) => {
@@ -30,6 +31,10 @@ const plugin = (fastify, options, done) => {
             case 2:
                 isoCode = 'ja'
                 localization = localeLookup['ja']
+                break
+            case 3:
+                isoCode = 'es'
+                localization = localeLookup['es']
                 break
             default:
                 localization = localeLookup[isoCode];
