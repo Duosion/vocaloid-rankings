@@ -23,33 +23,25 @@ module.exports = class AnalyticsDataProxy {
             try {
                 const db = this.db
 
-                const exists = db.prepare("SELECT eventName FROM analytics WHERE eventName = ?").get(eventName)
+                const exists = db.prepare(`
+                SELECT ROWID AS id
+                FROM events
+                WHERE name = ?
+                `).get(eventName)?.id
 
-                resolve(exists ? true : false) // resolve
+                resolve(exists) // resolve
             } catch (error) {
                 reject(error)
             }
         })
     }
 
-    createEventTable (eventName, params) {
+    createEvent (eventName) {
         return new Promise(async (resolve, reject) => {
             try {
-                const db = this.db
-
-                // build columns from params
-                    var columns = ", uid STRING NOT NULL, timestamp STRING NOT NULL, date STRING NOT NULL" // UID column is always there
-                    for (const [key, _] of Object.entries(params)) {
-                        columns+= `, ${key} STRING NOT NULL`
-                    }
-
-                // create the new table
-                db.prepare(`CREATE TABLE IF NOT EXISTS ${eventName} (id INTEGER PRIMARY KEY AUTOINCREMENT${columns})`).run()
-                
-                // add to analytics table
-                db.prepare(`INSERT INTO analytics (eventName) VALUES (?)`).run(eventName)
-                
-                resolve() // resolve
+                resolve(this.db.prepare(`
+                INSERT INTO events (name)
+                VALUES (?)`).run(eventName).lastInsertRowid) // resolve
             } catch (error) {
                 reject(error)
             }
@@ -59,22 +51,17 @@ module.exports = class AnalyticsDataProxy {
     insertEvent (eventName, uid, params) {
         return new Promise(async (resolve, reject) => {
             try {
-                const db = this.db
 
-                if (!(await this.eventExists(eventName))) {
-                    await this.createEventTable(eventName, params)
-                }
+                const existing = (await this.eventExists(eventName)) || (await this.createEvent(eventName))
 
-                var columnKeys = `uid, timestamp, date`
-                var columnValues = `'${uid}', '${generateISOTimestamp()}', '${generateTimestamp().Name}'`
-
-                for (const [key, value] of Object.entries(params)) {
-                    columnKeys+= `, ${key}`
-                    columnValues+= `, '${value}'`
-                }
-
-                // create the new row
-                db.prepare(`INSERT INTO ${eventName} (${columnKeys}) VALUES (${columnValues})`).run()
+                this.db.prepare(`
+                INSERT INTO analytics (event_id, uid, timestamp, data)
+                VALUES (?, ?, ?, ?)`).run(
+                    existing,
+                    uid,
+                    generateISOTimestamp(),
+                    JSON.stringify(params)
+                )
 
                 resolve()
             } catch (error) {

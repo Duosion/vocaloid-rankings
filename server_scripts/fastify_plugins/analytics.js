@@ -55,7 +55,7 @@ const plugin = (fastify, options, done) => {
                         const names = params['name']
                         const values = params['value']
                         for (var i = 0; i<names.length; i++) {
-                            analyticsDataProxy.insertEvent(eventName, uid, {'name': names[i], 'value': values[i] || ''})
+                            analyticsDataProxy.insertEvent(eventName, uid, {'name': names[i], 'value': values[i]})
                         }
                         return
                 }

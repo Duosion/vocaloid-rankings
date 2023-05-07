@@ -55,7 +55,6 @@ const postSettings = (request, reply) => {
             reply.setParamCookie(cookieName, cookieValue)
 
             const currentValue = parsedCookies[cookieName]
-
             if (!currentValue || currentValue != cookieValue) {
                 analyticsNames.push(cookieName)
                 analyticsValues.push(cookieValue)
