@@ -87,7 +87,7 @@
     "settings_theme_light": "ライト",
     "settings_theme_dark": "ダーク",
     "settings_title_language": "タイトル言語",
-    "settings_title_language_description": "曲名やアーティスト名が表示される言語",
+    "settings_title_language_description": "曲名とアーティスト名が表示される言語。",
     "settings_title_language_original": "オリジナル (少女レイ)",
     "settings_title_language_english": "英語 (Ghost Girl)",
     "settings_title_language_romaji": "ローマ字 (Shoujo Rei)",
