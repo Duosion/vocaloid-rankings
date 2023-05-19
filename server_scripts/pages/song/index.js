@@ -9,7 +9,8 @@ const EntityViews = require("../../../db/dataClasses/EntityViews")
 const ViewType = require("../../../db/enums/ViewType")
 const NameType = require("../../../db/enums/NameType")
 const CachedThumbnail = require("../../../db/dataClasses/CachedThumbnail")
-const AccessLevel = require("../../../db/enums/AccessLevel")
+const AccessLevel = require("../../../db/enums/AccessLevel");
+const AnalyticsEvent = require("../../../db/enums/AnalyticsEvent");
 const { getHasherAsync, viewTypesDisplayData, caches } = require(modulePath + "/shared")
 const { getPreferredLanguageName } = require(modulePath + "/locale")
 
@@ -509,7 +510,7 @@ exports.prefix = "/song"
 exports.register = (fastify, options, done) => {
   fastify.get("/:songId", {
     config: {
-      analyticsEvent: "page_visit",
+      analyticsEvent: AnalyticsEvent.PageVisit,
       analyticsParams: { 'page_name': "" }
     },
   }, getSong)

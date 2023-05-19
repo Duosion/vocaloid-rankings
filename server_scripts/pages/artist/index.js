@@ -12,6 +12,7 @@ const { argbFromHex, themeFromSourceColor, hexFromArgb, redFromArgb, greenFromAr
 const ArtistCategory = require("../../../db/enums/ArtistCategory")
 const RankingsFilterParams = require("../../../db/dataClasses/RankingsFilterParams")
 const AccessLevel = require("../../../db/enums/AccessLevel")
+const AnalyticsEvent = require("../../../db/enums/AnalyticsEvent")
 const { getHasherAsync, viewTypesDisplayData, caches } = require(modulePath + "/shared")
 const { getPreferredLanguageName } = require(modulePath + "/locale")
 
@@ -366,7 +367,7 @@ exports.prefix = "/artist"
 exports.register = (fastify, options, done) => {
     fastify.get("/:artistId", {
         config: {
-            analyticsEvent: "page_visit",
+            analyticsEvent: AnalyticsEvent.PageVisit,
             analyticsParams: { 'page_name': "" }
         },
     }, getArtist)

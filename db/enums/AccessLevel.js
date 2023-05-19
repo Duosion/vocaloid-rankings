@@ -1,8 +1,7 @@
-const ArtistCategory = require("./ArtistCategory")
 const Enum = require("./Enum")
 
 module.exports = class AccessLevel extends Enum {
-    static Guest = new ArtistCategory('Guest', 0)
+    static Guest = new AccessLevel('Guest', 0)
     static User = new AccessLevel('User', 1)
     static Editor = new AccessLevel('Editor', 2)
     static Admin = new AccessLevel('Admin', 4)

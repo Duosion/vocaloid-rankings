@@ -14,6 +14,7 @@ const ViewType = require("../../../db/enums/ViewType")
 const ArtistType = require("../../../db/enums/ArtistType")
 const ArtistsRankingsFilterParams = require("../../../db/dataClasses/ArtistsRankingsFilterParams")
 const ArtistsRankingsFilterResult = require("../../../db/dataClasses/ArtistsRankingsFilterResult")
+const AnalyticsEvent = require("../../../db/enums/AnalyticsEvent")
 
 const database = require(workingDirectory + "/db")
 
@@ -938,45 +939,45 @@ exports.prefix = "/rankings"
 exports.register = (fastify, options, done) => {
     fastify.get("/", {
         config: {
-            analyticsEvent: "page_visit",
+            analyticsEvent: AnalyticsEvent.PageVisit,
             analyticsParams: { 'page_name': "rankings" }
         },
     }, getRankings)
 
     fastify.get("/singers", {
         config: {
-            analyticsEvent: "page_visit",
+            analyticsEvent: AnalyticsEvent.PageVisit,
             analyticsParams: { 'page_name': "singers_rankings" }
         }
     }, getSingersRankings)
     fastify.get("/producers", {
         config: {
-            analyticsEvent: "page_visit",
+            analyticsEvent: AnalyticsEvent.PageVisit,
             analyticsParams: { 'page_name': "producers_rankings" }
         }
     }, getProducersRankings)
     fastify.get('/trending', {
         config: {
-            analyticsEvent: "page_visit",
+            analyticsEvent: AnalyticsEvent.PageVisit,
             analyticsParams: { 'page_name': "trending" }
         }
     }, getTrending)
 
     fastify.get("/filter", {
         config: {
-            analyticsEvent: "page_visit",
+            analyticsEvent: AnalyticsEvent.PageVisit,
             analyticsParams: { 'page_name': "filter" }
         },
     }, getFilterPage)
     fastify.get("/filter/add", {
         config: {
-            analyticsEvent: "filter_add",
+            analyticsEvent: AnalyticsEvent.FilterAdd,
             analyticsParams: { 'filter_name': [], 'filter_value': [] }
         },
     }, getAddFilter)
     fastify.get("/filter/set", {
         config: {
-            analyticsEvent: "filter_set",
+            analyticsEvent: AnalyticsEvent.FilterSet,
             analyticsParams: { 'filter_name': [], 'filter_value': [] }
         },
     }, getSetFilter)

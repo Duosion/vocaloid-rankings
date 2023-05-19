@@ -1,5 +1,6 @@
 const SearchQueryParams = require("../../../db/dataClasses/SearchQueryParams")
 const SearchQueryResult = require("../../../db/dataClasses/SearchQueryResult")
+const AnalyticsEvent = require("../../../db/enums/AnalyticsEvent")
 const NameType = require("../../../db/enums/NameType")
 const SearchQueryResultItemType = require("../../../db/enums/SearchQueryResultItemType")
 
@@ -182,7 +183,7 @@ exports.prefix = "/search"
 exports.register = (fastify, options, done) => {
   fastify.get("/", {
     config: {
-        analyticsEvent: "search",
+        analyticsEvent: AnalyticsEvent.Search,
         analyticsParams: { 'query': "" }
     }
   }, getSearchRoute)

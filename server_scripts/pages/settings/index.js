@@ -1,3 +1,4 @@
+const AnalyticsEvent = require("../../../db/enums/AnalyticsEvent")
 const AnalyticsToggleSetting = require("./enums/AnalyticsToggleSetting")
 const AnimationToggleSetting = require("./enums/AnimationToggleSetting")
 const LanguageSetting = require("./enums/LanguageSetting")
@@ -88,13 +89,13 @@ exports.settings = settingsPageOptions
 exports.register = (fastify, options, done) => {
     fastify.post("/", {
         config: {
-          analyticsEvent: "setting_change",
+          analyticsEvent: AnalyticsEvent.SettingChange,
           analyticsParams: {'name': [], 'value': []}
         },
     }, postSettings)
     fastify.get("/", {
         config: {
-          analyticsEvent: "page_visit",
+          analyticsEvent: AnalyticsEvent.PageVisit,
           analyticsParams: {'page_name': "settings"}
         },
     },getSettings)

@@ -769,7 +769,12 @@ const scrapeVocaDBRecentSongsAsync = () => {
 
                             if ((views.total >= vocaDBRecentSongsViewsThreshold) && (vocaDBRecentSongsUploadDateThreshold > (timeNow - new Date(entryData.publishDate)))) {
                                 console.log(`${entryData.id} meets views threshold (${views.total} views)`)
-                                recentSongs.push(await scrapeVocaDBSongAsync(entryData.id))
+                                try {
+                                    recentSongs.push(await scrapeVocaDBSongAsync(entryData.id))
+                                } catch (error) {
+                                    console.log(`Error when scraping recent VocaDB song with id ${entryData.id}. Error: ${error}`)
+                                }
+                                
                             }
                         }
 

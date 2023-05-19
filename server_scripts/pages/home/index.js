@@ -1,4 +1,5 @@
 const fastify = require("fastify")
+const AnalyticsEvent = require("../../../db/enums/AnalyticsEvent")
 
 const workingDirectory = process.cwd()
 const modulePath = workingDirectory + "/server_scripts"
@@ -12,7 +13,7 @@ const getPage = (request, reply) => {
 exports.register = (fastify, options, done) => {
   fastify.get("/", {
     config: {
-      analyticsEvent: "page_visit",
+      analyticsEvent: AnalyticsEvent.PageVisit,
       analyticsParams: { 'page_name': "home" }
     },
   }, getPage)
