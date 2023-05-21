@@ -237,6 +237,9 @@ const updateSongsData = () => {
       }
     }
 
+    // add timestamp
+    songsDataProxy.insertViewsTimestamp(timestamp, new Date().toISOString())
+    
     // get scraper songs
     if (!isAlreadyUpdated) {
       const scraperSongs = await scraper.getFandomSongsData(timestamp, songsDataExcludeURLs, songsDataExcludeIDs)
@@ -265,8 +268,7 @@ const updateSongsData = () => {
 
     }
 
-    // add timestamp
-    songsDataProxy.insertViewsTimestamp(timestamp, new Date().toISOString())
+    
 
     // purge caches
     caches.rankingsCache.purge()
