@@ -7,12 +7,12 @@
 <link rel="stylesheet" href="/css/song.css">
 
 <div id="info-header-backsplash">
-  <img src="/song/thumbnail/{{songData.id}}?maxRes=1">
+  <img src="{{songData.maxresDisplayThumbnail}}">
 </div>
 <div id="info-header" class="on-surface-text">
   <div id="info-header-content">
     {{> back-button referer=referer class='filled-tonal floating top left' id='home-button'}}
-    <img class="song-info-cover" src="/song/thumbnail/{{songData.id}}">
+    <img class="song-info-cover" src="{{songData.displayThumbnail}}">
     <div id="info-header-title" class="display-small title text-centered">{{songData.preferredName}}</div>
     <div class="headline-small bold text-centered">{{longFormat songData.views.total}} {{localization.rankings_views}}</div>
   </div>

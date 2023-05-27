@@ -38,7 +38,7 @@
         {{#each queryResult.results}}
             {{#if isSong}}
                 <div id="e{{placement}}" class="rankings-entry">
-                    <a class="cover" style="background-image:url(/song/thumbnail/{{data.id}})" href="song/{{data.id}}?referer=/search"></a>
+                    <a class="cover" style="background-image:url({{song.displayThumbnail}})" href="song/{{data.id}}?referer=/search"></a>
                     <div class="title">
                         <a class="main-title title-medium-large" href="song/{{data.id}}?referer=/search">{{preferredName}}</a>
                         <div class="label song title-small">{{../localization.search_song}}</div>

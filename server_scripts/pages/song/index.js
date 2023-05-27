@@ -13,6 +13,7 @@ const AccessLevel = require("../../../db/enums/AccessLevel");
 const AnalyticsEvent = require("../../../db/enums/AnalyticsEvent");
 const { getHasherAsync, viewTypesDisplayData, caches } = require(modulePath + "/shared")
 const { getPreferredLanguageName } = require(modulePath + "/locale")
+const fetch = require('node-fetch')
 
 // initialize caches
 const songsDataCache = caches.songsDataCache

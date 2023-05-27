@@ -114,6 +114,8 @@ module.exports = class SongsDataProxy {
         songViews,
         songPlacement
     ) {
+
+        const songId = songData.id
         // process names
         const names = []
         for (const [_, nameData] of songNames.entries()) {
@@ -132,14 +134,20 @@ module.exports = class SongsDataProxy {
             // add video id to bucket
             bucket.push(videoIdData.video_id)
         }
+
+        const thumbType = ViewType.fromId(songData.thumbnail_type) || ViewType.YouTube
+        const thumb = songData.thumbnail
+        const maxresThumb = songData.maxres_thumbnail
+        const needsProxy = thumbType == ViewType.bilibili
+
         // build song
         return new Song(
-            songData.id,
+            songId,
             songData.publish_date,
             songData.addition_date,
             SongType.fromId(songData.song_type),
-            songData.thumbnail,
-            songData.maxres_thumbnail,
+            thumb,
+            maxresThumb,
             songData.average_color,
             songData.dark_color,
             songData.light_color,
@@ -149,7 +157,9 @@ module.exports = class SongsDataProxy {
             videoIds,
             songViews,
             songPlacement,
-            ViewType.fromId(songData.thumbnail_type)
+            thumbType,
+            needsProxy ? `/song/thumbnail/${songId}` : thumb,
+            needsProxy ? `/song/thumbnail/${songId}?maxRes=1` : maxresThumb || thumb
         )
     }
 

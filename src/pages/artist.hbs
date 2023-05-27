@@ -158,7 +158,7 @@
                         {{#each artistData.songsOne}}
                             <div id="e{{placement}}" class="rankings-entry">
                                 <div class="rank title-large">{{placement}}</div>
-                                <a class="cover" style="background-image:url(/song/thumbnail/{{song.id}})" href="/song/{{song.id}}?referer=/rankings"></a>
+                                <a class="cover" style="background-image:url({{song.displayThumbnail}})" href="/song/{{song.id}}?referer=/rankings"></a>
                                 <div class="title">
                                     <a class="main-title title-medium-large" href="/song/{{song.id}}?referer=/rankings">{{preferredName}}</a>
                                 </div>
@@ -173,7 +173,7 @@
                         {{#each artistData.songsTwo}}
                             <div id="e{{placement}}" class="rankings-entry">
                                 <div class="rank title-large">{{placement}}</div>
-                                <a class="cover" style="background-image:url(/song/thumbnail/{{song.id}})" href="/song/{{song.id}}?referer=/rankings"></a>
+                                <a class="cover" style="background-image:url({{song.displayThumbnail}})" href="/song/{{song.id}}?referer=/rankings"></a>
                                 <div class="title">
                                     <a class="main-title title-medium-large" href="/song/{{song.id}}?referer=/rankings">{{preferredName}}</a>
                                 </div>
@@ -195,7 +195,7 @@
                     {{#each artistData.songsOne}}
                         <div id="e{{placement}}" class="rankings-entry">
                             <div class="rank title-large">{{placement}}</div>
-                            <a class="cover" style="background-image:url(/song/thumbnail/{{song.id}})" href="/song/{{song.id}}?referer=/rankings"></a>
+                            <a class="cover" style="background-image:url({{song.displayThumbnail}})" href="/song/{{song.id}}?referer=/rankings"></a>
                             <div class="title">
                                 <a class="main-title title-medium-large" href="/song/{{song.id}}?referer=/rankings">{{preferredName}}</a>
                             </div>

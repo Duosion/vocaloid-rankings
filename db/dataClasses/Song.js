@@ -24,6 +24,8 @@ module.exports = class Song {
      * @param {EntityViews=} views // this song's views
      * @param {SongPlacement} [placement] // this song's placements
      * @param {ViewType} [thumbnailType] // this song's thumbnail type
+     * @param {string} [displayThumbnail] // the thumbnail to display
+     * @param {string} [maxresDisplayThumbnail] // the maximum res display thumbnail to display
      */
     constructor(
         id,
@@ -41,7 +43,9 @@ module.exports = class Song {
         videoIds,
         views,
         placement,
-        thumbnailType
+        thumbnailType,
+        displayThumbnail,
+        maxresDisplayThumbnail
     ) {
         this.id = id
         this.publishDate = publishDate
@@ -59,6 +63,8 @@ module.exports = class Song {
         this.views = views
         this.placement = placement
         this.thumbnailType = thumbnailType
+        this.displayThumbnail = displayThumbnail
+        this.maxresDisplayThumbnail = maxresDisplayThumbnail
     }
 
 }
