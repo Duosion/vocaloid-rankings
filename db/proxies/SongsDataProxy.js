@@ -25,6 +25,8 @@ const SearchQueryResult = require("../dataClasses/SearchQueryResult")
 const SearchQueryResultItem = require("../dataClasses/SearchQueryResultItem")
 const SearchQueryResultItemType = require("../enums/SearchQueryResultItemType")
 const ArtistPlacement = require("../dataClasses/ArtistPlacement")
+const SongRows = require("../enums/SongRows")
+const ArtistRows = require("../enums/ArtistRows")
 
 function generateISOTimestamp() {
     return new Date().toISOString()
@@ -62,13 +64,13 @@ module.exports = class SongsDataProxy {
     ) {
         // process names
         const names = []
-        for (const [_, nameData] of artistNames.entries()) {
+        for (const [_, nameData] of (artistNames || []).entries()) {
             names[nameData.name_type] = nameData.name
         }
 
         // process thumbnails
         const thumbnails = []
-        for (const [_, thumbnailData] of artistThumbnails.entries()) {
+        for (const [_, thumbnailData] of (artistThumbnails || []).entries()) {
             const thumbType = thumbnailData.thumbnail_type
             thumbnails[thumbType] = new ArtistThumbnail(
                 ArtistThumbnailType.fromId(thumbType),
@@ -118,12 +120,12 @@ module.exports = class SongsDataProxy {
         const songId = songData.id
         // process names
         const names = []
-        for (const [_, nameData] of songNames.entries()) {
+        for (const [_, nameData] of (songNames || []).entries()) {
             names[nameData.name_type] = nameData.name
         }
         // process video ids
         const videoIds = []
-        for (const [_, videoIdData] of songVideoIds.entries()) {
+        for (const [_, videoIdData] of (songVideoIds || []).entries()) {
             const type = videoIdData.video_type
             // get bucket
             let bucket = videoIds[type]
@@ -140,12 +142,14 @@ module.exports = class SongsDataProxy {
         const maxresThumb = songData.maxres_thumbnail
         const needsProxy = thumbType == ViewType.bilibili
 
+        const songType = songData.song_type
+
         // build song
         return new Song(
             songId,
             songData.publish_date,
             songData.addition_date,
-            SongType.fromId(songData.song_type),
+            songType != null || songType != undefined ? SongType.fromId(songType) : null,
             thumb,
             maxresThumb,
             songData.average_color,
@@ -281,7 +285,7 @@ module.exports = class SongsDataProxy {
      * @param {EntityViews} [artistViews] The views data for this artist.
      * @returns {ArtistPlacement} The built ArtistPlacement object
      */
-    #getArtistPlacement(
+    #getArtistPlacementSync(
         artistData,
         artistViews
     ) {
@@ -344,8 +348,58 @@ module.exports = class SongsDataProxy {
         WHERE artist_id = ?`).all(artistId)
 
         const views = getViews ? this.#getArtistViewsSync(artistId) : null
-        const placement = views ? this.#getArtistPlacement(artistData, views) : null
+        const placement = views ? this.#getArtistPlacementSync(artistData, views) : null
 
+        return this.#buildArtist(
+            artistData,
+            artistNames,
+            artistThumbnails,
+            views,
+            placement
+        )
+    }
+
+    /**
+     * Synchronously gets the artist associated with the provided artist id.
+     * Returns a song with only the provided 
+     * 
+     * @param {number} artistId 
+     * @param {[SongRows]} selections 
+     */
+    #getArtistSelectiveSync(
+        artistId,
+        selections
+    ) {
+        const db = this.db
+
+        const artistData = db.prepare(`
+        SELECT id, artist_type${selections[ArtistRows.PublishDate.id] ? ', publish_date' : ''}
+            ${selections[ArtistRows.AdditionDate.id] ? ', addition_date' : ''}
+            ${selections[ArtistRows.BaseArtist.id] ? ', base_artist_id' : ''}
+            ${selections[ArtistRows.AverageColor.id] ? ', average_color' : ''}
+            ${selections[ArtistRows.DarkColor.id] ? ', dark_color' : ''}
+            ${selections[ArtistRows.LightColor.id] ? ', light_color' : ''}
+        FROM artists
+        WHERE id = ?`).get(artistId)
+
+        // return null if the artist doesn't exist.
+        if (artistData == undefined) { return null }
+
+        // get names
+        const artistNames = selections[ArtistRows.Names.id] ? db.prepare(`
+        SELECT name, name_type
+        FROM artists_names
+        WHERE artist_id = ?`).all(artistId) : null
+
+        // get thumbnails
+        const artistThumbnails = selections[ArtistRows.Thumbnails.id] ? db.prepare(`
+        SELECT thumbnail_type, url
+        FROM artists_thumbnails
+        WHERE artist_id = ?`).all(artistId) : null
+
+        const views = selections[ArtistRows.Views.id] ? this.#getArtistViewsSync(artistId) : null
+        const placement = selections[ArtistRows.Placement.id] ? this.#getArtistPlacementSync(artistData, views || this.#getArtistViewsSync(artistId)) : null
+        
         return this.#buildArtist(
             artistData,
             artistNames,
@@ -471,6 +525,75 @@ module.exports = class SongsDataProxy {
 
         const songViews = getViews ? this.#getSongViewsSync(songId) : null
         const songPlacement = songViews ? this.#getSongPlacementSync(songData, songViews) : null
+
+        return this.#buildSong(
+            songData,
+            songNames,
+            artists,
+            songVideoIds,
+            songViews,
+            songPlacement
+        )
+    }
+
+    /**
+     * Synchronously gets the song associated with the provided song id.
+     * Returns a song with only the provided 
+     * 
+     * @param {number} songId 
+     * @param {[SongRows]} selections 
+     */
+    #getSongSelectiveSync(
+        songId,
+        selections
+    ) {
+        const db = this.db
+
+        const songData = db.prepare(`
+        SELECT id, thumbnail, maxres_thumbnail, thumbnail_type, publish_date
+                 ${selections[SongRows.AdditionDate.id] ? ', addition_date' : ''}
+                 ${selections[SongRows.Type.id] ? ', song_type' : ''}
+                 ${selections[SongRows.PublishDate.id] ? ', average_color' : ''}
+                 ${selections[SongRows.PublishDate.id] ? ', dark_color' : ''}
+                 ${selections[SongRows.PublishDate.id] ? ', light_color' : ''}
+                 ${selections[SongRows.PublishDate.id] ? ', fandom_url' : ''}
+        FROM songs
+        WHERE id = ?`).get(songId)
+
+        // resolve with null if the song was not found
+        if (songData == undefined) { return null }
+
+        // get names
+        const songNames = selections[SongRows.Names.id] ? db.prepare(`
+        SELECT name, name_type 
+        FROM songs_names
+        WHERE song_id = ?`).all(songId) : null
+
+        // get song artists
+        let artists = null
+        if (selections[SongRows.Artists.id]) {
+            const songArtists = selections[SongRows.Artists.id] ? db.prepare(`
+            SELECT artist_id, artist_category
+            FROM songs_artists
+            WHERE song_id = ?`).all(songId) : null
+
+            // get artists data
+            artists = []
+            for (const [_, songArtist] of songArtists.entries()) {
+                const artist = this.#getArtistSync(songArtist.artist_id)
+                artist.category = ArtistCategory.fromId(songArtist.artist_category)
+                artists.push(artist)
+            }
+        }
+
+        // get video ids
+        const songVideoIds = selections[SongRows.VideoIds.id] ? db.prepare(`
+        SELECT video_id, video_type
+        FROM songs_video_ids
+        WHERE song_id = ?`).all(songId) : null
+
+        const songViews = selections[SongRows.Views.id] ? this.#getSongViewsSync(songId) : null
+        const songPlacement = selections[SongRows.Placement.id] ? this.#getSongPlacementSync(songData, songViews || this.#getSongViewsSync(songId)) : null
 
         return this.#buildSong(
             songData,
@@ -873,7 +996,7 @@ module.exports = class SongsDataProxy {
             }
             filterSongs = artists.join(',')
         }
-        
+
         // build artists types statement
         const filterParamsArtistsTypes = filterParams.artistTypes
         let filterArtistsTypes = ``
@@ -1266,12 +1389,12 @@ module.exports = class SongsDataProxy {
                 FROM views_breakdowns
                 WHERE (song_id = :id)
                     AND (timestamp = DATE(:timestamp, '-' || :daysOffset || ' day'))`),
-                {
-                    id: id
-                },
-                range,
-                period,
-                timestamp
+            {
+                id: id
+            },
+            range,
+            period,
+            timestamp
         )
     }
 
@@ -1646,10 +1769,76 @@ module.exports = class SongsDataProxy {
         })
     }
 
+    /**
+     * Asynchronously gets the song associated with the provided song id.
+     * Returns a song with only the provided 
+     * 
+     * @param {number} id 
+     * @param {} selections 
+     */
+    getSongSelective(
+        id,
+        selections
+    ) {
+        return new Promise((resolve, reject) => {
+            try {
+                resolve(this.#getSongSelectiveSync(id, selections))
+            } catch (error) {
+                reject(error)
+            }
+        })
+    }
+
     getSongsIds() {
         return new Promise((resolve, reject) => {
             try {
                 resolve(this.db.prepare('SELECT id FROM songs').all())
+            } catch (error) {
+                reject(error)
+            }
+        })
+    }
+
+    /**
+     * Gets a song's views at the provided timestamp.
+     * If timestamp is not provided, it uses today's date instead.
+     * 
+     * @param {number} id 
+     * @param {string} [timestamp]
+     * @returns {Promise<EntityViews>}
+     */
+    getSongViews(
+        id,
+        timestamp
+    ) {
+        return new Promise((resolve, reject) => {
+            try {
+                resolve(this.#getSongViewsSync(id, timestamp))
+            } catch (error) {
+                reject(error)
+            }
+        })
+    }
+
+    /**
+     * Gets a song's placement at the provided timestamp.
+     * If a timestamp is not provided, today's date will be used instead.
+     * 
+     * @param {number} id 
+     * @param {string} [timestamp] 
+     * @returns {Promise<SongPlacement>}
+     */
+    getSongPlacement(
+        id,
+        timestamp
+    ) {
+        return new Promise((resolve, reject) => {
+            try {
+                const songData = this.#getSongSync(id)
+                resolve(this.#getSongPlacementSync(
+                    songData,
+                    timestamp ? this.#getSongViewsSync(id, timestamp) : songData.views
+                ))
             } catch (error) {
                 reject(error)
             }
@@ -1667,6 +1856,72 @@ module.exports = class SongsDataProxy {
         return new Promise((resolve, reject) => {
             try {
                 resolve(this.#getArtistSync(id, true))
+            } catch (error) {
+                reject(error)
+            }
+        })
+    }
+
+    /**
+     * Gets an artist's views at the provided timestamp.
+     * If timestamp is not provided, it uses today's date instead.
+     * 
+     * @param {number} id 
+     * @param {string} [timestamp]
+     * @returns {Promise<EntityViews>}
+     */
+    getArtistViews(
+        id,
+        timestamp
+    ) {
+        return new Promise((resolve, reject) => {
+            try {
+                resolve(this.#getArtistViewsSync(id, timestamp))
+            } catch (error) {
+                reject(error)
+            }
+        })
+    }
+
+    /**
+     * Gets a artist's placement at the provided timestamp.
+     * If a timestamp is not provided, today's date will be used instead.
+     * 
+     * @param {number} id 
+     * @param {string} [timestamp] 
+     * @returns {Promise<SongPlacement>}
+     */
+    getArtistPlacement(
+        id,
+        timestamp
+    ) {
+        return new Promise((resolve, reject) => {
+            try {
+                const artistData = this.#getArtistSync(id)
+                resolve(this.#getArtistPlacementSync(
+                    artistData,
+                    timestamp ? this.#getArtistViewsSync(id, timestamp) : artistData.views
+                ))
+            } catch (error) {
+                reject(error)
+            }
+        })
+    }
+
+    /**
+     * Asynchronously gets the artist associated with the provided artist id.
+     * Returns a artist with only the provided 
+     * 
+     * @param {number} id 
+     * @param {} selections 
+     */
+    getArtistSelective(
+        id,
+        selections
+    ) {
+        return new Promise((resolve, reject) => {
+            try {
+                resolve(this.#getArtistSelectiveSync(id, selections))
             } catch (error) {
                 reject(error)
             }
@@ -1756,7 +2011,7 @@ module.exports = class SongsDataProxy {
                     return reject("Attempt to update an artist that doesn't exist.")
                 }
 
-                
+
 
                 // prepare statement to update into songs
                 const updateStatement = db.prepare(`
@@ -1779,7 +2034,7 @@ module.exports = class SongsDataProxy {
                 DELETE FROM artists_thumbnails
                 WHERE artist_id = ?`).run(artistId)
 
-                
+
                 // update artist
                 const baseArtist = artist.baseArtist // get the base artist
                 updateStatement.run(
@@ -1819,7 +2074,7 @@ module.exports = class SongsDataProxy {
                 const artistsInsertStatement = db.prepare(`
                 REPLACE INTO artists (id, artist_type, publish_date, addition_date, base_artist_id, average_color, dark_color, light_color)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`)
-                
+
 
                 // handle base artist
                 // insert the base artist if it doesn't exist within the database
@@ -1840,7 +2095,7 @@ module.exports = class SongsDataProxy {
                     artist.darkColor,
                     artist.lightColor
                 )
-                
+
                 this.#insertArtistForeignSync(artist)
 
                 resolve()

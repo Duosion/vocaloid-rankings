@@ -20,7 +20,7 @@ module.exports = class Song {
      * @param {string} [fandomUrl] // the fandom URL for this song
      * @param {Artist[]} artists // this song's artists
      * @param {string[]} names // this song's names
-     * @param {Array.<string>[]} videoIds // this song's viodeo ids
+     * @param {Array.<string>[]} videoIds // this song's video ids
      * @param {EntityViews=} views // this song's views
      * @param {SongPlacement} [placement] // this song's placements
      * @param {ViewType} [thumbnailType] // this song's thumbnail type
