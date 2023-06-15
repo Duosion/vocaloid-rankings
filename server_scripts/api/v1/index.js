@@ -6,6 +6,8 @@ const SongRows = require('../../../db/enums/SongRows')
 const NameType = require('../../../db/enums/NameType')
 const ViewType = require('../../../db/enums/ViewType')
 const ArtistRows = require('../../../db/enums/ArtistRows')
+const SearchQueryParams = require('../../../db/dataClasses/SearchQueryParams')
+const SearchQueryResultItemType = require('../../../db/enums/SearchQueryResultItemType')
 
 // schemaTypeClasses
 
@@ -217,6 +219,49 @@ class Song {
 
 }
 
+class SearchQueryResultItem {
+    #item
+
+    constructor(item) {
+        this.#item = item
+
+        this.placement = item.placement
+        this.distance = item.distance
+
+        this.data = item.type == SearchQueryResultItemType.Song ? new Song(item.data) : new Artist(item.data)
+    }
+
+    type() {
+        switch (this.#item.type.id) {
+            case 0:
+                return 'SONG'
+            case 1:
+                return 'ARTIST'
+        } 
+    }
+
+}
+
+class SearchQueryResult {
+    #result
+
+    constructor(queryResult, offset) {
+        this.#result = queryResult
+
+        this.page = {
+            offset: offset,
+            total: queryResult.totalCount
+        }
+
+        const items = []
+        queryResult.results.forEach(result => {
+            items.push(new SearchQueryResultItem(result))
+        })
+        this.items = items
+    }
+
+}
+
 var schema = `
     enum SongType {
         ORIGINAL
@@ -255,6 +300,11 @@ var schema = `
         MEDIUM
         SMALL
         TINY
+    }
+
+    enum SearchQueryResultItemType {
+        SONG
+        ARTIST
     }
 
     type EntityNames {
@@ -338,9 +388,29 @@ var schema = `
         maxresDisplayThumbnail: String
     }
 
+    type PageInfo {
+        offset: Int
+        total: Int
+    }
+
+    union SearchResultItemData = Song | Artist
+
+    type SearchQueryResultItem {
+        placement: Int
+        type: SearchQueryResultItemType
+        data: SearchResultItemData
+        distance: Int
+    }
+
+    type SearchQueryResult {
+        page: PageInfo
+        items: [SearchQueryResultItem]
+    }
+
     type Query {
-        Song(id: Int): Song
-        Artist(id: Int): Artist
+        Song(id: Int!): Song
+        Artist(id: Int!): Artist
+        Search(query: String!, startAt: Int, maxEntries: Int, minimumDistance: Int, maximumDistance: Int): SearchQueryResult
     }
 `
 
@@ -375,6 +445,25 @@ var resolvers = {
             });
 
             return new Artist(await songsDataProxy.getArtistSelective(id, querySelections))
+        },
+        Search: async (_, { query, startAt, maxEntries, minimumDistance, maximumDistance }) => {
+            
+            // query
+            return new SearchQueryResult(await songsDataProxy.searchQuery(
+                new SearchQueryParams(
+                    query,
+                    Math.max(Math.min(0, maxEntries || 0), 50),
+                    startAt,
+                    minimumDistance,
+                    maximumDistance
+                )
+            ), startAt || 0)
+
+        }
+    },
+    SearchResultItemData: {
+        resolveType: (obj) => {
+            return obj instanceof Song ? 'Song' : 'Artist'
         }
     }
 }
@@ -531,25 +620,34 @@ exports.register = (fastify, opts, done) => {
             }
         }`)*/
         return reply.graphql(`{
-            Artist(id: 21165) {
-                id
-                views (timestamp: "2023-01-01") {
-                    timestamp
+            Search(query: "yukopi", startAt: 0, maxEntries: 100) {
+                page {
+                    offset
                     total
-                    breakdown {
-                        youtube {
-                            views
+                }
+                items {
+                    placement
+                    type
+                    data {
+                        ... on Song {
+                            names {
+                                original
+                                japanese
+                                english
+                                romaji
+                            }
                         }
-                        niconico {
-                            views
-                        }
-                        bilibili {
-                            views
+                        ... on Artist {
+                            category
+                            names {
+                                original
+                                japanese
+                                english
+                                romaji
+                            }
                         }
                     }
-                }
-                placement (timestamp: "2023-01-01") {
-                    allTime
+                    distance
                 }
             }
         }`).catch(error => {
