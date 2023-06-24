@@ -13,9 +13,9 @@ git clone https://github.com/Duosion/vocaloid-rankings.git
 ```
 2. Rename `.env.template` to `.env` and fill in the following fields:
 * **YoutubeAPIKey**
-  - A google cloud API key with access to the [YouTube data API](https://developers.google.com/youtube/v3/getting-started) here.
+  - A google cloud API key with access to the [YouTube data API](https://developers.google.com/youtube/v3/getting-started).
 * **CookieSignatureSecret**
-  - A decently-sized randomly generated string of characters and numbers here.
+  - A decently-sized randomly generated string of characters and numbers.
 * **PORT**
   - This is the port that the server will listen from.
 * **adminUsername**
