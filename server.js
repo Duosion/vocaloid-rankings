@@ -1,6 +1,10 @@
+// import dotenv
+if (process.env.dotenv) {
+  require('dotenv').config()
+}
+
 // import npm modules
 const path = require("path");
-const fs = require('fs');
 
 const fastify = require("fastify")({
   // Set this to true for detailed logging:
