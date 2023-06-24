@@ -14,7 +14,8 @@
     {{> back-button referer=referer class='filled-tonal floating top left' id='home-button'}}
     <img class="song-info-cover" src="{{songData.displayThumbnail}}">
     <div id="info-header-title" class="display-small title text-centered">{{songData.preferredName}}</div>
-    <div class="headline-small bold text-centered">{{longFormat songData.views.total}} {{localization.rankings_views}}</div>
+    <div class="headline-small bold text-centered">{{longFormat songData.views.total}} {{localization.rankings_views}}
+    </div>
   </div>
 </div>
 <div id="info-container">
@@ -22,30 +23,31 @@
   <div id="info-sidebar">
     <div id="song-sidebar-placements">
       {{#each displayPlacements}}
-        <a class="placement-card {{type}} outgoing-link clickable-sidebar-card text-centered body-small on-surface-text" href="{{url}}">
-          <span class="material-symbols-rounded">star</span>
-          <div>{{text}}</div>
-        </a>
+      <a class="placement-card {{type}} outgoing-link clickable-sidebar-card text-centered body-small on-surface-text"
+        href="{{url}}">
+        <span class="material-symbols-rounded">star</span>
+        <div>{{text}}</div>
+      </a>
       {{/each}}
     </div>
 
     {{#if accessStates.canSeeControls}}
-      <div id="sidebar-controls" class="sidebar-card body-medium on-surface-text">
-        {{#if accessStates.canRefresh}}
-          <a class="material-button blocky" href="/song/{{songData.id}}/refresh">
-            <span class="material-symbols-rounded">refresh</span>
-            {{localization.song_refresh}}
-          </a>
-        {{/if}}
-        {{#if accessStates.canRefresh}}
-          <a class="material-button blocky" href="/song/{{songData.id}}/delete">
-            <span class="material-symbols-rounded">delete</span>
-            {{localization.song_delete}}
-          </a>
-        {{/if}}
-      </div>
+    <div id="sidebar-controls" class="sidebar-card body-medium on-surface-text">
+      {{#if accessStates.canRefresh}}
+      <a class="material-button blocky" href="/song/{{songData.id}}/refresh">
+        <span class="material-symbols-rounded">refresh</span>
+        {{localization.song_refresh}}
+      </a>
+      {{/if}}
+      {{#if accessStates.canRefresh}}
+      <a class="material-button blocky" href="/song/{{songData.id}}/delete">
+        <span class="material-symbols-rounded">delete</span>
+        {{localization.song_delete}}
+      </a>
+      {{/if}}
+    </div>
     {{/if}}
-    
+
     <div id="sidebar-info" class="sidebar-card body-medium on-surface-text">
       <div class="sidebar-card-dataset">
         <div class="title">{{localization.filter_publish_date}}</div>
@@ -79,71 +81,71 @@
   <div id="info-content">
     {{!compact artists}}
     {{#if compactArtists}}
-      <div id="compact-artists" class="content-grid">
-        <div id="singers">
-          <div class="body-large bold on-background-text section-title">{{localization.song_singers_singular}}</div>
-          {{#each songData.artists}}
-          {{#if (comp category.id 0)}}
-          <a class="clickable-content-card static" href="/artist/{{id}}">
-            <img class="cover" src="{{thumbnails.[1].url}}">
-            <div class="card-content">
-              <div class="body-large clickable-content-card-highlight">{{preferredName}}</div>
-              <div class="body-medium">{{localize type.name}}</div>
-            </div>
-          </a>
-          {{/if}}
-          {{/each}}
-        </div>
-        <div id="producers">
-          <div class="body-large bold on-background-text section-title">{{localization.song_producers_singular}}</div>
-          {{#each songData.artists}}
-          {{#if (comp category.id 1)}}
-          <a class="clickable-content-card static" href="/artist/{{id}}">
-            <img class="cover" src="{{thumbnails.[1].url}}">
-            <div class="card-content">
-              <div class="body-large clickable-content-card-highlight">{{preferredName}}</div>
-              <div class="body-medium">{{localize type.name}}</div>
-            </div>
-          </a>
-          {{/if}}
-          {{/each}}
-        </div>
-      </div>
-    {{else}}
-      {{!singers}}
+    <div id="compact-artists" class="content-grid">
       <div id="singers">
-        <div class="body-large bold on-background-text section-title">{{localization.song_singers}}</div>
-        <div class="card-grid">
-          {{#each songData.artists}}
-          {{#if (comp category.id 0)}}
-          <a class="clickable-content-card" href="/artist/{{id}}">
-            <img class="cover" src="{{thumbnails.[1].url}}">
-            <div class="card-content">
-              <div class="body-large clickable-content-card-highlight">{{preferredName}}</div>
-              <div class="body-medium">{{localize type.name}}</div>
-            </div>
-          </a>
-          {{/if}}
-          {{/each}}
-        </div>
+        <div class="body-large bold on-background-text section-title">{{localization.song_singers_singular}}</div>
+        {{#each songData.artists}}
+        {{#if (comp category.id 0)}}
+        <a class="clickable-content-card static" href="/artist/{{id}}">
+          <img class="cover" src="{{thumbnails.[1].url}}">
+          <div class="card-content">
+            <div class="body-large clickable-content-card-highlight">{{preferredName}}</div>
+            <div class="body-medium">{{localize type.name}}</div>
+          </div>
+        </a>
+        {{/if}}
+        {{/each}}
       </div>
-      {{!producers}}
       <div id="producers">
-        <div class="body-large bold on-background-text section-title">{{localization.song_producers}}</div>
-        <div class="card-grid">
-          {{#each songData.artists}}
-          {{#if (comp category.id 1)}}
-          <a class="clickable-content-card" href="/artist/{{id}}">
-            <img class="cover" src="{{thumbnails.[1].url}}">
-            <div class="card-content">
-              <div class="body-large clickable-content-card-highlight">{{preferredName}}</div>
-              <div class="body-medium">{{localize type.name}}</div>
-            </div>
-          </a>
-          {{/if}}
-          {{/each}}
-        </div>
+        <div class="body-large bold on-background-text section-title">{{localization.song_producers_singular}}</div>
+        {{#each songData.artists}}
+        {{#if (comp category.id 1)}}
+        <a class="clickable-content-card static" href="/artist/{{id}}">
+          <img class="cover" src="{{thumbnails.[1].url}}">
+          <div class="card-content">
+            <div class="body-large clickable-content-card-highlight">{{preferredName}}</div>
+            <div class="body-medium">{{localize type.name}}</div>
+          </div>
+        </a>
+        {{/if}}
+        {{/each}}
       </div>
+    </div>
+    {{else}}
+    {{!singers}}
+    <div id="singers">
+      <div class="body-large bold on-background-text section-title">{{localization.song_singers}}</div>
+      <div class="card-grid">
+        {{#each songData.artists}}
+        {{#if (comp category.id 0)}}
+        <a class="clickable-content-card" href="/artist/{{id}}">
+          <img class="cover" src="{{thumbnails.[1].url}}">
+          <div class="card-content">
+            <div class="body-large clickable-content-card-highlight">{{preferredName}}</div>
+            <div class="body-medium">{{localize type.name}}</div>
+          </div>
+        </a>
+        {{/if}}
+        {{/each}}
+      </div>
+    </div>
+    {{!producers}}
+    <div id="producers">
+      <div class="body-large bold on-background-text section-title">{{localization.song_producers}}</div>
+      <div class="card-grid">
+        {{#each songData.artists}}
+        {{#if (comp category.id 1)}}
+        <a class="clickable-content-card" href="/artist/{{id}}">
+          <img class="cover" src="{{thumbnails.[1].url}}">
+          <div class="card-content">
+            <div class="body-large clickable-content-card-highlight">{{preferredName}}</div>
+            <div class="body-medium">{{localize type.name}}</div>
+          </div>
+        </a>
+        {{/if}}
+        {{/each}}
+      </div>
+    </div>
     {{/if}}
     {{!stats}}
     <div class="content-grid">
@@ -152,13 +154,15 @@
         <div id="views-breakdown" class="content-section">
           <div class="content">
             {{#each songData.displayBreakdown}}
-              <div class="section">
-                <a class="label body-medium" style="background-color:{{color}};color:{{displayData.textColor}}" href="{{href}}">
-                  {{localize displayData.displayName}}</a>
-                <div class="body-medium" title="{{longFormat views}}">
-                  <span style="color:{{color}};text-shadow:{{textShadow}}">{{shortFormat views}}</span> {{../localization.rankings_views}}
-                </div>
+            <div class="section">
+              <a class="label body-medium" style="background-color:{{color}};color:{{displayData.textColor}}"
+                href="{{href}}">
+                {{localize displayData.displayName}}</a>
+              <div class="body-medium" title="{{longFormat views}}">
+                <span style="color:{{color}};text-shadow:{{textShadow}}">{{shortFormat views}}</span>
+                {{../localization.rankings_views}}
               </div>
+            </div>
             {{/each}}
           </div>
           <div class="share-container">
@@ -171,52 +175,58 @@
         </div>
       </div>
       <div>
-          <div class="body-large bold on-background-text section-title">{{localization.song_daily_views}}</div>
-          <div id="daily-views" class="content-section">
-            <div class="views-bar-graph">
-              {{#each songData.historicalViews}}
-              
-                <div class="views-bar-graph-entry body-medium">
-                  <div class="share" style="flex:{{share}}"></div>
-                  <div class="count bold" title="{{longFormat this.views}}">{{shortFormat this.views}}</div>
-                  <div class="date">{{this.dateString}}</div>
-                </div>
-              
-              {{/each}}
+        <div class="body-large bold on-background-text section-title">{{localization.song_daily_views}}</div>
+        <div id="daily-views" class="content-section">
+          <div class="views-bar-graph">
+            {{#each songData.historicalViews}}
+
+            <div class="views-bar-graph-entry body-medium">
+              <div class="share" style="flex:{{share}}"></div>
+              <div class="count bold" title="{{longFormat this.views}}">{{shortFormat this.views}}</div>
+              <div class="date">{{this.dateString}}</div>
             </div>
+
+            {{/each}}
           </div>
         </div>
+      </div>
     </div>
     {{!listen}}
-      <div class="content-grid">
+    <div class="content-grid">
       {{#if youtubePlayerId}}
-        <div>
-          <div class="body-large bold on-background-text section-title">{{localization.song_video}}</div>
-          <iframe id="youtube-player" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen="" style="border-radius: 10px;" src="https://www.youtube-nocookie.com/embed/{{youtubePlayerId}}" height="230" frameborder="0"></iframe>
-        </div>
+      <div>
+        <div class="body-large bold on-background-text section-title">{{localization.song_video}}</div>
+        <iframe id="youtube-player" title="YouTube video player"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen="" style="border-radius: 10px;"
+          src="https://www.youtube-nocookie.com/embed/{{youtubePlayerId}}" height="230" frameborder="0"></iframe>
+      </div>
       {{/if}}
 
       <div>
         <div class="body-large bold on-background-text section-title">{{localization.song_listen}}</div>
         <div id="listen">
           {{#each displayVideoIds}}
-            <div class="listen-group content-flex-wrap">
-              {{#each hrefs}}
-                <a class="outgoing-link listen-link clickable-sidebar-card body-medium on-surface-text text-centered" href="/outgoing?url={{this}}">
-                  <img style="background-color:{{../displayData.color}}" src="{{../displayData.icon}}">
-                  {{localize ../displayData.displayName}}
-                </a>
-              {{/each}}
-            </div>
+          <div class="listen-group content-flex-wrap">
+            {{#each hrefs}}
+            <a class="outgoing-link listen-link clickable-sidebar-card body-medium on-surface-text text-centered"
+              href="/outgoing?url={{this}}">
+              <img style="background-color:{{../displayData.color}}" src="{{../displayData.icon}}">
+              {{localize ../displayData.displayName}}
+            </a>
+            {{/each}}
+          </div>
           {{/each}}
         </div>
       </div>
       <div id="outgoing-vocadb-link">
         <div class="body-large bold on-background-text section-title">Links</div>
-        <a class="outgoing-link clickable-sidebar-card body-medium on-surface-text text-centered" href="/outgoing?url=https://vocadb.net/S/{{songData.id}}">
+        <a class="outgoing-link clickable-sidebar-card body-medium on-surface-text text-centered"
+          href="/outgoing?url=https://vocadb.net/S/{{songData.id}}">
           <img src="/images/voca-db-icon.png">
           VocaDB
         </a>
       </div>
+    </div>
   </div>
 </div>

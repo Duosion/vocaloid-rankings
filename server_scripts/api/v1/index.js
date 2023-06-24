@@ -8,6 +8,7 @@ const ViewType = require('../../../db/enums/ViewType')
 const ArtistRows = require('../../../db/enums/ArtistRows')
 const SearchQueryParams = require('../../../db/dataClasses/SearchQueryParams')
 const SearchQueryResultItemType = require('../../../db/enums/SearchQueryResultItemType')
+const RankingsFilterParams = require('../../../db/dataClasses/RankingsFilterParams')
 
 // schemaTypeClasses
 
@@ -243,11 +244,7 @@ class SearchQueryResultItem {
 }
 
 class SearchQueryResult {
-    #result
-
     constructor(queryResult, offset) {
-        this.#result = queryResult
-
         this.page = {
             offset: offset,
             total: queryResult.totalCount
@@ -259,7 +256,47 @@ class SearchQueryResult {
         })
         this.items = items
     }
+}
 
+class SongRankingsResultItem {
+    #item
+
+    constructor(item) {
+        this.#item = item
+
+        this.placement = item.placement
+        this.previousPlacement = item.previousPlacement
+        this.views = item.views
+        this.song = new Song(item.song)
+    }
+
+    change() {
+        switch(this.#item.change.id) {
+            case 0:
+                return 'UP'
+            case 1:
+                return 'SAME'
+            case 2:
+                return 'DOWN'
+        }
+    }
+}
+
+class SongRankingsResult {
+    constructor(queryResult, offset) {
+        this.page = {
+            offset: offset,
+            total: queryResult.totalCount
+        }
+
+        this.timestamp = queryResult.timestamp
+
+        const items = []
+        queryResult.results.forEach(result => {
+            items.push(new SongRankingsResultItem(result))
+        })
+        this.items = items
+    }
 }
 
 var schema = `
@@ -273,6 +310,24 @@ var schema = `
         YOUTUBE
         NICONICO
         BILIBILI
+    }
+
+    enum FilterOrder {
+        VIEWS
+        PUBLISH_DATE
+        ADDITION_DATE
+        POPULARITY
+    }
+
+    enum FilterDirection {
+        DESCENDING
+        ASCENDING
+    }
+
+    enum PlacementChange {
+        UP
+        SAME
+        DOWN
     }
 
     enum ArtistType {
@@ -396,7 +451,7 @@ var schema = `
     union SearchResultItemData = Song | Artist
 
     type SearchQueryResultItem {
-        placement: Int
+        placement: Int!
         type: SearchQueryResultItemType
         data: SearchResultItemData
         distance: Int
@@ -407,10 +462,43 @@ var schema = `
         items: [SearchQueryResultItem]
     }
 
+    type SongRankingsResultItem {
+        placement: Int!
+        change: PlacementChange
+        previousPlacement: Int
+        views: Float!
+        song: Song
+    }
+
+    type SongRankingsResult {
+        page: PageInfo
+        timestamp: String
+        items: [SongRankingsResultItem]
+    }
+
     type Query {
         Song(id: Int!): Song
         Artist(id: Int!): Artist
         Search(query: String!, startAt: Int, maxEntries: Int, minimumDistance: Int, maximumDistance: Int): SearchQueryResult
+        SongRankings(
+            timestamp: String
+            timePeriodOffset: Int
+            changeOffset: Int
+            daysOffset: Int
+            viewType: ViewType
+            songType: SongType
+            artistType: ArtistType
+            publishDate: String
+            orderBy: FilterOrder
+            direction: FilterDirection
+            artistIds: [ID]
+            songIds: [ID]
+            minViews: Float
+            maxViews: Float
+            singleVideo: Boolean
+            maxEntries: Int
+            startAt: Int
+        ): SongRankingsResult
     }
 `
 
@@ -458,7 +546,45 @@ var resolvers = {
                     maximumDistance
                 )
             ), startAt || 0)
-
+        },
+        SongRankings: async (_, {
+            timestamp,
+            timePeriodOffset,
+            changeOffset,
+            daysOffset,
+            viewType,
+            songType,
+            artistType,
+            publishDate,
+            orderBy,
+            direction,
+            artistIds,
+            songIds,
+            minViews,
+            maxViews,
+            singleVideo,
+            maxEntries,
+            startAt,
+        }) => {
+            return new SongRankingsResult(await songsDataProxy.filterRankings(new RankingsFilterParams(
+                timestamp,
+                timePeriodOffset,
+                changeOffset,
+                daysOffset,
+                viewType,
+                songType,
+                artistType,
+                publishDate,
+                orderBy,
+                direction,
+                artistIds,
+                singleVideo,
+                maxEntries,
+                startAt,
+                songIds,
+                minViews,
+                maxViews
+            )), startAt || 0)
         }
     },
     SearchResultItemData: {
