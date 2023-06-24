@@ -77,14 +77,14 @@ exports.viewTypes = {
   }
 
 exports.caches = {
-  rankingsCache: new cacher(3600), // initialize rankings cache with a 120 second lifespan
-  queryCache: new cacher(3600), // caches rankings queries
-  songsDataCache: new cacher(3600),
-  historicalCache: new cacher(3600),
-  highlightsCache: new cacher(3600),
+  rankingsCache: new cacher(300), // initialize rankings cache with a 120 second lifespan
+  queryCache: new cacher(300), // caches rankings queries
+  songsDataCache: new cacher(300),
+  historicalCache: new cacher(300),
+  highlightsCache: new cacher(300),
   searchCache: new cacher(300), // search cache 5 minutes
   thumbnailCache: new cacher(1800), // thumbnail cache - 30 minutes
-  artistsDataCache: new cacher(3600) // artist cache - 60 minutes
+  artistsDataCache: new cacher(300) // artist cache - 60 minutes
 }
 
 // shared functions
