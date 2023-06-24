@@ -34,4 +34,4 @@ ${env:dotenv}='True'; node server.js
 ```
 
 ## FAQ/Community
-Join the Discord server [here](https://discord.com/channels/1122058344241319957/1122059077846052935).
+Join the Discord server [here](https://discord.gg/By7z2kKVjx).
