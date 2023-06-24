@@ -814,7 +814,7 @@ module.exports = class SongsDataProxy {
                                     GROUP BY offset_sub_breakdowns.song_id)
                                 END)${filterArtistsStatement}${filterSongsStatement}
                         GROUP BY offset_breakdowns.song_id
-                    ),0)
+                    ),SUM(DISTINCT views_breakdowns.views))
                 END) * (1 / (julianday('now') - julianday(songs.publish_date)))
                 ELSE SUM(DISTINCT views_breakdowns.views) - CASE WHEN :timePeriodOffset IS NULL
                     THEN 0
@@ -850,7 +850,7 @@ module.exports = class SongsDataProxy {
                                     GROUP BY offset_sub_breakdowns.song_id)
                                 END)${filterArtistsStatement}${filterSongsStatement}
                         GROUP BY offset_breakdowns.song_id
-                    ),0)
+                    ),SUM(DISTINCT views_breakdowns.views))
                 END 
             END AS total_views
         FROM views_breakdowns
