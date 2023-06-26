@@ -410,6 +410,19 @@ const buildArtistsFilterParamsAsync = (query, category) => {
                 })
             }
 
+            // parse artists
+            var artists = null
+            const queryArtists = query.artists
+            if (queryArtists) {
+                artists = []
+                queryArtists.split(",").forEach((value) => {
+                    const artistId = Number(value)
+                    if (artistId) {
+                        artists.push(artistId)
+                    }
+                })
+            }
+
             // get artist type
             const rawArtistType = query['artistTypes']
             let artistType = rawArtistType && ArtistType.values[rawArtistType]
@@ -436,7 +449,8 @@ const buildArtistsFilterParamsAsync = (query, category) => {
                 query['singleVideo'] ? true : null,
                 query['combineSimilarArtists'] ? true : null,
                 Math.min(Number(query['maxEntries']) || 50, 50),
-                Number(query['startAt'] || 0)
+                Number(query['startAt'] || 0),
+                artists
             )
             // add to cache
             queryCache.set(hash, params)

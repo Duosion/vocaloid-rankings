@@ -28,6 +28,7 @@ module.exports = class ArtistsRankingsFilterParams {
      * @param {number} [startAt] The amount to offset the resulting rankings entries. Default: 0.
      * @param {number} [minViews] The minimum amount of views a song must have to be included in the result.
      * @param {number} [maxViews] The maximum amount of views a song must have to be included in the result.
+     * @param {number[]} [artists] An array of artist IDs. If provided, only returns rankings results with songs that feature the provided artists.
      */
     constructor(
         timestamp,
@@ -48,6 +49,7 @@ module.exports = class ArtistsRankingsFilterParams {
         startAt = 0,
         minViews,
         maxViews,
+        artists
     ) {
         this.timestamp = timestamp
         this.timePeriodOffset = timePeriodOffset
@@ -67,5 +69,6 @@ module.exports = class ArtistsRankingsFilterParams {
         this.startAt = startAt
         this.minViews = minViews
         this.maxViews = maxViews
+        this.artists = artists
     }
 }

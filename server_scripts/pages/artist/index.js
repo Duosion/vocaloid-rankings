@@ -13,7 +13,8 @@ const ArtistCategory = require("../../../db/enums/ArtistCategory")
 const RankingsFilterParams = require("../../../db/dataClasses/RankingsFilterParams")
 const AccessLevel = require("../../../db/enums/AccessLevel")
 const AnalyticsEvent = require("../../../db/enums/AnalyticsEvent")
-const { getHasherAsync, viewTypesDisplayData, caches } = require(modulePath + "/shared")
+const ArtistsRankingsFilterParams = require("../../../db/dataClasses/ArtistsRankingsFilterParams")
+const { getHasherAsync, viewTypesDisplayData, caches, artistTypesWhitelists } = require(modulePath + "/shared")
 const { getPreferredLanguageName } = require(modulePath + "/locale")
 
 // load cache
@@ -159,7 +160,7 @@ const queryArtist = (artistIdString, options) => {
                     {
                         const params = new RankingsFilterParams()
                         params.artists = [artistId]
-                        params.maxEntries = 9
+                        params.maxEntries = 5
                         const dbResponse = await songsDataDb.filterRankings(params)
                         const totalCount = dbResponse.totalCount
                         const topTen = dbResponse?.results || []
@@ -167,13 +168,27 @@ const queryArtist = (artistIdString, options) => {
                         topTen.forEach(resultItem => {
                             resultItem.preferredName = getPreferredName(resultItem.song.names)
                         })
-                        artistData.songsOne = topTen.slice(0, 5)
-                        if (dbResponse.totalCount >= 10) {
-                            artistData.moreSongs = true
-                        }
-                        if (totalCount > 5) {
-                            artistData.songsTwo = topTen.slice(5, 10)
-                        }
+                        artistData.songs = topTen
+                        artistData.moreSongs = totalCount >= 6
+                        artistData.songCount = totalCount
+                    }
+                    // get top co artists
+                    {
+                        const params = new ArtistsRankingsFilterParams()
+                        params.artists = [artistId]
+                        params.artistCategory = artistData.category == ArtistCategory.Producer ? ArtistCategory.Vocalist : ArtistCategory.Producer
+                        params.artistTypes = artistTypesWhitelists[params.artistCategory.id]
+                        //params.combineSimilarArtists = true
+                        params.maxEntries = 5
+
+                        const dbResponse = await songsDataDb.filterArtistsRankings(params)
+                        const topTen = dbResponse?.results || []
+
+                        topTen.forEach(resultItem => {
+                            resultItem.preferredName = getPreferredName(resultItem.artist.names)
+                        })
+                        artistData.topCoArtists = topTen
+                        artistData.moreCoArtists = dbResponse.totalCount >= 6
                     }
 
                     // cache return data

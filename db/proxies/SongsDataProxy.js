@@ -1010,9 +1010,23 @@ module.exports = class SongsDataProxy {
             filterArtistsTypes = types.join(',')
         }
 
+        // builts artists statement
+        const filterParamsArtists = filterParams.artists
+        let filterArtists = ``
+        if (filterParamsArtists) {
+            const artists = []
+            for (const [n, id] of filterParamsArtists.entries()) {
+                const key = `artist${n}`
+                artists.push(`:${key}`)
+                queryParams[key] = id
+            }
+            filterArtists = artists.join(',')
+        }
+
         return {
             filterSongs: filterSongs,
             filterArtistsTypes: filterArtistsTypes,
+            filterArtists: filterArtists,
             params: queryParams
         }
     }
@@ -1026,6 +1040,7 @@ module.exports = class SongsDataProxy {
     #filterArtistsRankingsCountSync(queryParams) {
         const filterSongs = queryParams.filterSongs
         const filterArtistsTypes = queryParams.filterArtistsTypes
+        const filterArtists = queryParams.filterArtists
         return this.db.prepare(`
         SELECT DISTINCT 
             CASE WHEN :combineSimilarArtists IS NULL THEN artists.id
@@ -1052,6 +1067,8 @@ module.exports = class SongsDataProxy {
         INNER JOIN songs ON views_breakdowns.song_id = songs.id
         INNER JOIN songs_artists ON songs_artists.song_id = views_breakdowns.song_id
         INNER JOIN artists ON artists.id = songs_artists.artist_id
+        INNER JOIN songs_artists AS song_co_artists ON song_co_artists.song_id = views_breakdowns.song_id
+        INNER JOIN artists AS co_artists ON co_artists.id = song_co_artists.artist_id
         WHERE (views_breakdowns.timestamp = CASE WHEN :daysOffset IS NULL
             THEN :timestamp
             ELSE DATE(:timestamp, '-' || :daysOffset || ' day')
@@ -1069,6 +1086,8 @@ module.exports = class SongsDataProxy {
                     INNER JOIN songs ON songs.id = sub_vb.song_id
                     INNER JOIN songs_artists ON songs_artists.song_id = sub_vb.song_id
                     INNER JOIN artists ON artists.id = songs_artists.artist_id
+                    INNER JOIN songs_artists AS song_co_artists ON song_co_artists.song_id = views_breakdowns.song_id
+                    INNER JOIN artists AS co_artists ON co_artists.id = song_co_artists.artist_id
                     WHERE (sub_vb.view_type = views_breakdowns.view_type)
                         AND (sub_vb.timestamp = views_breakdowns.timestamp)
                         AND (sub_vb.song_id = views_breakdowns.song_id)
@@ -1077,9 +1096,11 @@ module.exports = class SongsDataProxy {
                         AND (songs_artists.artist_category = :artistCategory OR :artistCategory IS NULL)
                         ${filterArtistsTypes == '' ? '' : `AND (artists.artist_type IN (${filterArtistsTypes}))`}
                         ${filterSongs == '' ? '' : `AND (songs.id IN (${filterSongs}))`}
+                        ${filterArtists == '' ? '' : `AND (co_artists.id IN (${filterArtists}))`}
                     GROUP BY sub_vb.song_id)
                 END)
             ${filterSongs == '' ? '' : `AND (songs.id IN (${filterSongs}))`}
+            ${filterArtists == '' ? '' : `AND (co_artists.id IN (${filterArtists}))`}
         GROUP BY 
             CASE WHEN :combineSimilarArtists IS NULL THEN artists.id
             WHEN artists.base_artist_id IS NULL then artists.id
@@ -1120,6 +1141,7 @@ module.exports = class SongsDataProxy {
     #filterArtistsRankingsRawSync(queryParams) {
         const filterSongs = queryParams.filterSongs
         const filterArtistsTypes = queryParams.filterArtistsTypes
+        const filterArtists = queryParams.filterArtists
         return this.db.prepare(`
         SELECT DISTINCT 
             CASE WHEN :combineSimilarArtists IS NULL THEN artists.id
@@ -1146,6 +1168,8 @@ module.exports = class SongsDataProxy {
         INNER JOIN songs ON views_breakdowns.song_id = songs.id
         INNER JOIN songs_artists ON songs_artists.song_id = views_breakdowns.song_id
         INNER JOIN artists ON artists.id = songs_artists.artist_id
+        INNER JOIN songs_artists AS song_co_artists ON song_co_artists.song_id = views_breakdowns.song_id
+        INNER JOIN artists AS co_artists ON co_artists.id = song_co_artists.artist_id
         WHERE (views_breakdowns.timestamp = CASE WHEN :daysOffset IS NULL
             THEN :timestamp
             ELSE DATE(:timestamp, '-' || :daysOffset || ' day')
@@ -1163,6 +1187,8 @@ module.exports = class SongsDataProxy {
                     INNER JOIN songs ON songs.id = sub_vb.song_id
                     INNER JOIN songs_artists ON songs_artists.song_id = sub_vb.song_id
                     INNER JOIN artists ON artists.id = songs_artists.artist_id
+                    INNER JOIN songs_artists AS song_co_artists ON song_co_artists.song_id = views_breakdowns.song_id
+                    INNER JOIN artists AS co_artists ON co_artists.id = song_co_artists.artist_id
                     WHERE (sub_vb.view_type = views_breakdowns.view_type)
                         AND (sub_vb.timestamp = views_breakdowns.timestamp)
                         AND (sub_vb.song_id = views_breakdowns.song_id)
@@ -1171,9 +1197,11 @@ module.exports = class SongsDataProxy {
                         AND (songs_artists.artist_category = :artistCategory OR :artistCategory IS NULL)
                         ${filterArtistsTypes == '' ? '' : `AND (artists.artist_type IN (${filterArtistsTypes}))`}
                         ${filterSongs == '' ? '' : `AND (songs.id IN (${filterSongs}))`}
+                        ${filterArtists == '' ? '' : `AND (co_artists.id IN (${filterArtists}))`}
                     GROUP BY sub_vb.song_id)
                 END)
             ${filterSongs == '' ? '' : `AND (songs.id IN (${filterSongs}))`}
+            ${filterArtists == '' ? '' : `AND (co_artists.id IN (${filterArtists}))`}
         GROUP BY 
             CASE WHEN :combineSimilarArtists IS NULL THEN artists.id
             WHEN artists.base_artist_id IS NULL then artists.id
@@ -1326,7 +1354,6 @@ module.exports = class SongsDataProxy {
             views.push(dbResult.views)
             const dbResultTimestamp = dbResult.timestamp
             if (dbResultTimestamp) {
-                console.log(dbResultTimestamp)
                 timestamps.push(dbResultTimestamp)
             } else {
                 const timestampDate = new Date(timestamp)
