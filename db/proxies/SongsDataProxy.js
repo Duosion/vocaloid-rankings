@@ -1317,13 +1317,23 @@ module.exports = class SongsDataProxy {
         const timestamps = []
         const historicalViews = []
         for (let i = 0; i < range + 1; i++) {
+            const daysOffset = i*period
             const dbResult = statement.get({
                 ...params,
-                daysOffset: i * period,
+                daysOffset: daysOffset,
                 timestamp: timestamp
             })
             views.push(dbResult.views)
-            timestamps.push(dbResult.timestamp)
+            const dbResultTimestamp = dbResult.timestamp
+            if (dbResultTimestamp) {
+                console.log(dbResultTimestamp)
+                timestamps.push(dbResultTimestamp)
+            } else {
+                const timestampDate = new Date(timestamp)
+                timestampDate.setDate(timestampDate.getDate() - daysOffset)
+                timestamps.push(generateTimestamp(timestampDate)?.Name || dbResultTimestamp)
+            }
+                        
         }
         for (let i = 0; i < views.length - 1; i++) {
             const current = views[i]
