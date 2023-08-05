@@ -194,22 +194,22 @@ const addSongRoute = async (request, reply) => {
 
   if (url) {
     // attempt to add the provided url
-
     const song = await scraper.scrapeVocaDBSongAsync(url)
       .catch(msg => {
-        console.log(msg)
-        return reply.send({ code: 400, message: msg.message })
+        request.addHbParam('errorMessage', msg)
+        return reply.view('pages/addSong.hbs', request.hbParams)
       })
 
     if (song == undefined) {
-      params.errorMessage = 'Invalid URL provided.'
-      return reply.view("pages/addSong.hbs", params)
+      request.addHbParam('errorMessage', 'Invalid URL provided.')
+      return reply.view("pages/addSong.hbs", request.hbParams)
     }
 
     // add the song
     await database.songsDataProxy.insertSong(song)
       .catch(msg => {
-        return reply.send({ code: 400, message: msg.message })
+        request.addHbParam('errorMessage', msg)
+        return reply.view('pages/addSong.hbs', request.hbParams)
       })
 
     // if it succeeded, redirect to the new page

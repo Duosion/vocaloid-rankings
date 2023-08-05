@@ -160,7 +160,7 @@ const queryArtist = (artistIdString, options) => {
                     {
                         const params = new RankingsFilterParams()
                         params.artists = [artistId]
-                        params.maxEntries = 5
+                        params.maxEntries = 9
                         const dbResponse = await songsDataDb.filterRankings(params)
                         const totalCount = dbResponse.totalCount
                         const topTen = dbResponse?.results || []
@@ -179,7 +179,7 @@ const queryArtist = (artistIdString, options) => {
                         params.artistCategory = artistData.category == ArtistCategory.Producer ? ArtistCategory.Vocalist : ArtistCategory.Producer
                         params.artistTypes = artistTypesWhitelists[params.artistCategory.id]
                         //params.combineSimilarArtists = true
-                        params.maxEntries = 5
+                        params.maxEntries = 9
 
                         const dbResponse = await songsDataDb.filterArtistsRankings(params)
                         const topTen = dbResponse?.results || []

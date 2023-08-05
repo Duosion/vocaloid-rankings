@@ -496,7 +496,7 @@ const processVocaDBSongDataAsync = (songData) => {
 
             // check if this song is a cover
             // if it is one, return the original version instead
-            {
+            /*{
                 // attempt to get the original version
 
                 const originalVersionID = songData.originalVersionId
@@ -505,11 +505,12 @@ const processVocaDBSongDataAsync = (songData) => {
                     return
                 }
 
-            }
+            }*/
 
             // get artists
             /** @type {Artist[]} */
             const artists = []
+            let vocalSynths = 0
 
             for (let [_, artist] of songData.artists.entries()) {
 
@@ -525,10 +526,17 @@ const processVocaDBSongDataAsync = (songData) => {
                         if (artistId) {
                             const artistObject = await songDataProxy.getArtist(artistId) || await scrapeVocaDBArtistAsync(artistId)
                             artistObject.category = categoryType
+                            if (categoryType == ArtistCategory.Vocalist && artistObject.type != ArtistType.OtherVocalist) {
+                                vocalSynths++
+                            }
                             artists.push(artistObject)
                         }
                     }
                 }
+            }
+
+            if (0 >= vocalSynths) {
+                return reject('All songs on this website must have at least one vocal synthesizer as a singer.')
             }
 
             // get names

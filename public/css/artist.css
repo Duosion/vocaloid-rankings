@@ -15,7 +15,8 @@
     gap: 10px;
 }
 
-#songs .content-grid {
+#songs .content-grid,
+#co-artists .content-grid {
     gap: 10px;
 }
 
