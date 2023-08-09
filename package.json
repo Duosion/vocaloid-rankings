@@ -9,17 +9,27 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@types/node": "20.4.8",
-    "@types/react": "18.2.18",
-    "@types/react-dom": "18.2.7",
+    "@formatjs/intl-localematcher": "^0.4.0",
+    "@importantimport/material-color-utilities": "^0.2.2-alpha.0",
     "autoprefixer": "10.4.14",
-    "eslint": "8.46.0",
-    "eslint-config-next": "13.4.13",
-    "next": "13.4.13",
-    "postcss": "8.4.27",
+    "better-sqlite3": "^8.4.0",
+    "eslint": "8.44.0",
+    "eslint-config-next": "13.4.9",
+    "material-symbols": "^0.9.0",
+    "negotiator": "^0.6.3",
+    "next": "13.4.9",
+    "next-themes": "^0.2.1",
+    "postcss": "8.4.25",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "tailwindcss": "3.3.3",
+    "tailwindcss": "3.3.2",
     "typescript": "5.1.6"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.4",
+    "@types/negotiator": "^0.6.1",
+    "@types/node": "20.4.1",
+    "@types/react": "18.2.14",
+    "@types/react-dom": "18.2.6"
   }
 }
