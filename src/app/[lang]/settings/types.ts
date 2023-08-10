@@ -6,17 +6,21 @@ export interface RawSettings {
 }
 
 export interface SettingsProxy {
-    get titleLanguage (): NameType
+    get titleLanguage(): NameType
 
-    set titleLanguage (NameType)
+    set titleLanguage(newTitleLanguage: NameType)
 }
 
-export interface CookieProxy {
+export interface UseSettingsProps {
+    settings: RawSettings
 
-    get(name: string): string | undefined
+    setTitleLanguage: (newTitleLanguage: NameType) => void
+}
 
-    set(name: string, value: string, options?: ResponseCookie): void
+export interface SettingsProviderProps {
+    cookieName?: string
 
-    delete(name: string): void
+    defaultSettings?: RawSettings
 
+    children?: React.ReactNode
 }
