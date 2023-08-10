@@ -1,7 +1,7 @@
 'use client'
 
+import { useSettings } from "@/app/[lang]/settings/SettingsProvider"
 import { NameType, Names } from "@/data/types"
-import { useSettings } from "../settings"
 import { useEffect, useState } from "react"
 
 const numberFormatter = new Intl.NumberFormat()
@@ -13,6 +13,14 @@ const shortenedDateFormatter = new Intl.DateTimeFormat(undefined, {
     month: '2-digit',
     day: '2-digit',
 })
+
+// name map for EntityName component
+const NameMap: { [key in NameType]: NameType[] } = {
+    [NameType.ORIGINAL]: [NameType.ORIGINAL],
+    [NameType.JAPANESE]: [NameType.JAPANESE],
+    [NameType.ENGLISH]: [NameType.ENGLISH, NameType.ROMAJI],
+    [NameType.ROMAJI]: [NameType.ROMAJI, NameType.ENGLISH]
+}
 
 export function NumberFormatter(
     {
@@ -44,34 +52,23 @@ export function DateFormatter(
     )
 }
 
-const NameMap: { [key in NameType]: NameType[] } = {
-    [NameType.ORIGINAL]: [NameType.ORIGINAL],
-    [NameType.JAPANESE]: [NameType.JAPANESE],
-    [NameType.ENGLISH]: [NameType.ENGLISH, NameType.ROMAJI],
-    [NameType.ROMAJI]: [NameType.ROMAJI, NameType.ENGLISH]
-}
-
 export function EntityName(
     {
-        names
+        names,
+        preferred
     }: {
-        names: Names
+        names: Names,
+        preferred: NameType
     }
 ) {
-    const [mounted, setMounted] = useState(false)
+    const [preferredNameType, setPreferredNameType] = useState(preferred)
     const { settings } = useSettings()
 
     useEffect(() => {
-        setMounted(true)
+        setPreferredNameType(settings.titleLanguage)
     }, [])
 
-    if (!mounted) {
-        return (
-            names[NameType.ORIGINAL]
-        )
-    }
-
-    const map = NameMap[settings.titleLanguage]
+    const map = NameMap[preferredNameType]
     let name = names[NameType.ORIGINAL]
     if (map) {
         for (let i = 0; i < map.length; i++) {

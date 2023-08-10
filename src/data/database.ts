@@ -5,7 +5,7 @@ import { existsSync, mkdirSync } from "fs"
 import { Timestamp } from "./types"
 
 const rootDirectory = process.cwd()
-const dataDirectory = rootDirectory + "/data/database/"
+const dataDirectory = rootDirectory + "/src/data/database/"
 if (!existsSync(dataDirectory)) {
     mkdirSync(dataDirectory)
 }
@@ -31,7 +31,7 @@ const databaseMetadata = {
         path: 'songs_data.db',
         pragma: Pragma.DEFAULT,
         init: initSongsData,
-        extensions: [rootDirectory + '/data/extensions/spellfix']
+        extensions: [rootDirectory + '/src/data/extensions/spellfix']
     }
 }
 

@@ -1,14 +1,14 @@
 import { ArtistType, NameType, SongType, SourceType } from "@/data/types";
-import type { DictionaryKey } from ".";
+import type { LanguageDictionaryKey } from ".";
 
-export const NameTypeLocaleTokens: {[key in NameType]: DictionaryKey} = {
+export const NameTypeLocaleTokens: {[key in NameType]: LanguageDictionaryKey} = {
     [NameType.ORIGINAL]: 'name_type_original',
     [NameType.JAPANESE]: 'name_type_japanese',
     [NameType.ENGLISH]: 'name_type_english',
     [NameType.ROMAJI]: 'name_type_romaji'
 }
 
-export const ArtistTypeLocaleTokens: {[key in ArtistType]: DictionaryKey} = {
+export const ArtistTypeLocaleTokens: {[key in ArtistType]: LanguageDictionaryKey} = {
     [ArtistType.VOCALOID]: 'filter_artist_type_vocaloid',
     [ArtistType.CEVIO]: 'filter_artist_type_cevio',
     [ArtistType.SYNTHESIZER_V]: 'filter_artist_type_synth_v',
@@ -23,13 +23,13 @@ export const ArtistTypeLocaleTokens: {[key in ArtistType]: DictionaryKey} = {
     [ArtistType.UTAU]: 'filter_artist_type_utau'
 }
 
-export const SongTypeLocaleTokens: {[key in SongType]: DictionaryKey} = {
+export const SongTypeLocaleTokens: {[key in SongType]: LanguageDictionaryKey} = {
     [SongType.ORIGINAL]: 'filter_song_type_original',
     [SongType.REMIX]: 'filter_song_type_remix',
     [SongType.OTHER]: 'filter_song_type_other'
 }
 
-export const SourceTypeLocaleTokens: {[key in SourceType]: DictionaryKey} = {
+export const SourceTypeLocaleTokens: {[key in SourceType]: LanguageDictionaryKey} = {
     [SourceType.YOUTUBE]: 'youtube',
     [SourceType.NICONICO]: 'niconico',
     [SourceType.BILIBILI]: 'bilibili'

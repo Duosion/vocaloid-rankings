@@ -8,7 +8,9 @@ const dictionaries = {
 
 export type Locale = keyof typeof dictionaries
 
-export type DictionaryKey = keyof typeof import('./dictionaries/template.json')
+export type LanguageDictionary = typeof import('./dictionaries/template.json')
+
+export type LanguageDictionaryKey = keyof LanguageDictionary
 
 export const locales = Object.keys(dictionaries)
 
