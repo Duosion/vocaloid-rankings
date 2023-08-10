@@ -13,6 +13,7 @@
     "@importantimport/material-color-utilities": "^0.2.2-alpha.0",
     "autoprefixer": "10.4.14",
     "better-sqlite3": "^8.4.0",
+    "cookies-next": "^2.1.2",
     "eslint": "8.44.0",
     "eslint-config-next": "13.4.9",
     "material-symbols": "^0.9.0",

@@ -3,17 +3,26 @@ import type { Metadata } from 'next'
 import { NameType } from '@/data/types'
 import { useEffect, useState } from 'react'
 import { useTheme } from 'next-themes'
-import { cookies } from 'next/dist/client/components/headers'
-import { Settings } from '.'
+import { CookiesClient, Settings } from '.'
+import { Locale } from '@/localization'
 
 export const metadata: Metadata = {
   title: 'Settings'
 }
 
-export default function settings() {
+export default function settings(
+  {
+    params
+  }: {
+    params: {
+      lang: Locale
+    }
+  }
+) {
   const [mounted, setMounted] = useState(false)
   const { theme, setTheme } = useTheme()
-  const settings = new Settings(cookies())
+  const settings = new Settings(new CookiesClient())
+  const [titleLanguage, setTitleLanguage] = useState(settings.titleLanguage)
 
   useEffect(() => {
     setMounted(true)
@@ -31,8 +40,12 @@ export default function settings() {
         <option value="dark">Dark</option>
         <option value="light">Light</option>
       </select>
-      <div className='text-xl'>Title language: {settings.titleLanguage}</div>
-      <select value={settings.titleLanguage} onChange={e => settings.titleLanguage =(Number.parseInt(e.target.value))}>
+      <div className='text-xl'>Title language: {titleLanguage}</div>
+      <select value={titleLanguage} onChange={e => { 
+          const newTitleLanguage = (Number.parseInt(e.target.value))
+          settings.titleLanguage = newTitleLanguage
+          setTitleLanguage(newTitleLanguage)
+        }}>
         <option value={NameType.ORIGINAL}>Native</option>
         <option value={NameType.ENGLISH}>English</option>
         <option value={NameType.ROMAJI}>Romaji</option>

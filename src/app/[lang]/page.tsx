@@ -6,7 +6,7 @@ import SongThumbnail from '@/components/song_thumbnail'
 import { Locale, getDictionary } from '@/localization'
 import { NameTypeLocaleTokens } from '@/localization/DictionaryTokenMaps'
 import { NameType } from '@/data/types'
-import { Settings } from './settings'
+import { CookiesServer, Settings } from './settings'
 import { cookies } from 'next/dist/client/components/headers'
 
 export const metadata: Metadata = {
@@ -40,11 +40,11 @@ export default async function Home(
 ) {
   const locale = params.lang
   const langDict = await getDictionary(locale)
-  const settings = new Settings(cookies())
+  const settings = new Settings(new CookiesServer(cookies()))
   return (
     <div className='w-full h-[100vh] flex flex-col gap-5 justify-start items-center'>
       <div className='w-full flex flex-col justify-start items-center gap-8 mt-2'>
-        <div className='text-on-surface md:text-6xl font-extrabold text-4xl w-full text-center'>{langDict.home_rankings} {settings.titleLanguage}</div>
+        <div className='text-on-surface md:text-6xl font-extrabold text-4xl w-full text-center'>{langDict.home_rankings} {langDict[NameTypeLocaleTokens[settings.titleLanguage]]}</div>
         <div className='w-full text-center text-xl text-on-surface-variant max-w-3xl'>Explore vocal synthesizer songs that are ranked based on their total view counts with powerful filtering capabilities.</div>
         <FilledButton text={langDict.home_rankings_view} href={`/${locale}/rankings`} className='sm:w-fit w-full'></FilledButton>
         <div className='max-w-xl w-full flex flex-col bg-surface-2 rounded-2xl justify-center md:items-start items-center p-7 box-border gap-5 min-h-[250px]'>
