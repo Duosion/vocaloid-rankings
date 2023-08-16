@@ -18,6 +18,7 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = props => {
 
 const SettingsElement: React.FC<SettingsProviderProps> = ({
     cookieName = 'settings',
+    cookieExpires = new Date('2037/12/31'),
     defaultSettings = {
         titleLanguage: NameType.ENGLISH
     },
@@ -30,7 +31,9 @@ const SettingsElement: React.FC<SettingsProviderProps> = ({
             setSettingsState(settings)
             // try to save to local storage
             try {
-                setCookie(cookieName, JSON.stringify(settings))
+                setCookie(cookieName, JSON.stringify(settings), {
+                    expires: cookieExpires
+                })
             } catch (_) {}
         },
         []

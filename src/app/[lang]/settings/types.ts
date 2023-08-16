@@ -19,6 +19,8 @@ export interface UseSettingsProps {
 
 export interface SettingsProviderProps {
     cookieName?: string
+    
+    cookieExpires?: Date
 
     defaultSettings?: RawSettings
 

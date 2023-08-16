@@ -32,8 +32,10 @@ export function NumberFormatter(
     }
 ) {
     const formatter = compact ? shortenedNumberFormatter : numberFormatter
-    return (
-        formatter.format(number)
+    return compact ? (
+        <div title={numberFormatter.format(number)}>{shortenedNumberFormatter.format(number)}</div>
+    ) : (
+        numberFormatter.format(number)
     )
 }
 
