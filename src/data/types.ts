@@ -50,6 +50,18 @@ export enum PlacementChange {
     DOWN
 }
 
+export enum FilterOrder {
+    VIEWS,
+    PUBLISH_DATE,
+    ADDITION_DATE,
+    POPULARITY
+}
+
+export enum FilterDirection {
+    DESCENDING,
+    ASCENDING
+}
+
 export type Names = {
     [NameType.ORIGINAL]: string
     [NameType.JAPANESE]?: string
@@ -200,6 +212,84 @@ export class Artist extends Entity {
     }
 }
 
+export class RankingsFilterParams {
+    timestamp?: string
+    timePeriodOffset?: number
+    changeOffset?: number
+    daysOffset?: number
+    sourceType?: SourceType
+    songType?: SongType
+    artistType?: ArtistType
+    publishDate?: string
+    orderBy: FilterOrder = FilterOrder.VIEWS
+    direction: FilterDirection = FilterDirection.DESCENDING
+    artists?: Id[]
+    songs?: Id[]
+    singleVideo: boolean = false
+    maxEntries: number = 50
+    startAt: number = 0
+    minViews?: number
+    maxViews?: number
+
+    constructor(
+        timestamp?: string,
+        timePeriodOffset?: number,
+        changeOffset?: number,
+        daysOffset?: number,
+        sourceType?: SourceType,
+        songType?: SongType,
+        artistType?: ArtistType,
+        publishDate?: string,
+        orderBy?: FilterOrder,
+        direction?: FilterDirection,
+        artists?: Id[],
+        songs?: Id[],
+        singleVideo?: boolean,
+        maxEntries?: number,
+        startAt?: number,
+        minViews?: number,
+        maxViews?: number
+    ) {
+        this.timestamp = timestamp
+        this.timePeriodOffset = timePeriodOffset || this.timePeriodOffset
+        this.changeOffset = changeOffset || this.changeOffset
+        this.daysOffset = daysOffset || this.daysOffset
+        this.sourceType = sourceType
+        this.songType = songType
+        this.artistType = artistType
+        this.publishDate = publishDate
+        this.orderBy = orderBy || this.orderBy
+        this.direction = direction || this.direction
+        this.artists = artists
+        this.songs = songs
+        this.singleVideo = singleVideo || this.singleVideo
+        this.maxEntries = maxEntries || this.maxEntries
+        this.startAt = startAt || this.startAt
+        this.minViews = minViews
+        this.maxViews = maxViews
+    }
+}
+
+export interface RankingsFilterResult {
+    totalCount: number
+    timestamp: string
+    results: RankingsFilterResultItem[]
+}
+
+export interface RankingsFilterResultItem {
+    placement: number
+    change?: PlacementChange
+    previousPlacement?: number
+    views: number
+    song: Song
+}
+
+export interface SqlRankingsFilterParams {
+    filterArtists: string
+    filterSongs: string
+    params: { [key: string]: any }
+}
+
 export interface RawSongData {
     id: Id
     publish_date: string
@@ -254,4 +344,9 @@ export interface RawViewBreakdown {
     views: number | bigint
     video_id: string
     view_type: number
+}
+
+export interface RawRankingsResult {
+    song_id: Id,
+    total_views: number
 }

@@ -1,11 +1,309 @@
-import { error, time } from "console";
 import getDatabase, { generateTimestamp } from "./database";
 import { Databases } from "./database";
-import { Artist, ArtistCategory, ArtistThumbnailType, ArtistThumbnails, ArtistType, HistoricalViews, HistoricalViewsResult, Id, NameType, Names, RawArtistData, RawArtistName, RawArtistThumbnail, RawSongArtist, RawSongData, RawSongName, RawSongVideoId, RawViewBreakdown, Song, SongType, SongVideoIds, SourceType, Views, ViewsBreakdown } from "./types";
+import { Artist, ArtistCategory, ArtistThumbnailType, ArtistThumbnails, ArtistType, HistoricalViews, HistoricalViewsResult, Id, NameType, Names, PlacementChange, RankingsFilterParams, RankingsFilterResult, RankingsFilterResultItem, RawArtistData, RawArtistName, RawArtistThumbnail, RawRankingsResult, RawSongArtist, RawSongData, RawSongName, RawSongVideoId, RawViewBreakdown, Song, SongType, SongVideoIds, SourceType, SqlRankingsFilterParams, Views, ViewsBreakdown } from "./types";
 import type { Statement } from "better-sqlite3";
 
 // import database
 const db = getDatabase(Databases.SONGS_DATA)
+
+// rankings
+function getRankingsFilterQueryParams(
+    filterParams: RankingsFilterParams,
+    daysOffset?: number
+): SqlRankingsFilterParams {
+    const queryParams: { [key: string]: any } = {
+        timestamp: filterParams.timestamp || getMostRecentViewsTimestampSync(),
+        timePeriodOffset: filterParams.timePeriodOffset,
+        daysOffset: daysOffset == null ? filterParams.daysOffset : daysOffset + (filterParams.daysOffset || 0),
+        viewType: filterParams.sourceType,
+        songType: filterParams.songType,
+        artistType: filterParams.artistType,
+        publishDate: filterParams.publishDate || null,
+        orderBy: filterParams.orderBy,
+        direction: filterParams.direction,
+        singleVideo: filterParams.singleVideo && 1 || null,
+        maxEntries: filterParams.maxEntries,
+        startAt: filterParams.startAt,
+        minViews: filterParams.minViews,
+        maxViews: filterParams.maxViews
+    }
+
+    const buildInStatement = (values: Id[], prefix = '') => {
+        const stringBuilder = []
+        let n = 0
+        for (const value in values) {
+            const key = `${prefix}${n}`
+            stringBuilder.push(`:${key}`)
+            queryParams[key] = value
+            n++
+        }
+        return stringBuilder.join(',')
+    }
+
+    // prepare build statements
+    const filterParamsArtists = filterParams.artists
+    const filterParamsSongs = filterParams.songs
+
+    return {
+        filterArtists: filterParamsArtists ? buildInStatement(filterParamsArtists, 'artist') : '',
+        filterSongs: filterParamsSongs ? buildInStatement(filterParamsSongs, 'song') : '',
+        params: queryParams
+    }
+}
+
+function filterRankingsCountSync(
+    queryParams: SqlRankingsFilterParams
+): number {
+    const filterArtists = queryParams.filterArtists
+    const filterSongs = queryParams.filterSongs
+
+    const filterArtistsStatement = filterArtists == '' ? '' : ` AND (songs_artists.artist_id IN (${filterArtists}))`
+    const filterSongsStatement = filterSongs == '' ? '' : ` AND (songs.id IN (${filterSongs}))`
+    return db.prepare(`
+    SELECT views_breakdowns.song_id
+    FROM views_breakdowns
+    INNER JOIN songs ON views_breakdowns.song_id = songs.id
+    INNER JOIN songs_artists ON songs_artists.song_id = views_breakdowns.song_id
+    INNER JOIN artists ON artists.id = songs_artists.artist_id
+    WHERE (views_breakdowns.timestamp = CASE WHEN :daysOffset IS NULL
+            THEN :timestamp
+            ELSE DATE(:timestamp, '-' || :daysOffset || ' day')
+            END)
+        AND (views_breakdowns.view_type = :viewType OR :viewType IS NULL)
+        AND (songs.song_type = :songType OR :songType IS NULL)
+        AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
+        AND (artists.artist_type = :artistType OR :artistType IS NULL)
+        AND (views_breakdowns.views = CASE WHEN :singleVideo IS NULL
+            THEN views_breakdowns.views
+            ELSE
+                (SELECT MAX(sub_vb.views)
+                FROM views_breakdowns AS sub_vb 
+                INNER JOIN songs ON songs.id = sub_vb.song_id
+                INNER JOIN songs_artists ON songs_artists.song_id = sub_vb.song_id
+                INNER JOIN artists ON artists.id = songs_artists.artist_id
+                WHERE (sub_vb.view_type = views_breakdowns.view_type)
+                    AND (sub_vb.timestamp = views_breakdowns.timestamp)
+                    AND (sub_vb.song_id = views_breakdowns.song_id)
+                    AND (songs.song_type = :songType OR :songType IS NULL)
+                    AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
+                    AND (artists.artist_type = :artistType OR :artistType IS NULL)${filterArtistsStatement}${filterSongsStatement}
+                GROUP BY sub_vb.song_id)
+            END)${filterArtistsStatement}${filterSongsStatement}
+    GROUP BY views_breakdowns.song_id
+    HAVING (CASE WHEN :minViews IS NULL
+        THEN 1
+        ELSE SUM(DISTINCT views_breakdowns.views) >= :minViews END)
+        AND (CASE WHEN :maxViews IS NULL
+            THEN 1
+            ELSE SUM(DISTINCT views_breakdowns.views) <= :maxViews END)
+    `).all(queryParams.params)?.length || 0
+}
+
+function filterRankingsRawSync(
+    queryParams: SqlRankingsFilterParams
+): RawRankingsResult[] {
+    const filterArtists = queryParams.filterArtists
+    const filterSongs = queryParams.filterSongs
+
+    const filterArtistsStatement = filterArtists == '' ? '' : ` AND (songs_artists.artist_id IN (${filterArtists}))`
+    const filterSongsStatement = filterSongs == '' ? '' : ` AND (songs.id IN (${filterSongs}))`
+
+    return db.prepare(`
+        SELECT DISTINCT views_breakdowns.song_id,
+            CASE :orderBy
+                WHEN 3 THEN (SUM(DISTINCT views_breakdowns.views) - CASE WHEN :timePeriodOffset IS NULL
+                    THEN 0
+                    ELSE ifnull((
+                        SELECT SUM(DISTINCT offset_breakdowns.views) AS offset_views
+                        FROM views_breakdowns AS offset_breakdowns
+                        INNER JOIN songs ON songs.id = offset_breakdowns.song_id
+                        INNER JOIN songs_artists ON songs_artists.song_id = offset_breakdowns.song_id
+                        INNER JOIN artists ON artists.id = songs_artists.artist_id
+                        WHERE (offset_breakdowns.timestamp = CASE WHEN :daysOffset IS NULL
+                                THEN DATE(:timestamp, '-' || :timePeriodOffset || ' day')
+                                ELSE DATE(DATE(:timestamp, '-' || :daysOffset || ' day'), '-' || :timePeriodOffset || ' day')
+                                END)
+                            AND (offset_breakdowns.song_id = views_breakdowns.song_id)
+                            AND (offset_breakdowns.view_type = :viewType OR :viewType IS NULL)
+                            AND (songs.song_type = :songType OR :songType IS NULL)
+                            AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
+                            AND (artists.artist_type = :artistType OR :artistType IS NULL)
+                            AND (offset_breakdowns.views = CASE WHEN :singleVideo IS NULL
+                                THEN offset_breakdowns.views
+                                ELSE
+                                    (SELECT MAX(offset_sub_breakdowns.views)
+                                    FROM views_breakdowns AS offset_sub_breakdowns 
+                                    INNER JOIN songs ON songs.id = offset_sub_breakdowns.song_id
+                                    INNER JOIN songs_artists ON songs_artists.song_id = offset_sub_breakdowns.song_id
+                                    INNER JOIN artists ON artists.id = songs_artists.artist_id
+                                    WHERE (offset_sub_breakdowns.view_type = offset_breakdowns.view_type)
+                                        AND (offset_sub_breakdowns.timestamp = offset_breakdowns.timestamp)
+                                        AND (offset_sub_breakdowns.song_id = offset_breakdowns.song_id)
+                                        AND (songs.song_type = :songType OR :songType IS NULL)
+                                        AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
+                                        AND (artists.artist_type = :artistType OR :artistType IS NULL)${filterArtistsStatement}${filterSongsStatement}
+                                    GROUP BY offset_sub_breakdowns.song_id)
+                                END)${filterArtistsStatement}${filterSongsStatement}
+                        GROUP BY offset_breakdowns.song_id
+                    ),SUM(DISTINCT views_breakdowns.views))
+                END) * (1 / MAX(julianday('now') - julianday(songs.publish_date), 1))
+                ELSE SUM(DISTINCT views_breakdowns.views) - CASE WHEN :timePeriodOffset IS NULL
+                    THEN 0
+                    ELSE ifnull((
+                        SELECT SUM(DISTINCT offset_breakdowns.views) AS offset_views
+                        FROM views_breakdowns AS offset_breakdowns
+                        INNER JOIN songs ON songs.id = offset_breakdowns.song_id
+                        INNER JOIN songs_artists ON songs_artists.song_id = offset_breakdowns.song_id
+                        INNER JOIN artists ON artists.id = songs_artists.artist_id
+                        WHERE (offset_breakdowns.timestamp = CASE WHEN :daysOffset IS NULL
+                                THEN DATE(:timestamp, '-' || :timePeriodOffset || ' day')
+                                ELSE DATE(DATE(:timestamp, '-' || :daysOffset || ' day'), '-' || :timePeriodOffset || ' day')
+                                END)
+                            AND (offset_breakdowns.song_id = views_breakdowns.song_id)
+                            AND (offset_breakdowns.view_type = :viewType OR :viewType IS NULL)
+                            AND (songs.song_type = :songType OR :songType IS NULL)
+                            AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
+                            AND (artists.artist_type = :artistType OR :artistType IS NULL)
+                            AND (offset_breakdowns.views = CASE WHEN :singleVideo IS NULL
+                                THEN offset_breakdowns.views
+                                ELSE
+                                    (SELECT MAX(offset_sub_breakdowns.views)
+                                    FROM views_breakdowns AS offset_sub_breakdowns 
+                                    INNER JOIN songs ON songs.id = offset_sub_breakdowns.song_id
+                                    INNER JOIN songs_artists ON songs_artists.song_id = offset_sub_breakdowns.song_id
+                                    INNER JOIN artists ON artists.id = songs_artists.artist_id
+                                    WHERE (offset_sub_breakdowns.view_type = offset_breakdowns.view_type)
+                                        AND (offset_sub_breakdowns.timestamp = offset_breakdowns.timestamp)
+                                        AND (offset_sub_breakdowns.song_id = offset_breakdowns.song_id)
+                                        AND (songs.song_type = :songType OR :songType IS NULL)
+                                        AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
+                                        AND (artists.artist_type = :artistType OR :artistType IS NULL)${filterArtistsStatement}${filterSongsStatement}
+                                    GROUP BY offset_sub_breakdowns.song_id)
+                                END)${filterArtistsStatement}${filterSongsStatement}
+                        GROUP BY offset_breakdowns.song_id
+                    ),SUM(DISTINCT views_breakdowns.views))
+                END 
+            END AS total_views
+        FROM views_breakdowns
+        INNER JOIN songs ON views_breakdowns.song_id = songs.id
+        INNER JOIN songs_artists ON songs_artists.song_id = views_breakdowns.song_id
+        INNER JOIN artists ON artists.id = songs_artists.artist_id
+        WHERE (views_breakdowns.timestamp = CASE WHEN :daysOffset IS NULL
+                THEN :timestamp
+                ELSE DATE(:timestamp, '-' || :daysOffset || ' day')
+                END)
+            AND (views_breakdowns.view_type = :viewType OR :viewType IS NULL)
+            AND (songs.song_type = :songType OR :songType IS NULL)
+            AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
+            AND (artists.artist_type = :artistType OR :artistType IS NULL)
+            AND (views_breakdowns.views = CASE WHEN :singleVideo IS NULL
+                THEN views_breakdowns.views
+                ELSE
+                    (SELECT MAX(sub_vb.views)
+                    FROM views_breakdowns AS sub_vb 
+                    INNER JOIN songs ON songs.id = sub_vb.song_id
+                    INNER JOIN songs_artists ON songs_artists.song_id = sub_vb.song_id
+                    INNER JOIN artists ON artists.id = songs_artists.artist_id
+                    WHERE (sub_vb.view_type = views_breakdowns.view_type)
+                        AND (sub_vb.timestamp = views_breakdowns.timestamp)
+                        AND (sub_vb.song_id = views_breakdowns.song_id)
+                        AND (songs.song_type = :songType OR :songType IS NULL)
+                        AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
+                        AND (artists.artist_type = :artistType OR :artistType IS NULL)${filterArtistsStatement}${filterSongsStatement}
+                    GROUP BY sub_vb.song_id)
+                END)${filterArtistsStatement}${filterSongsStatement}
+        GROUP BY views_breakdowns.song_id
+        HAVING (CASE WHEN :minViews IS NULL
+            THEN 1
+            ELSE total_views >= :minViews END)
+            AND (CASE WHEN :maxViews IS NULL
+                THEN 1
+                ELSE total_views <= :maxViews END)
+        ORDER BY
+            CASE WHEN :direction = 0 THEN 1
+            ELSE
+                CASE :orderBy
+                    WHEN 1 
+                        THEN DATE(songs.publish_date)
+                    WHEN 2 
+                        THEN DATE(songs.addition_date)
+                    ELSE total_views
+                END
+            END ASC,
+            CASE WHEN :direction = 1 THEN 1
+            ELSE
+                CASE :orderBy
+                    WHEN 1 
+                        THEN DATE(songs.publish_date)
+                    WHEN 2 
+                        THEN DATE(songs.addition_date)
+                    ELSE total_views
+                END
+            END DESC
+        LIMIT :maxEntries
+        OFFSET :startAt`).all(queryParams.params) as RawRankingsResult[]
+}
+
+function filterRankingsSync(
+    filterParams: RankingsFilterParams
+): RankingsFilterResult {
+    const queryParams = getRankingsFilterQueryParams(filterParams)
+
+    const primaryResult = filterRankingsRawSync(queryParams)
+    // handle change offset
+    const changeOffset = filterParams.changeOffset
+    const changeOffsetMap: { [key: string]: number } = {}
+    if (changeOffset && changeOffset > 0) {
+        const changeOffsetResult = filterRankingsRawSync(getRankingsFilterQueryParams(filterParams, changeOffset))
+        for (let placement = 0; placement < changeOffsetResult.length; placement++) {
+            changeOffsetMap[changeOffsetResult[placement].song_id.toString()] = placement
+        }
+    }
+
+    const returnEntries: RankingsFilterResultItem[] = []
+    // generate rankings entries
+    const placementOffset = filterParams.startAt
+    let placement = 0
+    for (const data of primaryResult) {
+        const songId = data.song_id
+        const previousPlacement = changeOffsetMap[songId.toString()] || placement
+        try {
+            const songData = getSongSync(songId, false)
+            if (songData) {
+                returnEntries.push({
+                    placement: placement + 1 + placementOffset,
+                    change: previousPlacement == placement ? PlacementChange.SAME :
+                        (placement > previousPlacement ? PlacementChange.DOWN : PlacementChange.UP),
+                    previousPlacement: previousPlacement,
+                    views: data.total_views,
+                    song: songData
+                })
+                placement++
+            }
+        } catch (error) { }
+    }
+
+    // get entry count
+    const entryCount = filterRankingsCountSync(queryParams)
+
+    return {
+        totalCount: entryCount,
+        timestamp: queryParams.params['timestamp'] as string,
+        results: returnEntries
+    }
+}
+
+export function filterRankings(
+    filterParams: RankingsFilterParams
+): Promise<RankingsFilterResult> {
+    return new Promise((resolve, reject) => {
+        try {
+            resolve(filterRankingsSync(filterParams))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
 
 // Views
 function getMostRecentViewsTimestampSync(): string | null {
@@ -57,13 +355,15 @@ function getHistoricalViewsSync(
     period: number = 1,
     timestamp: string | null = getMostRecentViewsTimestampSync()
 ): HistoricalViewsResult {
-    if (!timestamp) { return {
-        range: range,
-        period: period,
-        startAt: timestamp,
-        largest: 0,
-        views: []
-    }}
+    if (!timestamp) {
+        return {
+            range: range,
+            period: period,
+            startAt: timestamp,
+            largest: 0,
+            views: []
+        }
+    }
     const views: (number | bigint)[] = []
     const timestamps: string[] = []
     const historicalViews: HistoricalViews[] = []
