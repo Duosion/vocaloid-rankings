@@ -5,6 +5,7 @@ import { Noto_Sans_JP, Inter } from 'next/font/google'
 import localFont from "next/font/local"
 import { Providers } from '@/components/providers'
 import { Locale } from '@/localization/'
+import Footer from '@/components/footer'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const notoSans = Noto_Sans_JP({ subsets: ['latin'], variable: '--font-noto-sans' })
@@ -36,9 +37,10 @@ export default function RootLayout({
       <body className='font-sans bg-background'>
         <Providers>
           <Navbar lang={locale}/>
-          <div className='max-w-7xl m-auto flex flex-col justify-center items-start px-5 pt-6'>
+          <div className='max-w-7xl min-h-[100vh] m-auto flex flex-col justify-center items-start px-5 py-6'>
             {children}
           </div>
+          <Footer lang={locale}/>
         </Providers>
       </body>
     </html>

@@ -37,7 +37,7 @@ export default async function Home(
   const locale = params.lang
   const langDict = await getDictionary(locale)
   return (
-    <div className='w-full h-[100vh] flex flex-col gap-5 justify-start items-center'>
+    <div className='w-full h-full flex flex-col gap-5 justify-start items-center'>
       <div className='w-full flex flex-col justify-start items-center gap-8 mt-2'>
         <div className='text-on-surface md:text-6xl font-extrabold text-4xl w-full text-center'>{langDict.home_rankings}</div>
         <div className='w-full text-center text-xl text-on-surface-variant max-w-3xl'>Explore vocal synthesizer songs that are ranked based on their total view counts with powerful filtering capabilities.</div>

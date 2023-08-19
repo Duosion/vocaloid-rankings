@@ -137,7 +137,7 @@ export default async function SongPage(
         }
     })
     const largestArtistColumnCount = Math.max(singers.length, producers.length)
-    const artistColumnSize = largestArtistColumnCount >= 3 ? 'md:grid-cols-3' : `md:grid-cols-${largestArtistColumnCount}`
+    const artistColumnSize = largestArtistColumnCount >= 3 ? 'lg:grid-cols-3' : `lg:grid-cols-${largestArtistColumnCount}`
 
     // generate views breakdown
     const viewsBreakdowns: ViewsBreakdown[] = []
@@ -275,7 +275,7 @@ export default async function SongPage(
                     </div>
                 </div>
                 <div className="flex gap-5 flex-col">
-                    <div className={`grid gap-5 grid-cols-1 md:${largestArtistColumnCount == 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                    <div className={`grid gap-5 grid-cols-1 lg:${largestArtistColumnCount == 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
                         <Section title={singers.length == 1 ? langDict.song_singers_singular : langDict.song_singers}>
                             <div className={`grid gap-5 grid-cols-1 ${artistColumnSize}`}>
                                 {singers}
@@ -287,7 +287,7 @@ export default async function SongPage(
                             </div>
                         </Section>
                     </div>
-                    <div className="grid gap-5 md:grid-cols-2 grid-cols-1">
+                    <div className="grid gap-5 lg:grid-cols-2 grid-cols-1">
                         <Section title={langDict.song_views_breakdown}>
                             <div className="bg-surface-2 rounded-2xl p-5 flex flex-col gap-3 box-border">
                                 <div className="h-28 flex sm:gap-5 gap-2 justify-start items-center overflow-x-auto overflow-y-clip max-w-full m-auto w-fit">
@@ -325,19 +325,21 @@ export default async function SongPage(
                             </div>
                         </Section>
                     </div>
-                    <div className="grid gap-5 md:grid-cols-2 grid-cols-1">
+                    <div className="grid gap-5 lg:grid-cols-2 grid-cols-1">
                         {mostViewedSources[SourceType.YOUTUBE] ? <Section title={langDict.song_video}>
                             <iframe className="rounded-2xl w-full border border-outline-variant" id="youtube-player" title="YouTube video player"
                                 allow="clipboard-write; encrypted-media; picture-in-picture; web-share"
                                 src={`https://www.youtube-nocookie.com/embed/${mostViewedSources[SourceType.YOUTUBE].id}`} height="230" frameBorder="0"></iframe>
                         </Section> : null}
                     </div>
-                    <Section title={langDict.song_listen}>
-                        <div className="flex-col gap-5 md:hidden flex">
-                            {videoLinks}
-                            {vocadbLink}
-                        </div>
-                    </Section>
+                    <div className="md:hidden">
+                        <Section title={langDict.song_listen}>
+                            <div className="flex-col gap-5 flex">
+                                {videoLinks}
+                                {vocadbLink}
+                            </div>
+                        </Section>
+                    </div>
                 </div>
             </div>
         </div>
