@@ -12,7 +12,7 @@ export default async function Footer(
     return (
         <>
             <div className="w-full max-w-7xl bg-outline-variant opacity-50 h-[1px] m-auto"></div>
-            <div className="w-full h-24 box-border p-7 flex justify-center items-center gap-7 flex-wrap">
+            <div className="w-full min-h-24 h-fit box-border p-7 flex justify-center items-center gap-7 flex-wrap">
                 <FooterLink text={langDict.home_about} href='/about' />
                 <FooterLink text={langDict.add_song} href='/song/add' />
                 <FooterLink text={langDict.footer_source_code} href='https://github.com/Duosion/vocaloid-rankings' />
