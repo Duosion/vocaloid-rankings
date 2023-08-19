@@ -259,7 +259,7 @@ export default async function SongPage(
 
             <div className="mt-3 w-full grid md:grid-cols-sidebar grid-cols-1 gap-5">
                 <div className="flex flex-col gap-5">
-                    <div className="bg-surface-2 rounded-2xl p-5 box-border flex md:flex-col flex-row gap-5 overflow-x-scroll overflow-y-clip">
+                    <div className="bg-surface-2 rounded-2xl p-5 box-border flex md:flex-col flex-row gap-5 overflow-x-scroll overflow-y-clip md:overflow-x-clip">
                         <StatRow title={langDict.filter_publish_date}>
                             <DateFormatter date={new Date(song.publishDate)} />
                         </StatRow>
@@ -375,9 +375,9 @@ function SidebarLink(
         className?: string
     }
 ) {
-    return <Link className={`bg-surface-2 rounded-2xl p-2 box-border flex gap-2 relative before:absolute before:w-full before:h-full before:left-0 before:top-0 before:rounded-2xl before:hover:bg-on-primary before:hover:opacity-[0.12] ${className}`} href={href}>
+    return <Link className={`bg-surface-2 text-on-surface rounded-2xl p-2 box-border flex gap-2 relative before:absolute before:w-full before:h-full before:left-0 before:top-0 before:rounded-2xl before:hover:bg-on-primary before:opacity-0 hover:before:opacity-[0.12] hover:text-primary before:transition-opacity ${className}`} href={href}>
         {icon}
-        <div className="text-lg text-on-surface w-full text-center flex items-center justify-center">{text}</div>
+        <div className="text-lg text-inherit w-full text-center flex items-center justify-center transition-colors">{text}</div>
     </Link>
 }
 
@@ -395,13 +395,13 @@ function StatRow(
 ) {
     if (text) {
         return <div className="whitespace-nowrap">
-            <div className="text-lg text-on-surface font-semibold w-full">{title}</div>
-            <div className="text-lg text-on-surface-variant w-full">{text}</div>
+            <div className="text-lg text-on-surface font-semibold w-full md:whitespace-break-spaces">{title}</div>
+            <div className="text-lg text-on-surface-variant w-full md:whitespace-break-spaces">{text}</div>
         </div>
     } else {
         return <div className="whitespace-nowrap">
-            <div className="text-lg text-on-surface font-semibold w-full">{title}</div>
-            <div className="text-lg text-on-surface-variant w-full">{children}</div>
+            <div className="text-lg text-on-surface font-semibold w-full md:whitespace-break-spaces">{title}</div>
+            <div className="text-lg text-on-surface-variant w-full md:whitespace-break-spaces">{children}</div>
         </div>
     }
 }
@@ -428,7 +428,7 @@ function SingerCard(
     }
 ) {
     return (
-        <Link className={`bg-surface-2 rounded-2xl relative flex gap-3 items-center overflow-clip before:absolute before:w-full before:h-full before:left-0 before:top-0 before:rounded-2xl before:hover:bg-on-primary before:hover:opacity-[0.12] ${className}`} href={href}>
+        <Link className={`bg-surface-2 text-on-surface rounded-2xl relative flex gap-3 items-center overflow-clip before:absolute before:w-full before:h-full before:left-0 before:top-0 before:rounded-2xl before:hover:bg-on-primary before:opacity-0 hover:before:opacity-[0.12] hover:text-primary before:transition-opacity ${className}`} href={href}>
             <div className="relative overflow-clip h-16 w-16 flex justify-start items-center" style={{ backgroundColor: bgColor }}>
                 <Image
                     fill
@@ -438,7 +438,7 @@ function SingerCard(
                 />
             </div>
             <div className="flex flex-col py-1 overflow-hidden">
-                <div className="text-lg text-on-surface font-semibold w-full whitespace-nowrap overflow-clip text-ellipsis">{title}</div>
+                <div className="text-lg font-semibold w-full whitespace-nowrap overflow-clip text-ellipsis text-inherit transition-colors">{title}</div>
                 <div className="text-md text-on-surface-variant w-full">{text}</div>
             </div>
         </Link>
