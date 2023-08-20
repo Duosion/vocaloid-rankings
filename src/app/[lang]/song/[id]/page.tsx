@@ -99,7 +99,8 @@ export default async function SongPage(
     const settingTitleLanguage = settings.titleLanguage
 
     // import language dictionary
-    const langDict = await getDictionary(params.lang)
+    const lang = params.lang
+    const langDict = await getDictionary(lang)
 
     // generate name info
     const nameElements: JSX.Element[] = []
@@ -121,11 +122,11 @@ export default async function SongPage(
     const producers: JSX.Element[] = []
     song.artists.forEach(artist => {
         const isSinger = artist.category == ArtistCategory.VOCALIST
-        const element = <SingerCard
+        const element = <ArtistCard
             src={artist.thumbnails[ArtistThumbnailType.MEDIUM]}
             alt={'TODO'} // TODO
             bgColor={artist.averageColor}
-            href={`/artist/${artist.id}`}
+            href={`/${lang}/artist/${artist.id}`}
             title={<EntityName names={artist.names} preferred={settingTitleLanguage} />}
             text={langDict[ArtistTypeLocaleTokens[artist.type]]}
             isSinger={isSinger}
@@ -297,7 +298,7 @@ export default async function SongPage(
                                             <Link href={`${displayData.videoURL}${breakdown.id}`} className="px-3 py-1 box-border text-base rounded-2xl w-fit" style={{ backgroundColor: displayData.color, color: displayData.textColor }}>
                                                 {langDict[SourceTypeLocaleTokens[breakdown.source]]}
                                             </Link>
-                                            <div className="flex flex-row justify-center items-center sm:gap-2 gap-1 md:text-lg text-base">
+                                            <div className="flex flex-row justify-center items-center sm:gap-2 gap-1 md:text-lg text-base whitespace-nowrap">
                                                 <div style={{ color: displayData.color }}><NumberFormatter number={breakdown.views as number} compact /></div>
                                                 {langDict.rankings_views}
                                             </div>
@@ -406,7 +407,7 @@ function StatRow(
     }
 }
 
-function SingerCard(
+function ArtistCard(
     {
         src,
         alt,
@@ -429,7 +430,7 @@ function SingerCard(
 ) {
     return (
         <Link className={`bg-surface-2 text-on-surface rounded-2xl relative flex gap-3 items-center overflow-clip before:absolute before:w-full before:h-full before:left-0 before:top-0 before:rounded-2xl before:hover:bg-on-primary before:opacity-0 hover:before:opacity-[0.12] hover:text-primary before:transition-opacity ${className}`} href={href}>
-            <div className="relative overflow-clip h-16 w-16 flex justify-start items-center" style={{ backgroundColor: bgColor }}>
+            <div className="relative overflow-clip h-14 w-14 flex justify-start items-center m-2 rounded-2xl border border-outline-variant" style={{ backgroundColor: bgColor }}>
                 <Image
                     fill
                     src={src}
