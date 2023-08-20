@@ -36,3 +36,4 @@ next-env.d.ts
 
 #database
 src/data/database/
+src/data/database/songs_data.db
