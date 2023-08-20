@@ -2,6 +2,7 @@
 
 import { useSettings } from "@/app/[lang]/settings/SettingsProvider"
 import { NameType, Names } from "@/data/types"
+import { getEntityName } from "@/localization"
 import { useEffect, useState } from "react"
 
 const numberFormatter = new Intl.NumberFormat()
@@ -13,14 +14,6 @@ const shortenedDateFormatter = new Intl.DateTimeFormat(undefined, {
     month: '2-digit',
     day: '2-digit',
 })
-
-// name map for EntityName component
-const NameMap: { [key in NameType]: NameType[] } = {
-    [NameType.ORIGINAL]: [NameType.ORIGINAL],
-    [NameType.JAPANESE]: [NameType.JAPANESE],
-    [NameType.ENGLISH]: [NameType.ENGLISH, NameType.ROMAJI],
-    [NameType.ROMAJI]: [NameType.ROMAJI, NameType.ENGLISH]
-}
 
 export function NumberFormatter(
     {
@@ -70,18 +63,7 @@ export function EntityName(
         setPreferredNameType(settings.titleLanguage)
     }, [])
 
-    const map = NameMap[preferredNameType]
-    let name = names[NameType.ORIGINAL]
-    if (map) {
-        for (let i = 0; i < map.length; i++) {
-            const exists = names[map[i]]
-            if (exists) {
-                name = exists
-                break
-            }
-        }
-    }
     return (
-        name
+        getEntityName(names, preferredNameType)
     )
 }
