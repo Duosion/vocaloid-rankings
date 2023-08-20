@@ -1,5 +1,5 @@
 import { getSong, getSongHistoricalViews } from "@/data/songsData"
-import { Locale, getDictionary } from "@/localization"
+import { Locale, getDictionary, getEntityName } from "@/localization"
 import { notFound } from "next/navigation"
 import { Settings } from "../../settings"
 import { cookies } from "next/dist/client/components/headers"
@@ -8,7 +8,7 @@ import Image from "next/image"
 import { NumberFormatter, EntityName, DateFormatter } from "@/components/formatters"
 import { ArtistTypeLocaleTokens, NameTypeLocaleTokens, SongTypeLocaleTokens, SourceTypeLocaleTokens } from "@/localization/DictionaryTokenMaps"
 import Link from "next/link"
-import { ArtistCategory, ArtistThumbnailType, NameType, SourceType, VideoViews } from "@/data/types"
+import { ArtistCategory, ArtistThumbnailType, NameType, SourceType } from "@/data/types"
 
 // interfaces
 interface ViewsBreakdown {
@@ -97,6 +97,7 @@ export default async function SongPage(
     // general variables
     const songTotalViews = Number(song.views?.total) || 0
     const settingTitleLanguage = settings.titleLanguage
+    const songNames = song.names
 
     // import language dictionary
     const lang = params.lang
@@ -105,7 +106,6 @@ export default async function SongPage(
     // generate name info
     const nameElements: JSX.Element[] = []
     {
-        const songNames = song.names
         for (const item in NameType) {
             const nameType = Number(item) as NameType
             const name = isNaN(nameType) || nameType == NameType.ORIGINAL ? false : songNames[nameType]
@@ -122,12 +122,13 @@ export default async function SongPage(
     const producers: JSX.Element[] = []
     song.artists.forEach(artist => {
         const isSinger = artist.category == ArtistCategory.VOCALIST
+        const artistNames = artist.names
         const element = <ArtistCard
             src={artist.thumbnails[ArtistThumbnailType.MEDIUM]}
-            alt={'TODO'} // TODO
+            alt={getEntityName(artistNames, settingTitleLanguage)}
             bgColor={artist.averageColor}
             href={`/${lang}/artist/${artist.id}`}
-            title={<EntityName names={artist.names} preferred={settingTitleLanguage} />}
+            title={<EntityName names={artistNames} preferred={settingTitleLanguage} />}
             text={langDict[ArtistTypeLocaleTokens[artist.type]]}
             isSinger={isSinger}
         />
@@ -250,12 +251,12 @@ export default async function SongPage(
                     priority
                     fill
                     src={song.maxresThumbnail}
-                    alt={'TODO'} // TODO
+                    alt={getEntityName(songNames, settingTitleLanguage)}
                     style={{ objectFit: "cover" }}
                     className="z-1"
                 />
             </div>
-            <div className="font-extrabold md:text-5xl md:text-left text-4xl text-center w-full"> <EntityName names={song.names} preferred={settingTitleLanguage} /> </div>
+            <div className="font-extrabold md:text-5xl md:text-left text-4xl text-center w-full"><EntityName names={songNames} preferred={settingTitleLanguage} /></div>
             <div className="font-semibold md:text-3xl text-2xl text-on-background md:text-left text-center w-full"><NumberFormatter number={songTotalViews} /> {langDict.rankings_views} </div>
 
             <div className="mt-3 w-full grid md:grid-cols-sidebar grid-cols-1 gap-5">
@@ -439,7 +440,7 @@ function ArtistCard(
                 />
             </div>
             <div className="flex flex-col py-1 overflow-hidden">
-                <div className="text-lg font-semibold w-full whitespace-nowrap overflow-clip text-ellipsis text-inherit transition-colors">{title}</div>
+                <div className="text-xl font-semibold w-full whitespace-nowrap overflow-clip text-ellipsis text-inherit transition-colors">{title}</div>
                 <div className="text-md text-on-surface-variant w-full">{text}</div>
             </div>
         </Link>
