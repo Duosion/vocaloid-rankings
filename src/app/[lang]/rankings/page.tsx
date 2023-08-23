@@ -55,8 +55,8 @@ export default async function RankingsPage(
     const settingTitleLanguage = settings.titleLanguage
 
     return (
-        <div className="flex flex-col gap-3 w-full">
-            <div className="font-extrabold md:text-5xl md:text-left text-4xl text-center w-full">{langDict.rankings_page_title}</div>
+        <section className="flex flex-col gap-3 w-full">
+            <h1 className="font-extrabold md:text-5xl md:text-left text-4xl text-center w-full">{langDict.rankings_page_title}</h1>
             <div className="flex gap-3 w-full mt-5">
                 <SelectFilterElement name={langDict[filters.songType.name]} defaultValue={filters.songType.defaultValue} values={filters.songType.values.map(value => { return {name: langDict[value.name], value: value.value} })} />
                 <SelectFilterElement name={langDict[filters.sourceType.name]} defaultValue={filters.sourceType.defaultValue} values={filters.sourceType.values.map(value => { return {name: langDict[value.name], value: value.value} })} />
@@ -92,7 +92,7 @@ export default async function RankingsPage(
                     )
                 })}
             </ol>
-        </div>
+        </section>
     )
 }
 

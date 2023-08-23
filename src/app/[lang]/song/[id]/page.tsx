@@ -255,7 +255,7 @@ export default async function SongPage(
     )
 
     return (
-        <div className='w-full min-h-[100vh] flex flex-col gap-5 justify-start items-start'>
+        <section className='w-full min-h-[100vh] flex flex-col gap-5 justify-start items-start'>
             <style>{`
                 :root {
                     ${customThemeLightCss}
@@ -363,7 +363,7 @@ export default async function SongPage(
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
     )
 }
 
