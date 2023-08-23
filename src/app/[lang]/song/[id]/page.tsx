@@ -3,7 +3,7 @@ import { Locale, getDictionary, getEntityName } from "@/localization"
 import { notFound } from "next/navigation"
 import { Settings } from "../../settings"
 import { cookies } from "next/dist/client/components/headers"
-import { argbFromHex, themeFromSourceColor, hexFromArgb, redFromArgb, greenFromArgb, blueFromArgb, Scheme } from "@importantimport/material-color-utilities"
+import { argbFromHex, themeFromSourceColor, hexFromArgb, redFromArgb, greenFromArgb, blueFromArgb, Scheme, themeFromImage, SchemeContent, Hct, MaterialDynamicColors } from "@material/material-color-utilities"
 import Image from "next/image"
 import { NumberFormatter, EntityName, DateFormatter } from "@/components/formatters"
 import { ArtistTypeLocaleTokens, NameTypeLocaleTokens, SongTypeLocaleTokens, SourceTypeLocaleTokens } from "@/localization/DictionaryTokenMaps"
@@ -45,11 +45,22 @@ export const SourceTypesDisplayData: { [key in SourceType]: SourceTypeDisplayDat
     },
 }
 
+const tonalSurfaceContainers = {
+    'surface-container-lowest': MaterialDynamicColors.surfaceContainerLowest,
+    'surface-container-low': MaterialDynamicColors.surfaceContainerLow,
+    'surface-container': MaterialDynamicColors.surfaceContainer,
+    'surface-container-high': MaterialDynamicColors.surfaceContainerHigh,
+    'surface-container-highest': MaterialDynamicColors.surfaceContainerHighest
+}
+
 // theme generation helper functions
 const getRgbMdTokenFromArgb = (argb: number, suffix = '') => {
     return `--md-sys-color-${suffix}-rgb: ${redFromArgb(argb)} ${greenFromArgb(argb)} ${blueFromArgb(argb)};`
 }
-const getCustomThemeStylesheet = (theme: Scheme) => {
+const getCustomThemeStylesheet = (
+    theme: Scheme,
+    dynamicScheme: SchemeContent
+) => {
 
     const lines = []
 
@@ -70,6 +81,12 @@ const getCustomThemeStylesheet = (theme: Scheme) => {
     const background = theme['background']
     if (background) {
         lines.push(getRgbMdTokenFromArgb(background, "background"))
+    }
+
+    // add tonal surface container values
+    for (const key in tonalSurfaceContainers) {
+        const dynamicColor = tonalSurfaceContainers[key as keyof typeof tonalSurfaceContainers]
+        lines.push(`--md-sys-color-${key}: ${hexFromArgb(dynamicColor.getArgb(dynamicScheme))} !important;`)
     }
 
     return lines
@@ -211,10 +228,13 @@ export default async function SongPage(
     let customThemeLightCss: string = ''
     let customThemeDarkCss: string = ''
     {
-        const theme = themeFromSourceColor(argbFromHex(song.averageColor))
+        const argbAverageColor = argbFromHex(song.averageColor)
+        const theme = themeFromSourceColor(argbAverageColor)
         const schemes = theme.schemes
-        customThemeLightCss = getCustomThemeStylesheet(schemes.light).join('')
-        customThemeDarkCss = getCustomThemeStylesheet(schemes.dark).join('')
+        // dynamic theme config
+        const contrast = 0.3
+        customThemeLightCss = getCustomThemeStylesheet(schemes.light, new SchemeContent(Hct.fromInt(argbFromHex(song.lightColor)), false, contrast)).join('')
+        customThemeDarkCss = getCustomThemeStylesheet(schemes.dark, new SchemeContent(Hct.fromInt(argbFromHex(song.darkColor)), true, contrast)).join('')
     }
 
     // generate vocadb link
@@ -261,7 +281,7 @@ export default async function SongPage(
 
             <div className="mt-3 w-full grid md:grid-cols-sidebar grid-cols-1 gap-5">
                 <div className="flex flex-col gap-5">
-                    <div className="bg-surface-2 rounded-2xl p-5 box-border flex md:flex-col flex-row gap-5 overflow-x-scroll overflow-y-clip md:overflow-x-clip">
+                    <div className="bg-surface-container-low rounded-2xl p-5 box-border flex md:flex-col flex-row gap-5 overflow-x-scroll overflow-y-clip md:overflow-x-clip">
                         <StatRow title={langDict.filter_publish_date}>
                             <DateFormatter date={new Date(song.publishDate)} />
                         </StatRow>
@@ -291,7 +311,7 @@ export default async function SongPage(
                     </div>
                     <div className="grid gap-5 lg:grid-cols-2 grid-cols-1">
                         <Section title={langDict.song_views_breakdown}>
-                            <div className="bg-surface-2 rounded-2xl p-5 flex flex-col gap-3 box-border">
+                            <div className="bg-surface-container-low rounded-2xl p-5 flex flex-col gap-3 box-border">
                                 <div className="h-28 flex sm:gap-5 gap-2 justify-start items-center overflow-x-auto overflow-y-clip max-w-full m-auto w-fit">
                                     {viewsBreakdowns.map(breakdown => {
                                         const displayData = SourceTypesDisplayData[breakdown.source]
@@ -315,7 +335,7 @@ export default async function SongPage(
                             </div>
                         </Section>
                         <Section title={langDict.song_daily_views}>
-                            <div className="bg-surface-2 rounded-2xl p-5 flex justify-between md:gap-4 gap-1 overflow-x-scroll overflow-y-clip">
+                            <div className="bg-surface-container-low rounded-2xl p-5 flex justify-between md:gap-4 gap-1 overflow-x-scroll overflow-y-clip">
                                 {historicalViewsResult.views.map(historicalViews => {
                                     const views = historicalViews.views as number
                                     return <div className="flex flex-col h-[142px] justify-end items-center">
@@ -377,7 +397,7 @@ function SidebarLink(
         className?: string
     }
 ) {
-    return <Link className={`bg-surface-2 text-on-surface rounded-2xl p-2 box-border flex gap-2 relative before:absolute before:w-full before:h-full before:left-0 before:top-0 before:rounded-2xl before:hover:bg-on-primary before:opacity-0 hover:before:opacity-[0.12] hover:text-primary before:transition-opacity ${className}`} href={href}>
+    return <Link className={`bg-surface-container-low text-on-surface rounded-2xl p-2 box-border flex gap-2 relative before:absolute before:w-full before:h-full before:left-0 before:top-0 before:rounded-2xl before:hover:bg-on-primary before:opacity-0 hover:before:opacity-[0.12] hover:text-primary before:transition-opacity ${className}`} href={href}>
         {icon}
         <div className="text-lg text-inherit w-full text-center flex items-center justify-center transition-colors">{text}</div>
     </Link>
@@ -430,7 +450,7 @@ function ArtistCard(
     }
 ) {
     return (
-        <Link className={`bg-surface-2 text-on-surface rounded-2xl relative flex gap-3 items-center overflow-clip before:absolute before:w-full before:h-full before:left-0 before:top-0 before:rounded-2xl before:hover:bg-on-primary before:opacity-0 hover:before:opacity-[0.12] hover:text-primary before:transition-opacity ${className}`} href={href}>
+        <Link className={`bg-surface-container-low text-on-surface rounded-2xl relative flex gap-3 items-center overflow-clip before:absolute before:w-full before:h-full before:left-0 before:top-0 before:rounded-2xl before:hover:bg-on-primary before:opacity-0 hover:before:opacity-[0.12] hover:text-primary before:transition-opacity ${className}`} href={href}>
             <div className="relative overflow-clip h-14 w-14 flex justify-start items-center m-2 rounded-2xl border border-outline-variant" style={{ backgroundColor: bgColor }}>
                 <Image
                     fill
