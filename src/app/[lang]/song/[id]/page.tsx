@@ -255,7 +255,7 @@ export default async function SongPage(
     )
 
     return (
-        <section className='w-full min-h-[100vh] flex flex-col gap-5 justify-start items-start'>
+        <article className='w-full min-h-[100vh] flex flex-col gap-5 justify-start items-start'>
             <style>{`
                 :root {
                     ${customThemeLightCss}
@@ -276,12 +276,14 @@ export default async function SongPage(
                     className="z-1"
                 />
             </figure>
+
             <header className="flex flex-col gap-5">
                 <h1 className="font-extrabold md:text-5xl md:text-left text-4xl text-center w-full"><EntityName names={songNames} preferred={settingTitleLanguage} /></h1>
                 <h2 className="font-semibold md:text-3xl text-2xl text-on-background md:text-left text-center w-full"><NumberFormatter number={songTotalViews} /> {langDict.rankings_views} </h2>
             </header>
+
             <div className="mt-3 w-full grid md:grid-cols-sidebar grid-cols-1 gap-5">
-                <div className="flex flex-col gap-5">
+                <aside className="flex flex-col gap-5">
                     <ul className="bg-surface-container-low rounded-2xl p-5 box-border flex md:flex-col flex-row gap-5 overflow-x-scroll overflow-y-clip md:overflow-x-clip">
                         <StatRow title={langDict.filter_publish_date}>
                             <DateFormatter date={new Date(song.publishDate)} />
@@ -296,7 +298,8 @@ export default async function SongPage(
                         {videoLinks}
                         {vocadbLink}
                     </ul>
-                </div>
+                </aside>
+
                 <div className="flex gap-5 flex-col">
                     <div className={`grid gap-5 grid-cols-1 lg:${largestArtistColumnCount == 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
                         <Section title={singers.length == 1 ? langDict.song_singers_singular : langDict.song_singers}>
@@ -316,15 +319,15 @@ export default async function SongPage(
                                 <div className="h-28 flex sm:gap-5 gap-2 justify-start items-center overflow-x-auto overflow-y-clip max-w-full m-auto w-fit">
                                     {viewsBreakdowns.map(breakdown => {
                                         const displayData = SourceTypesDisplayData[breakdown.source]
-                                        return <div className="flex flex-col gap-2 items-center">
-                                            <Link href={`${displayData.videoURL}${breakdown.id}`} className="px-3 py-1 box-border text-base rounded-2xl w-fit" style={{ backgroundColor: displayData.color, color: displayData.textColor }}>
+                                        return <section className="flex flex-col gap-2 items-center">
+                                            <h4><Link href={`${displayData.videoURL}${breakdown.id}`} className="px-3 py-1 box-border text-base rounded-2xl w-fit" style={{ backgroundColor: displayData.color, color: displayData.textColor }}>
                                                 {langDict[SourceTypeLocaleTokens[breakdown.source]]}
-                                            </Link>
+                                            </Link></h4>
                                             <span className="flex flex-row justify-center items-center sm:gap-2 gap-1 md:text-lg text-base whitespace-nowrap">
                                                 <b className="font-normal" style={{ color: displayData.color }}><NumberFormatter number={breakdown.views as number} compact /></b>
                                                 {langDict.rankings_views}
                                             </span>
-                                        </div>
+                                        </section>
                                     })}
                                 </div>
                                 <div className="w-full rounded-full h-5 flex overflow-clip">
@@ -348,13 +351,17 @@ export default async function SongPage(
                             </div>
                         </Section>
                     </div>
-                    {mostViewedSources[SourceType.YOUTUBE] ? <figure className="grid gap-5 lg:grid-cols-2 grid-cols-1">
+
+                    {mostViewedSources[SourceType.YOUTUBE] ? <div className="grid gap-5 lg:grid-cols-2 grid-cols-1">
                         <Section title={langDict.song_video}>
-                            <iframe className="rounded-2xl w-full border border-outline-variant" id="youtube-player" title="YouTube video player"
-                                allow="clipboard-write; encrypted-media; picture-in-picture; web-share"
-                                src={`https://www.youtube-nocookie.com/embed/${mostViewedSources[SourceType.YOUTUBE].id}`} height="230" frameBorder="0"></iframe>
+                            <figure>
+                                <iframe className="rounded-2xl w-full border border-outline-variant" id="youtube-player" title="YouTube video player"
+                                    allow="clipboard-write; encrypted-media; picture-in-picture; web-share"
+                                    src={`https://www.youtube-nocookie.com/embed/${mostViewedSources[SourceType.YOUTUBE].id}`} height="230" frameBorder="0"></iframe>
+                            </figure>
                         </Section>
-                    </figure> : null}
+                    </div> : null}
+
                     <div className="md:hidden">
                         <Section title={langDict.song_listen}>
                             <ul className="flex-col gap-5 flex">
@@ -365,7 +372,7 @@ export default async function SongPage(
                     </div>
                 </div>
             </div>
-        </section>
+        </article>
     )
 }
 
@@ -398,10 +405,12 @@ function SidebarLink(
         className?: string
     }
 ) {
-    return <Link className={`bg-surface-container-low text-on-surface rounded-2xl p-2 box-border flex gap-2 relative before:absolute before:w-full before:h-full before:left-0 before:top-0 before:rounded-2xl before:hover:bg-on-primary before:opacity-0 hover:before:opacity-[0.12] hover:text-primary before:transition-opacity ${className}`} href={href}>
-        {icon}
-        <span className="text-lg text-inherit w-full text-center flex items-center justify-center transition-colors">{text}</span>
-    </Link>
+    return <li>
+        <Link className={`bg-surface-container-low text-on-surface rounded-2xl p-2 box-border flex gap-2 relative before:absolute before:w-full before:h-full before:left-0 before:top-0 before:rounded-2xl before:hover:bg-on-primary before:opacity-0 hover:before:opacity-[0.12] hover:text-primary before:transition-opacity ${className}`} href={href}>
+            {icon}
+            <span className="text-lg text-inherit w-full text-center flex items-center justify-center transition-colors">{text}</span>
+        </Link>
+    </li>
 }
 
 function StatRow(

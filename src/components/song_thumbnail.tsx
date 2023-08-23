@@ -20,14 +20,14 @@ export default function SongThumbnail(
 ) {
     return (
         <div className={`overflow-hidden relative rounded-xl flex justify-center items-center`} style={{height: height, width: width, minWidth: width, minHeight: height}}>
-            <div className={`relative`} style={{height: overflowHeight, width: overflowWidth}}>
+            <figure className={`relative`} style={{height: overflowHeight, width: overflowWidth}}>
                 <Image
                     fill
                     src={src}
                     alt={alt}
                     style={{ objectFit: "cover" }}
                 />
-            </div>
+            </figure>
         </div>
     )
 }
