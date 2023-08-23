@@ -24,9 +24,8 @@ export function NumberFormatter(
         compact?: boolean
     }
 ) {
-    const formatter = compact ? shortenedNumberFormatter : numberFormatter
-    return compact ? (
-        <div title={numberFormatter.format(number)}>{shortenedNumberFormatter.format(number)}</div>
+return compact ? (
+        <span title={numberFormatter.format(number)}>{shortenedNumberFormatter.format(number)}</span>
     ) : (
         numberFormatter.format(number)
     )
@@ -37,13 +36,15 @@ export function DateFormatter(
         date,
         compact = false
     }: {
-        date: number | Date
+        date: Date
         compact?: boolean
     }
 ) {
     const formatter = compact ? shortenedDateFormatter : dateFormatter
     return (
-        formatter.format(date)
+        <time dateTime={date.toISOString()}>
+            {formatter.format(date)}
+        </time>
     )
 }
 

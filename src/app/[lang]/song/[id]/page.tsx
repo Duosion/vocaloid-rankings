@@ -265,7 +265,7 @@ export default async function SongPage(
                 }
             `}</style>
 
-            <div className="w-full md:h-96 md:aspect-auto h-auto aspect-video overflow-hidden relative rounded-3xl flex justify-center items-center border border-outline-variant">
+            <figure className="w-full md:h-96 md:aspect-auto h-auto aspect-video overflow-hidden relative rounded-3xl flex justify-center items-center border border-outline-variant">
                 <div className="w-full h-full z-0" style={{ backgroundColor: song.averageColor }} />
                 <Image
                     priority
@@ -275,13 +275,12 @@ export default async function SongPage(
                     style={{ objectFit: "cover" }}
                     className="z-1"
                 />
-            </div>
-            <div className="font-extrabold md:text-5xl md:text-left text-4xl text-center w-full"><EntityName names={songNames} preferred={settingTitleLanguage} /></div>
-            <div className="font-semibold md:text-3xl text-2xl text-on-background md:text-left text-center w-full"><NumberFormatter number={songTotalViews} /> {langDict.rankings_views} </div>
-
+            </figure>
+            <h1 className="font-extrabold md:text-5xl md:text-left text-4xl text-center w-full"><EntityName names={songNames} preferred={settingTitleLanguage} /></h1>
+            <h2 className="font-semibold md:text-3xl text-2xl text-on-background md:text-left text-center w-full"><NumberFormatter number={songTotalViews} /> {langDict.rankings_views} </h2>
             <div className="mt-3 w-full grid md:grid-cols-sidebar grid-cols-1 gap-5">
                 <div className="flex flex-col gap-5">
-                    <div className="bg-surface-container-low rounded-2xl p-5 box-border flex md:flex-col flex-row gap-5 overflow-x-scroll overflow-y-clip md:overflow-x-clip">
+                    <ul className="bg-surface-container-low rounded-2xl p-5 box-border flex md:flex-col flex-row gap-5 overflow-x-scroll overflow-y-clip md:overflow-x-clip">
                         <StatRow title={langDict.filter_publish_date}>
                             <DateFormatter date={new Date(song.publishDate)} />
                         </StatRow>
@@ -290,11 +289,11 @@ export default async function SongPage(
                         </StatRow>
                         <StatRow title={langDict.filter_song_type} text={langDict[SongTypeLocaleTokens[song.type]]} />
                         {nameElements}
-                    </div>
-                    <div className="flex-col gap-5 md:flex hidden">
+                    </ul>
+                    <ul className="flex-col gap-5 md:flex hidden">
                         {videoLinks}
                         {vocadbLink}
-                    </div>
+                    </ul>
                 </div>
                 <div className="flex gap-5 flex-col">
                     <div className={`grid gap-5 grid-cols-1 lg:${largestArtistColumnCount == 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
@@ -319,10 +318,10 @@ export default async function SongPage(
                                             <Link href={`${displayData.videoURL}${breakdown.id}`} className="px-3 py-1 box-border text-base rounded-2xl w-fit" style={{ backgroundColor: displayData.color, color: displayData.textColor }}>
                                                 {langDict[SourceTypeLocaleTokens[breakdown.source]]}
                                             </Link>
-                                            <div className="flex flex-row justify-center items-center sm:gap-2 gap-1 md:text-lg text-base whitespace-nowrap">
-                                                <div style={{ color: displayData.color }}><NumberFormatter number={breakdown.views as number} compact /></div>
+                                            <span className="flex flex-row justify-center items-center sm:gap-2 gap-1 md:text-lg text-base whitespace-nowrap">
+                                                <b className="font-normal" style={{ color: displayData.color }}><NumberFormatter number={breakdown.views as number} compact /></b>
                                                 {langDict.rankings_views}
-                                            </div>
+                                            </span>
                                         </div>
                                     })}
                                 </div>
@@ -338,28 +337,28 @@ export default async function SongPage(
                             <div className="bg-surface-container-low rounded-2xl p-5 flex justify-between md:gap-4 gap-1 overflow-x-scroll overflow-y-clip">
                                 {historicalViewsResult.views.map(historicalViews => {
                                     const views = historicalViews.views as number
-                                    return <div className="flex flex-col h-[142px] justify-end items-center">
+                                    return <section className="flex flex-col h-[142px] justify-end items-center">
                                         <div className="bg-primary w-5 rounded-full" style={{ flex: views / largestHistoricalViews }}></div>
-                                        <div className="text-on-surface font-semibold md:text-lg text-md mt-1"><NumberFormatter number={views} compact /></div>
-                                        <div className="text-on-surface md:text-base text-sm"><DateFormatter date={new Date(historicalViews.timestamp)} compact /></div>
-                                    </div>
+                                        <h4 className="text-on-surface font-semibold md:text-lg text-md mt-1"><NumberFormatter number={views} compact /></h4>
+                                        <span className="text-on-surface md:text-base text-sm"><DateFormatter date={new Date(historicalViews.timestamp)} compact /></span>
+                                    </section>
                                 })}
                             </div>
                         </Section>
                     </div>
-                    <div className="grid gap-5 lg:grid-cols-2 grid-cols-1">
+                    <figure className="grid gap-5 lg:grid-cols-2 grid-cols-1">
                         {mostViewedSources[SourceType.YOUTUBE] ? <Section title={langDict.song_video}>
                             <iframe className="rounded-2xl w-full border border-outline-variant" id="youtube-player" title="YouTube video player"
                                 allow="clipboard-write; encrypted-media; picture-in-picture; web-share"
                                 src={`https://www.youtube-nocookie.com/embed/${mostViewedSources[SourceType.YOUTUBE].id}`} height="230" frameBorder="0"></iframe>
                         </Section> : null}
-                    </div>
+                    </figure>
                     <div className="md:hidden">
                         <Section title={langDict.song_listen}>
-                            <div className="flex-col gap-5 flex">
+                            <ul className="flex-col gap-5 flex">
                                 {videoLinks}
                                 {vocadbLink}
-                            </div>
+                            </ul>
                         </Section>
                     </div>
                 </div>
@@ -378,10 +377,10 @@ function Section(
         className?: string
     }
 ) {
-    return <div>
-        <div className='text-xl font-bold mb-2'>{title}</div>
+    return <section>
+        <h3 className='text-xl font-bold mb-2'>{title}</h3>
         {children}
-    </div>
+    </section>
 }
 
 function SidebarLink(
@@ -399,7 +398,7 @@ function SidebarLink(
 ) {
     return <Link className={`bg-surface-container-low text-on-surface rounded-2xl p-2 box-border flex gap-2 relative before:absolute before:w-full before:h-full before:left-0 before:top-0 before:rounded-2xl before:hover:bg-on-primary before:opacity-0 hover:before:opacity-[0.12] hover:text-primary before:transition-opacity ${className}`} href={href}>
         {icon}
-        <div className="text-lg text-inherit w-full text-center flex items-center justify-center transition-colors">{text}</div>
+        <span className="text-lg text-inherit w-full text-center flex items-center justify-center transition-colors">{text}</span>
     </Link>
 }
 
@@ -415,17 +414,10 @@ function StatRow(
         text?: string
     }
 ) {
-    if (text) {
-        return <div className="whitespace-nowrap">
-            <div className="text-lg text-on-surface font-semibold w-full md:whitespace-break-spaces">{title}</div>
-            <div className="text-lg text-on-surface-variant w-full md:whitespace-break-spaces">{text}</div>
-        </div>
-    } else {
-        return <div className="whitespace-nowrap">
-            <div className="text-lg text-on-surface font-semibold w-full md:whitespace-break-spaces">{title}</div>
-            <div className="text-lg text-on-surface-variant w-full md:whitespace-break-spaces">{children}</div>
-        </div>
-    }
+    return <li className="whitespace-nowrap">
+        <h4 className="text-lg text-on-surface font-semibold w-full md:whitespace-break-spaces">{title}</h4>
+        <span className="text-lg text-on-surface-variant w-full md:whitespace-break-spaces">{text || children}</span>
+    </li>
 }
 
 function ArtistCard(
@@ -451,18 +443,18 @@ function ArtistCard(
 ) {
     return (
         <Link className={`bg-surface-container-low text-on-surface rounded-2xl relative flex gap-3 items-center overflow-clip before:absolute before:w-full before:h-full before:left-0 before:top-0 before:rounded-2xl before:hover:bg-on-primary before:opacity-0 hover:before:opacity-[0.12] hover:text-primary before:transition-opacity ${className}`} href={href}>
-            <div className="relative overflow-clip h-14 w-14 flex justify-start items-center m-2 rounded-2xl border border-outline-variant" style={{ backgroundColor: bgColor }}>
+            <figure className="relative overflow-clip h-14 w-14 flex justify-start items-center m-2 rounded-2xl border border-outline-variant" style={{ backgroundColor: bgColor }}>
                 <Image
                     fill
                     src={src}
                     alt={alt}
                     style={{ objectFit: "cover", objectPosition: isSinger ? 'top' : 'center' }}
                 />
-            </div>
-            <div className="flex flex-col py-1 overflow-hidden">
-                <div className="text-xl font-semibold w-full whitespace-nowrap overflow-clip text-ellipsis text-inherit transition-colors">{title}</div>
-                <div className="text-md text-on-surface-variant w-full">{text}</div>
-            </div>
+            </figure>
+            <section className="flex flex-col py-1 overflow-hidden">
+                <h4 className="text-xl font-semibold w-full whitespace-nowrap overflow-clip text-ellipsis text-inherit transition-colors">{title}</h4>
+                <span className="text-md text-on-surface-variant w-full">{text}</span>
+            </section>
         </Link>
     )
 }
