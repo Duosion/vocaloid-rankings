@@ -346,13 +346,13 @@ export default async function SongPage(
                             </div>
                         </Section>
                     </div>
-                    <figure className="grid gap-5 lg:grid-cols-2 grid-cols-1">
-                        {mostViewedSources[SourceType.YOUTUBE] ? <Section title={langDict.song_video}>
+                    {mostViewedSources[SourceType.YOUTUBE] ? <figure className="grid gap-5 lg:grid-cols-2 grid-cols-1">
+                         <Section title={langDict.song_video}>
                             <iframe className="rounded-2xl w-full border border-outline-variant" id="youtube-player" title="YouTube video player"
                                 allow="clipboard-write; encrypted-media; picture-in-picture; web-share"
                                 src={`https://www.youtube-nocookie.com/embed/${mostViewedSources[SourceType.YOUTUBE].id}`} height="230" frameBorder="0"></iframe>
-                        </Section> : null}
-                    </figure>
+                        </Section> 
+                    </figure> : null}
                     <div className="md:hidden">
                         <Section title={langDict.song_listen}>
                             <ul className="flex-col gap-5 flex">

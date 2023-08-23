@@ -87,7 +87,7 @@ export default async function RankingsPage(
                             iconAlt={getEntityName(names, settingTitleLanguage)}
                             trailingTitleContent={<NumberFormatter number={ranking.views} />}
                             trailingSupporting={langDict.rankings_views}
-                            supportingContent={<div className="flex flex-row gap-5">{artistLinks}</div>}
+                            supportingContent={<span className="flex flex-row gap-3">{artistLinks}</span>}
                         />
                     )
                 })}
@@ -123,16 +123,16 @@ export function Ranking(
 ) {
     return (
         <li key={key} className={`py-2 rounded-2xl w-full flex gap-3 bg-surface-container-low box-border items-center ${className}`}>
-            <div className="ml-3 text-on-surface h-10 w-fit min-w-[40px] box-border flex items-center justify-center text-2xl font-extrabold">{placement}</div>
+            <b className="ml-3 text-on-surface h-10 w-fit min-w-[40px] box-border flex items-center justify-center text-2xl font-extrabold">{placement}</b>
             <Link href={href} className="rounded-xl border border-outline-variant box-border"><SongThumbnail src={icon} alt={iconAlt} width={50} height={50} overflowHeight={70} overflowWidth={70} /></Link>
-            <div className="flex flex-col gap flex-1">
-                <Link href={href} className="text-on-surface font-semibold text-xl">{titleContent}</Link>
+            <section className="flex flex-col gap flex-1">
+                <h3><Link href={href} className="text-on-surface font-semibold text-xl">{titleContent}</Link></h3>
                 {supportingContent}
-            </div>
-            <div className="flex flex-col gap items-end mr-4">
-                <div className="text-on-surface text-xl font-bold">{trailingTitleContent}</div>
-                <div className="text-on-surface-variant text-md">{trailingSupporting}</div>
-            </div>
+            </section>
+            <section className="flex flex-col gap items-end mr-4">
+                <h3 className="text-on-surface text-xl font-bold">{trailingTitleContent}</h3>
+                <span className="text-on-surface-variant text-md">{trailingSupporting}</span>
+            </section>
         </li>
     )
 }
