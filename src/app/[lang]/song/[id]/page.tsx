@@ -276,8 +276,10 @@ export default async function SongPage(
                     className="z-1"
                 />
             </figure>
-            <h1 className="font-extrabold md:text-5xl md:text-left text-4xl text-center w-full"><EntityName names={songNames} preferred={settingTitleLanguage} /></h1>
-            <h2 className="font-semibold md:text-3xl text-2xl text-on-background md:text-left text-center w-full"><NumberFormatter number={songTotalViews} /> {langDict.rankings_views} </h2>
+            <header className="flex flex-col gap-5">
+                <h1 className="font-extrabold md:text-5xl md:text-left text-4xl text-center w-full"><EntityName names={songNames} preferred={settingTitleLanguage} /></h1>
+                <h2 className="font-semibold md:text-3xl text-2xl text-on-background md:text-left text-center w-full"><NumberFormatter number={songTotalViews} /> {langDict.rankings_views} </h2>
+            </header>
             <div className="mt-3 w-full grid md:grid-cols-sidebar grid-cols-1 gap-5">
                 <div className="flex flex-col gap-5">
                     <ul className="bg-surface-container-low rounded-2xl p-5 box-border flex md:flex-col flex-row gap-5 overflow-x-scroll overflow-y-clip md:overflow-x-clip">
@@ -347,11 +349,11 @@ export default async function SongPage(
                         </Section>
                     </div>
                     {mostViewedSources[SourceType.YOUTUBE] ? <figure className="grid gap-5 lg:grid-cols-2 grid-cols-1">
-                         <Section title={langDict.song_video}>
+                        <Section title={langDict.song_video}>
                             <iframe className="rounded-2xl w-full border border-outline-variant" id="youtube-player" title="YouTube video player"
                                 allow="clipboard-write; encrypted-media; picture-in-picture; web-share"
                                 src={`https://www.youtube-nocookie.com/embed/${mostViewedSources[SourceType.YOUTUBE].id}`} height="230" frameBorder="0"></iframe>
-                        </Section> 
+                        </Section>
                     </figure> : null}
                     <div className="md:hidden">
                         <Section title={langDict.song_listen}>

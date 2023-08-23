@@ -13,9 +13,9 @@ export default async function Navbar(
 ) {
     const langDict = await getDictionary(lang)
     return (
-        <nav className="w-full h-[60px] px-[30px] py-[10px] box-border relative">
-            <div className='w-full h-full flex items-center gap-[20px] m-auto'>
-                <div className='flex-1 flex items-center justify-start gap-[20px]'>
+        <header className="w-full h-[60px] px-[30px] py-[10px] box-border relative">
+            <nav className='w-full h-full flex items-center gap-[20px] m-auto'>
+                <ul className='flex-1 flex items-center justify-start gap-[20px]'>
                     <Link href={`/${lang}`}>
                         <Image
                             src='/github-mark-white.png'
@@ -28,11 +28,11 @@ export default async function Navbar(
                     <NavLink href={`/${lang}/rankings/trending`} text={langDict.nav_trending} />
                     <NavLink href={`/${lang}/rankings/singers`} text={langDict.nav_singers} />
                     <NavLink href={`/${lang}/rankings/producers`} text={langDict.nav_producers} />
-                </div>
+                </ul>
                 <SearchBar placeholder={langDict.search_hint}/>
                 <IconButton icon='settings' href={`/${lang}/settings`}/>
-            </div>
-        </nav>
+            </nav>
+        </header>
     )
 }
 
@@ -44,6 +44,8 @@ function NavLink({
     text: string
   }) {
     return (
-      <Link href={href} className='text-on-background bg-transparent rounded-lg bold text-base font-bold box-border p-[5px] hover:text-primary'>{text}</Link>
+        <li>
+            <Link href={href} className='text-on-background bg-transparent rounded-lg bold text-base font-bold box-border p-[5px] hover:text-primary'>{text}</Link>
+        </li>
     )
   }
