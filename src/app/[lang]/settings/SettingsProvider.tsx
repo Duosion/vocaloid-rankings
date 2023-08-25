@@ -3,9 +3,10 @@ import React, { Fragment, createContext, useCallback, useContext, useMemo, useSt
 import { RawSettings, UseSettingsProps, SettingsProviderProps } from "./types";
 import { NameType } from "@/data/types";
 import { setCookie, getCookie } from 'cookies-next'
+import { RankingsFilterSearchParams } from "../rankings/types";
 
 const settingsContext = createContext<UseSettingsProps | undefined>(undefined)
-const defaultContext: UseSettingsProps = { setTitleLanguage: () => {}, settings: { titleLanguage: NameType.ENGLISH } }
+const defaultContext: UseSettingsProps = { setTitleLanguage: () => {}, setRankingsFilter: () => {}, settings: { titleLanguage: NameType.ENGLISH, rankingsFilter: {} } }
 
 export const useSettings = () => useContext(settingsContext) ?? defaultContext
 
@@ -20,7 +21,8 @@ const SettingsElement: React.FC<SettingsProviderProps> = ({
     cookieName = 'settings',
     cookieExpires = new Date('2037/12/31'),
     defaultSettings = {
-        titleLanguage: NameType.ENGLISH
+        titleLanguage: NameType.ENGLISH,
+        rankingsFilter: {}
     },
     children
 }) => {
@@ -49,9 +51,20 @@ const SettingsElement: React.FC<SettingsProviderProps> = ({
         []
     )
 
+    const setRankingsFilter = useCallback(
+        (newParams: RankingsFilterSearchParams) => {
+            saveSettings({
+                ...settings,
+                rankingsFilter: newParams
+            })
+        },
+        []
+    )
+
     const providerValue = useMemo(() => ({
         settings,
-        setTitleLanguage
+        setTitleLanguage,
+        setRankingsFilter
     }), [settings, setTitleLanguage])
 
     return (

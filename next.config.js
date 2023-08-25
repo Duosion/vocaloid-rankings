@@ -15,7 +15,11 @@ const nextConfig = {
           protocol: 'https',
           hostname: 'nicovideo.cdn.nimg.jp',
           pathname: '/thumbnails/**'
-        }
+        },
+        {
+          protocol: 'http',
+          hostname: 'i*.hdslb.com'
+        },
       ],
     }
   }

@@ -25,11 +25,6 @@ export interface SelectFilterValue<Enum> {
     value: Enum | null
 }
 
-export interface ClientFilterValue {
-    name: string
-    value: number | null
-}
-
 export class SelectFilter<Enum> extends Filter {
     values: SelectFilterValue<Enum>[]
     defaultValue: number
@@ -45,7 +40,28 @@ export class SelectFilter<Enum> extends Filter {
     }
 }
 
-export interface Filters {
-    songType: SelectFilter<SongType>
+export interface FilterBarSelectFilter {
+    key: string
+    name: string
+    type: FilterType
+    values: string[]
+    value: number
+    defaultValue: number
+}
+
+export type FilterBarFilters = (FilterBarSelectFilter)[]
+
+export interface RankingsFilters {
     sourceType: SelectFilter<SourceType>
+    songType: SelectFilter<SongType>
+}
+
+export interface RankingsFilterValues {
+    songType: SongType 
+    sourceType: SourceType
+}
+
+export interface RankingsFilterSearchParams {
+    songType?: number
+    sourceType?: number
 }

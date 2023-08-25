@@ -14,11 +14,11 @@ export const IconButton = (
 ) => {
     return (
         href ? (
-            <Link className="link-icon-button w-[40px] h-[40px] rounded-full flex items-center justify-center hover:bg-surface-2 transition-colors" href={href} onClick={onClick}>
+            <Link className="link-icon-button w-[40px] h-[40px] rounded-full flex items-center justify-center hover:bg-surface-container-low transition-colors" href={href} onClick={onClick}>
                 <Icon icon={icon}/>
             </Link>
         ) : (
-            <button className="link-icon-button w-[40px] h-[40px] rounded-full flex items-center justify-center hover:bg-surface-2 transition-colors" onClick={onClick}>
+            <button className="link-icon-button w-[40px] h-[40px] rounded-full flex items-center justify-center hover:bg-surface-container-low transition-colors" onClick={onClick}>
                 <Icon icon={icon}/>
             </button>
         )

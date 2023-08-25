@@ -1,14 +1,15 @@
 import { EntityName, NumberFormatter } from "@/components/formatters"
+import SongThumbnail from "@/components/song_thumbnail"
 import { filterRankings } from "@/data/songsData"
 import { ArtistCategory, RankingsFilterParams, SongType, SourceType } from "@/data/types"
 import { Locale, getDictionary, getEntityName } from "@/localization"
-import { Settings } from "../settings"
-import Link from "next/link"
 import { cookies } from "next/dist/client/components/headers"
-import SongThumbnail from "@/components/song_thumbnail"
-import { Filters, SelectFilter, SelectFilterValue } from "./types"
-import { SelectFilterElement } from "./client"
-export const filters: Filters = {
+import Link from "next/link"
+import { Settings } from "../settings"
+import { FilterBar } from "./client"
+import { Filter, FilterBarFilters, FilterBarSelectFilter, FilterType, RankingsFilterSearchParams, RankingsFilters, SelectFilter, SelectFilterValue } from "./types"
+
+export const filters: RankingsFilters = {
     songType: new SelectFilter<SongType>(
         'filter_song_type', // name
         [
@@ -31,19 +32,39 @@ export const filters: Filters = {
     )
 }
 
+function parseFilterParamKey(
+    paramValue: number | undefined,
+    cookieValue: number | undefined,
+    defaultValue: number
+): number {
+    const paramValueNumber = Number(paramValue)
+    const cookieValueNumber = Number(cookieValue)
+    const valueNumber = isNaN(paramValueNumber) ? cookieValueNumber : paramValueNumber
+    return isNaN(valueNumber) ? defaultValue : valueNumber
+}
+
+function parseParamSelectFilterValue(
+    paramValue: number | undefined,
+    cookieValue: number | undefined,
+    values: SelectFilterValue<number>[],
+    defaultValue: number
+): number | null {
+    // get the filterValue and return it
+    const valueNumber = parseFilterParamKey(paramValue, cookieValue, defaultValue)
+    return (values[valueNumber] || values[defaultValue]).value
+}
+
 export default async function RankingsPage(
     {
-        params
+        params,
+        searchParams
     }: {
         params: {
             lang: Locale
-        }
+        },
+        searchParams: RankingsFilterSearchParams
     }
 ) {
-
-    // get rankings
-    const rankings = await filterRankings(new RankingsFilterParams())
-
     // import language dictionary
     const lang = params.lang
     const langDict = await getDictionary(lang)
@@ -53,14 +74,43 @@ export default async function RankingsPage(
 
     // general variables
     const settingTitleLanguage = settings.titleLanguage
+    const rankingsFilterCookie = settings.rankingsFilter
+
+    // build filterParams
+    const filterParams = new RankingsFilterParams()
+    {
+        filterParams.sourceType = parseParamSelectFilterValue(searchParams.sourceType, rankingsFilterCookie.sourceType, filters.sourceType.values, filters.sourceType.defaultValue) as SourceType
+        filterParams.songType = parseParamSelectFilterValue(searchParams.songType, rankingsFilterCookie.songType,filters.songType.values, filters.songType.defaultValue) as SongType
+    }
+    const rankings = await filterRankings(filterParams)
+
+    // convert filters to filter bar filters
+    const filterBarFilters: FilterBarFilters = []
+    for (const filterKey in filters) {
+        const filter = filters[filterKey as keyof typeof filters] as Filter
+        const name = filter.name
+        const type = filter.type
+
+        switch (type) {
+            case FilterType.SELECT: {
+                const selectFilter = filter as SelectFilter<number>
+                const defaultValue = selectFilter.defaultValue
+                filterBarFilters.push({
+                    key: filterKey,
+                    name: langDict[name],
+                    type: type,
+                    values: selectFilter.values.map(value => langDict[value.name]),
+                    value: parseFilterParamKey(searchParams[filterKey as keyof typeof searchParams], rankingsFilterCookie[filterKey as keyof typeof rankingsFilterCookie], defaultValue),
+                    defaultValue: defaultValue
+                } as FilterBarSelectFilter)
+            }
+        }
+    }
 
     return (
-        <section className="flex flex-col gap-3 w-full">
+        <section className="flex flex-col gap-5 w-full">
             <h1 className="font-extrabold md:text-5xl md:text-left text-4xl text-center w-full">{langDict.rankings_page_title}</h1>
-            <div className="flex gap-3 w-full mt-5">
-                <SelectFilterElement name={langDict[filters.songType.name]} defaultValue={filters.songType.defaultValue} values={filters.songType.values.map(value => { return {name: langDict[value.name], value: value.value} })} />
-                <SelectFilterElement name={langDict[filters.sourceType.name]} defaultValue={filters.sourceType.defaultValue} values={filters.sourceType.values.map(value => { return {name: langDict[value.name], value: value.value} })} />
-            </div>
+            <FilterBar href='' filters={filterBarFilters} />
             <ol className="flex flex-col gap-3 w-full">
                 {rankings.results.map(ranking => {
                     const song = ranking.song
@@ -72,6 +122,9 @@ export default async function RankingsPage(
                             artistLinks.push(
                                 <Link href={`/${lang}/artist/${song.id}`} className="text-md text-on-surface-variant"><EntityName names={artist.names} preferred={settingTitleLanguage} /></Link>
                             )
+                            if (artistLinks.length == 3) {
+                                break
+                            }
                         }
                     }
 

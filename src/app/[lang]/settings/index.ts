@@ -2,6 +2,7 @@ import { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adap
 import { RawSettings, SettingsProxy } from "./types";
 import { NameType } from "@/data/types";
 import { RequestCookies } from "next/dist/compiled/@edge-runtime/cookies";
+import { RankingsFilterSearchParams } from "../rankings/types";
 
 export class Settings implements SettingsProxy {
     private cookies: RequestCookies | ReadonlyRequestCookies
@@ -12,7 +13,8 @@ export class Settings implements SettingsProxy {
         cookies: RequestCookies | ReadonlyRequestCookies,
         cookieName: string = 'settings',
         defaultSettings: RawSettings = {
-            titleLanguage: NameType.ENGLISH
+            titleLanguage: NameType.ENGLISH,
+            rankingsFilter: {}
         }
     ) {
         this.cookies = cookies
@@ -41,12 +43,23 @@ export class Settings implements SettingsProxy {
         } catch (error) { console.log(error) }
     }
 
+    // title language
     get titleLanguage() {
         return this.settings.titleLanguage
     }
 
     set titleLanguage(language: NameType) {
         this.settings.titleLanguage = language
+        this.saveSettings()
+    }
+
+    // rankings filter
+    get rankingsFilter() {
+        return this.settings.rankingsFilter
+    }
+
+    set rankingFilter(newParams: RankingsFilterSearchParams) {
+        this.settings.rankingsFilter = newParams
         this.saveSettings()
     }
 }
