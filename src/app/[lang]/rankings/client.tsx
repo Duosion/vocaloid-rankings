@@ -1,11 +1,11 @@
 'use client'
 
-import { FilterBarFilters, FilterBarSelectFilter, FilterType, RankingsFilterSearchParams } from "./types"
-import { Icon, IconButton } from "@/components/material"
+import { Icon } from "@/components/material"
+import { LanguageDictionary, LanguageDictionaryKey } from "@/localization"
 import { useRouter } from "next/navigation"
-import { CSSProperties, InputHTMLAttributes, MutableRefObject, useEffect, useRef, useState } from "react"
-import { Transition, TransitionStatus } from "react-transition-group"
-import { useSettings } from "../settings/SettingsProvider"
+import { CSSProperties, createContext, useContext, useEffect, useRef, useState } from "react"
+import { TransitionStatus } from "react-transition-group"
+import { Filter, FilterType, RankingsFilters, RankingsFiltersValues, SelectFilter } from "./types"
 
 const modalTransitionStyles: { [key in TransitionStatus]: CSSProperties } = {
     entering: { opacity: 1, display: 'flex' },
@@ -14,6 +14,8 @@ const modalTransitionStyles: { [key in TransitionStatus]: CSSProperties } = {
     exited: { opacity: 0, display: 'none' },
     unmounted: {}
 }
+
+const FilterValuesContext = createContext<RankingsFiltersValues>({})
 
 function FilterElement(
     {
@@ -55,95 +57,106 @@ function ActiveFilter(
 export function FilterBar(
     {
         href,
-        filters
+        filters,
+        langDict,
+        values,
     }: {
-        href: string,
-        filters: FilterBarFilters
+        href: string
+        filters: RankingsFilters
+        langDict: LanguageDictionary
+        values: RankingsFiltersValues
     }
 ) {
     const router = useRouter()
-    const { settings, setRankingsFilter } = useSettings()
 
-    const [filterValues, setFilterValues] = useState(filters.map((filter) => filter.value))
+    const [filterValues, setFilterValues] = useState(values)
 
-    function onValueChanged(key: number, newValue: any) {
-        filterValues[key] = newValue
-        setFilterValues(filterValues)
+    function saveFilterValues() {
         // set url
-        const cookieParams: RankingsFilterSearchParams = {}
-        router.push(`${href}?${filters.map((filter, key) => {
-            const value = filterValues[key]
-            const filterKey = filter.key
-            // build cookie params
-            cookieParams[filterKey as keyof typeof cookieParams] = value
-            // build query
-            return value == filter.defaultValue ? '' : `${filterKey}=${value}`
-        }).join('&')}`)
-        
-        // save cookie
-        setRankingsFilter(cookieParams)
+        const queryBuilder = []
+        for (const key in filterValues) {
+            const value = filterValues[key as keyof typeof filterValues]
+            const filter = filters[key as keyof typeof filters]
+            if (value && filter) {
+                queryBuilder.push(filter.defaultValue ? '' : `${key}=${value}`)
+            }
+        }
+        setFilterValues({ ...filterValues })
+        // set url
+        router.push(`${href}?${queryBuilder.join('&')}`)
     }
 
+    // build active filters
     const activeFilters: React.ReactNode[] = []
+    for (const key in filterValues) {
+        let filter = filters[key as keyof typeof filters] as Filter
+        const value = Number(filterValues[key as keyof typeof filters])
+
+        switch (filter.type) {
+            case FilterType.SELECT: {
+                const valueNumber = Number(value)
+                const defaultValue = (filter as SelectFilter<number>).defaultValue
+                const options = (filter as SelectFilter<number>).values
+                const parsedValue = isNaN(valueNumber) ? defaultValue : valueNumber
+                if (parsedValue != defaultValue) {
+                    const name = options[parsedValue].name
+                    activeFilters.push(<ActiveFilter name={name in langDict ? langDict[name as LanguageDictionaryKey] : name} onClick={() => { filterValues[key as keyof typeof filters] = defaultValue; saveFilterValues() }} />)
+                }
+                break
+            }
+        }
+    }
 
     return (
-        <ul className="flex flex-col gap-5 w-full mt-5">
-            <li key='filters'><ul className="flex gap-3">
-                {filters.map((filter, key) => {
-
-                    switch (filter.type) {
-                        case FilterType.SELECT: {
-                            // convert filter to the correct type
-                            filter = filter as FilterBarSelectFilter
-                            // check if it is active
-                            const currentValueRaw = filterValues[key]
-                            const defaultValue = filter.defaultValue
-                            const currentValue = filter.values[currentValueRaw] ? currentValueRaw : defaultValue
-                            if (currentValue != defaultValue) {
-                                activeFilters.push(<ActiveFilter name={filter.values[currentValue]} onClick={() => onValueChanged(key, defaultValue)} />)
-                            }
-                            return (
-                                <SelectFilterElement key={key} filter={filter} value={currentValue} onValueChanged={(newValue) => onValueChanged(key, newValue)} />
-                            )
-                        }
-                    }
-
-                    return null
-                })}
-            </ul></li>
-            <li key='activeFilters'><ul className="flex gap-3">
-                {activeFilters}
-            </ul></li>
-        </ul>
-
+        <FilterValuesContext.Provider value={filterValues}>
+            <ul className="flex flex-col gap-5 w-full mt-5">
+                <li key='filters'><ul className="flex gap-3">
+                    <SelectFilterElement filter={filters.sourceType} langDict={langDict} onValueChanged={(newValue) => { filterValues.sourceType = newValue; saveFilterValues() }} />
+                    <SelectFilterElement filter={filters.timePeriod} langDict={langDict} onValueChanged={(newValue) => { filterValues.timePeriod = newValue; saveFilterValues() }} />
+                    <SelectFilterElement filter={filters.year} langDict={langDict} onValueChanged={(newValue) => { filterValues.year = newValue; saveFilterValues() }} />
+                    <SelectFilterElement filter={filters.songType} langDict={langDict} onValueChanged={(newValue) => { filterValues.songType = newValue; saveFilterValues() }} />
+                </ul></li>
+                {activeFilters.length > 0 &&
+                    <li key='activeFilters'><ul className="flex gap-3">
+                        {activeFilters}
+                    </ul></li>
+                }
+            </ul>
+        </FilterValuesContext.Provider>
     )
 }
 
 export function SelectFilterElement(
     {
         filter,
-        value,
+        langDict,
         onValueChanged
     }: {
-        filter: FilterBarSelectFilter,
-        value: number,
+        filter: SelectFilter<number>
+        langDict: LanguageDictionary
         onValueChanged?: (newValue: number) => void
     }
 ) {
+    const defaultValue = filter.defaultValue
+
     const [modalOpen, setModalOpen] = useState(false)
-    const [filterValue, setFilterValue] = useState(value)
+
+    // parse filter value
+    const rawFilterValues = useContext(FilterValuesContext)
+    const rawFilterValue = Number(rawFilterValues[filter.key as keyof typeof rawFilterValues])
+    const filterValue = isNaN(rawFilterValue) ? defaultValue : rawFilterValue
+
     const modalRef = useRef<HTMLUListElement>(null)
 
     const options = filter.values
-    const defaultValue = filter.defaultValue
+
+    const filterValueName = options[filterValue].name
+
     const valueIsDefault = filterValue == defaultValue
 
     const setValue = (newValue: number) => {
-        if (filterValue != newValue) {
-            setFilterValue(newValue)
-            if (onValueChanged) {
-                onValueChanged(newValue)
-            }
+        if (filterValue != newValue && onValueChanged) {
+            onValueChanged(newValue)
         }
         setModalOpen(false)
     }
@@ -162,17 +175,18 @@ export function SelectFilterElement(
     }, [modalOpen])
 
     return (
-        <FilterElement name={filter.name}>
+        <FilterElement key={filter.key} name={langDict[filter.name]}>
             <button className="py-2 px-4 rounded-xl bg-surface-container-low text-on-surface flex gap-3 text-base font-normal" onClick={() => setModalOpen(true)}>
-                <span className={`bg-transparent w-32 outline-none cursor-pointer text-left ${valueIsDefault ? 'text-on-surface-variant' : 'text-primary'}`}>{options[filterValue]}</span>
+                <span className={`bg-transparent w-32 outline-none cursor-pointer text-left ${valueIsDefault ? 'text-on-surface-variant' : 'text-primary'}`}>{filterValueName in langDict ? langDict[filterValueName as LanguageDictionaryKey] : filterValueName}</span>
                 {valueIsDefault ? <Icon icon='expand_more'></Icon> : <Icon icon='close'></Icon>}
             </button>
             {modalOpen && <div className="relative w-full h-0 transition-opacity z-10">
-                <ul ref={modalRef} className="absolute top-2 left-0 w-full rounded-xl bg-surface-container-high shadow-md p-2">
+                <ul ref={modalRef} className="absolute top-2 left-0 w-full rounded-xl bg-surface-container-high shadow-md p-2 max-h-72 overflow-y-scroll overflow-x-clip">
                     {options.map((value, index) => {
+                        const name = value.name
                         return (
                             <li key={index}>
-                                <button key={index} onClick={() => { setValue(index) }} className="w-full h-auto overflow-clip text-ellipsis p-2 rounded-xl relative before:transition-opacity before:absolute before:w-full before:h-full before:left-0 before:top-0 before:rounded-xl before:opacity-0 before:hover:bg-on-primary before:hover:opacity-[0.2] transition-opacity">{value}</button>
+                                <button key={index} onClick={() => { setValue(index) }} className="w-full font-normal h-auto overflow-clip text-ellipsis p-2 rounded-xl relative transition-colors hover:bg-surface-container-highest">{name in langDict ? langDict[name as LanguageDictionaryKey] : name}</button>
                             </li>
                         )
                     })}
@@ -182,64 +196,3 @@ export function SelectFilterElement(
     )
 
 }
-
-/*export function SelectFilterElement(
-    {
-        name,
-        defaultValue,
-        values,
-        value = null,
-        onValueChanged
-    }: {
-        name: string
-        defaultValue: number
-        values: ClientFilterValue[]
-        value?: number | null,
-        onValueChanged?: (value: number | null) => void
-    }
-) {
-    const [modalOpen, setModalOpen] = useState(false)
-    const [displayValue, setDisplayValue] = useState(values[value == null ? defaultValue : value].name)
-    const [filterValue, setFilterValue] = useState(value)
-    const modalRef = useRef(null)
-    let nameInput: HTMLInputElement | null
-
-    function focus() {
-        if (nameInput) {
-            nameInput.focus()
-        }
-    }
-
-    const placeholder = (values[defaultValue] || values[0]).name
-
-    return (
-        <FilterElement name={name}>
-            <button className="py-2 px-4 rounded-xl bg-surface-container-low text-on-surface flex gap-3 text-base font-normal" onClick={() => focus()}>
-                <input ref={(element) => { nameInput = element }} className="bg-transparent w-32 placeholder:text-on-surface-variant text-primary outline-none cursor-pointer" type='text' placeholder={placeholder} value={displayValue} onBlur={() => { setModalOpen(false) }} onFocus={() => setModalOpen(true)} readOnly />
-                <Icon icon='expand_more'></Icon>
-            </button>
-            <Transition nodeRef={modalRef} in={modalOpen} timeout={500}>
-                {state => (
-                    <div ref={modalRef} className="relative w-full h-0 transition-opacity z-10 duration-1000" style={{ display: 'none', ...modalTransitionStyles[state] }}>
-                        <div className="absolute top-2 left-0 w-full rounded-xl bg-surface-container-high shadow-md p-2">
-                            {values.map(value => {
-                                const val = value.value
-                                return (
-                                    <button key={value.value} onClick={() => {
-                                        setDisplayValue(value.name)
-                                        if (filterValue != val) {
-                                            setFilterValue(val)
-                                            if (onValueChanged) {
-                                                onValueChanged(val)
-                                            }
-                                        }
-                                    }} className="w-full h-auto overflow-clip text-ellipsis p-2 rounded-xl relative before:transition-opacity before:absolute before:w-full before:h-full before:left-0 before:top-0 before:rounded-xl before:opacity-0 before:hover:bg-on-primary before:hover:opacity-[0.2] transition-opacity">{value.name}</button>
-                                )
-                            })}
-                        </div>
-                    </div>
-                )}
-            </Transition>
-        </FilterElement>
-    )
-}*/

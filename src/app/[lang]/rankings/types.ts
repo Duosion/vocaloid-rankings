@@ -9,59 +9,51 @@ export enum FilterType {
 
 export abstract class Filter {
     name: LanguageDictionaryKey
+    key: string
     type: FilterType
 
     constructor(
         name: LanguageDictionaryKey,
+        key: string,
         type: FilterType
     ) {
         this.name = name
+        this.key = key
         this.type = type
     }
 }
 
 export interface SelectFilterValue<Enum> {
-    name: LanguageDictionaryKey
-    value: Enum | null
+    name: LanguageDictionaryKey | string
+    value: Enum | null | undefined
 }
 
 export class SelectFilter<Enum> extends Filter {
     values: SelectFilterValue<Enum>[]
     defaultValue: number
-    
+
     constructor(
         name: LanguageDictionaryKey,
+        key: string,
         values: SelectFilterValue<Enum>[],
         defaultValue: number
     ) {
-        super(name, FilterType.SELECT)
+        super(name, key, FilterType.SELECT)
         this.values = values
         this.defaultValue = defaultValue
     }
 }
 
-export interface FilterBarSelectFilter {
-    key: string
-    name: string
-    type: FilterType
-    values: string[]
-    value: number
-    defaultValue: number
-}
-
-export type FilterBarFilters = (FilterBarSelectFilter)[]
-
 export interface RankingsFilters {
     sourceType: SelectFilter<SourceType>
+    timePeriod: SelectFilter<number>
+    year: SelectFilter<number>
     songType: SelectFilter<SongType>
 }
 
-export interface RankingsFilterValues {
-    songType: SongType 
-    sourceType: SourceType
-}
-
-export interface RankingsFilterSearchParams {
-    songType?: number
+export interface RankingsFiltersValues {
     sourceType?: number
+    timePeriod?: number
+    year?: number
+    songType?: number
 }

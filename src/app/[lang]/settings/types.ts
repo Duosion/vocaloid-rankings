@@ -1,27 +1,27 @@
 import { NameType } from "@/data/types";
 import { ResponseCookie } from "next/dist/compiled/@edge-runtime/cookies";
-import { RankingsFilterSearchParams } from "../rankings/types";
+import { RankingsFiltersValues } from "../rankings/types";
 
 export interface RawSettings {
     titleLanguage: NameType
-    rankingsFilter: RankingsFilterSearchParams
+    rankingsFilter: RankingsFiltersValues
 }
 
 export interface SettingsProxy {
     get titleLanguage(): NameType
 
-    get rankingsFilter(): RankingsFilterSearchParams
+    get rankingsFilter(): RankingsFiltersValues
 
     set titleLanguage(newTitleLanguage: NameType)
 
-    set rankingsFilter(newParams: RankingsFilterSearchParams)
+    set rankingsFilter(newParams: RankingsFiltersValues)
 }
 
 export interface UseSettingsProps {
     settings: RawSettings
 
     setTitleLanguage: (newTitleLanguage: NameType) => void
-    setRankingsFilter: (newParams: RankingsFilterSearchParams) => void
+    setRankingsFilter: (newParams: RankingsFiltersValues) => void
 }
 
 export interface SettingsProviderProps {

@@ -76,6 +76,8 @@
     "filter_direction_ascending": "",
     "filter_direction_descending": "",
     "filter_artists": "",
+    "filter_year": "",
+    "filter_year_any": "",
     "quick_filter": "",
     "quick_filter_past_day": "",
     "quick_filter_youtube": "",

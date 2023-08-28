@@ -76,6 +76,8 @@
     "filter_direction_ascending": "Ascendente",
     "filter_direction_descending": "Descendente",
     "filter_artists": "Artistas",
+    "filter_year": "",
+    "filter_year_any": "",
     "quick_filter": "Filtros Rápidos",
     "quick_filter_past_day": "Día Anterior",
     "quick_filter_youtube": "Solo Youtube",

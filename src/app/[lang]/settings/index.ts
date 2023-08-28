@@ -2,7 +2,7 @@ import { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adap
 import { RawSettings, SettingsProxy } from "./types";
 import { NameType } from "@/data/types";
 import { RequestCookies } from "next/dist/compiled/@edge-runtime/cookies";
-import { RankingsFilterSearchParams } from "../rankings/types";
+import { RankingsFiltersValues } from "../rankings/types";
 
 export class Settings implements SettingsProxy {
     private cookies: RequestCookies | ReadonlyRequestCookies
@@ -58,7 +58,7 @@ export class Settings implements SettingsProxy {
         return this.settings.rankingsFilter
     }
 
-    set rankingFilter(newParams: RankingsFilterSearchParams) {
+    set rankingFilter(newParams: RankingsFiltersValues) {
         this.settings.rankingsFilter = newParams
         this.saveSettings()
     }

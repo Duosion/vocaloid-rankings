@@ -7,50 +7,88 @@ import { cookies } from "next/dist/client/components/headers"
 import Link from "next/link"
 import { Settings } from "../settings"
 import { FilterBar } from "./client"
-import { Filter, FilterBarFilters, FilterBarSelectFilter, FilterType, RankingsFilterSearchParams, RankingsFilters, SelectFilter, SelectFilterValue } from "./types"
+import { FilterType, RankingsFiltersValues, RankingsFilters, SelectFilter, SelectFilterValue } from "./types"
+
+function generateSelectFilterValues<valueType>(
+    start: number,
+    end: number,
+    generator: (current: number) => SelectFilterValue<valueType>,
+    increment: number = 1,
+): SelectFilterValue<valueType>[] {
+    const values: SelectFilterValue<valueType>[] = []
+    for (let i = start; i < end; i+=increment) {
+        values.push(generator(i))
+    }
+    return values
+}
 
 export const filters: RankingsFilters = {
-    songType: new SelectFilter<SongType>(
-        'filter_song_type', // name
-        [
-            { name: 'filter_song_type_all', value: null },
-            { name: 'filter_song_type_original', value: SongType.ORIGINAL },
-            { name: 'filter_song_type_remix', value: SongType.REMIX },
-            { name: 'filter_song_type_other', value: SongType.OTHER },
-        ],
-        0 // default value
-    ),
-    sourceType: new SelectFilter<SourceType>(
-        'filter_view_type',
-        [
+    sourceType: {
+        name: 'filter_view_type',
+        key: 'sourceType',
+        type: FilterType.SELECT,
+        values: [
             { name: 'filter_view_type_combined', value: null },
             { name: "youtube", value: SourceType.YOUTUBE },
             { name: 'niconico', value: SourceType.NICONICO },
             { name: 'bilibili', value: SourceType.BILIBILI },
         ],
-        0
-    )
+        defaultValue: 0
+    },
+    timePeriod: {
+        name: 'filter_time_period_offset',
+        key: 'timePeriod',
+        type: FilterType.SELECT,
+        values: [
+            { name: 'filter_time_period_offset_all_time', value: null },
+            { name: 'filter_time_period_offset_day', value: 1 },
+            { name: 'filter_time_period_offset_week', value: 7 },
+            { name: 'filter_time_period_offset_month', value: 30 }
+        ],
+        defaultValue: 0
+    },
+    year: {
+        name: 'filter_year',
+        key: 'year',
+        type: FilterType.SELECT,
+        values: [
+            { name: 'filter_year_any', value: undefined },
+            ...generateSelectFilterValues(7, 24, (current) => {
+                const year = 2000 + current
+                return { name: `${year}`, value: year }
+            }).reverse()
+        ],
+        defaultValue: 0
+    },
+    songType: {
+        name: 'filter_song_type', // name
+        key: 'songType',
+        type: FilterType.SELECT,
+        values: [
+            { name: 'filter_song_type_all', value: undefined },
+            { name: 'filter_song_type_original', value: SongType.ORIGINAL },
+            { name: 'filter_song_type_remix', value: SongType.REMIX },
+            { name: 'filter_song_type_other', value: SongType.OTHER },
+        ],
+        defaultValue: 0 // default value
+    }
 }
 
 function parseFilterParamKey(
     paramValue: number | undefined,
-    cookieValue: number | undefined,
     defaultValue: number
 ): number {
     const paramValueNumber = Number(paramValue)
-    const cookieValueNumber = Number(cookieValue)
-    const valueNumber = isNaN(paramValueNumber) ? cookieValueNumber : paramValueNumber
-    return isNaN(valueNumber) ? defaultValue : valueNumber
+    return isNaN(paramValueNumber) ? defaultValue : paramValueNumber
 }
 
 function parseParamSelectFilterValue(
     paramValue: number | undefined,
-    cookieValue: number | undefined,
     values: SelectFilterValue<number>[],
     defaultValue: number
-): number | null {
+): number | null | undefined {
     // get the filterValue and return it
-    const valueNumber = parseFilterParamKey(paramValue, cookieValue, defaultValue)
+    const valueNumber = parseFilterParamKey(paramValue, defaultValue)
     return (values[valueNumber] || values[defaultValue]).value
 }
 
@@ -62,7 +100,7 @@ export default async function RankingsPage(
         params: {
             lang: Locale
         },
-        searchParams: RankingsFilterSearchParams
+        searchParams: RankingsFiltersValues
     }
 ) {
     // import language dictionary
@@ -74,43 +112,25 @@ export default async function RankingsPage(
 
     // general variables
     const settingTitleLanguage = settings.titleLanguage
-    const rankingsFilterCookie = settings.rankingsFilter
 
     // build filterParams
     const filterParams = new RankingsFilterParams()
     {
-        filterParams.sourceType = parseParamSelectFilterValue(searchParams.sourceType, rankingsFilterCookie.sourceType, filters.sourceType.values, filters.sourceType.defaultValue) as SourceType
-        filterParams.songType = parseParamSelectFilterValue(searchParams.songType, rankingsFilterCookie.songType,filters.songType.values, filters.songType.defaultValue) as SongType
+        filterParams.sourceType = parseParamSelectFilterValue(searchParams.sourceType, filters.sourceType.values, filters.sourceType.defaultValue) as SourceType
+        filterParams.timePeriodOffset = parseParamSelectFilterValue(searchParams.timePeriod, filters.timePeriod.values, filters.timePeriod.defaultValue) as number
+        {
+            const publishDate = parseParamSelectFilterValue(searchParams.year, filters.year.values, filters.year.defaultValue) as number
+            filterParams.publishDate = publishDate ? `${publishDate}-%` : undefined
+            console.log(publishDate, publishDate ? `${publishDate}-%` : undefined)
+        }
+        filterParams.songType = parseParamSelectFilterValue(searchParams.songType, filters.songType.values, filters.songType.defaultValue) as SongType
     }
     const rankings = await filterRankings(filterParams)
 
-    // convert filters to filter bar filters
-    const filterBarFilters: FilterBarFilters = []
-    for (const filterKey in filters) {
-        const filter = filters[filterKey as keyof typeof filters] as Filter
-        const name = filter.name
-        const type = filter.type
-
-        switch (type) {
-            case FilterType.SELECT: {
-                const selectFilter = filter as SelectFilter<number>
-                const defaultValue = selectFilter.defaultValue
-                filterBarFilters.push({
-                    key: filterKey,
-                    name: langDict[name],
-                    type: type,
-                    values: selectFilter.values.map(value => langDict[value.name]),
-                    value: parseFilterParamKey(searchParams[filterKey as keyof typeof searchParams], rankingsFilterCookie[filterKey as keyof typeof rankingsFilterCookie], defaultValue),
-                    defaultValue: defaultValue
-                } as FilterBarSelectFilter)
-            }
-        }
-    }
-
     return (
-        <section className="flex flex-col gap-5 w-full">
+        <section className="flex flex-col gap-5 w-full h-screen">
             <h1 className="font-extrabold md:text-5xl md:text-left text-4xl text-center w-full">{langDict.rankings_page_title}</h1>
-            <FilterBar href='' filters={filterBarFilters} />
+            <FilterBar href='' filters={filters} langDict={langDict} values={searchParams} />
             <ol className="flex flex-col gap-3 w-full">
                 {rankings.results.map(ranking => {
                     const song = ranking.song
@@ -183,7 +203,7 @@ export function Ranking(
                 {supportingContent}
             </section>
             <section className="flex flex-col gap items-end mr-4">
-                <h3 className="text-on-surface text-xl font-bold">{trailingTitleContent}</h3>
+                <h3 className="text-on-surface text-xl font-semibold">{trailingTitleContent}</h3>
                 <span className="text-on-surface-variant text-md">{trailingSupporting}</span>
             </section>
         </li>

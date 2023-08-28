@@ -76,6 +76,8 @@
     "filter_direction_ascending": "昇順",
     "filter_direction_descending": "降順",
     "filter_artists": "作者",
+    "filter_year": "",
+    "filter_year_any": "",
     "quick_filter": "プリセットフィルタ",
     "quick_filter_past_day": "過去1日間",
     "quick_filter_youtube": "YouTubeのみ",
