@@ -128,7 +128,7 @@ export default async function RankingsPage(
     const rankings = await filterRankings(filterParams)
 
     return (
-        <section className="flex flex-col gap-5 w-full h-screen">
+        <section className="flex flex-col gap-5 w-full min-h-screen">
             <h1 className="font-extrabold md:text-5xl md:text-left text-4xl text-center w-full">{langDict.rankings_page_title}</h1>
             <FilterBar href='' filters={filters} langDict={langDict} values={searchParams} />
             <ol className="flex flex-col gap-3 w-full">

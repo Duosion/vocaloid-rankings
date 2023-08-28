@@ -110,7 +110,7 @@ export function FilterBar(
     return (
         <FilterValuesContext.Provider value={filterValues}>
             <ul className="flex flex-col gap-5 w-full mt-5">
-                <li key='filters'><ul className="flex gap-3">
+                <li key='filters'><ul className="flex gap-5">
                     <SelectFilterElement filter={filters.sourceType} langDict={langDict} onValueChanged={(newValue) => { filterValues.sourceType = newValue; saveFilterValues() }} />
                     <SelectFilterElement filter={filters.timePeriod} langDict={langDict} onValueChanged={(newValue) => { filterValues.timePeriod = newValue; saveFilterValues() }} />
                     <SelectFilterElement filter={filters.year} langDict={langDict} onValueChanged={(newValue) => { filterValues.year = newValue; saveFilterValues() }} />

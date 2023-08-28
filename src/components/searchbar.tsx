@@ -23,7 +23,7 @@ export const SearchBar = (
     }
 
     return (
-        <form action='/search' method='GET' className='bg-surface-1 min-w-[360px] max-w-[420px] w-full h-[40px] flex items-center justify-start px-[16px] gap-[16px] rounded-full' onSubmit={handleSubmit}>
+        <form action='/search' method='GET' className='bg-surface-container-low min-w-[360px] max-w-[420px] w-full h-[40px] flex items-center justify-start px-[16px] gap-[16px] rounded-full' onSubmit={handleSubmit}>
             <Icon icon='search' className='text-on-surface'/>
             <input
                 required

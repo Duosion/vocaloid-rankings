@@ -37,7 +37,7 @@ export default function RootLayout({
       <body className='font-sans bg-background'>
         <Providers>
           <Navbar lang={locale}/>
-          <main className='max-w-7xl min-h-[100vh] m-auto flex flex-col justify-center items-start px-5 py-6'>
+          <main className='max-w-7xl min-h-screen m-auto flex flex-col justify-center items-start px-5 py-6'>
             {children}
           </main>
           <Footer lang={locale}/>
