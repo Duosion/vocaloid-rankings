@@ -13,8 +13,8 @@ export default async function Navbar(
 ) {
     const langDict = await getDictionary(lang)
     return (
-        <header className="w-full h-[60px] px-[30px] py-[10px] box-border relative">
-            <nav className='w-full h-full flex items-center gap-[20px] m-auto'>
+        <header className="z-50 w-full h-[60px] px-[30px] py-[10px] box-border sticky top-0 backdrop-blur backdrop-saturate-200 before:w-full before:h-full before:absolute bg-[linear-gradient(var(--md-sys-color-background),transparent)] before:bg-background before:opacity-80 before:z-40 before:top-0 before:left-0">
+            <nav className='z-50 relative w-full h-full flex items-center gap-[20px] m-auto'>
                 <ul className='flex-1 flex items-center justify-start gap-[20px]'>
                     <Link href={`/${lang}`}>
                         <Image

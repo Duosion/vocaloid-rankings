@@ -24,7 +24,7 @@ export abstract class Filter {
 }
 
 export interface SelectFilterValue<Enum> {
-    name: LanguageDictionaryKey | string
+    name: LanguageDictionaryKey
     value: Enum | null | undefined
 }
 
@@ -44,16 +44,32 @@ export class SelectFilter<Enum> extends Filter {
     }
 }
 
+export class InputFilter extends Filter {
+    defaultValue: string
+    placeholder: LanguageDictionaryKey
+
+    constructor(
+        name: LanguageDictionaryKey,
+        key: string,
+        placeholder: LanguageDictionaryKey,
+        defaultValue: string = ''
+    ) {
+        super(name, key, FilterType.SELECT)
+        this.defaultValue = defaultValue
+        this.placeholder = placeholder
+    }
+}
+
 export interface RankingsFilters {
     sourceType: SelectFilter<SourceType>
     timePeriod: SelectFilter<number>
-    year: SelectFilter<number>
+    year: InputFilter
     songType: SelectFilter<SongType>
 }
 
 export interface RankingsFiltersValues {
     sourceType?: number
     timePeriod?: number
-    year?: number
+    year?: string
     songType?: number
 }
