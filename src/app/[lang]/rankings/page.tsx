@@ -9,19 +9,6 @@ import { Settings } from "../settings"
 import { FilterBar } from "./client"
 import { FilterType, RankingsFiltersValues, RankingsFilters, SelectFilter, SelectFilterValue } from "./types"
 
-function generateSelectFilterValues<valueType>(
-    start: number,
-    end: number,
-    generator: (current: number) => SelectFilterValue<valueType>,
-    increment: number = 1,
-): SelectFilterValue<valueType>[] {
-    const values: SelectFilterValue<valueType>[] = []
-    for (let i = start; i < end; i+=increment) {
-        values.push(generator(i))
-    }
-    return values
-}
-
 export const filters: RankingsFilters = {
     sourceType: {
         name: 'filter_view_type',
@@ -50,15 +37,9 @@ export const filters: RankingsFilters = {
     year: {
         name: 'filter_year',
         key: 'year',
-        type: FilterType.SELECT,
-        values: [
-            { name: 'filter_year_any', value: undefined },
-            ...generateSelectFilterValues(7, 24, (current) => {
-                const year = 2000 + current
-                return { name: `${year}`, value: year }
-            }).reverse()
-        ],
-        defaultValue: 0
+        type: FilterType.INPUT,
+        defaultValue: '',
+        placeholder: 'filter_year_any'
     },
     songType: {
         name: 'filter_song_type', // name
@@ -119,9 +100,8 @@ export default async function RankingsPage(
         filterParams.sourceType = parseParamSelectFilterValue(searchParams.sourceType, filters.sourceType.values, filters.sourceType.defaultValue) as SourceType
         filterParams.timePeriodOffset = parseParamSelectFilterValue(searchParams.timePeriod, filters.timePeriod.values, filters.timePeriod.defaultValue) as number
         {
-            const publishDate = parseParamSelectFilterValue(searchParams.year, filters.year.values, filters.year.defaultValue) as number
-            filterParams.publishDate = publishDate ? `${publishDate}-%` : undefined
-            console.log(publishDate, publishDate ? `${publishDate}-%` : undefined)
+            const year = Number(searchParams.year)
+            filterParams.publishDate = isNaN(year) ? undefined : year + '-%'
         }
         filterParams.songType = parseParamSelectFilterValue(searchParams.songType, filters.songType.values, filters.songType.defaultValue) as SongType
     }
