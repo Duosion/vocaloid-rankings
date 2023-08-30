@@ -26,6 +26,7 @@ module.exports = class Song {
      * @param {ViewType} [thumbnailType] // this song's thumbnail type
      * @param {string} [displayThumbnail] // the thumbnail to display
      * @param {string} [maxresDisplayThumbnail] // the maximum res display thumbnail to display
+     * @param {boolean} [dormant]
      */
     constructor(
         id,
@@ -45,7 +46,8 @@ module.exports = class Song {
         placement,
         thumbnailType,
         displayThumbnail,
-        maxresDisplayThumbnail
+        maxresDisplayThumbnail,
+        dormant
     ) {
         this.id = id
         this.publishDate = publishDate
@@ -65,6 +67,7 @@ module.exports = class Song {
         this.thumbnailType = thumbnailType
         this.displayThumbnail = displayThumbnail
         this.maxresDisplayThumbnail = maxresDisplayThumbnail
+        this.dormant = dormant
     }
 
 }

@@ -67,6 +67,14 @@
         <div class="value">{{value}}</div>
       </div>
       {{/each}}
+      <div class="sidebar-card-dataset">
+        <div class="title">{{localization.song_dormant}}</div>
+        {{#if songData.dormant}}
+          <div class="value">{{localization.song_dormant_true}}</div>
+        {{else}}
+          <div class="value">{{localization.song_dormant_false}}</div>
+        {{/if}}
+      </div>
     </div>
 
     <a id="outgoing-vocadb-link-sidebar"

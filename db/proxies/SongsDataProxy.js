@@ -163,7 +163,8 @@ module.exports = class SongsDataProxy {
             songPlacement,
             thumbType,
             needsProxy ? `/song/thumbnail/${songId}` : thumb,
-            needsProxy ? `/song/thumbnail/${songId}?maxRes=1` : maxresThumb || thumb
+            needsProxy ? `/song/thumbnail/${songId}?maxRes=1` : maxresThumb || thumb,
+            songData.dormant == 1 ? true : false
         )
     }
 
@@ -490,7 +491,7 @@ module.exports = class SongsDataProxy {
         const db = this.db
 
         const songData = db.prepare(`
-        SELECT id, publish_date, addition_date, song_type, thumbnail, maxres_thumbnail, thumbnail_type, average_color, dark_color, light_color, fandom_url
+        SELECT id, publish_date, addition_date, song_type, thumbnail, maxres_thumbnail, thumbnail_type, average_color, dark_color, light_color, dormant, fandom_url
         FROM songs
         WHERE id = ?`).get(songId)
 

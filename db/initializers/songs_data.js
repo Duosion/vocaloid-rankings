@@ -13,6 +13,7 @@ module.exports = (db, exists) => {
         average_color TEXT NOT NULL,
         dark_color TEXT NOT NULL,
         light_color TEXT NOT NULL,
+        dormant INT DEFAULT 0 NOT NULL
         fandom_url TEXT)`).run()
 
     // create songs artists table
