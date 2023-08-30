@@ -10,6 +10,13 @@ import { FilterBar } from "./client"
 import { FilterType, RankingsFiltersValues, RankingsFilters, SelectFilter, SelectFilterValue } from "./types"
 
 export const filters: RankingsFilters = {
+    search: {
+        name: 'search_hint',
+        key: 'search',
+        type: FilterType.INPUT,
+        placeholder: 'search_hint',
+        defaultValue: ''
+    },
     sourceType: {
         name: 'filter_view_type',
         key: 'sourceType',
@@ -38,8 +45,8 @@ export const filters: RankingsFilters = {
         name: 'filter_year',
         key: 'year',
         type: FilterType.INPUT,
-        defaultValue: '',
-        placeholder: 'filter_year_any'
+        placeholder: 'filter_year_any',
+        defaultValue: ''
     },
     songType: {
         name: 'filter_song_type', // name
@@ -97,6 +104,13 @@ export default async function RankingsPage(
     // build filterParams
     const filterParams = new RankingsFilterParams()
     {
+        {
+            const search = searchParams.search
+            if (search) {
+                filterParams.search = `%${search}%`
+            }
+        }
+        
         filterParams.sourceType = parseParamSelectFilterValue(searchParams.sourceType, filters.sourceType.values, filters.sourceType.defaultValue) as SourceType
         filterParams.timePeriodOffset = parseParamSelectFilterValue(searchParams.timePeriod, filters.timePeriod.values, filters.timePeriod.defaultValue) as number
         {
@@ -107,12 +121,14 @@ export default async function RankingsPage(
     }
     const rankings = await filterRankings(filterParams)
 
+    console.log(0 >= rankings.totalCount, rankings.totalCount)
+
     return (
         <section className="flex flex-col gap-5 w-full min-h-screen">
             <h1 className="font-extrabold md:text-5xl md:text-left text-4xl text-center w-full">{langDict.rankings_page_title}</h1>
             <FilterBar href='' filters={filters} langDict={langDict} values={searchParams} />
             <ol className="flex flex-col gap-3 w-full">
-                {rankings.results.map(ranking => {
+                {0 >= rankings.totalCount ? <h2 className="text-3xl font-bold text-center text-on-background">{langDict.search_no_results}</h2> : rankings.results.map(ranking => {
                     const song = ranking.song
 
                     // generate artist links

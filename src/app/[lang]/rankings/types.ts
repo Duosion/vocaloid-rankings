@@ -61,6 +61,7 @@ export class InputFilter extends Filter {
 }
 
 export interface RankingsFilters {
+    search: InputFilter
     sourceType: SelectFilter<SourceType>
     timePeriod: SelectFilter<number>
     year: InputFilter
@@ -68,6 +69,7 @@ export interface RankingsFilters {
 }
 
 export interface RankingsFiltersValues {
+    search?: string
     sourceType?: number
     timePeriod?: number
     year?: string

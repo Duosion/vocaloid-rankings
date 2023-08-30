@@ -230,6 +230,7 @@ export class RankingsFilterParams {
     startAt: number = 0
     minViews?: number
     maxViews?: number
+    search?: string
 
     constructor(
         timestamp?: string,
@@ -248,7 +249,8 @@ export class RankingsFilterParams {
         maxEntries?: number,
         startAt?: number,
         minViews?: number,
-        maxViews?: number
+        maxViews?: number,
+        search?: string
     ) {
         this.timestamp = timestamp
         this.timePeriodOffset = timePeriodOffset || this.timePeriodOffset
@@ -267,6 +269,7 @@ export class RankingsFilterParams {
         this.startAt = startAt || this.startAt
         this.minViews = minViews
         this.maxViews = maxViews
+        this.search = search
     }
 }
 

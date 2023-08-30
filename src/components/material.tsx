@@ -1,6 +1,35 @@
 import Link from "next/link"
 import { MouseEventHandler } from "react"
 
+
+// icon buttons
+const BaseIconButton = (
+    {
+        icon,
+        className,
+        href,
+        onClick
+    }: {
+        
+        icon: string
+        className?: string
+        href?: string
+        onClick?: MouseEventHandler
+    }
+) => {
+    const finalClassName = `w-[40px] h-[40px] rounded-full flex items-center justify-center ${className}`
+    return (
+        href ? (
+            <Link className={finalClassName} href={href} onClick={onClick}>
+                <Icon icon={icon}/>
+            </Link>
+        ) : (
+            <button className={finalClassName} onClick={onClick}>
+                <Icon icon={icon}/>
+            </button>
+        )
+    )
+}
 export const IconButton = (
     {
         icon,
@@ -13,15 +42,23 @@ export const IconButton = (
     }
 ) => {
     return (
-        href ? (
-            <Link className="link-icon-button w-[40px] h-[40px] rounded-full flex items-center justify-center hover:bg-surface-container-low transition-colors" href={href} onClick={onClick}>
-                <Icon icon={icon}/>
-            </Link>
-        ) : (
-            <button className="link-icon-button w-[40px] h-[40px] rounded-full flex items-center justify-center hover:bg-surface-container-low transition-colors" onClick={onClick}>
-                <Icon icon={icon}/>
-            </button>
-        )
+        <BaseIconButton icon={icon} className="hover:bg-surface-container-low transition-colors" href={href} onClick={onClick} />
+    )
+}
+
+export const FilledIconButton = (
+    {
+        icon,
+        href,
+        onClick
+    }: {
+        icon: string
+        href?: string
+        onClick?: MouseEventHandler
+    }
+) => {
+    return (
+        <BaseIconButton icon={icon} className="bg-primary text-on-primary relative before:bg-surface-container-low before:absolute before:w-full before:h-full before:rounded-full before:opacity-0 hover:before:opacity-20 before:transition-opacity" href={href} onClick={onClick} />
     )
 }
 
