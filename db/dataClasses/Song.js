@@ -27,6 +27,7 @@ module.exports = class Song {
      * @param {string} [displayThumbnail] // the thumbnail to display
      * @param {string} [maxresDisplayThumbnail] // the maximum res display thumbnail to display
      * @param {boolean} [dormant]
+     * @param {string} [lastUpdated]
      */
     constructor(
         id,
@@ -47,7 +48,8 @@ module.exports = class Song {
         thumbnailType,
         displayThumbnail,
         maxresDisplayThumbnail,
-        dormant
+        dormant,
+        lastUpdated
     ) {
         this.id = id
         this.publishDate = publishDate
@@ -68,6 +70,7 @@ module.exports = class Song {
         this.displayThumbnail = displayThumbnail
         this.maxresDisplayThumbnail = maxresDisplayThumbnail
         this.dormant = dormant
+        this.lastUpdated = lastUpdated
     }
 
 }

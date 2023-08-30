@@ -141,6 +141,8 @@
     "about_view_data": "View data is refreshed every day at 0:00 UTC.",
     "about_datasets_title": "Datasets",
     "about_datasets": " Dataset",
+    "about_dormant_title": "Dormant Songs",
+    "about_dormant": "Due to the recent influx of songs added to the website, songs can now become dormant. A song will become dormant if it receives less than 1,500 daily views and it is over a year old. A dormant song will only have its view data refreshed when its page is loaded. You can tell if a song is dormant by viewing the 'Is Dormant' section on its page.",
     "trending_page_title": "Trending",
     "trending_period": "Trending Within",
     "trending_past_day": "Past Day",

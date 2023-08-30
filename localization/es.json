@@ -141,6 +141,8 @@
     "about_view_data": "Los datos de visualización se actualizan todos los días a las 0:00 UTC.",
     "about_datasets_title": "Conjuntos de datos",
     "about_datasets": "Conjunto de datos",
+    "about_dormant_title": "Canciones en Reposo",
+    "about_dormant": "Debido al reciente flujo de canciones añadidas al sitio web, las canciones ahora pueden entrar en un estado de reposo. Una canción entrará en reposo si recibe menos de 1,500 visitas diarias y tiene más de un año de antigüedad. Una canción en reposo solo actualizará sus datos de visualizaciones cuando se cargue su página. Puedes saber si una canción está en reposo viendo la sección 'Está en Reposo' en su página.",
     "trending_page_title": "Tendencias",
     "trending_period": "Tendencias dentro de",
     "trending_past_day": "Último día",

@@ -164,7 +164,8 @@ module.exports = class SongsDataProxy {
             thumbType,
             needsProxy ? `/song/thumbnail/${songId}` : thumb,
             needsProxy ? `/song/thumbnail/${songId}?maxRes=1` : maxresThumb || thumb,
-            songData.dormant == 1 ? true : false
+            songData.dormant == 1 ? true : false,
+            songData.last_updated
         )
     }
 
@@ -491,7 +492,7 @@ module.exports = class SongsDataProxy {
         const db = this.db
 
         const songData = db.prepare(`
-        SELECT id, publish_date, addition_date, song_type, thumbnail, maxres_thumbnail, thumbnail_type, average_color, dark_color, light_color, dormant, fandom_url
+        SELECT id, publish_date, addition_date, song_type, thumbnail, maxres_thumbnail, thumbnail_type, average_color, dark_color, light_color, dormant, last_updated, fandom_url
         FROM songs
         WHERE id = ?`).get(songId)
 
@@ -2247,7 +2248,9 @@ module.exports = class SongsDataProxy {
                     average_color = ?,
                     dark_color = ?,
                     light_color = ?,
-                    fandom_url = ?
+                    fandom_url = ?,
+                    dormant = ?,
+                    last_updated = ?
                 WHERE id = ?`)
 
                 // delete songs artists
@@ -2278,6 +2281,8 @@ module.exports = class SongsDataProxy {
                     song.darkColor,
                     song.lightColor,
                     song.fandomUrl,
+                    song.dormant ? 1 : 0,
+                    song.lastUpdated,
                     songId
                 )
 
@@ -2313,8 +2318,8 @@ module.exports = class SongsDataProxy {
 
                 // insert into songs table
                 db.prepare(`
-                REPLACE INTO songs (id, publish_date, addition_date, song_type, thumbnail, maxres_thumbnail, thumbnail_type, average_color, dark_color, light_color, fandom_url)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
+                REPLACE INTO songs (id, publish_date, addition_date, song_type, thumbnail, maxres_thumbnail, thumbnail_type, average_color, dark_color, light_color, dormant, last_updated, fandom_url)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
                     songId,
                     song.publishDate,
                     song.additionDate,
@@ -2325,7 +2330,9 @@ module.exports = class SongsDataProxy {
                     song.averageColor,
                     song.darkColor,
                     song.lightColor,
-                    song.fandomUrl
+                    song.dormant ? 1 : 0,
+                    song.lastUpdated,
+                    song.fandomUrl,
                 )
 
                 // insert foreign tables

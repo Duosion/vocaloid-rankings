@@ -150,6 +150,8 @@ if (seo.url === "glitch-default") {
 const maxSongRefreshPromises = 15
 const songRefreshFailRetryDelay = 1000 // in ms, when a song fails to refresh, how long to wait before retrying
 const maxSongRefreshFailRetries = 5 // how many times a song refresh can retry on fail before giving up.
+const dormantMinDailyViews = 1500 // the minimum amount of daily views a song must have before it can become dormant
+const dormantMinAge = 365 * 24 * 60 * 60 // in seconds, the minimum amount of days old a song must be before it can become dormant
 let updatingSongsData = false
 const updateSongsData = () => {
 
@@ -170,6 +172,7 @@ const updateSongsData = () => {
 
     // variables
     const updateStartTime = new Date()
+    const updateStartTimeMilliseconds = updateStartTime.getTime()
     console.log("Updating database.")
 
     // generate exclude urls list
@@ -198,11 +201,19 @@ const updateSongsData = () => {
 
             const existingViews = song.views
             const existingViewsTimestamp = existingViews && existingViews.timestamp
-            if (timestamp != existingViewsTimestamp) {
+            if (song.dormant) {
+              existingViews.timestamp = timestamp
+              await songsDataProxy.insertSongViews(songId, existingViews)
+            } else if (timestamp != existingViewsTimestamp) {
               // refresh views only
               console.log(`[Refresh ${progress}/${problemSize}] ${songId}`)
               /** @type {SongViews} */
               const songViews = await scraper.getSongViewsAsync(song, timestamp)
+              if((dormantMinDailyViews >= (songViews.total - existingViews.total)) && (((updateStartTimeMilliseconds - new Date(song.publishDate).getTime())/1000) >= dormantMinAge)) {
+                console.log(`[DORMANT] Make ${songId} dormant. Daily views: ${(songViews.total - existingViews.total)}. Age: ${Math.floor((updateStartTimeMilliseconds - new Date(song.publishDate).getTime()) / (24 * 60 * 60 * 1000))} days.`)
+                song.dormant = true
+                await songsDataProxy.updateSong(song)
+              }
 
               await songsDataProxy.insertSongViews(songId, songViews)
             }
@@ -269,10 +280,7 @@ const updateSongsData = () => {
           await songsDataProxy.insertSong(song)
         }
       }
-
     }
-
-    
 
     // purge caches
     caches.rankingsCache.purge()

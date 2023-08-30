@@ -13,7 +13,8 @@ const AccessLevel = require("../../../db/enums/AccessLevel");
 const AnalyticsEvent = require("../../../db/enums/AnalyticsEvent");
 const { getHasherAsync, viewTypesDisplayData, caches } = require(modulePath + "/shared")
 const { getPreferredLanguageName } = require(modulePath + "/locale")
-const fetch = require('node-fetch')
+const fetch = require('node-fetch');
+const { generateTimestamp } = require("../../shared");
 
 // initialize caches
 const songsDataCache = caches.songsDataCache
@@ -205,6 +206,8 @@ const addSongRoute = async (request, reply) => {
       return reply.view("pages/addSong.hbs", request.hbParams)
     }
 
+    console.log(song)
+
     // add the song
     await database.songsDataProxy.insertSong(song)
       .catch(msg => {
@@ -318,7 +321,7 @@ const getSong = async (request, reply) => {
   }
 
   // query database
-  const songData = await querySongsDatabaseAsync({
+  let songData = await querySongsDatabaseAsync({
     songId: songId,
     preferredLanguage: NameType.fromId(parsedCookies.titleLanguage),
   })
@@ -327,6 +330,26 @@ const getSong = async (request, reply) => {
       reply.send({ code: 400, message: msg.message })
       return;
     })
+
+  if (songData.dormant && ((new Date().getTime() - new Date(songData.lastUpdated).getTime()) / 1000) > 24 * 60 * 60) {
+    // refresh view data
+    console.log(`Update dormant song view data. Id: ${songId}`)
+    const timestamp = generateTimestamp().Name
+    const songViews = await scraper.getSongViewsAsync(songData, timestamp)
+    songData.lastUpdated = timestamp
+    await database.songsDataProxy.updateSong(songData)
+    await database.songsDataProxy.insertSongViews(songId, songViews)
+    songData = await querySongsDatabaseAsync({
+      songId: songId,
+      preferredLanguage: NameType.fromId(parsedCookies.titleLanguage),
+    })
+      .catch(msg => {
+        console.log(msg)
+        reply.send({ code: 400, message: msg.message })
+        return;
+      })
+  }
+
   hbParams['songData'] = songData
 
   hbParams['compactArtists'] = songData.artists.length == 2

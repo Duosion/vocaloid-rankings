@@ -628,11 +628,13 @@ const processVocaDBSongDataAsync = (songData) => {
             const lightColor = hexFromArgb(schemes.light.props.primary)
             const darkColor = hexFromArgb(schemes.dark.props.primary)
 
+            const isoDate = new Date().toISOString()
+
             resolve(new Song(
                 songId,
 
                 songData.publishDate,
-                new Date().toISOString(),
+                isoDate,
 
                 songTypeMap[songType] || SongType.Other,
 
@@ -653,7 +655,11 @@ const processVocaDBSongDataAsync = (songData) => {
                     viewsBreakdown
                 ),
                 null,
-                thumbnailType || ViewType.YouTube
+                thumbnailType || ViewType.YouTube,
+                null,
+                null,
+                false,
+                isoDate
             ))
 
         } catch (error) {
