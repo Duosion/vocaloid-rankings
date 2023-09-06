@@ -1,10 +1,16 @@
-import { SongType, SourceType } from "@/data/types"
+import { ArtistType, SongType, SourceType } from "@/data/types"
 import { LanguageDictionaryKey } from "@/localization"
 
 export enum FilterType {
     SELECT,
     INPUT,
     CHECKBOX,
+}
+
+export enum PopupAlignment {
+    RIGHT,
+    CENTER,
+    LEFT
 }
 
 export abstract class Filter {
@@ -66,6 +72,7 @@ export interface RankingsFilters {
     timePeriod: SelectFilter<number>
     year: InputFilter
     songType: SelectFilter<SongType>
+    artistType: SelectFilter<ArtistType>
 }
 
 export interface RankingsFiltersValues {
@@ -74,4 +81,5 @@ export interface RankingsFiltersValues {
     timePeriod?: number
     year?: string
     songType?: number
+    artistType?: number
 }

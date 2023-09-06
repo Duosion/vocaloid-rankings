@@ -1,7 +1,7 @@
 import { EntityName, NumberFormatter } from "@/components/formatters"
 import SongThumbnail from "@/components/song_thumbnail"
 import { filterRankings } from "@/data/songsData"
-import { ArtistCategory, RankingsFilterParams, SongType, SourceType } from "@/data/types"
+import { ArtistCategory, ArtistType, RankingsFilterParams, SongType, SourceType } from "@/data/types"
 import { Locale, getDictionary, getEntityName } from "@/localization"
 import { cookies } from "next/dist/client/components/headers"
 import Link from "next/link"
@@ -57,6 +57,27 @@ export const filters: RankingsFilters = {
             { name: 'filter_song_type_original', value: SongType.ORIGINAL },
             { name: 'filter_song_type_remix', value: SongType.REMIX },
             { name: 'filter_song_type_other', value: SongType.OTHER },
+        ],
+        defaultValue: 0 // default value
+    },
+    artistType: {
+        name: 'filter_artist_type', // name
+        key: 'artistType',
+        type: FilterType.SELECT,
+        values: [
+            { name: 'filter_artist_type_all', value: undefined },
+            { name: 'filter_artist_type_vocaloid', value: ArtistType.VOCALOID },
+            { name: 'filter_artist_type_cevio', value: ArtistType.CEVIO },
+            { name: 'filter_artist_type_synth_v', value: ArtistType.SYNTHESIZER_V },
+            { name: 'filter_artist_type_illustrator', value: ArtistType.ILLUSTRATOR },
+            { name: 'filter_artist_type_cover_artist', value: ArtistType.COVER_ARTIST },
+            { name: 'filter_artist_type_animator', value: ArtistType.ANIMATOR },
+            { name: 'filter_artist_type_producer', value: ArtistType.PRODUCER },
+            { name: 'filter_artist_type_other_vocalist', value: ArtistType.OTHER_VOCALIST },
+            { name: 'filter_artist_type_other_voice_synth', value: ArtistType.OTHER_VOICE_SYNTHESIZER },
+            { name: 'filter_artist_type_other_individual', value: ArtistType.OTHER_INDIVIDUAL },
+            { name: 'filter_artist_type_other_group', value: ArtistType.OTHER_GROUP },
+            { name: 'filter_artist_type_utau', value: ArtistType.UTAU },
         ],
         defaultValue: 0 // default value
     }
@@ -118,10 +139,9 @@ export default async function RankingsPage(
             filterParams.publishDate = isNaN(year) ? undefined : year + '-%'
         }
         filterParams.songType = parseParamSelectFilterValue(searchParams.songType, filters.songType.values, filters.songType.defaultValue) as SongType
+        filterParams.artistType = parseParamSelectFilterValue(searchParams.artistType, filters.artistType.values, filters.artistType.defaultValue) as ArtistType
     }
     const rankings = await filterRankings(filterParams)
-
-    console.log(0 >= rankings.totalCount, rankings.totalCount)
 
     return (
         <section className="flex flex-col gap-5 w-full min-h-screen">

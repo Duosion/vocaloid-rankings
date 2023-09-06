@@ -5,7 +5,7 @@ import { LanguageDictionary, LanguageDictionaryKey } from "@/localization"
 import { useRouter } from "next/navigation"
 import { CSSProperties, Dispatch, SetStateAction, createContext, useContext, useEffect, useRef, useState } from "react"
 import { TransitionStatus } from "react-transition-group"
-import { Filter, FilterType, InputFilter, RankingsFilters, RankingsFiltersValues, SelectFilter, SelectFilterValue } from "./types"
+import { Filter, FilterType, InputFilter, PopupAlignment, RankingsFilters, RankingsFiltersValues, SelectFilter, SelectFilterValue } from "./types"
 
 const modalTransitionStyles: { [key in TransitionStatus]: CSSProperties } = {
     entering: { opacity: 1, display: 'flex' },
@@ -64,6 +64,46 @@ function ActiveFilter(
                 }
             }}>{name}</button>
         </li>
+    )
+}
+
+function PopupIconButton(
+    {
+        icon,
+        align,
+        children
+    }: {
+        icon: string,
+        align: PopupAlignment,
+        children?: React.ReactNode
+    }
+) {
+    const [modalOpen, setModalOpen] = useState(false)
+    const modalRef = useRef<HTMLUListElement>(null)
+
+    useEffect(() => {
+        function handleClick(event: MouseEvent) {
+            if (!event.defaultPrevented && modalRef.current && !modalRef.current.contains(event.target as Node)) {
+                setModalOpen(false)
+            }
+        }
+
+        document.addEventListener('click', handleClick)
+        return () => {
+            document.removeEventListener('click', handleClick)
+        }
+    }, [modalOpen])
+
+    const alignment = align == PopupAlignment.LEFT ? 'left-0' : align == PopupAlignment.RIGHT ? 'right-0' : 'right-0 left-0'
+    return (
+        <ul className="flex flex-col">
+            <FilledIconButton icon={icon} onClick={_ => setModalOpen(true)} />
+            {modalOpen && <div className="relative w-full h-0 transition-opacity z-10">
+                <ul ref={modalRef} className={`absolute top-3 w-fit rounded-xl bg-surface-container-high shadow-md p-5 flex flex-col gap-3 ${alignment}`}>
+                    {children}
+                </ul>
+            </div>}
+        </ul>
     )
 }
 
@@ -200,7 +240,14 @@ export function FilterBar(
                     <ul className="flex gap-5 flex-1">
                         {mainFilters}
                     </ul>
-                    <FilledIconButton icon={'tune'} onClick={() => { }} />
+                    <PopupIconButton icon='tune' align={PopupAlignment.RIGHT}>
+
+                        <li><ul className="flex flex-row gap-5">
+                            <SelectFilterElement name={langDict[filters.songType.name]} value={Number(filterValues.songType)} defaultValue={filters.songType.defaultValue} options={filters.songType.values.map(value => langDict[value.name])} onValueChanged={(newValue) => { filterValues.songType = newValue; saveFilterValues() }} />
+                            <SelectFilterElement searchable name={langDict[filters.artistType.name]} value={Number(filterValues.artistType)} defaultValue={filters.artistType.defaultValue} options={filters.artistType.values.map(value => langDict[value.name])} onValueChanged={(newValue) => { filterValues.artistType = newValue; saveFilterValues() }} />
+                        </ul></li>
+
+                    </PopupIconButton>
                 </li>
                 {activeFilters.length > 0 &&
                     <li key='activeFilters'><ul className="flex gap-3">
@@ -307,7 +354,7 @@ export function SelectFilterElement(
                     {options.map((value, index) => {
                         return searchable && value.toLowerCase().match(searchQuery) || !searchable ? (
                             <li key={index}>
-                                <button key={index} onClick={() => { setValue(index); }} className="w-full font-normal h-auto overflow-clip text-ellipsis p-2 rounded-xl relative transition-colors hover:bg-surface-container-highest">{value}</button>
+                                <button key={index} onClick={(e) => { e.preventDefault(); setValue(index); }} className="w-full font-normal h-auto overflow-clip text-ellipsis p-2 rounded-xl relative transition-colors hover:bg-surface-container-highest">{value}</button>
                             </li>
                         ) : null
                     })}
