@@ -3,7 +3,7 @@
 import { FilledIconButton, Icon } from "@/components/material"
 import { LanguageDictionary, LanguageDictionaryKey } from "@/localization"
 import { useRouter } from "next/navigation"
-import { CSSProperties, Dispatch, SetStateAction, createContext, useContext, useEffect, useRef, useState } from "react"
+import { CSSProperties, MutableRefObject, createContext, useEffect, useRef, useState } from "react"
 import { TransitionStatus } from "react-transition-group"
 import { Filter, FilterType, InputFilter, PopupAlignment, RankingsFilters, RankingsFiltersValues, SelectFilter, SelectFilterValue } from "./types"
 
@@ -28,6 +28,18 @@ function generateSelectFilterValues<valueType>(
         values.push(generator(i))
     }
     return values
+}
+
+function timeoutDebounce(
+    ref: MutableRefObject<NodeJS.Timeout | undefined>,
+    timeout: number,
+    callback: () => void
+) {
+    if (ref) {
+        clearTimeout(ref.current)
+    }
+
+    ref.current = setTimeout(callback, timeout)
 }
 
 function FilterElement(
@@ -179,13 +191,7 @@ export function FilterBar(
             filterValues.search = newValue
             saveFilterValues(false)
 
-            if (timeout) {
-                clearTimeout(timeout.current)
-            }
-
-            timeout.current = setTimeout(() => {
-                saveFilterValues()
-            }, 500)
+            timeoutDebounce(timeout, 500, saveFilterValues)
         }} />)
     }
     // source type
@@ -233,6 +239,31 @@ export function FilterBar(
         mainFilters.push(<SelectFilterElement searchable name={langDict[yearFilter.name]} value={currentOption} defaultValue={defaultValue} options={yearFilter.values.map(value => value.name)} onValueChanged={newValue => { filterValues.year = String(yearFilter.values[newValue].value); saveFilterValues() }} />)
     }
 
+    // pop up filters
+    
+    // min & max views
+    const viewsFilters: React.ReactNode[] = []
+    {
+        const minViewsFilter = filters.minViews
+        const maxViewsFilter = filters.maxViews
+        
+        const minViewsTimeout = useRef<NodeJS.Timeout>()
+        const maxViewsTimeout = useRef<NodeJS.Timeout>()
+
+        viewsFilters.push(<NumberInputFilterElement name={langDict[minViewsFilter.name]} value={filterValues.minViews || minViewsFilter.defaultValue} placeholder={langDict[minViewsFilter.placeholder]} defaultValue={minViewsFilter.defaultValue} onValueChanged={(newValue) => { 
+            filterValues.minViews = newValue; 
+            saveFilterValues(false)
+            
+            timeoutDebounce(minViewsTimeout, 500, saveFilterValues)
+        }} />)
+        viewsFilters.push(<NumberInputFilterElement name={langDict[maxViewsFilter.name]} value={filterValues.maxViews || maxViewsFilter.defaultValue} placeholder={langDict[maxViewsFilter.placeholder]} defaultValue={maxViewsFilter.defaultValue} onValueChanged={(newValue) => { 
+            filterValues.maxViews = newValue; 
+            saveFilterValues(false)
+            
+            timeoutDebounce(maxViewsTimeout, 500, saveFilterValues)
+        }} />)
+    }
+
     return (
         <FilterValuesContext.Provider value={filterValues}>
             <ul className="flex flex-col gap-5 w-full mt-5">
@@ -246,7 +277,7 @@ export function FilterBar(
                             <SelectFilterElement name={langDict[filters.songType.name]} value={Number(filterValues.songType)} defaultValue={filters.songType.defaultValue} options={filters.songType.values.map(value => langDict[value.name])} onValueChanged={(newValue) => { filterValues.songType = newValue; saveFilterValues() }} />
                             <SelectFilterElement searchable name={langDict[filters.artistType.name]} value={Number(filterValues.artistType)} defaultValue={filters.artistType.defaultValue} options={filters.artistType.values.map(value => langDict[value.name])} onValueChanged={(newValue) => { filterValues.artistType = newValue; saveFilterValues() }} />
                         </ul></li>
-
+                        <li><ul className="flex flex-row gap-5">{viewsFilters}</ul></li>
                     </PopupIconButton>
                 </li>
                 {activeFilters.length > 0 &&
@@ -284,6 +315,38 @@ export function InputFilterElement(
         <FilterElement key={name} name={name}>
             <search className="py-2 px-4 rounded-xl bg-surface-container-low text-on-surface flex gap-3 text-base font-normal">
                 <Icon icon='search' />
+                <input type='search' placeholder={placeholder} onFocus={() => { }} onBlur={() => { }} onChange={event => setValue(event.currentTarget.value)} value={value} className={`cursor-text bg-transparent w-32 outline-none text-left`} />
+                {value != defaultValue && <Icon icon='close'></Icon>}
+            </search>
+        </FilterElement>
+    )
+}
+
+export function NumberInputFilterElement(
+    {
+        name,
+        value,
+        placeholder,
+        defaultValue,
+        onValueChanged
+    }: {
+        name: string
+        value: string
+        placeholder: string
+        defaultValue: string
+        onValueChanged?: (newValue: string) => void
+    }
+) {
+    function setValue(newValue: string) {
+        const asNumber = Number(newValue)
+        if (!isNaN(asNumber) && value != newValue && onValueChanged) {
+            onValueChanged(newValue)
+        }
+    }
+
+    return (
+        <FilterElement key={name} name={name}>
+            <search className="py-2 px-4 rounded-xl bg-surface-container-low text-on-surface flex gap-3 text-base font-normal">
                 <input type='search' placeholder={placeholder} onFocus={() => { }} onBlur={() => { }} onChange={event => setValue(event.currentTarget.value)} value={value} className={`cursor-text bg-transparent w-32 outline-none text-left`} />
                 {value != defaultValue && <Icon icon='close'></Icon>}
             </search>

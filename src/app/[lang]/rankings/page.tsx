@@ -80,6 +80,20 @@ export const filters: RankingsFilters = {
             { name: 'filter_artist_type_utau', value: ArtistType.UTAU },
         ],
         defaultValue: 0 // default value
+    },
+    minViews: {
+        name: 'filter_min_views',
+        key: 'minViews',
+        type: FilterType.INPUT,
+        placeholder: 'filter_views_any',
+        defaultValue: ''
+    },
+    maxViews: {
+        name: 'filter_max_views',
+        key: 'maxViews',
+        type: FilterType.INPUT,
+        placeholder: 'filter_views_any',
+        defaultValue: ''
     }
 }
 
@@ -140,6 +154,12 @@ export default async function RankingsPage(
         }
         filterParams.songType = parseParamSelectFilterValue(searchParams.songType, filters.songType.values, filters.songType.defaultValue) as SongType
         filterParams.artistType = parseParamSelectFilterValue(searchParams.artistType, filters.artistType.values, filters.artistType.defaultValue) as ArtistType
+        {
+            const minViews = Number(searchParams.minViews)
+            const maxViews = Number(searchParams.maxViews)
+            filterParams.minViews = isNaN(minViews) ? undefined : minViews
+            filterParams.maxViews = isNaN(maxViews) ? undefined : maxViews
+        }
     }
     const rankings = await filterRankings(filterParams)
 

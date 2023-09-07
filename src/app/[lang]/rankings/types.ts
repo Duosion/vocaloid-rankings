@@ -73,6 +73,8 @@ export interface RankingsFilters {
     year: InputFilter
     songType: SelectFilter<SongType>
     artistType: SelectFilter<ArtistType>
+    minViews: InputFilter
+    maxViews: InputFilter
 }
 
 export interface RankingsFiltersValues {
@@ -82,4 +84,6 @@ export interface RankingsFiltersValues {
     year?: string
     songType?: number
     artistType?: number
+    minViews?: string
+    maxViews?: string
 }
