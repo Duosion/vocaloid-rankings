@@ -317,13 +317,13 @@ export function FilterBar(
                         <li><ul className="flex flex-row gap-5">{viewsFilters}</ul></li>
                     </PopupIconButton>
                 </li>
-                <li><ul className="flex gap-5 items-end justify-end">
+                <li><ul className="flex gap-5 items-center justify-end">
                     {activeFilters.length > 0 &&
                         <li key='activeFilters' className="flex-1"><ul className="flex gap-3">
                             {activeFilters}
                         </ul></li>
                     }
-                    <SelectFilterElement minimal name={langDict[filters.orderBy.name]} value={Number(filterValues.orderBy)} defaultValue={filters.orderBy.defaultValue} options={filters.orderBy.values.map(value => langDict[value.name])} onValueChanged={(newValue) => { filterValues.orderBy = newValue; saveFilterValues() }} />
+                    <SelectFilterElement minimal icon='sort' clearIcon="sort" name={langDict[filters.orderBy.name]} value={Number(filterValues.orderBy)} defaultValue={filters.orderBy.defaultValue} options={filters.orderBy.values.map(value => langDict[value.name])} onValueChanged={(newValue) => { filterValues.orderBy = newValue; saveFilterValues() }} />
                 </ul></li>
             </ul>
         </FilterValuesContext.Provider>
@@ -402,14 +402,18 @@ export function SelectFilterElement(
         options,
         searchable = false,
         minimal = false,
+        icon = 'expand_more',
+        clearIcon = 'close',
         onValueChanged
     }: {
         name: string
         value: number
-        defaultValue: number,
+        defaultValue: number
         options: string[]
         searchable?: boolean
         minimal?: boolean
+        icon?: string
+        clearIcon?: string
         onValueChanged?: (newValue: number) => void
     }
 ) {
@@ -447,12 +451,12 @@ export function SelectFilterElement(
 
     return (
         <FilterElement key={name} name={name} minimal={minimal}>
-            <search className={minimal ? 'text-on-backgroundd gap-3 w-fit flex items-center text-lg font-normal cursor-pointer' : "py-2 px-4 rounded-xl bg-surface-container-low text-on-surface flex gap-3 text-base font-normal cursor-pointer"} onClick={() => setModalOpen(true)}>
+            <search className={minimal ? 'text-on-background py-0.5 gap-3 w-fit flex justify-end items-center text-lg font-normal cursor-pointer' : "py-2 px-4 rounded-xl bg-surface-container-low text-on-surface flex gap-3 text-base font-normal cursor-pointer"} onClick={() => setModalOpen(true)}>
                 {searchable
                     ? <input type='search' onFocus={() => { setSearchQuery(''); setInputFocused(true) }} onBlur={() => setInputFocused(false)} onChange={(event) => { setSearchQuery(event.currentTarget.value.toLowerCase()) }} value={inputFocused ? searchQuery : valueName} className={`cursor-text bg-transparent outline-none text-left ${valueIsDefault ? 'text-on-surface-variant' : 'text-primary'} ${minimal ? 'w-fit' : 'w-32'}`} />
                     : <span className={`bg-transparent outline-none cursor-pointer text-left ${valueIsDefault ? 'text-on-surface-variant' : 'text-primary'} ${minimal ? 'w-fit' : 'w-32'}`}>{valueName}</span>
                 }
-                {valueIsDefault ? <Icon icon='expand_more'></Icon> : <Icon icon='close'></Icon>}
+                {valueIsDefault ? <Icon icon={icon}></Icon> : <Icon icon={clearIcon}></Icon>}
             </search>
             <FadeInOut visible={modalOpen}>
                 <div className="relative min-w-fit w-full h-0 z-10">
