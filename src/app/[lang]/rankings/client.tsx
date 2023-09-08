@@ -45,15 +45,17 @@ function timeoutDebounce(
 function FilterElement(
     {
         name,
-        children
+        children,
+        minimal = false
     }: {
         name: string,
         children?: React.ReactNode
+        minimal?: boolean
     }
 ) {
     return (
         <li key={name} className="w-fit h-fit flex flex-col font-bold">
-            <h3 className="text-on-background text-lg mb-2">{name}</h3>
+            {!minimal ? <h3 className="text-on-background text-lg mb-2">{name}</h3> : undefined}
             {children}
         </li>
     )
@@ -77,6 +79,37 @@ function ActiveFilter(
             }}>{name}</button>
         </li>
     )
+}
+
+function FadeInOut(
+    {
+        visible = false,
+        duration = 150,
+        children
+    }: {
+        visible?: boolean,
+        duration?: number
+        children?: React.ReactNode
+    }
+) {
+    const [isVisible, setIsVisible] = useState(visible)
+    const [transitioning, setTransitioning] = useState(false)
+    const timeoutRef = useRef<NodeJS.Timeout>()
+
+    useEffect(() => {
+        if (!visible) {
+            setTransitioning(true)
+            timeoutDebounce(timeoutRef, duration, () => setTransitioning(false))
+        }
+        setIsVisible(visible)
+    }, [visible])
+
+    return (
+        <div className="transition-opacity" style={{ opacity: isVisible ? 1 : 0, transform: isVisible ? 'translateY(0px)' : 'translateY(3px)', transitionDuration: `${duration}ms`, transitionProperty: 'opacity, transform' }}>
+            {isVisible || transitioning ? children : undefined}
+        </div>
+    )
+
 }
 
 function PopupIconButton(
@@ -110,11 +143,13 @@ function PopupIconButton(
     return (
         <ul className="flex flex-col">
             <FilledIconButton icon={icon} onClick={_ => setModalOpen(true)} />
-            {modalOpen && <div className="relative w-full h-0 transition-opacity z-10">
-                <ul ref={modalRef} className={`absolute top-3 w-fit rounded-xl bg-surface-container-high shadow-md p-5 flex flex-col gap-3 ${alignment}`}>
-                    {children}
-                </ul>
-            </div>}
+            <FadeInOut visible={modalOpen}>
+                <div className="relative w-full h-0 z-10">
+                    <ul ref={modalRef} className={`absolute top-3 w-fit rounded-xl bg-surface-container-high shadow-md p-5 flex flex-col gap-3 ${alignment}`}>
+                        {children}
+                    </ul>
+                </div>
+            </FadeInOut>
         </ul>
     )
 }
@@ -158,22 +193,24 @@ export function FilterBar(
         let filter = filters[key as keyof typeof filters] as Filter
         const value = filterValues[key as keyof typeof filterValues]
 
-        switch (filter.type) {
-            case FilterType.SELECT: {
-                const valueNumber = Number(value)
-                const defaultValue = (filter as SelectFilter<number>).defaultValue
-                const options = (filter as SelectFilter<number>).values
-                const parsedValue = isNaN(valueNumber) ? defaultValue : valueNumber
-                if (parsedValue != defaultValue) {
-                    const name = options[parsedValue].name
-                    activeFilters.push(<ActiveFilter name={langDict[name]} onClick={() => { filterValues[key as keyof typeof filterValues] = defaultValue as any; saveFilterValues() }} />)
+        if (filter.displayActive) {
+            switch (filter.type) {
+                case FilterType.SELECT: {
+                    const valueNumber = Number(value)
+                    const defaultValue = (filter as SelectFilter<number>).defaultValue
+                    const options = (filter as SelectFilter<number>).values
+                    const parsedValue = isNaN(valueNumber) ? defaultValue : valueNumber
+                    if (parsedValue != defaultValue) {
+                        const name = options[parsedValue].name
+                        activeFilters.push(<ActiveFilter name={langDict[name]} onClick={() => { filterValues[key as keyof typeof filterValues] = defaultValue as any; saveFilterValues() }} />)
+                    }
+                    break
                 }
-                break
-            }
-            case FilterType.INPUT: {
-                const defaultValue = (filter as InputFilter).defaultValue
-                if (value != defaultValue) {
-                    activeFilters.push(<ActiveFilter name={`${langDict[filter.name]}: ${String(value)}`} onClick={() => { filterValues[key as keyof typeof filterValues] = defaultValue as any; saveFilterValues() }}></ActiveFilter>)
+                case FilterType.INPUT: {
+                    const defaultValue = (filter as InputFilter).defaultValue
+                    if (value != defaultValue) {
+                        activeFilters.push(<ActiveFilter name={`${langDict[filter.name]}: ${String(value)}`} onClick={() => { filterValues[key as keyof typeof filterValues] = defaultValue as any; saveFilterValues() }}></ActiveFilter>)
+                    }
                 }
             }
         }
@@ -218,6 +255,7 @@ export function FilterBar(
         const yearFilter = {
             name: 'filter_year',
             key: 'yearFilter',
+            displayActive: true,
             type: FilterType.SELECT,
             values: [
                 { name: langDict['filter_year_any'] as LanguageDictionaryKey, value: '' },
@@ -240,26 +278,26 @@ export function FilterBar(
     }
 
     // pop up filters
-    
+
     // min & max views
     const viewsFilters: React.ReactNode[] = []
     {
         const minViewsFilter = filters.minViews
         const maxViewsFilter = filters.maxViews
-        
+
         const minViewsTimeout = useRef<NodeJS.Timeout>()
         const maxViewsTimeout = useRef<NodeJS.Timeout>()
 
-        viewsFilters.push(<NumberInputFilterElement name={langDict[minViewsFilter.name]} value={filterValues.minViews || minViewsFilter.defaultValue} placeholder={langDict[minViewsFilter.placeholder]} defaultValue={minViewsFilter.defaultValue} onValueChanged={(newValue) => { 
-            filterValues.minViews = newValue; 
+        viewsFilters.push(<NumberInputFilterElement name={langDict[minViewsFilter.name]} value={filterValues.minViews || minViewsFilter.defaultValue} placeholder={langDict[minViewsFilter.placeholder]} defaultValue={minViewsFilter.defaultValue} onValueChanged={(newValue) => {
+            filterValues.minViews = newValue;
             saveFilterValues(false)
-            
+
             timeoutDebounce(minViewsTimeout, 500, saveFilterValues)
         }} />)
-        viewsFilters.push(<NumberInputFilterElement name={langDict[maxViewsFilter.name]} value={filterValues.maxViews || maxViewsFilter.defaultValue} placeholder={langDict[maxViewsFilter.placeholder]} defaultValue={maxViewsFilter.defaultValue} onValueChanged={(newValue) => { 
-            filterValues.maxViews = newValue; 
+        viewsFilters.push(<NumberInputFilterElement name={langDict[maxViewsFilter.name]} value={filterValues.maxViews || maxViewsFilter.defaultValue} placeholder={langDict[maxViewsFilter.placeholder]} defaultValue={maxViewsFilter.defaultValue} onValueChanged={(newValue) => {
+            filterValues.maxViews = newValue;
             saveFilterValues(false)
-            
+
             timeoutDebounce(maxViewsTimeout, 500, saveFilterValues)
         }} />)
     }
@@ -272,7 +310,6 @@ export function FilterBar(
                         {mainFilters}
                     </ul>
                     <PopupIconButton icon='tune' align={PopupAlignment.RIGHT}>
-
                         <li><ul className="flex flex-row gap-5">
                             <SelectFilterElement name={langDict[filters.songType.name]} value={Number(filterValues.songType)} defaultValue={filters.songType.defaultValue} options={filters.songType.values.map(value => langDict[value.name])} onValueChanged={(newValue) => { filterValues.songType = newValue; saveFilterValues() }} />
                             <SelectFilterElement searchable name={langDict[filters.artistType.name]} value={Number(filterValues.artistType)} defaultValue={filters.artistType.defaultValue} options={filters.artistType.values.map(value => langDict[value.name])} onValueChanged={(newValue) => { filterValues.artistType = newValue; saveFilterValues() }} />
@@ -280,11 +317,14 @@ export function FilterBar(
                         <li><ul className="flex flex-row gap-5">{viewsFilters}</ul></li>
                     </PopupIconButton>
                 </li>
-                {activeFilters.length > 0 &&
-                    <li key='activeFilters'><ul className="flex gap-3">
-                        {activeFilters}
-                    </ul></li>
-                }
+                <li><ul className="flex gap-5 items-end justify-end">
+                    {activeFilters.length > 0 &&
+                        <li key='activeFilters' className="flex-1"><ul className="flex gap-3">
+                            {activeFilters}
+                        </ul></li>
+                    }
+                    <SelectFilterElement minimal name={langDict[filters.orderBy.name]} value={Number(filterValues.orderBy)} defaultValue={filters.orderBy.defaultValue} options={filters.orderBy.values.map(value => langDict[value.name])} onValueChanged={(newValue) => { filterValues.orderBy = newValue; saveFilterValues() }} />
+                </ul></li>
             </ul>
         </FilterValuesContext.Provider>
     )
@@ -361,6 +401,7 @@ export function SelectFilterElement(
         defaultValue,
         options,
         searchable = false,
+        minimal = false,
         onValueChanged
     }: {
         name: string
@@ -368,6 +409,7 @@ export function SelectFilterElement(
         defaultValue: number,
         options: string[]
         searchable?: boolean
+        minimal?: boolean
         onValueChanged?: (newValue: number) => void
     }
 ) {
@@ -404,25 +446,27 @@ export function SelectFilterElement(
     }, [modalOpen])
 
     return (
-        <FilterElement key={name} name={name}>
-            <search className="py-2 px-4 rounded-xl bg-surface-container-low text-on-surface flex gap-3 text-base font-normal cursor-pointer" onClick={() => setModalOpen(true)}>
+        <FilterElement key={name} name={name} minimal={minimal}>
+            <search className={minimal ? 'text-on-backgroundd gap-3 w-fit flex items-center text-lg font-normal cursor-pointer' : "py-2 px-4 rounded-xl bg-surface-container-low text-on-surface flex gap-3 text-base font-normal cursor-pointer"} onClick={() => setModalOpen(true)}>
                 {searchable
-                    ? <input type='search' onFocus={() => { setSearchQuery(''); setInputFocused(true) }} onBlur={() => setInputFocused(false)} onChange={(event) => { setSearchQuery(event.currentTarget.value.toLowerCase()) }} value={inputFocused ? searchQuery : valueName} className={` cursor-text bg-transparent w-32 outline-none text-left ${valueIsDefault ? 'text-on-surface-variant' : 'text-primary'}`} />
-                    : <span className={`bg-transparent w-32 outline-none cursor-pointer text-left ${valueIsDefault ? 'text-on-surface-variant' : 'text-primary'}`}>{valueName}</span>
+                    ? <input type='search' onFocus={() => { setSearchQuery(''); setInputFocused(true) }} onBlur={() => setInputFocused(false)} onChange={(event) => { setSearchQuery(event.currentTarget.value.toLowerCase()) }} value={inputFocused ? searchQuery : valueName} className={`cursor-text bg-transparent outline-none text-left ${valueIsDefault ? 'text-on-surface-variant' : 'text-primary'} ${minimal ? 'w-fit' : 'w-32'}`} />
+                    : <span className={`bg-transparent outline-none cursor-pointer text-left ${valueIsDefault ? 'text-on-surface-variant' : 'text-primary'} ${minimal ? 'w-fit' : 'w-32'}`}>{valueName}</span>
                 }
                 {valueIsDefault ? <Icon icon='expand_more'></Icon> : <Icon icon='close'></Icon>}
             </search>
-            {modalOpen && <div className="relative w-full h-0 transition-opacity z-10">
-                <ul ref={modalRef} className="absolute top-2 left-0 w-full rounded-xl bg-surface-container-high shadow-md p-2 max-h-72 overflow-y-scroll overflow-x-clip">
-                    {options.map((value, index) => {
-                        return searchable && value.toLowerCase().match(searchQuery) || !searchable ? (
-                            <li key={index}>
-                                <button key={index} onClick={(e) => { e.preventDefault(); setValue(index); }} className="w-full font-normal h-auto overflow-clip text-ellipsis p-2 rounded-xl relative transition-colors hover:bg-surface-container-highest">{value}</button>
-                            </li>
-                        ) : null
-                    })}
-                </ul>
-            </div>}
+            <FadeInOut visible={modalOpen}>
+                <div className="relative min-w-fit w-full h-0 z-10">
+                    <ul ref={modalRef} className="absolute top-2 min-w-fit right-0 w-full rounded-xl bg-surface-container-high shadow-md p-2 max-h-72 overflow-y-scroll overflow-x-clip ">
+                        {options.map((value, index) => {
+                            return searchable && value.toLowerCase().match(searchQuery) || !searchable ? (
+                                <li key={index}>
+                                    <button key={index} onClick={(e) => { e.preventDefault(); setValue(index); }} className="w-full whitespace-nowrap font-normal h-auto overflow-clip text-ellipsis p-2 rounded-xl relative transition-colors hover:bg-surface-container-highest">{value}</button>
+                                </li>
+                            ) : null
+                        })}
+                    </ul>
+                </div>
+            </FadeInOut>
         </FilterElement>
     )
 

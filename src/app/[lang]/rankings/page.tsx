@@ -1,7 +1,7 @@
 import { EntityName, NumberFormatter } from "@/components/formatters"
 import SongThumbnail from "@/components/song_thumbnail"
 import { filterRankings } from "@/data/songsData"
-import { ArtistCategory, ArtistType, RankingsFilterParams, SongType, SourceType } from "@/data/types"
+import { ArtistCategory, ArtistType, FilterOrder, RankingsFilterParams, SongType, SourceType } from "@/data/types"
 import { Locale, getDictionary, getEntityName } from "@/localization"
 import { cookies } from "next/dist/client/components/headers"
 import Link from "next/link"
@@ -13,6 +13,7 @@ export const filters: RankingsFilters = {
     search: {
         name: 'search_hint',
         key: 'search',
+        displayActive: true,
         type: FilterType.INPUT,
         placeholder: 'search_hint',
         defaultValue: ''
@@ -20,6 +21,7 @@ export const filters: RankingsFilters = {
     sourceType: {
         name: 'filter_view_type',
         key: 'sourceType',
+        displayActive: true,
         type: FilterType.SELECT,
         values: [
             { name: 'filter_view_type_combined', value: null },
@@ -32,6 +34,7 @@ export const filters: RankingsFilters = {
     timePeriod: {
         name: 'filter_time_period_offset',
         key: 'timePeriod',
+        displayActive: true,
         type: FilterType.SELECT,
         values: [
             { name: 'filter_time_period_offset_all_time', value: null },
@@ -44,6 +47,7 @@ export const filters: RankingsFilters = {
     year: {
         name: 'filter_year',
         key: 'year',
+        displayActive: true,
         type: FilterType.INPUT,
         placeholder: 'filter_year_any',
         defaultValue: ''
@@ -51,6 +55,7 @@ export const filters: RankingsFilters = {
     songType: {
         name: 'filter_song_type', // name
         key: 'songType',
+        displayActive: true,
         type: FilterType.SELECT,
         values: [
             { name: 'filter_song_type_all', value: undefined },
@@ -63,6 +68,7 @@ export const filters: RankingsFilters = {
     artistType: {
         name: 'filter_artist_type', // name
         key: 'artistType',
+        displayActive: true,
         type: FilterType.SELECT,
         values: [
             { name: 'filter_artist_type_all', value: undefined },
@@ -84,6 +90,7 @@ export const filters: RankingsFilters = {
     minViews: {
         name: 'filter_min_views',
         key: 'minViews',
+        displayActive: true,
         type: FilterType.INPUT,
         placeholder: 'filter_views_any',
         defaultValue: ''
@@ -91,9 +98,22 @@ export const filters: RankingsFilters = {
     maxViews: {
         name: 'filter_max_views',
         key: 'maxViews',
+        displayActive: true,
         type: FilterType.INPUT,
         placeholder: 'filter_views_any',
         defaultValue: ''
+    },
+    orderBy: {
+        name: 'filter_order_by',
+        key: 'orderBy',
+        displayActive: false,
+        type: FilterType.SELECT,
+        values: [
+            { name: 'filter_order_by_views', value: FilterOrder.VIEWS },
+            { name: 'filter_order_by_publish', value: FilterOrder.PUBLISH_DATE },
+            { name: 'filter_order_by_addition', value: FilterOrder.ADDITION_DATE }
+        ],
+        defaultValue: 0 // default value
     }
 }
 
@@ -145,7 +165,7 @@ export default async function RankingsPage(
                 filterParams.search = `%${search}%`
             }
         }
-        
+
         filterParams.sourceType = parseParamSelectFilterValue(searchParams.sourceType, filters.sourceType.values, filters.sourceType.defaultValue) as SourceType
         filterParams.timePeriodOffset = parseParamSelectFilterValue(searchParams.timePeriod, filters.timePeriod.values, filters.timePeriod.defaultValue) as number
         {
@@ -160,6 +180,7 @@ export default async function RankingsPage(
             filterParams.minViews = isNaN(minViews) ? undefined : minViews
             filterParams.maxViews = isNaN(maxViews) ? undefined : maxViews
         }
+        filterParams.orderBy = parseParamSelectFilterValue(searchParams.orderBy, filters.orderBy.values, filters.orderBy.defaultValue) as FilterOrder
     }
     const rankings = await filterRankings(filterParams)
 

@@ -1,4 +1,4 @@
-import { ArtistType, SongType, SourceType } from "@/data/types"
+import { ArtistType, FilterOrder, SongType, SourceType } from "@/data/types"
 import { LanguageDictionaryKey } from "@/localization"
 
 export enum FilterType {
@@ -16,15 +16,18 @@ export enum PopupAlignment {
 export abstract class Filter {
     name: LanguageDictionaryKey
     key: string
+    displayActive: boolean
     type: FilterType
 
     constructor(
         name: LanguageDictionaryKey,
         key: string,
+        displayActive: boolean = true,
         type: FilterType
     ) {
         this.name = name
         this.key = key
+        this.displayActive = displayActive
         this.type = type
     }
 }
@@ -41,10 +44,11 @@ export class SelectFilter<Enum> extends Filter {
     constructor(
         name: LanguageDictionaryKey,
         key: string,
+        displayActive: boolean = true,
         values: SelectFilterValue<Enum>[],
         defaultValue: number
     ) {
-        super(name, key, FilterType.SELECT)
+        super(name, key, displayActive, FilterType.SELECT)
         this.values = values
         this.defaultValue = defaultValue
     }
@@ -57,10 +61,11 @@ export class InputFilter extends Filter {
     constructor(
         name: LanguageDictionaryKey,
         key: string,
+        displayActive: boolean = true,
         placeholder: LanguageDictionaryKey,
         defaultValue: string = ''
     ) {
-        super(name, key, FilterType.SELECT)
+        super(name, key, displayActive, FilterType.SELECT)
         this.defaultValue = defaultValue
         this.placeholder = placeholder
     }
@@ -75,6 +80,7 @@ export interface RankingsFilters {
     artistType: SelectFilter<ArtistType>
     minViews: InputFilter
     maxViews: InputFilter
+    orderBy: SelectFilter<FilterOrder>
 }
 
 export interface RankingsFiltersValues {
@@ -86,4 +92,5 @@ export interface RankingsFiltersValues {
     artistType?: number
     minViews?: string
     maxViews?: string
+    orderBy?: number
 }
