@@ -35,4 +35,4 @@ yarn-error.log*
 next-env.d.ts
 
 #database
-src/data/database
+/src/data/database
