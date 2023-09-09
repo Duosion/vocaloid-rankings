@@ -194,7 +194,40 @@ function filterRankingsRawSync(
                                     GROUP BY offset_sub_breakdowns.song_id)
                                 END)${filterArtistsStatement}${filterSongsStatement}
                         GROUP BY offset_breakdowns.song_id
-                    ),SUM(DISTINCT views_breakdowns.views))
+                    ), CASE WHEN julianday(:timestamp) - julianday(songs.publish_date) <= :timePeriodOffset THEN 0 ELSE (
+                        SELECT SUM(DISTINCT offset_breakdowns.views) AS offset_views
+                        FROM views_breakdowns AS offset_breakdowns
+                        INNER JOIN songs ON songs.id = offset_breakdowns.song_id
+                        INNER JOIN songs_artists ON songs_artists.song_id = offset_breakdowns.song_id
+                        INNER JOIN songs_names ON songs_names.song_id = views_breakdowns.song_id
+                        INNER JOIN artists ON artists.id = songs_artists.artist_id
+                        WHERE (offset_breakdowns.timestamp = DATE(:timestamp, '-' || (julianday(:timestamp) - julianday(songs.addition_date) - 1) || ' day'))
+                            AND (offset_breakdowns.song_id = views_breakdowns.song_id)
+                            AND (offset_breakdowns.view_type = :viewType OR :viewType IS NULL)
+                            AND (songs.song_type = :songType OR :songType IS NULL)
+                            AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
+                            AND (artists.artist_type = :artistType OR :artistType IS NULL)
+                            AND (songs_names.name LIKE :search OR :search IS NULL)
+                            AND (offset_breakdowns.views = CASE WHEN :singleVideo IS NULL
+                                THEN offset_breakdowns.views
+                                ELSE
+                                    (SELECT MAX(offset_sub_breakdowns.views)
+                                    FROM views_breakdowns AS offset_sub_breakdowns 
+                                    INNER JOIN songs ON songs.id = offset_sub_breakdowns.song_id
+                                    INNER JOIN songs_artists ON songs_artists.song_id = offset_sub_breakdowns.song_id
+                                    INNER JOIN songs_names ON songs_names.song_id = views_breakdowns.song_id
+                                    INNER JOIN artists ON artists.id = songs_artists.artist_id
+                                    WHERE (offset_sub_breakdowns.view_type = offset_breakdowns.view_type)
+                                        AND (offset_sub_breakdowns.timestamp = offset_breakdowns.timestamp)
+                                        AND (offset_sub_breakdowns.song_id = offset_breakdowns.song_id)
+                                        AND (songs.song_type = :songType OR :songType IS NULL)
+                                        AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
+                                        AND (artists.artist_type = :artistType OR :artistType IS NULL)
+                                        AND (songs_names.name LIKE :search OR :search IS NULL)${filterArtistsStatement}${filterSongsStatement}
+                                    GROUP BY offset_sub_breakdowns.song_id)
+                                END)${filterArtistsStatement}${filterSongsStatement}
+                        GROUP BY offset_breakdowns.song_id
+                        ) END)
                 END 
             END AS total_views
         FROM views_breakdowns
