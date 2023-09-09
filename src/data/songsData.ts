@@ -201,7 +201,8 @@ function filterRankingsRawSync(
                         INNER JOIN songs_artists ON songs_artists.song_id = offset_breakdowns.song_id
                         INNER JOIN songs_names ON songs_names.song_id = views_breakdowns.song_id
                         INNER JOIN artists ON artists.id = songs_artists.artist_id
-                        WHERE (offset_breakdowns.timestamp = DATE(:timestamp, '-' || (julianday(:timestamp) - julianday(songs.addition_date) - 1) || ' day'))
+                        WHERE (offset_breakdowns.timestamp = DATE(:timestamp, '-' || ((julianday(:timestamp) - julianday(songs.addition_date)) + 1) || ' day')
+                                OR offset_breakdowns.timestamp = DATE(:timestamp, '-' || (julianday(:timestamp) - julianday(songs.addition_date)) || ' day'))
                             AND (offset_breakdowns.song_id = views_breakdowns.song_id)
                             AND (offset_breakdowns.view_type = :viewType OR :viewType IS NULL)
                             AND (songs.song_type = :songType OR :songType IS NULL)
