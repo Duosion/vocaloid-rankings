@@ -1,6 +1,6 @@
 import { EntityName, NumberFormatter } from "@/components/formatters"
 import SongThumbnail from "@/components/song_thumbnail"
-import { filterRankings } from "@/data/songsData"
+import { filterRankings, getMostRecentViewsTimestamp } from "@/data/songsData"
 import { ArtistCategory, ArtistType, FilterOrder, RankingsFilterParams, SongType, SourceType } from "@/data/types"
 import { Locale, getDictionary, getEntityName } from "@/localization"
 import { cookies } from "next/dist/client/components/headers"
@@ -207,11 +207,12 @@ export default async function RankingsPage(
         filterParams.singleVideo = parseParamCheckboxFilterValue(searchParams.singleVideo)
     }
     const rankings = await filterRankings(filterParams)
+    const mostRecentTimestamp = await getMostRecentViewsTimestamp() || rankings.timestamp
 
     return (
         <section className="flex flex-col gap-5 w-full min-h-screen">
             <h1 className="font-extrabold md:text-5xl md:text-left text-4xl text-center w-full">{langDict.rankings_page_title}</h1>
-            <SongRankingsFilterBar href='' filters={filters} langDict={langDict} values={searchParams} currentTimestamp={rankings.timestamp}/>
+            <SongRankingsFilterBar href='' filters={filters} langDict={langDict} values={searchParams} currentTimestamp={mostRecentTimestamp}/>
             <ol className="flex flex-col gap-3 w-full">
                 {0 >= rankings.totalCount ? <h2 className="text-3xl font-bold text-center text-on-background">{langDict.search_no_results}</h2> : rankings.results.map(ranking => {
                     const song = ranking.song

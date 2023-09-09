@@ -363,6 +363,16 @@ function getMostRecentViewsTimestampSync(): string | null {
     return result ? result.timestamp : null
 }
 
+export function getMostRecentViewsTimestamp(): Promise<string | null> {
+    return new Promise<string | null>((resolve, reject) => {
+        try {
+            resolve(getMostRecentViewsTimestampSync())
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
 function buildEntityViews(
     viewsBreakdowns: RawViewBreakdown[],
     timestamp?: string
