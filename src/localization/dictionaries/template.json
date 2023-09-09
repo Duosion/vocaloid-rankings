@@ -31,6 +31,7 @@
     "filter_page_title_default": "",
     "filter_page_title_artists": "",
     "filter_timestamp": "",
+    "filter_timestamp_latest": "",
     "filter_page": "",
     "filter_time_period_offset": "",
     "filter_time_period_offset_all_time": "",

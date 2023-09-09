@@ -6,7 +6,7 @@ import { Locale, getDictionary, getEntityName } from "@/localization"
 import { cookies } from "next/dist/client/components/headers"
 import Link from "next/link"
 import { Settings } from "../settings"
-import { FilterBar } from "./client"
+import { SongRankingsFilterBar } from "./client"
 import { FilterType, RankingsFiltersValues, RankingsFilters, SelectFilter, SelectFilterValue } from "./types"
 
 export const filters: RankingsFilters = {
@@ -114,6 +114,21 @@ export const filters: RankingsFilters = {
             { name: 'filter_order_by_addition', value: FilterOrder.ADDITION_DATE }
         ],
         defaultValue: 0 // default value
+    },
+    timestamp: {
+        name: 'filter_timestamp',
+        key: 'timestamp',
+        displayActive: true,
+        type: FilterType.INPUT,
+        placeholder: 'filter_timestamp_latest',
+        defaultValue: ''
+    },
+    singleVideo: {
+        name: 'filter_single_video_single',
+        key: 'singleVideo',
+        displayActive: true,
+        type: FilterType.CHECKBOX,
+        defaultValue: false
     }
 }
 
@@ -133,6 +148,13 @@ function parseParamSelectFilterValue(
     // get the filterValue and return it
     const valueNumber = parseFilterParamKey(paramValue, defaultValue)
     return (values[valueNumber] || values[defaultValue]).value
+}
+
+function parseParamCheckboxFilterValue(
+    paramValue: number | undefined,
+): boolean {
+    const paramNum = Number(paramValue)
+    return !isNaN(paramNum) && paramNum == 1
 }
 
 export default async function RankingsPage(
@@ -181,13 +203,15 @@ export default async function RankingsPage(
             filterParams.maxViews = isNaN(maxViews) ? undefined : maxViews
         }
         filterParams.orderBy = parseParamSelectFilterValue(searchParams.orderBy, filters.orderBy.values, filters.orderBy.defaultValue) as FilterOrder
+        filterParams.timestamp = searchParams.timestamp
+        filterParams.singleVideo = parseParamCheckboxFilterValue(searchParams.singleVideo)
     }
     const rankings = await filterRankings(filterParams)
 
     return (
         <section className="flex flex-col gap-5 w-full min-h-screen">
             <h1 className="font-extrabold md:text-5xl md:text-left text-4xl text-center w-full">{langDict.rankings_page_title}</h1>
-            <FilterBar href='' filters={filters} langDict={langDict} values={searchParams} />
+            <SongRankingsFilterBar href='' filters={filters} langDict={langDict} values={searchParams} currentTimestamp={rankings.timestamp}/>
             <ol className="flex flex-col gap-3 w-full">
                 {0 >= rankings.totalCount ? <h2 className="text-3xl font-bold text-center text-on-background">{langDict.search_no_results}</h2> : rankings.results.map(ranking => {
                     const song = ranking.song

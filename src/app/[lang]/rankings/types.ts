@@ -71,6 +71,20 @@ export class InputFilter extends Filter {
     }
 }
 
+export class CheckboxFilter extends Filter {
+    defaultValue: boolean
+
+    constructor(
+        name: LanguageDictionaryKey,
+        key: string,
+        displayActive: boolean = true,
+        defaultValue: boolean = false
+    ) {
+        super(name, key, displayActive, FilterType.SELECT)
+        this.defaultValue = defaultValue
+    }
+}
+
 export interface RankingsFilters {
     search: InputFilter
     sourceType: SelectFilter<SourceType>
@@ -81,6 +95,8 @@ export interface RankingsFilters {
     minViews: InputFilter
     maxViews: InputFilter
     orderBy: SelectFilter<FilterOrder>
+    timestamp: InputFilter
+    singleVideo: CheckboxFilter
 }
 
 export interface RankingsFiltersValues {
@@ -93,4 +109,6 @@ export interface RankingsFiltersValues {
     minViews?: string
     maxViews?: string
     orderBy?: number
+    timestamp?: string
+    singleVideo?: number
 }

@@ -5,7 +5,7 @@ import { LanguageDictionary, LanguageDictionaryKey } from "@/localization"
 import { useRouter } from "next/navigation"
 import { CSSProperties, MutableRefObject, createContext, useEffect, useRef, useState } from "react"
 import { TransitionStatus } from "react-transition-group"
-import { Filter, FilterType, InputFilter, PopupAlignment, RankingsFilters, RankingsFiltersValues, SelectFilter, SelectFilterValue } from "./types"
+import { CheckboxFilter, Filter, FilterType, InputFilter, PopupAlignment, RankingsFilters, RankingsFiltersValues, SelectFilter, SelectFilterValue } from "./types"
 
 const modalTransitionStyles: { [key in TransitionStatus]: CSSProperties } = {
     entering: { opacity: 1, display: 'flex' },
@@ -40,6 +40,18 @@ function timeoutDebounce(
     }
 
     ref.current = setTimeout(callback, timeout)
+}
+
+function encodeBoolean(
+    bool: boolean
+): number {
+    return bool ? 1 : 0
+}
+
+function decodeBoolean(
+    num?: number
+): boolean {
+    return num == 1
 }
 
 function FilterElement(
@@ -154,17 +166,19 @@ function PopupIconButton(
     )
 }
 
-export function FilterBar(
+export function SongRankingsFilterBar(
     {
         href,
         filters,
         langDict,
         values,
+        currentTimestamp
     }: {
         href: string
         filters: RankingsFilters
         langDict: LanguageDictionary
         values: RankingsFiltersValues
+        currentTimestamp: string
     }
 ) {
     const router = useRouter()
@@ -209,8 +223,16 @@ export function FilterBar(
                 case FilterType.INPUT: {
                     const defaultValue = (filter as InputFilter).defaultValue
                     if (value != defaultValue) {
-                        activeFilters.push(<ActiveFilter name={`${langDict[filter.name]}: ${String(value)}`} onClick={() => { filterValues[key as keyof typeof filterValues] = defaultValue as any; saveFilterValues() }}></ActiveFilter>)
+                        activeFilters.push(<ActiveFilter name={`${langDict[filter.name]}: ${String(value)}`} onClick={() => { filterValues[key as keyof typeof filterValues] = defaultValue as any; saveFilterValues() }}/>)
                     }
+                    break
+                }
+                case FilterType.CHECKBOX: {
+                    const defaultValue = (filter as CheckboxFilter).defaultValue
+                    if (decodeBoolean(value as number) != defaultValue) {
+                        activeFilters.push(<ActiveFilter name={langDict[filter.name]} onClick={() => { filterValues[key as keyof typeof filterValues] = defaultValue as any; saveFilterValues() }}/>)
+                    }
+                    break
                 }
             }
         }
@@ -276,6 +298,11 @@ export function FilterBar(
 
         mainFilters.push(<SelectFilterElement searchable name={langDict[yearFilter.name]} value={currentOption} defaultValue={defaultValue} options={yearFilter.values.map(value => value.name)} onValueChanged={newValue => { filterValues.year = String(yearFilter.values[newValue].value); saveFilterValues() }} />)
     }
+    // artist type
+    {
+        const artistType = filters.artistType
+        mainFilters.push(<SelectFilterElement searchable name={langDict[artistType.name]} value={Number(filterValues.artistType)} defaultValue={artistType.defaultValue} options={artistType.values.map(value => langDict[value.name])} onValueChanged={(newValue) => { filterValues.artistType = newValue; saveFilterValues() }} />)
+    }
 
     // pop up filters
 
@@ -312,9 +339,12 @@ export function FilterBar(
                     <PopupIconButton icon='tune' align={PopupAlignment.RIGHT}>
                         <li><ul className="flex flex-row gap-5">
                             <SelectFilterElement name={langDict[filters.songType.name]} value={Number(filterValues.songType)} defaultValue={filters.songType.defaultValue} options={filters.songType.values.map(value => langDict[value.name])} onValueChanged={(newValue) => { filterValues.songType = newValue; saveFilterValues() }} />
-                            <SelectFilterElement searchable name={langDict[filters.artistType.name]} value={Number(filterValues.artistType)} defaultValue={filters.artistType.defaultValue} options={filters.artistType.values.map(value => langDict[value.name])} onValueChanged={(newValue) => { filterValues.artistType = newValue; saveFilterValues() }} />
+                            {viewsFilters}
                         </ul></li>
-                        <li><ul className="flex flex-row gap-5">{viewsFilters}</ul></li>
+                        <li><ul className="flex flex-row gap-5 items-center">
+                            <DateFilterElement name={langDict[filters.timestamp.name]} value={filterValues.timestamp || currentTimestamp} max={currentTimestamp} onValueChanged={newValue => { filterValues.timestamp = newValue; saveFilterValues() }}/>
+                            <CheckboxFilterElement name={langDict[filters.singleVideo.name]} value={decodeBoolean(filterValues.singleVideo)} onValueChanged={(newValue) => { filterValues.singleVideo = encodeBoolean(newValue); saveFilterValues() }}/>
+                        </ul></li>
                     </PopupIconButton>
                 </li>
                 <li><ul className="flex gap-5 items-center justify-end">
@@ -327,6 +357,59 @@ export function FilterBar(
                 </ul></li>
             </ul>
         </FilterValuesContext.Provider>
+    )
+}
+
+export function CheckboxFilterElement(
+    {
+        name,
+        value,
+        onValueChanged
+    } : {
+        name: string
+        value: boolean
+        onValueChanged?: (newValue: boolean) => void
+    }
+) {
+    function setValue(newValue: boolean) {
+        if (value != newValue && onValueChanged) onValueChanged(newValue)
+    }
+
+    return (
+        <section className="flex gap-3 items-center">
+            <input id={name} type='checkbox' checked={value} onChange={newValue => setValue(newValue.currentTarget.checked)}/>
+            <label htmlFor={name} className="text-lg text-on-background font-normal">{name}</label>
+        </section>
+    )
+}
+
+export function DateFilterElement(
+    {
+        name,
+        value,
+        min,
+        max,
+        onValueChanged
+    }: {
+        name: string
+        value: string
+        min?: string
+        max?: string
+        onValueChanged?: (newValue: string) => void
+    }
+) {
+    function setValue(newValue: string) {
+        if (value != newValue && onValueChanged) {
+            onValueChanged(newValue)
+        }
+    }
+
+    return (
+        <FilterElement key={name} name={name}>
+            <search className="py-2 px-4 rounded-xl bg-surface-container-low text-on-surface flex gap-3 text-base font-normal">
+                <input type='date' value={value} min={min} max={max} onChange={event => setValue(event.currentTarget.value)} className={`cursor-text bg-transparent min-w-fit w-32 outline-none text-left`} />
+            </search>
+        </FilterElement>
     )
 }
 
@@ -355,7 +438,7 @@ export function InputFilterElement(
         <FilterElement key={name} name={name}>
             <search className="py-2 px-4 rounded-xl bg-surface-container-low text-on-surface flex gap-3 text-base font-normal">
                 <Icon icon='search' />
-                <input type='search' placeholder={placeholder} onFocus={() => { }} onBlur={() => { }} onChange={event => setValue(event.currentTarget.value)} value={value} className={`cursor-text bg-transparent w-32 outline-none text-left`} />
+                <input type='search' placeholder={placeholder} onClick={e => e.preventDefault()} onChange={event => setValue(event.currentTarget.value)} value={value} className={`cursor-text bg-transparent w-32 outline-none text-left`} />
                 {value != defaultValue && <Icon icon='close'></Icon>}
             </search>
         </FilterElement>
@@ -386,8 +469,8 @@ export function NumberInputFilterElement(
 
     return (
         <FilterElement key={name} name={name}>
-            <search className="py-2 px-4 rounded-xl bg-surface-container-low text-on-surface flex gap-3 text-base font-normal">
-                <input type='search' placeholder={placeholder} onFocus={() => { }} onBlur={() => { }} onChange={event => setValue(event.currentTarget.value)} value={value} className={`cursor-text bg-transparent w-32 outline-none text-left`} />
+            <search className="py-2 px-4 rounded-xl bg-surface-container-low text-on-surface flex gap-3 text-base font-normal" onClick={e => e.preventDefault()}>
+                <input type='search' placeholder={placeholder} onChange={event => setValue(event.currentTarget.value)} value={value} className={`cursor-text bg-transparent w-32 outline-none text-left`} />
                 {value != defaultValue && <Icon icon='close'></Icon>}
             </search>
         </FilterElement>
@@ -459,12 +542,12 @@ export function SelectFilterElement(
                 {valueIsDefault ? <Icon icon={icon}></Icon> : <Icon icon={clearIcon}></Icon>}
             </search>
             <FadeInOut visible={modalOpen}>
-                <div className="relative min-w-fit w-full h-0 z-10">
-                    <ul ref={modalRef} className="absolute top-2 min-w-fit right-0 w-full rounded-xl bg-surface-container-high shadow-md p-2 max-h-72 overflow-y-scroll overflow-x-clip ">
+                <div className="relative min-w-fit w-full h-0 z-20">
+                    <ul ref={modalRef} className="absolute top-2 min-w-[160px] w-full right-0 rounded-xl bg-surface-container-high shadow-md p-2 max-h-72 overflow-y-scroll overflow-x-clip ">
                         {options.map((value, index) => {
                             return searchable && value.toLowerCase().match(searchQuery) || !searchable ? (
                                 <li key={index}>
-                                    <button key={index} onClick={(e) => { e.preventDefault(); setValue(index); }} className="w-full whitespace-nowrap font-normal h-auto overflow-clip text-ellipsis p-2 rounded-xl relative transition-colors hover:bg-surface-container-highest">{value}</button>
+                                    <button key={index} onClick={(e) => { e.preventDefault(); setValue(index); }} className="w-full font-normal h-auto overflow-clip text-ellipsis p-2 rounded-xl relative transition-colors hover:bg-surface-container-highest">{value}</button>
                                 </li>
                             ) : null
                         })}

@@ -31,6 +31,7 @@
     "filter_page_title_default": "Filtrar canciones",
     "filter_page_title_artists": "Filtrar artistas",
     "filter_timestamp": "Fecha",
+    "filter_timestamp_latest": "",
     "filter_page": "Página",
     "filter_time_period_offset": "Periodo de tiempo",
     "filter_time_period_offset_all_time": "Todo el tiempo",

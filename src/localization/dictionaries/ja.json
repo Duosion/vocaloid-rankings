@@ -31,6 +31,7 @@
     "filter_page_title_default": "曲のフィルタ",
     "filter_page_title_artists": "アーティストのフィルタ",
     "filter_timestamp": "デート",
+    "filter_timestamp_latest": "",
     "filter_page": "頁",
     "filter_time_period_offset": "時間ずれ",
     "filter_time_period_offset_all_time": "すべて",
