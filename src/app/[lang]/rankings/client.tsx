@@ -84,7 +84,7 @@ function ActiveFilter(
 ) {
     return (
         <li key={name}>
-            <button className="px-3 py-1 rounded-lg text-on-primary bg-primary" onClick={() => {
+            <button className="px-3 py-1 rounded-lg text-on-background border border-on-background box-border" onClick={() => {
                 if (onClick) {
                     onClick()
                 }
@@ -223,14 +223,14 @@ export function SongRankingsFilterBar(
                 case FilterType.INPUT: {
                     const defaultValue = (filter as InputFilter).defaultValue
                     if (value != defaultValue) {
-                        activeFilters.push(<ActiveFilter name={`${langDict[filter.name]}: ${String(value)}`} onClick={() => { filterValues[key as keyof typeof filterValues] = defaultValue as any; saveFilterValues() }}/>)
+                        activeFilters.push(<ActiveFilter name={`${langDict[filter.name]}: ${String(value)}`} onClick={() => { filterValues[key as keyof typeof filterValues] = defaultValue as any; saveFilterValues() }} />)
                     }
                     break
                 }
                 case FilterType.CHECKBOX: {
                     const defaultValue = (filter as CheckboxFilter).defaultValue
                     if (decodeBoolean(value as number) != defaultValue) {
-                        activeFilters.push(<ActiveFilter name={langDict[filter.name]} onClick={() => { filterValues[key as keyof typeof filterValues] = defaultValue as any; saveFilterValues() }}/>)
+                        activeFilters.push(<ActiveFilter name={langDict[filter.name]} onClick={() => { filterValues[key as keyof typeof filterValues] = defaultValue as any; saveFilterValues() }} />)
                     }
                     break
                 }
@@ -263,45 +263,105 @@ export function SongRankingsFilterBar(
         const timePeriod = filters.timePeriod
         mainFilters.push(<SelectFilterElement name={langDict[timePeriod.name]} value={Number(filterValues.timePeriod)} defaultValue={timePeriod.defaultValue} options={timePeriod.values.map(value => langDict[value.name])} onValueChanged={(newValue) => { filterValues.timePeriod = newValue; saveFilterValues() }} />)
     }
-    // year
+    // artist type
+    {
+        const artistType = filters.artistType
+        mainFilters.push(<SelectFilterElement searchable name={langDict[artistType.name]} value={Number(filterValues.artistType)} defaultValue={artistType.defaultValue} options={artistType.values.map(value => langDict[value.name])} onValueChanged={(newValue) => { filterValues.artistType = newValue; saveFilterValues() }} />)
+    }
+
+    // publish date filter
+    const publishDateFilters: React.ReactNode[] = []
     {
         // generate year filter
-        const currentValue = filterValues.year
+        const currentYear = filterValues.publishYear
+        const currentMonth = filterValues.publishMonth
+        const currentDay = filterValues.publishDay
 
         // options
-        const defaultValue = 0
+        const yearDefaultValue = 0
+        const monthDefaultValue = 0
+        const dayDefaultValue = 0
+
         const yearStart = 7
         const yearEnd = new Date().getFullYear() - 1999
 
-        let currentOption = defaultValue
+        const monthStart = 1
+        const monthEnd = 13
+
+        const dayStart = 1
+        const dayEnd = 32
+
+        // year
+        let currentYearOption = yearDefaultValue
+        const publishYear = filters.publishYear
         const yearFilter = {
-            name: 'filter_year',
-            key: 'yearFilter',
-            displayActive: true,
+            name: publishYear.name,
+            key: publishYear.key,
+            displayActive: publishYear.displayActive,
             type: FilterType.SELECT,
             values: [
                 { name: langDict['filter_year_any'] as LanguageDictionaryKey, value: '' },
                 ...generateSelectFilterValues(yearStart, yearEnd, current => {
                     const year = current + 2000
                     const yearString = String(year)
-                    if (yearString == currentValue) {
-                        currentOption = yearEnd - (current)
-                    }
+                    if (yearString == currentYear) currentYearOption = yearEnd - (current)
                     return {
                         name: yearString as LanguageDictionaryKey,
                         value: year
                     }
                 }).reverse()
             ],
-            defaultValue: defaultValue
+            defaultValue: yearDefaultValue
         } as SelectFilter<Number>
 
-        mainFilters.push(<SelectFilterElement searchable name={langDict[yearFilter.name]} value={currentOption} defaultValue={defaultValue} options={yearFilter.values.map(value => value.name)} onValueChanged={newValue => { filterValues.year = String(yearFilter.values[newValue].value); saveFilterValues() }} />)
-    }
-    // artist type
-    {
-        const artistType = filters.artistType
-        mainFilters.push(<SelectFilterElement searchable name={langDict[artistType.name]} value={Number(filterValues.artistType)} defaultValue={artistType.defaultValue} options={artistType.values.map(value => langDict[value.name])} onValueChanged={(newValue) => { filterValues.artistType = newValue; saveFilterValues() }} />)
+        // month
+        let currentMonthOption = monthDefaultValue
+        const publishMonth = filters.publishMonth
+        const monthFilter = {
+            name: publishMonth.name,
+            key: publishMonth.key,
+            displayActive: publishMonth.displayActive,
+            type: FilterType.SELECT,
+            values: [
+                { name: langDict['filter_year_any'] as LanguageDictionaryKey, value: '' },
+                ...generateSelectFilterValues(monthStart, monthEnd, current => {
+                    const monthString = String(current)
+                    if (monthString == currentMonth) currentMonthOption = current
+                    return {
+                        name: monthString as LanguageDictionaryKey,
+                        value: current
+                    }
+                })
+            ],
+            defaultValue: monthDefaultValue
+        } as SelectFilter<Number>
+
+        // day
+        let currentDayOption = dayDefaultValue
+        const publishDay = filters.publishDay
+        const dayFilter = {
+            name: publishDay.name,
+            key: publishDay.key,
+            displayActive: publishDay.displayActive,
+            type: FilterType.SELECT,
+            values: [
+                { name: langDict['filter_year_any'] as LanguageDictionaryKey, value: '' },
+                ...generateSelectFilterValues(dayStart, dayEnd, current => {
+                    const dayString = String(current)
+                    if (dayString == currentDay) currentDayOption = current
+                    return {
+                        name: dayString as LanguageDictionaryKey,
+                        value: current
+                    }
+                })
+            ],
+            defaultValue: dayDefaultValue
+        } as SelectFilter<Number>
+
+        // push filters to the table
+        publishDateFilters.push(<SelectFilterElement searchable name={langDict[yearFilter.name]} value={currentYearOption} defaultValue={yearDefaultValue} options={yearFilter.values.map(value => value.name)} onValueChanged={newValue => { filterValues.publishYear = String(yearFilter.values[newValue].value); saveFilterValues() }} />)
+        publishDateFilters.push(<SelectFilterElement searchable name={langDict[monthFilter.name]} value={currentMonthOption} defaultValue={monthDefaultValue} options={monthFilter.values.map(value => value.name)} onValueChanged={newValue => { filterValues.publishMonth = String(monthFilter.values[newValue].value); saveFilterValues() }} />)
+        publishDateFilters.push(<SelectFilterElement searchable name={langDict[dayFilter.name]} value={currentDayOption} defaultValue={dayDefaultValue} options={dayFilter.values.map(value => value.name)} onValueChanged={newValue => { filterValues.publishDay = String(dayFilter.values[newValue].value); saveFilterValues() }} />)
     }
 
     // pop up filters
@@ -341,9 +401,10 @@ export function SongRankingsFilterBar(
                             <SelectFilterElement name={langDict[filters.songType.name]} value={Number(filterValues.songType)} defaultValue={filters.songType.defaultValue} options={filters.songType.values.map(value => langDict[value.name])} onValueChanged={(newValue) => { filterValues.songType = newValue; saveFilterValues() }} />
                             {viewsFilters}
                         </ul></li>
+                        <li><ul className="flex flex-row gap-5">{publishDateFilters}</ul></li>
                         <li><ul className="flex flex-row gap-5 items-center">
-                            <DateFilterElement name={langDict[filters.timestamp.name]} value={filterValues.timestamp || currentTimestamp} max={currentTimestamp} onValueChanged={newValue => { filterValues.timestamp = newValue; saveFilterValues() }}/>
-                            <CheckboxFilterElement name={langDict[filters.singleVideo.name]} value={decodeBoolean(filterValues.singleVideo)} onValueChanged={(newValue) => { filterValues.singleVideo = encodeBoolean(newValue); saveFilterValues() }}/>
+                            <DateFilterElement name={langDict[filters.timestamp.name]} value={filterValues.timestamp || currentTimestamp} max={currentTimestamp} onValueChanged={newValue => { filterValues.timestamp = newValue; saveFilterValues() }} />
+                            <CheckboxFilterElement name={langDict[filters.singleVideo.name]} value={decodeBoolean(filterValues.singleVideo)} onValueChanged={(newValue) => { filterValues.singleVideo = encodeBoolean(newValue); saveFilterValues() }} />
                         </ul></li>
                     </PopupIconButton>
                 </li>
@@ -365,7 +426,7 @@ export function CheckboxFilterElement(
         name,
         value,
         onValueChanged
-    } : {
+    }: {
         name: string
         value: boolean
         onValueChanged?: (newValue: boolean) => void
@@ -377,7 +438,7 @@ export function CheckboxFilterElement(
 
     return (
         <section className="flex gap-3 items-center">
-            <input id={name} type='checkbox' checked={value} onChange={newValue => setValue(newValue.currentTarget.checked)}/>
+            <input id={name} type='checkbox' checked={value} onChange={newValue => setValue(newValue.currentTarget.checked)} />
             <label htmlFor={name} className="text-lg text-on-background font-normal">{name}</label>
         </section>
     )
@@ -534,7 +595,7 @@ export function SelectFilterElement(
 
     return (
         <FilterElement key={name} name={name} minimal={minimal}>
-            <search className={minimal ? 'text-on-background py-0.5 gap-3 w-fit flex justify-end items-center text-lg font-normal cursor-pointer' : "py-2 px-4 rounded-xl bg-surface-container-low text-on-surface flex gap-3 text-base font-normal cursor-pointer"} onClick={() => setModalOpen(true)}>
+            <search className={minimal ? 'text-on-background py-1 gap-3 w-fit flex justify-end items-center text-lg font-normal cursor-pointer' : "py-2 px-4 rounded-xl bg-surface-container-low text-on-surface flex gap-3 text-base font-normal cursor-pointer"} onClick={() => setModalOpen(true)}>
                 {searchable
                     ? <input type='search' onFocus={() => { setSearchQuery(''); setInputFocused(true) }} onBlur={() => setInputFocused(false)} onChange={(event) => { setSearchQuery(event.currentTarget.value.toLowerCase()) }} value={inputFocused ? searchQuery : valueName} className={`cursor-text bg-transparent outline-none text-left ${valueIsDefault ? 'text-on-surface-variant' : 'text-primary'} ${minimal ? 'w-fit' : 'w-32'}`} />
                     : <span className={`bg-transparent outline-none cursor-pointer text-left ${valueIsDefault ? 'text-on-surface-variant' : 'text-primary'} ${minimal ? 'w-fit' : 'w-32'}`}>{valueName}</span>

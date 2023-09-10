@@ -78,6 +78,8 @@
     "filter_direction_descending": "降順",
     "filter_artists": "作者",
     "filter_year": "",
+    "filter_month": "",
+    "filter_day": "",
     "filter_year_any": "",
     "filter_min_views": "",
     "filter_max_views": "",

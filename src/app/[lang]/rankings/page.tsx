@@ -44,9 +44,25 @@ export const filters: RankingsFilters = {
         ],
         defaultValue: 0
     },
-    year: {
+    publishYear: {
         name: 'filter_year',
-        key: 'year',
+        key: 'publishYear',
+        displayActive: true,
+        type: FilterType.INPUT,
+        placeholder: 'filter_year_any',
+        defaultValue: ''
+    },
+    publishMonth: {
+        name: 'filter_month',
+        key: 'publishMonth',
+        displayActive: true,
+        type: FilterType.INPUT,
+        placeholder: 'filter_year_any',
+        defaultValue: ''
+    },
+    publishDay: {
+        name: 'filter_day',
+        key: 'publishDay',
         displayActive: true,
         type: FilterType.INPUT,
         placeholder: 'filter_year_any',
@@ -190,9 +206,15 @@ export default async function RankingsPage(
 
         filterParams.sourceType = parseParamSelectFilterValue(searchParams.sourceType, filters.sourceType.values, filters.sourceType.defaultValue) as SourceType
         filterParams.timePeriodOffset = parseParamSelectFilterValue(searchParams.timePeriod, filters.timePeriod.values, filters.timePeriod.defaultValue) as number
-        {
-            const year = Number(searchParams.year)
-            filterParams.publishDate = isNaN(year) ? undefined : year + '-%'
+        {   
+            const yearParam = searchParams.publishYear
+            const monthParam = searchParams.publishMonth
+            const dayParam = searchParams.publishDay
+
+            const year = !yearParam || isNaN(Number(yearParam)) ? '%' : yearParam
+            const month = !monthParam || isNaN(Number(monthParam)) ? '%' : monthParam.padStart(2, '0')
+            const day = !dayParam || isNaN(Number(dayParam)) ? '%' : dayParam.padStart(2, '0')
+            filterParams.publishDate = `${year}-${month}-${day}%`
         }
         filterParams.songType = parseParamSelectFilterValue(searchParams.songType, filters.songType.values, filters.songType.defaultValue) as SongType
         filterParams.artistType = parseParamSelectFilterValue(searchParams.artistType, filters.artistType.values, filters.artistType.defaultValue) as ArtistType

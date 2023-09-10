@@ -89,7 +89,9 @@ export interface RankingsFilters {
     search: InputFilter
     sourceType: SelectFilter<SourceType>
     timePeriod: SelectFilter<number>
-    year: InputFilter
+    publishYear: InputFilter
+    publishMonth: InputFilter
+    publishDay: InputFilter
     songType: SelectFilter<SongType>
     artistType: SelectFilter<ArtistType>
     minViews: InputFilter
@@ -103,7 +105,9 @@ export interface RankingsFiltersValues {
     search?: string
     sourceType?: number
     timePeriod?: number
-    year?: string
+    publishYear?: string
+    publishMonth?: string
+    publishDay?: string
     songType?: number
     artistType?: number
     minViews?: string
