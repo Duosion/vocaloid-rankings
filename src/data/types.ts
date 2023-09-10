@@ -108,6 +108,15 @@ export interface Views {
     timestamp?: string
 }
 
+export interface SongPlacement {
+    allTime: number,
+    releaseYear: number
+}
+
+export interface ArtistPlacement {
+    allTime: number
+}
+
 export abstract class Entity {
     id: Id
     publishDate: string
@@ -145,7 +154,7 @@ export class Song extends Entity {
     maxresThumbnail: string
     artists: Artist[]
     videoIds: SongVideoIds
-    //placement: SongPlacement
+    placement: SongPlacement | null
     thumbnailType: SourceType
     fandomUrl?: string
 
@@ -162,9 +171,9 @@ export class Song extends Entity {
         artists: Artist[],
         names: Names,
         videoIds: SongVideoIds,
-        //placement: SongPlacement,
         thumbnailType: SourceType,
         views: Views | null,
+        placement: SongPlacement | null,
         fandomUrl?: string
     ) {
         super(id, publishDate, additionDate, averageColor, darkColor, lightColor, names, views)
@@ -174,6 +183,7 @@ export class Song extends Entity {
         this.artists = artists
         this.videoIds = videoIds
         this.thumbnailType = thumbnailType
+        this.placement = placement
         this.fandomUrl = fandomUrl
     }
 }
@@ -185,7 +195,7 @@ export type ArtistThumbnails = {
 export class Artist extends Entity {
     type: ArtistType
     thumbnails: ArtistThumbnails
-    //placement: ArtistPlacement
+    placement: ArtistPlacement | null
     baseArtist: Artist | null
     category?: ArtistCategory
 
@@ -199,7 +209,7 @@ export class Artist extends Entity {
         averageColor: string,
         darkColor: string,
         lightColor: string,
-        //placement: ArtistPlacement,
+        placement: ArtistPlacement | null,
         views: Views | null,
         baseArtist: Artist | null,
         category?: ArtistCategory
@@ -207,12 +217,13 @@ export class Artist extends Entity {
         super(id, publishDate, additionDate, averageColor, darkColor, lightColor, names, views)
         this.type = type
         this.thumbnails = thumbnails
+        this.placement = placement
         this.baseArtist = baseArtist
         this.category = category
     }
 }
 
-export class RankingsFilterParams {
+export class SongRankingsFilterParams {
     timestamp?: string
     timePeriodOffset?: number
     changeOffset?: number
@@ -273,18 +284,99 @@ export class RankingsFilterParams {
     }
 }
 
-export interface RankingsFilterResult {
-    totalCount: number
-    timestamp: string
-    results: RankingsFilterResultItem[]
+export class ArtistRankingsFilterParams {
+    timestamp?: string
+    timePeriodOffset?: number
+    changeOffset?: number
+    daysOffset?: number
+    sourceType?: SourceType
+    songType?: SongType
+    artistType?: ArtistType
+    artistCategory?: ArtistCategory
+    publishDate?: string
+    orderBy: FilterOrder = FilterOrder.VIEWS
+    direction: FilterDirection = FilterDirection.DESCENDING
+    artists?: Id[]
+    songs?: Id[]
+    singleVideo: boolean = false
+    combineSimilarArtists: boolean = false
+    maxEntries: number = 50
+    startAt: number = 0
+    minViews?: number
+    maxViews?: number
+    search?: string
+
+    constructor(
+        timestamp?: string,
+        timePeriodOffset?: number,
+        changeOffset?: number,
+        daysOffset?: number,
+        sourceType?: SourceType,
+        songType?: SongType,
+        artistType?: ArtistType,
+        artistCategory?: ArtistCategory,
+        publishDate?: string,
+        orderBy?: FilterOrder,
+        direction?: FilterDirection,
+        artists?: Id[],
+        songs?: Id[],
+        singleVideo?: boolean,
+        combineSimilarArtists?: boolean,
+        maxEntries?: number,
+        startAt?: number,
+        minViews?: number,
+        maxViews?: number,
+        search?: string
+    ) {
+        this.timestamp = timestamp
+        this.timePeriodOffset = timePeriodOffset || this.timePeriodOffset
+        this.changeOffset = changeOffset || this.changeOffset
+        this.daysOffset = daysOffset || this.daysOffset
+        this.sourceType = sourceType
+        this.songType = songType
+        this.artistType = artistType
+        this.artistCategory = artistCategory
+        this.publishDate = publishDate
+        this.orderBy = orderBy || this.orderBy
+        this.direction = direction || this.direction
+        this.artists = artists
+        this.songs = songs
+        this.singleVideo = singleVideo || this.singleVideo
+        this.combineSimilarArtists = combineSimilarArtists || this.combineSimilarArtists
+        this.maxEntries = maxEntries || this.maxEntries
+        this.startAt = startAt || this.startAt
+        this.minViews = minViews
+        this.maxViews = maxViews
+        this.search = search
+    }
 }
 
-export interface RankingsFilterResultItem {
+export interface SongRankingsFilterResult {
+    totalCount: number
+    timestamp: string
+    results: SongRankingsFilterResultItem[]
+}
+
+export interface SongRankingsFilterResultItem {
     placement: number
     change?: PlacementChange
     previousPlacement?: number
     views: number
     song: Song
+}
+
+export interface ArtistRankingsFilterResult {
+    totalCount: number
+    timestamp: string
+    results: ArtistRankingsFilterResultItem[]
+}
+
+export interface ArtistRankingsFilterResultItem {
+    placement: number
+    change?: PlacementChange
+    previousPlacement?: number
+    views: number
+    artist: Artist
 }
 
 export interface SqlRankingsFilterParams {
@@ -349,7 +441,12 @@ export interface RawViewBreakdown {
     view_type: number
 }
 
-export interface RawRankingsResult {
+export interface RawSongRankingsResult {
     song_id: Id,
+    total_views: number
+}
+
+export interface RawArtistRankingResult {
+    artist_id: Id,
     total_views: number
 }

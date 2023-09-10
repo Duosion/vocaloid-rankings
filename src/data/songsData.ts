@@ -1,14 +1,14 @@
 import getDatabase, { generateTimestamp } from "./database";
 import { Databases } from "./database";
-import { Artist, ArtistCategory, ArtistThumbnailType, ArtistThumbnails, ArtistType, HistoricalViews, HistoricalViewsResult, Id, NameType, Names, PlacementChange, RankingsFilterParams, RankingsFilterResult, RankingsFilterResultItem, RawArtistData, RawArtistName, RawArtistThumbnail, RawRankingsResult, RawSongArtist, RawSongData, RawSongName, RawSongVideoId, RawViewBreakdown, Song, SongType, SongVideoIds, SourceType, SqlRankingsFilterParams, Views, ViewsBreakdown } from "./types";
+import { Artist, ArtistCategory, ArtistPlacement, ArtistThumbnailType, ArtistType, HistoricalViews, HistoricalViewsResult, Id, NameType, Names, PlacementChange, SongRankingsFilterParams, SongRankingsFilterResult, SongRankingsFilterResultItem, RawArtistData, RawArtistName, RawArtistThumbnail, RawSongRankingsResult, RawSongArtist, RawSongData, RawSongName, RawSongVideoId, RawViewBreakdown, Song, SongPlacement, SongType, SongVideoIds, SourceType, SqlRankingsFilterParams, Views, ViewsBreakdown, ArtistRankingsFilterParams, ArtistRankingsFilterResult, ArtistRankingsFilterResultItem, RawArtistRankingResult } from "./types";
 import type { Statement } from "better-sqlite3";
 
 // import database
 const db = getDatabase(Databases.SONGS_DATA)
 
 // rankings
-function getRankingsFilterQueryParams(
-    filterParams: RankingsFilterParams,
+function getSongRankingsFilterQueryParams(
+    filterParams: SongRankingsFilterParams,
     daysOffset?: number
 ): SqlRankingsFilterParams {
     const queryParams: { [key: string]: any } = {
@@ -52,7 +52,7 @@ function getRankingsFilterQueryParams(
     }
 }
 
-function filterRankingsCountSync(
+function filterSongRankingsCountSync(
     queryParams: SqlRankingsFilterParams
 ): number {
     const filterArtists = queryParams.filterArtists
@@ -104,9 +104,9 @@ function filterRankingsCountSync(
     `).all(queryParams.params)?.length || 0
 }
 
-function filterRankingsRawSync(
+function filterSongRankingsRawSync(
     queryParams: SqlRankingsFilterParams
-): RawRankingsResult[] {
+): RawSongRankingsResult[] {
     const filterArtists = queryParams.filterArtists
     const filterSongs = queryParams.filterSongs
 
@@ -324,26 +324,26 @@ function filterRankingsRawSync(
                 END
             END DESC
         LIMIT :maxEntries
-        OFFSET :startAt`).all(queryParams.params) as RawRankingsResult[]
+        OFFSET :startAt`).all(queryParams.params) as RawSongRankingsResult[]
 }
 
-function filterRankingsSync(
-    filterParams: RankingsFilterParams
-): RankingsFilterResult {
-    const queryParams = getRankingsFilterQueryParams(filterParams)
+function filterSongRankingsSync(
+    filterParams: SongRankingsFilterParams = new SongRankingsFilterParams()
+): SongRankingsFilterResult {
+    const queryParams = getSongRankingsFilterQueryParams(filterParams)
 
-    const primaryResult = filterRankingsRawSync(queryParams)
+    const primaryResult = filterSongRankingsRawSync(queryParams)
     // handle change offset
     const changeOffset = filterParams.changeOffset
     const changeOffsetMap: { [key: string]: number } = {}
     if (changeOffset && changeOffset > 0) {
-        const changeOffsetResult = filterRankingsRawSync(getRankingsFilterQueryParams(filterParams, changeOffset))
+        const changeOffsetResult = filterSongRankingsRawSync(getSongRankingsFilterQueryParams(filterParams, changeOffset))
         for (let placement = 0; placement < changeOffsetResult.length; placement++) {
             changeOffsetMap[changeOffsetResult[placement].song_id.toString()] = placement
         }
     }
 
-    const returnEntries: RankingsFilterResultItem[] = []
+    const returnEntries: SongRankingsFilterResultItem[] = []
     // generate rankings entries
     const placementOffset = filterParams.startAt
     let placement = 0
@@ -367,7 +367,7 @@ function filterRankingsSync(
     }
 
     // get entry count
-    const entryCount = filterRankingsCountSync(queryParams)
+    const entryCount = filterSongRankingsCountSync(queryParams)
 
     return {
         totalCount: entryCount,
@@ -376,12 +376,363 @@ function filterRankingsSync(
     }
 }
 
-export function filterRankings(
-    filterParams: RankingsFilterParams
-): Promise<RankingsFilterResult> {
+export function filterSongRankings(
+    filterParams?: SongRankingsFilterParams
+): Promise<SongRankingsFilterResult> {
     return new Promise((resolve, reject) => {
         try {
-            resolve(filterRankingsSync(filterParams))
+            resolve(filterSongRankingsSync(filterParams))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+// Artist Rankings
+function getFilterArtistsQueryParams(
+    filterParams: ArtistRankingsFilterParams,
+    daysOffset?: number
+): SqlRankingsFilterParams {
+    const queryParams: { [key: string]: any } = {
+        timestamp: filterParams.timestamp || getMostRecentViewsTimestampSync(),
+        daysOffset: daysOffset == undefined ? filterParams.daysOffset : daysOffset + (filterParams.daysOffset || 0),
+        artistCategory: filterParams.artistCategory,
+        combineSimilarArtists: filterParams.combineSimilarArtists ? 1 : null,
+        viewType: filterParams.sourceType,
+        songType: filterParams.songType,
+        artistType: filterParams.artistType,
+        publishDate: filterParams.publishDate || null,
+        orderBy: filterParams.orderBy,
+        direction: filterParams.direction,
+        singleVideo: filterParams.singleVideo && 1 || null,
+        maxEntries: filterParams.maxEntries,
+        startAt: filterParams.startAt,
+        minViews: filterParams.minViews,
+        maxViews: filterParams.maxViews,
+        search: filterParams.search
+    }
+
+    const buildInStatement = (values: Id[], prefix = '') => {
+        const stringBuilder = []
+        let n = 0
+        for (const value in values) {
+            const key = `${prefix}${n}`
+            stringBuilder.push(`:${key}`)
+            queryParams[key] = value
+            n++
+        }
+        return stringBuilder.join(',')
+    }
+
+    // prepare build statements
+    const filterParamsArtists = filterParams.artists
+    const filterParamsSongs = filterParams.songs
+
+    return {
+        filterArtists: filterParamsArtists ? buildInStatement(filterParamsArtists, 'artist') : '',
+        filterSongs: filterParamsSongs ? buildInStatement(filterParamsSongs, 'song') : '',
+        params: queryParams
+    }
+}
+
+function filterArtistRankingsCountSync(
+    queryParams: SqlRankingsFilterParams
+) {
+    const filterSongs = queryParams.filterSongs
+    const filterArtists = queryParams.filterArtists
+    return (db.prepare(`
+    SELECT 
+        COUNT(DISTINCT 
+            CASE WHEN :combineSimilarArtists IS NULL THEN artists.id
+            WHEN artists.base_artist_id IS NULL THEN artists.id
+            ELSE (
+                WITH RECURSIVE ancestor_path(id, base_artist_id) AS (
+                    SELECT sub_artists.id, sub_artists.base_artist_id
+                    FROM artists AS sub_artists
+                    WHERE id = artists.id
+                  
+                    UNION ALL
+
+                    SELECT a.id, a.base_artist_id
+                    FROM artists a
+                    JOIN ancestor_path ap ON a.id = ap.base_artist_id
+                  )
+                SELECT id
+                FROM ancestor_path
+                WHERE base_artist_id IS NULL
+            )
+        END) AS count
+    FROM views_breakdowns
+    INNER JOIN songs ON views_breakdowns.song_id = songs.id
+    INNER JOIN songs_artists ON songs_artists.song_id = views_breakdowns.song_id
+    INNER JOIN artists ON artists.id = songs_artists.artist_id
+    INNER JOIN songs_artists AS song_co_artists ON song_co_artists.song_id = views_breakdowns.song_id
+    INNER JOIN artists AS co_artists ON co_artists.id = song_co_artists.artist_id
+    INNER JOIN songs_names ON songs_names.song_id = views_breakdowns.song_id
+    WHERE (views_breakdowns.timestamp = CASE WHEN :daysOffset IS NULL
+        THEN :timestamp
+        ELSE DATE(:timestamp, '-' || :daysOffset || ' day')
+        END)
+        AND (views_breakdowns.view_type = :viewType OR :viewType IS NULL)
+        AND (songs.song_type = :songType OR :songType IS NULL)
+        AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
+        AND (songs_artists.artist_category = :artistCategory OR :artistCategory IS NULL)
+        AND (artists.artist_type = :artistType OR :artistType IS NULL)
+        AND (songs_names.name LIKE :search OR :search IS NULL)
+        AND (views_breakdowns.views = CASE WHEN :singleVideo IS NULL
+            THEN views_breakdowns.views
+            ELSE
+                (SELECT MAX(sub_vb.views)
+                FROM views_breakdowns AS sub_vb 
+                INNER JOIN songs ON songs.id = sub_vb.song_id
+                INNER JOIN songs_artists ON songs_artists.song_id = sub_vb.song_id
+                INNER JOIN artists ON artists.id = songs_artists.artist_id
+                INNER JOIN songs_artists AS song_co_artists ON song_co_artists.song_id = views_breakdowns.song_id
+                INNER JOIN artists AS co_artists ON co_artists.id = song_co_artists.artist_id
+                INNER JOIN songs_names ON songs_names.song_id = views_breakdowns.song_id
+                WHERE (sub_vb.view_type = views_breakdowns.view_type)
+                    AND (sub_vb.timestamp = views_breakdowns.timestamp)
+                    AND (sub_vb.song_id = views_breakdowns.song_id)
+                    AND (songs.song_type = :songType OR :songType IS NULL)
+                    AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
+                    AND (songs_artists.artist_category = :artistCategory OR :artistCategory IS NULL)
+                    AND (artists.artist_type = :artistType OR :artistType IS NULL)
+                    AND (songs_names.name LIKE :search OR :search IS NULL)
+                    ${filterSongs == '' ? '' : `AND (songs.id IN (${filterSongs}))`}
+                    ${filterArtists == '' ? '' : `AND (co_artists.id IN (${filterArtists}))`}
+                GROUP BY sub_vb.song_id)
+            END)
+        ${filterSongs == '' ? '' : `AND (songs.id IN (${filterSongs}))`}
+        ${filterArtists == '' ? '' : `AND (co_artists.id IN (${filterArtists}))`}
+    GROUP BY 
+        CASE WHEN :combineSimilarArtists IS NULL THEN artists.id
+        WHEN artists.base_artist_id IS NULL then artists.id
+        ELSE (
+            WITH RECURSIVE ancestor_path(id, base_artist_id) AS (
+                SELECT sub_artists.id, sub_artists.base_artist_id
+                FROM artists AS sub_artists
+                WHERE id = artists.id
+              
+                UNION ALL
+
+                SELECT a.id, a.base_artist_id
+                FROM artists a
+                JOIN ancestor_path ap ON a.id = ap.base_artist_id
+              )
+            SELECT id
+            FROM ancestor_path
+            WHERE base_artist_id IS NULL
+        )
+        END
+    HAVING (CASE WHEN :minViews IS NULL
+        THEN 1
+        ELSE SUM(DISTINCT views_breakdowns.views) >= :minViews END)
+        AND (CASE WHEN :maxViews IS NULL
+            THEN 1
+            ELSE SUM(DISTINCT views_breakdowns.views) <= :maxViews 
+            END)`).get(queryParams.params) as {count: number}).count || 0
+}
+
+function filterArtistRankingsRawSync(
+    queryParams: SqlRankingsFilterParams
+): RawArtistRankingResult[] {
+    const filterSongs = queryParams.filterSongs
+    const filterArtists = queryParams.filterArtists
+    return db.prepare(`
+    SELECT DISTINCT 
+        CASE WHEN :combineSimilarArtists IS NULL THEN artists.id
+            WHEN artists.base_artist_id IS NULL THEN artists.id
+            ELSE (
+                WITH RECURSIVE ancestor_path(id, base_artist_id) AS (
+                    SELECT sub_artists.id, sub_artists.base_artist_id
+                    FROM artists AS sub_artists
+                    WHERE id = artists.id
+                  
+                    UNION ALL
+
+                    SELECT a.id, a.base_artist_id
+                    FROM artists a
+                    JOIN ancestor_path ap ON a.id = ap.base_artist_id
+                  )
+                SELECT id
+                FROM ancestor_path
+                WHERE base_artist_id IS NULL
+            )
+        END AS artist_id,
+        SUM(DISTINCT views_breakdowns.views) AS total_views
+    FROM views_breakdowns
+    INNER JOIN songs ON views_breakdowns.song_id = songs.id
+    INNER JOIN songs_artists ON songs_artists.song_id = views_breakdowns.song_id
+    INNER JOIN artists ON artists.id = songs_artists.artist_id
+    INNER JOIN songs_artists AS song_co_artists ON song_co_artists.song_id = views_breakdowns.song_id
+    INNER JOIN artists AS co_artists ON co_artists.id = song_co_artists.artist_id
+    INNER JOIN songs_names ON songs_names.song_id = views_breakdowns.song_id
+    WHERE (views_breakdowns.timestamp = CASE WHEN :daysOffset IS NULL
+        THEN :timestamp
+        ELSE DATE(:timestamp, '-' || :daysOffset || ' day')
+        END)
+        AND (views_breakdowns.view_type = :viewType OR :viewType IS NULL)
+        AND (songs.song_type = :songType OR :songType IS NULL)
+        AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
+        AND (songs_artists.artist_category = :artistCategory OR :artistCategory IS NULL)
+        AND (artists.artist_type = :artistType OR :artistType IS NULL)
+        AND (songs_names.name LIKE :search OR :search IS NULL)
+        AND (views_breakdowns.views = CASE WHEN :singleVideo IS NULL
+            THEN views_breakdowns.views
+            ELSE
+                (SELECT MAX(sub_vb.views)
+                FROM views_breakdowns AS sub_vb 
+                INNER JOIN songs ON songs.id = sub_vb.song_id
+                INNER JOIN songs_artists ON songs_artists.song_id = sub_vb.song_id
+                INNER JOIN artists ON artists.id = songs_artists.artist_id
+                INNER JOIN songs_artists AS song_co_artists ON song_co_artists.song_id = views_breakdowns.song_id
+                INNER JOIN artists AS co_artists ON co_artists.id = song_co_artists.artist_id
+                INNER JOIN songs_names ON songs_names.song_id = views_breakdowns.song_id
+                WHERE (sub_vb.view_type = views_breakdowns.view_type)
+                    AND (sub_vb.timestamp = views_breakdowns.timestamp)
+                    AND (sub_vb.song_id = views_breakdowns.song_id)
+                    AND (songs.song_type = :songType OR :songType IS NULL)
+                    AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
+                    AND (songs_artists.artist_category = :artistCategory OR :artistCategory IS NULL)
+                    AND (artists.artist_type = :artistType OR :artistType IS NULL)
+                    AND (songs_names.name LIKE :search OR :search IS NULL)
+                    ${filterSongs == '' ? '' : `AND (songs.id IN (${filterSongs}))`}
+                    ${filterArtists == '' ? '' : `AND (co_artists.id IN (${filterArtists}))`}
+                GROUP BY sub_vb.song_id)
+            END)
+        ${filterSongs == '' ? '' : `AND (songs.id IN (${filterSongs}))`}
+        ${filterArtists == '' ? '' : `AND (co_artists.id IN (${filterArtists}))`}
+    GROUP BY 
+        CASE WHEN :combineSimilarArtists IS NULL THEN artists.id
+        WHEN artists.base_artist_id IS NULL then artists.id
+        ELSE (
+            WITH RECURSIVE ancestor_path(id, base_artist_id) AS (
+                SELECT sub_artists.id, sub_artists.base_artist_id
+                FROM artists AS sub_artists
+                WHERE id = artists.id
+              
+                UNION ALL
+
+                SELECT a.id, a.base_artist_id
+                FROM artists a
+                JOIN ancestor_path ap ON a.id = ap.base_artist_id
+              )
+            SELECT id
+            FROM ancestor_path
+            WHERE base_artist_id IS NULL
+        )
+        END
+    HAVING (CASE WHEN :minViews IS NULL
+        THEN 1
+        ELSE total_views >= :minViews END)
+        AND (CASE WHEN :maxViews IS NULL
+            THEN 1
+            ELSE total_views <= :maxViews 
+            END)
+    ORDER BY
+        CASE WHEN :direction = 0 THEN 1
+        ELSE
+            CASE :orderBy
+                WHEN 1 
+                    THEN DATE(songs.publish_date)
+                WHEN 2 
+                    THEN DATE(songs.addition_date)
+                ELSE total_views
+            END
+        END ASC,
+        CASE WHEN :direction = 1 THEN 1
+        ELSE
+            CASE :orderBy
+                WHEN 1 
+                    THEN DATE(songs.publish_date)
+                WHEN 2 
+                    THEN DATE(songs.addition_date)
+                ELSE total_views
+            END
+        END DESC
+    LIMIT :maxEntries
+    OFFSET :startAt`).all(queryParams.params) as RawArtistRankingResult[]
+}
+
+function filterArtistsRankingsWithTimePeriodOffsetRawSync(
+    queryParams: SqlRankingsFilterParams,
+    timePeriodOffset?: number
+) {
+    const primaryResult = filterArtistRankingsRawSync(queryParams)
+    // handle time period offset
+    if (timePeriodOffset) {
+        const timePeriodOffsetMap: { [key: string]: number } = {}
+        queryParams.params.daysOffset = timePeriodOffset + (queryParams.params.daysOffset || 0)
+        const offsetResult = filterArtistRankingsRawSync(queryParams)
+        for (const data of offsetResult) {
+            timePeriodOffsetMap[String(data.artist_id)] = data.total_views
+        }
+
+        for (const data of primaryResult) {
+            const offsetViews = timePeriodOffsetMap[String(data.artist_id)] || 0
+            data.total_views = data.total_views - offsetViews
+        }
+    }
+
+    return primaryResult
+}
+
+function filterArtistRankingsSync(
+    filterParams: ArtistRankingsFilterParams = new ArtistRankingsFilterParams()
+): ArtistRankingsFilterResult {
+    const queryParams = getFilterArtistsQueryParams(filterParams)
+
+    const primaryResult = filterArtistsRankingsWithTimePeriodOffsetRawSync(queryParams, filterParams.timePeriodOffset)
+    // handle change offset
+    const changeOffset = filterParams.changeOffset
+    const changeOffsetMap: { [key: string]: number } = {}
+    if (changeOffset && changeOffset > 0) {
+        const changeOffsetResult = filterArtistsRankingsWithTimePeriodOffsetRawSync(getFilterArtistsQueryParams(filterParams, changeOffset), filterParams.timePeriodOffset)
+        for (let placement = 0; placement < changeOffsetResult.length; placement++) {
+            changeOffsetMap[String(changeOffsetResult[placement].artist_id)] = placement
+        }
+    }
+
+    const returnEntries: ArtistRankingsFilterResultItem[] = []
+    // generate rankings entries
+    const placementOffset = filterParams.startAt
+    let placement = 0
+    for (const data of primaryResult) {
+        const artistId = data.artist_id
+        const previousPlacement = changeOffsetMap[String(artistId)] || placement
+        try {
+            const artistData = getArtistSync(artistId, false)
+            if (artistData) {
+                returnEntries.push({
+                    placement: placement + 1 + placementOffset,
+                    change: previousPlacement == placement ? PlacementChange.SAME :
+                        (placement > previousPlacement ? PlacementChange.DOWN : PlacementChange.UP),
+                    previousPlacement: previousPlacement,
+                    views: data.total_views,
+                    artist: artistData
+                })
+            }
+            placement++
+        } catch (error) { }
+    }
+
+    // get entry count
+    const entryCount = filterArtistRankingsCountSync(queryParams)
+
+    // build & return ranking result
+    return {
+        totalCount: entryCount,
+        timestamp: queryParams.params.timestamp,
+        results: returnEntries
+    }
+}
+
+export function filterArtistRankings(
+    filterParams?: ArtistRankingsFilterParams
+): Promise<ArtistRankingsFilterResult> {
+    return new Promise((resolve, reject) => {
+        try {
+            resolve(filterArtistRankingsSync(filterParams))
         } catch (error) {
             reject(error)
         }
@@ -504,7 +855,7 @@ function buildArtist(
     artistNames: RawArtistName[],
     artistThumbnails: RawArtistThumbnail[],
     views: Views | null,
-    //placement?: ArtistPlacement
+    placement: ArtistPlacement | null
 ): Artist {
     // process names
     const names: Names = {
@@ -539,9 +890,9 @@ function buildArtist(
         artistData.average_color,
         artistData.dark_color,
         artistData.light_color,
+        placement,
         views,
-        baseArtistId ? getArtistSync(baseArtistId) : null,
-        //placement
+        baseArtistId ? getArtistSync(baseArtistId, false) : null,
     )
 }
 
@@ -570,6 +921,34 @@ function getArtistViewsSync(
     )
 }
 
+function getArtistPlacementSync(
+    artistData: RawArtistData,
+    artistViews?: Views | null
+): ArtistPlacement | null {
+    if (!artistViews) {
+        artistViews = getSongViewsSync(artistData.id)
+    }
+    if (!artistViews) {
+        return null
+    }
+
+    let allTimePlacement
+    // get all time placement
+    {
+        // get placement
+        const allTimePlacementFilterParams = new ArtistRankingsFilterParams()
+        allTimePlacementFilterParams.minViews = Number(artistViews.total)
+        const category = artistData.artist_type
+        allTimePlacementFilterParams.artistCategory = category
+
+        allTimePlacement = filterArtistRankingsCountSync(getFilterArtistsQueryParams(allTimePlacementFilterParams))
+    }
+
+    return {
+        allTime: allTimePlacement
+    }
+}
+
 function getArtistSync(
     id: Id,
     getViews: boolean = true
@@ -593,14 +972,14 @@ function getArtistSync(
     WHERE artist_id = ?`).all(id) as RawArtistThumbnail[]
 
     const views = getViews ? getArtistViewsSync(id) : null
-    //const placement = views ? this.#getArtistPlacementSync(artistData, views) : null
+    const placement = views ? getArtistPlacementSync(artistData, views) : null
 
     return buildArtist(
         artistData,
         artistNames,
         artistThumbnails,
         views,
-        //placement
+        placement
     )
 }
 
@@ -640,7 +1019,7 @@ function buildSong(
     songArtists: Artist[],
     songVideoIds: RawSongVideoId[],
     songViews: Views | null,
-    //songPlacement: SongPlacement
+    songPlacement: SongPlacement | null
 ): Song {
     const songId = songData.id
     // process names
@@ -683,9 +1062,9 @@ function buildSong(
         songArtists,
         names,
         videoIds,
-        //placement: songPlacement,
         thumbType,
         songViews,
+        songPlacement,
         songData.fandom_url
     )
 }
@@ -707,6 +1086,55 @@ function getSongViewsSync(
     return buildEntityViews(
         breakdowns,
         timestamp
+    )
+}
+
+function buildSongPlacement(
+    allTime: number,
+    releaseYear: number
+): SongPlacement {
+    return {
+        allTime: allTime,
+        releaseYear: releaseYear
+    }
+}
+
+function getSongPlacementSync(
+    songData: RawSongData,
+    songViews?: Views | null
+): SongPlacement | null {
+    if (!songViews) {
+        songViews = getSongViewsSync(songData.id)
+    }
+    if (!songViews) {
+        return null
+    }
+
+    let allTimePlacement: number
+    // get all time placement
+    {
+        // get placement
+        const allTimePlacementFilterParams = new SongRankingsFilterParams()
+        allTimePlacementFilterParams.minViews = Number(songViews.total)
+
+        allTimePlacement = filterSongRankingsCountSync(getSongRankingsFilterQueryParams(allTimePlacementFilterParams))
+    }
+
+    // get release year placement
+    let releaseYearPlacement: number
+    {
+        const releaseYear = (new Date(songData.publish_date)).getFullYear() + "%"
+        // get placement
+        const releaseYearPlacementFilterParams = new SongRankingsFilterParams()
+        releaseYearPlacementFilterParams.minViews = Number(songViews.total)
+        releaseYearPlacementFilterParams.publishDate = releaseYear
+
+        releaseYearPlacement = filterSongRankingsCountSync(getSongRankingsFilterQueryParams(releaseYearPlacementFilterParams))
+    }
+
+    return buildSongPlacement(
+        allTimePlacement || 0,
+        releaseYearPlacement || 0
     )
 }
 
@@ -752,8 +1180,7 @@ function getSongSync(
         }
     })
     const songViews = getViews ? getSongViewsSync(songId) : null
-    //const songPlacement = songViews ? this.#getSongPlacementSync(songData, songViews) : null
-
+    const songPlacement = songViews ? getSongPlacementSync(songData, songViews) : null
 
     return buildSong(
         songData,
@@ -761,7 +1188,7 @@ function getSongSync(
         artists,
         songVideoIds,
         songViews,
-        //songPlacement
+        songPlacement
     )
 }
 

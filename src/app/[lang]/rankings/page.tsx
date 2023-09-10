@@ -1,5 +1,5 @@
-import { filterRankings, getMostRecentViewsTimestamp } from "@/data/songsData"
-import { ArtistCategory, ArtistType, FilterOrder, RankingsFilterParams, SongType, SourceType } from "@/data/types"
+import { filterArtistRankings, filterSongRankings, getMostRecentViewsTimestamp } from "@/data/songsData"
+import { ArtistCategory, ArtistType, FilterOrder, NameType, SongRankingsFilterParams, SongType, SourceType } from "@/data/types"
 import { Locale, getDictionary, getEntityName } from "@/localization"
 import { cookies } from "next/dist/client/components/headers"
 import Link from "next/link"
@@ -196,7 +196,7 @@ export default async function RankingsPage(
     const settingTitleLanguage = settings.titleLanguage
 
     // build filterParams
-    const filterParams = new RankingsFilterParams()
+    const filterParams = new SongRankingsFilterParams()
     {
         {
             const search = searchParams.search
@@ -229,7 +229,7 @@ export default async function RankingsPage(
         filterParams.timestamp = searchParams.timestamp
         filterParams.singleVideo = parseParamCheckboxFilterValue(searchParams.singleVideo)
     }
-    const rankings = await filterRankings(filterParams)
+    const rankings = await filterSongRankings(filterParams)
     const mostRecentTimestamp = await getMostRecentViewsTimestamp() || rankings.timestamp
 
     return (

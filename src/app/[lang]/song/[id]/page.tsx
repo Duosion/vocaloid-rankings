@@ -279,7 +279,7 @@ export default async function SongPage(
                 />
             </figure>
 
-            <header className="flex flex-col gap-5">
+            <header className="flex flex-col gap-5 w-full">
                 <h1 className="font-extrabold md:text-5xl md:text-left text-4xl text-center w-full"><EntityName names={songNames} preferred={settingTitleLanguage} /></h1>
                 <h2 className="font-semibold md:text-3xl text-2xl text-on-background md:text-left text-center w-full"><NumberFormatter number={songTotalViews} /> {langDict.rankings_views} </h2>
             </header>
