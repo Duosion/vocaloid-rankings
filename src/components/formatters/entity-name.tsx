@@ -1,5 +1,5 @@
 'use client'
-import { useSettings } from "@/app/[lang]/settings/SettingsProvider"
+import { useSettings } from "@/app/[lang]/settings/settings-provider"
 import { NameType, Names } from "@/data/types"
 import { getEntityName } from "@/localization"
 import { useEffect, useState } from "react"

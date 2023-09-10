@@ -1,5 +1,5 @@
 'use client'
-import { SettingsProvider } from '@/app/[lang]/settings/SettingsProvider'
+import { SettingsProvider } from '@/app/[lang]/settings/settings-provider'
 import { ThemeProvider } from 'next-themes'
 
 export function Providers({ children }: { children: React.ReactNode }) {
