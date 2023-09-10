@@ -1,5 +1,4 @@
 import { NameType } from "@/data/types";
-import { ResponseCookie } from "next/dist/compiled/@edge-runtime/cookies";
 import { RankingsFiltersValues } from "../rankings/types";
 
 export interface RawSettings {

@@ -1,8 +1,8 @@
 import Image from "next/image"
 import Link from "next/link"
-import { IconButton } from "./material"
-import { SearchBar } from "./searchbar"
+import { SearchBar } from "./search-bar"
 import { Locale, getDictionary } from "@/localization"
+import { IconButton } from "./material/icon-button"
 
 export default async function Navbar(
     {

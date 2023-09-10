@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
-import { FilledButton } from '@/components/material'
 import Image from 'next/image'
 import Link from 'next/link'
-import SongThumbnail from '@/components/song_thumbnail'
 import { Locale, getDictionary } from '@/localization'
+import SongThumbnail from '@/components/song-thumbnail'
+import { FilledButton } from '@/components/material/filled-button'
 
 export const metadata: Metadata = {
   title: 'Home'

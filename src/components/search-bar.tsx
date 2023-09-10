@@ -1,8 +1,8 @@
 'use client'
 
 import { FormEventHandler, SyntheticEvent } from "react"
-import { Icon } from "./material"
 import { useRouter } from "next/navigation"
+import { Icon } from "./material/icon"
 
 export const SearchBar = (
     {

@@ -1,5 +1,3 @@
-import { EntityName, NumberFormatter } from "@/components/formatters"
-import SongThumbnail from "@/components/song_thumbnail"
 import { filterRankings, getMostRecentViewsTimestamp } from "@/data/songsData"
 import { ArtistCategory, ArtistType, FilterOrder, RankingsFilterParams, SongType, SourceType } from "@/data/types"
 import { Locale, getDictionary, getEntityName } from "@/localization"
@@ -8,6 +6,9 @@ import Link from "next/link"
 import { Settings } from "../settings"
 import { SongRankingsFilterBar } from "./client"
 import { FilterType, RankingsFiltersValues, RankingsFilters, SelectFilter, SelectFilterValue } from "./types"
+import { EntityName } from "@/components/formatters/entity-name"
+import { NumberFormatter } from "@/components/formatters/number-formatter"
+import SongThumbnail from "@/components/song-thumbnail"
 
 export const filters: RankingsFilters = {
     search: {

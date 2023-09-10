@@ -1,19 +1,17 @@
 'use client'
-
-import { FilledIconButton, Icon } from "@/components/material"
 import { LanguageDictionary, LanguageDictionaryKey } from "@/localization"
 import { useRouter } from "next/navigation"
-import { CSSProperties, MutableRefObject, useEffect, useRef, useState } from "react"
-import { TransitionStatus } from "react-transition-group"
+import { useEffect, useRef, useState } from "react"
 import { CheckboxFilter, Filter, FilterType, InputFilter, PopupAlignment, RankingsFilters, RankingsFiltersValues, SelectFilter, SelectFilterValue } from "./types"
-
-const modalTransitionStyles: { [key in TransitionStatus]: CSSProperties } = {
-    entering: { opacity: 1, display: 'flex' },
-    entered: { opacity: 1, display: 'flex' },
-    exiting: { opacity: 0, display: 'hidden' },
-    exited: { opacity: 0, display: 'none' },
-    unmounted: {}
-}
+import { FilledIconButton } from "@/components/material/filled-icon-button"
+import { CheckboxFilterElement } from "@/components/filter/checkbox-filter"
+import { ActiveFilter } from "@/components/filter/active-filter"
+import { FadeInOut } from "@/components/transitions/fade-in-out"
+import { InputFilterElement } from "@/components/filter/input-filter"
+import { SelectFilterElement } from "@/components/filter/select-filter"
+import { timeoutDebounce } from "@/lib/utils"
+import { NumberInputFilterElement } from "@/components/filter/number-input-filter"
+import { DateFilterElement } from "@/components/filter/date-filter"
 
 function generateSelectFilterValues<valueType>(
     start: number,
@@ -28,18 +26,6 @@ function generateSelectFilterValues<valueType>(
     return values
 }
 
-function timeoutDebounce(
-    ref: MutableRefObject<NodeJS.Timeout | undefined>,
-    timeout: number,
-    callback: () => void
-) {
-    if (ref) {
-        clearTimeout(ref.current)
-    }
-
-    ref.current = setTimeout(callback, timeout)
-}
-
 function encodeBoolean(
     bool: boolean
 ): number {
@@ -50,76 +36,6 @@ function decodeBoolean(
     num?: number
 ): boolean {
     return num == 1
-}
-
-function FilterElement(
-    {
-        name,
-        children,
-        minimal = false
-    }: {
-        name: string,
-        children?: React.ReactNode
-        minimal?: boolean
-    }
-) {
-    return (
-        <li key={name} className="w-fit h-fit flex flex-col font-bold">
-            {!minimal ? <h3 className="text-on-background text-lg mb-2">{name}</h3> : undefined}
-            {children}
-        </li>
-    )
-}
-
-function ActiveFilter(
-    {
-        name,
-        onClick
-    }: {
-        name: string,
-        onClick?: () => void
-    }
-) {
-    return (
-        <li key={name}>
-            <button className="px-3 py-1 rounded-lg text-on-background border border-on-background box-border" onClick={() => {
-                if (onClick) {
-                    onClick()
-                }
-            }}>{name}</button>
-        </li>
-    )
-}
-
-function FadeInOut(
-    {
-        visible = false,
-        duration = 150,
-        children
-    }: {
-        visible?: boolean,
-        duration?: number
-        children?: React.ReactNode
-    }
-) {
-    const [isVisible, setIsVisible] = useState(visible)
-    const [transitioning, setTransitioning] = useState(false)
-    const timeoutRef = useRef<NodeJS.Timeout>()
-
-    useEffect(() => {
-        if (!visible) {
-            setTransitioning(true)
-            timeoutDebounce(timeoutRef, duration, () => setTransitioning(false))
-        }
-        setIsVisible(visible)
-    }, [visible])
-
-    return (
-        <div className="transition-opacity" style={{ opacity: isVisible ? 1 : 0, transform: isVisible ? 'translateY(0px)' : 'translateY(3px)', transitionDuration: `${duration}ms`, transitionProperty: 'opacity, transform' }}>
-            {isVisible || transitioning ? children : undefined}
-        </div>
-    )
-
 }
 
 function PopupIconButton(
@@ -415,203 +331,4 @@ export function SongRankingsFilterBar(
             </ul></li>
         </ul>
     )
-}
-
-export function CheckboxFilterElement(
-    {
-        name,
-        value,
-        onValueChanged
-    }: {
-        name: string
-        value: boolean
-        onValueChanged?: (newValue: boolean) => void
-    }
-) {
-    function setValue(newValue: boolean) {
-        if (value != newValue && onValueChanged) onValueChanged(newValue)
-    }
-
-    return (
-        <section className="flex gap-3 items-center">
-            <input id={name} type='checkbox' checked={value} onChange={newValue => setValue(newValue.currentTarget.checked)} />
-            <label htmlFor={name} className="text-lg text-on-background font-normal">{name}</label>
-        </section>
-    )
-}
-
-export function DateFilterElement(
-    {
-        name,
-        value,
-        min,
-        max,
-        onValueChanged
-    }: {
-        name: string
-        value: string
-        min?: string
-        max?: string
-        onValueChanged?: (newValue: string) => void
-    }
-) {
-    function setValue(newValue: string) {
-        if (value != newValue && onValueChanged) {
-            onValueChanged(newValue)
-        }
-    }
-
-    return (
-        <FilterElement key={name} name={name}>
-            <search className="py-2 px-4 rounded-xl bg-surface-container-low text-on-surface flex gap-3 text-base font-normal">
-                <input type='date' value={value} min={min} max={max} onChange={event => setValue(event.currentTarget.value)} className={`cursor-text bg-transparent min-w-fit w-32 outline-none text-left`} />
-            </search>
-        </FilterElement>
-    )
-}
-
-export function InputFilterElement(
-    {
-        name,
-        value,
-        placeholder,
-        defaultValue,
-        onValueChanged
-    }: {
-        name: string
-        value: string
-        placeholder: string
-        defaultValue: string
-        onValueChanged?: (newValue: string) => void
-    }
-) {
-    function setValue(newValue: string) {
-        if (value != newValue && onValueChanged) {
-            onValueChanged(newValue)
-        }
-    }
-
-    return (
-        <FilterElement key={name} name={name}>
-            <search className="py-2 px-4 rounded-xl bg-surface-container-low text-on-surface flex gap-3 text-base font-normal">
-                <Icon icon='search' />
-                <input type='search' placeholder={placeholder} onClick={e => e.preventDefault()} onChange={event => setValue(event.currentTarget.value)} value={value} className={`cursor-text bg-transparent w-32 outline-none text-left`} />
-                {value != defaultValue && <Icon icon='close'></Icon>}
-            </search>
-        </FilterElement>
-    )
-}
-
-export function NumberInputFilterElement(
-    {
-        name,
-        value,
-        placeholder,
-        defaultValue,
-        onValueChanged
-    }: {
-        name: string
-        value: string
-        placeholder: string
-        defaultValue: string
-        onValueChanged?: (newValue: string) => void
-    }
-) {
-    function setValue(newValue: string) {
-        const asNumber = Number(newValue)
-        if (!isNaN(asNumber) && value != newValue && onValueChanged) {
-            onValueChanged(newValue)
-        }
-    }
-
-    return (
-        <FilterElement key={name} name={name}>
-            <search className="py-2 px-4 rounded-xl bg-surface-container-low text-on-surface flex gap-3 text-base font-normal" onClick={e => e.preventDefault()}>
-                <input type='search' placeholder={placeholder} onChange={event => setValue(event.currentTarget.value)} value={value} className={`cursor-text bg-transparent w-32 outline-none text-left`} />
-                {value != defaultValue && <Icon icon='close'></Icon>}
-            </search>
-        </FilterElement>
-    )
-}
-
-export function SelectFilterElement(
-    {
-        name,
-        value,
-        defaultValue,
-        options,
-        searchable = false,
-        minimal = false,
-        icon = 'expand_more',
-        clearIcon = 'close',
-        onValueChanged
-    }: {
-        name: string
-        value: number
-        defaultValue: number
-        options: string[]
-        searchable?: boolean
-        minimal?: boolean
-        icon?: string
-        clearIcon?: string
-        onValueChanged?: (newValue: number) => void
-    }
-) {
-    value = isNaN(value) ? defaultValue : value
-    const [modalOpen, setModalOpen] = useState(false)
-    const [searchQuery, setSearchQuery] = useState('')
-    const [inputFocused, setInputFocused] = useState(false)
-
-    // parse filter value
-
-    const modalRef = useRef<HTMLUListElement>(null)
-
-    const valueIsDefault = value == defaultValue
-    const valueName = options[value]
-
-    const setValue = (newValue: number) => {
-        if (value != newValue && onValueChanged) {
-            onValueChanged(newValue)
-        }
-        setModalOpen(false)
-    }
-
-    useEffect(() => {
-        function handleClick(event: MouseEvent) {
-            if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
-                setModalOpen(false)
-            }
-        }
-
-        document.addEventListener('click', handleClick)
-        return () => {
-            document.removeEventListener('click', handleClick)
-        }
-    }, [modalOpen])
-
-    return (
-        <FilterElement key={name} name={name} minimal={minimal}>
-            <search className={minimal ? 'text-on-background py-1 gap-3 w-fit flex justify-end items-center text-lg font-normal cursor-pointer' : "py-2 px-4 rounded-xl bg-surface-container-low text-on-surface flex gap-3 text-base font-normal cursor-pointer"} onClick={() => setModalOpen(true)}>
-                {searchable
-                    ? <input type='search' onFocus={() => { setSearchQuery(''); setInputFocused(true) }} onBlur={() => setInputFocused(false)} onChange={(event) => { setSearchQuery(event.currentTarget.value.toLowerCase()) }} value={inputFocused ? searchQuery : valueName} className={`cursor-text bg-transparent outline-none text-left ${valueIsDefault ? 'text-on-surface-variant' : 'text-primary'} ${minimal ? 'w-fit' : 'w-32'}`} />
-                    : <span className={`bg-transparent outline-none cursor-pointer text-left ${valueIsDefault ? 'text-on-surface-variant' : 'text-primary'} ${minimal ? 'w-fit' : 'w-32'}`}>{valueName}</span>
-                }
-                {valueIsDefault ? <Icon icon={icon}></Icon> : <Icon icon={clearIcon}></Icon>}
-            </search>
-            <FadeInOut visible={modalOpen}>
-                <div className="relative min-w-fit w-full h-0 z-20">
-                    <ul ref={modalRef} className="absolute top-2 min-w-[160px] w-full right-0 rounded-xl bg-surface-container-high shadow-md p-2 max-h-72 overflow-y-scroll overflow-x-clip ">
-                        {options.map((value, index) => {
-                            return searchable && value.toLowerCase().match(searchQuery) || !searchable ? (
-                                <li key={index}>
-                                    <button key={index} onClick={(e) => { e.preventDefault(); setValue(index); }} className="w-full font-normal h-auto overflow-clip text-ellipsis p-2 rounded-xl relative transition-colors hover:bg-surface-container-highest">{value}</button>
-                                </li>
-                            ) : null
-                        })}
-                    </ul>
-                </div>
-            </FadeInOut>
-        </FilterElement>
-    )
-
 }

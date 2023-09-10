@@ -3,12 +3,14 @@ import { Locale, getDictionary, getEntityName } from "@/localization"
 import { notFound } from "next/navigation"
 import { Settings } from "../../settings"
 import { cookies } from "next/dist/client/components/headers"
-import { argbFromHex, themeFromSourceColor, hexFromArgb, redFromArgb, greenFromArgb, blueFromArgb, Scheme, themeFromImage, SchemeContent, Hct, MaterialDynamicColors } from "@material/material-color-utilities"
+import { argbFromHex, themeFromSourceColor, hexFromArgb, redFromArgb, greenFromArgb, blueFromArgb, Scheme, SchemeContent, Hct, MaterialDynamicColors } from "@material/material-color-utilities"
 import Image from "next/image"
-import { NumberFormatter, EntityName, DateFormatter } from "@/components/formatters"
 import { ArtistTypeLocaleTokens, NameTypeLocaleTokens, SongTypeLocaleTokens, SourceTypeLocaleTokens } from "@/localization/DictionaryTokenMaps"
 import Link from "next/link"
 import { ArtistCategory, ArtistThumbnailType, NameType, SourceType } from "@/data/types"
+import { EntityName } from "@/components/formatters/entity-name"
+import { DateFormatter } from "@/components/formatters/date-formatter"
+import { NumberFormatter } from "@/components/formatters/number-formatter"
 
 // interfaces
 interface ViewsBreakdown {
