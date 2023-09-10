@@ -3,7 +3,7 @@
 import { FilledIconButton, Icon } from "@/components/material"
 import { LanguageDictionary, LanguageDictionaryKey } from "@/localization"
 import { useRouter } from "next/navigation"
-import { CSSProperties, MutableRefObject, createContext, useEffect, useRef, useState } from "react"
+import { CSSProperties, MutableRefObject, useEffect, useRef, useState } from "react"
 import { TransitionStatus } from "react-transition-group"
 import { CheckboxFilter, Filter, FilterType, InputFilter, PopupAlignment, RankingsFilters, RankingsFiltersValues, SelectFilter, SelectFilterValue } from "./types"
 
@@ -14,8 +14,6 @@ const modalTransitionStyles: { [key in TransitionStatus]: CSSProperties } = {
     exited: { opacity: 0, display: 'none' },
     unmounted: {}
 }
-
-const FilterValuesContext = createContext<RankingsFiltersValues>({})
 
 function generateSelectFilterValues<valueType>(
     start: number,
@@ -390,34 +388,32 @@ export function SongRankingsFilterBar(
     }
 
     return (
-        <FilterValuesContext.Provider value={filterValues}>
-            <ul className="flex flex-col gap-5 w-full mt-5">
-                <li key='filters' className="flex gap-5 items-end">
-                    <ul className="flex gap-5 flex-1">
-                        {mainFilters}
-                    </ul>
-                    <PopupIconButton icon='tune' align={PopupAlignment.RIGHT}>
-                        <li><ul className="flex flex-row gap-5">
-                            <SelectFilterElement name={langDict[filters.songType.name]} value={Number(filterValues.songType)} defaultValue={filters.songType.defaultValue} options={filters.songType.values.map(value => langDict[value.name])} onValueChanged={(newValue) => { filterValues.songType = newValue; saveFilterValues() }} />
-                            {viewsFilters}
-                        </ul></li>
-                        <li><ul className="flex flex-row gap-5">{publishDateFilters}</ul></li>
-                        <li><ul className="flex flex-row gap-5 items-center">
-                            <DateFilterElement name={langDict[filters.timestamp.name]} value={filterValues.timestamp || currentTimestamp} max={currentTimestamp} onValueChanged={newValue => { filterValues.timestamp = newValue; saveFilterValues() }} />
-                            <CheckboxFilterElement name={langDict[filters.singleVideo.name]} value={decodeBoolean(filterValues.singleVideo)} onValueChanged={(newValue) => { filterValues.singleVideo = encodeBoolean(newValue); saveFilterValues() }} />
-                        </ul></li>
-                    </PopupIconButton>
-                </li>
-                <li><ul className="flex gap-5 items-center justify-end">
-                    {activeFilters.length > 0 &&
-                        <li key='activeFilters' className="flex-1"><ul className="flex gap-3">
-                            {activeFilters}
-                        </ul></li>
-                    }
-                    <SelectFilterElement minimal icon='sort' clearIcon="sort" name={langDict[filters.orderBy.name]} value={Number(filterValues.orderBy)} defaultValue={filters.orderBy.defaultValue} options={filters.orderBy.values.map(value => langDict[value.name])} onValueChanged={(newValue) => { filterValues.orderBy = newValue; saveFilterValues() }} />
-                </ul></li>
-            </ul>
-        </FilterValuesContext.Provider>
+        <ul className="flex flex-col gap-5 w-full mt-5">
+            <li key='filters' className="flex gap-5 items-end">
+                <ul className="flex gap-5 flex-1">
+                    {mainFilters}
+                </ul>
+                <PopupIconButton icon='tune' align={PopupAlignment.RIGHT}>
+                    <li><ul className="flex flex-row gap-5">
+                        <SelectFilterElement name={langDict[filters.songType.name]} value={Number(filterValues.songType)} defaultValue={filters.songType.defaultValue} options={filters.songType.values.map(value => langDict[value.name])} onValueChanged={(newValue) => { filterValues.songType = newValue; saveFilterValues() }} />
+                        {viewsFilters}
+                    </ul></li>
+                    <li><ul className="flex flex-row gap-5">{publishDateFilters}</ul></li>
+                    <li><ul className="flex flex-row gap-5 items-center">
+                        <DateFilterElement name={langDict[filters.timestamp.name]} value={filterValues.timestamp || currentTimestamp} max={currentTimestamp} onValueChanged={newValue => { filterValues.timestamp = newValue; saveFilterValues() }} />
+                        <CheckboxFilterElement name={langDict[filters.singleVideo.name]} value={decodeBoolean(filterValues.singleVideo)} onValueChanged={(newValue) => { filterValues.singleVideo = encodeBoolean(newValue); saveFilterValues() }} />
+                    </ul></li>
+                </PopupIconButton>
+            </li>
+            <li><ul className="flex gap-5 items-center justify-end">
+                {activeFilters.length > 0 &&
+                    <li key='activeFilters' className="flex-1"><ul className="flex gap-3">
+                        {activeFilters}
+                    </ul></li>
+                }
+                <SelectFilterElement minimal icon='sort' clearIcon="sort" name={langDict[filters.orderBy.name]} value={Number(filterValues.orderBy)} defaultValue={filters.orderBy.defaultValue} options={filters.orderBy.values.map(value => langDict[value.name])} onValueChanged={(newValue) => { filterValues.orderBy = newValue; saveFilterValues() }} />
+            </ul></li>
+        </ul>
     )
 }
 
