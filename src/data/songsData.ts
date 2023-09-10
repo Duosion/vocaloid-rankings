@@ -701,7 +701,7 @@ function filterArtistRankingsSync(
         const artistId = data.artist_id
         const previousPlacement = changeOffsetMap[String(artistId)] || placement
         try {
-            const artistData = getArtistSync(artistId, false)
+            const artistData = getArtistSync(artistId, false, false)
             if (artistData) {
                 returnEntries.push({
                     placement: placement + 1 + placementOffset,
@@ -855,7 +855,8 @@ function buildArtist(
     artistNames: RawArtistName[],
     artistThumbnails: RawArtistThumbnail[],
     views: Views | null,
-    placement: ArtistPlacement | null
+    placement: ArtistPlacement | null,
+    baseArtist: Artist | null
 ): Artist {
     // process names
     const names: Names = {
@@ -878,8 +879,6 @@ function buildArtist(
     })
     const type = artistData.artist_type as ArtistType
 
-    const baseArtistId = artistData.base_artist_id
-
     return new Artist(
         artistData.id,
         type,
@@ -892,7 +891,7 @@ function buildArtist(
         artistData.light_color,
         placement,
         views,
-        baseArtistId ? getArtistSync(baseArtistId, false) : null,
+        baseArtist,
     )
 }
 
@@ -951,7 +950,8 @@ function getArtistPlacementSync(
 
 function getArtistSync(
     id: Id,
-    getViews: boolean = true
+    getViews: boolean = true,
+    getBaseArtist: boolean = true
 ): Artist | null {
     const artistData = db.prepare(`
     SELECT id, artist_type, publish_date, addition_date, base_artist_id, average_color, dark_color, light_color
@@ -974,12 +974,15 @@ function getArtistSync(
     const views = getViews ? getArtistViewsSync(id) : null
     const placement = views ? getArtistPlacementSync(artistData, views) : null
 
+    const baseArtistId = artistData.base_artist_id
+
     return buildArtist(
         artistData,
         artistNames,
         artistThumbnails,
         views,
-        placement
+        placement,
+        baseArtistId && getBaseArtist ? getArtistSync(baseArtistId, getViews, false) : null
     )
 }
 
@@ -1173,7 +1176,7 @@ function getSongSync(
     // get artists data
     const artists: Artist[] = []
     songArtists.forEach(rawArtist => {
-        const artist = getArtistSync(rawArtist.artist_id, false)
+        const artist = getArtistSync(rawArtist.artist_id, false, false)
         if (artist) {
             artist.category = rawArtist.artist_category as ArtistCategory
             artists.push(artist)
