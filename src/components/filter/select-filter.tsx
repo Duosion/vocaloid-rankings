@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react"
 import { Icon } from "../material/icon"
 import { FilterElement } from "./filter"
 import { FadeInOut } from "../transitions/fade-in-out"
+import { Elevation } from "@/material/types"
+import { elevationToClass } from "@/material"
 
 export function SelectFilterElement(
     {
@@ -13,6 +15,8 @@ export function SelectFilterElement(
         minimal = false,
         icon = 'expand_more',
         clearIcon = 'close',
+        elevation = Elevation.LOW,
+        modalElevation = Elevation.NORMAL,
         onValueChanged
     }: {
         name: string
@@ -23,6 +27,8 @@ export function SelectFilterElement(
         minimal?: boolean
         icon?: string
         clearIcon?: string
+        elevation?: Elevation
+        modalElevation?: Elevation
         onValueChanged?: (newValue: number) => void
     }
 ) {
@@ -60,7 +66,10 @@ export function SelectFilterElement(
 
     return (
         <FilterElement key={name} name={name} minimal={minimal}>
-            <search className={minimal ? 'text-on-background py-1 gap-3 w-fit flex justify-end items-center text-lg font-normal cursor-pointer' : "py-2 px-4 rounded-xl bg-surface-container-low text-on-surface flex gap-3 text-base font-normal cursor-pointer"} onClick={() => setModalOpen(true)}>
+            <search className={minimal ? 'text-on-background py-1 gap-3 w-fit flex justify-end items-center text-lg font-normal cursor-pointer' : `py-2 px-4 rounded-xl text-on-surface flex gap-3 text-base font-normal cursor-pointer`}
+                style={{ backgroundColor: minimal ? undefined : `var(--md-sys-color-${elevationToClass[elevation]})` }}
+                onClick={() => setModalOpen(true)}
+            >
                 {searchable
                     ? <input type='search' onFocus={() => { setSearchQuery(''); setInputFocused(true) }} onBlur={() => setInputFocused(false)} onChange={(event) => { setSearchQuery(event.currentTarget.value.toLowerCase()) }} value={inputFocused ? searchQuery : valueName} className={`cursor-text bg-transparent outline-none text-left ${valueIsDefault ? 'text-on-surface-variant' : 'text-primary'} ${minimal ? 'w-fit' : 'w-32'}`} />
                     : <span className={`bg-transparent outline-none cursor-pointer text-left ${valueIsDefault ? 'text-on-surface-variant' : 'text-primary'} ${minimal ? 'w-fit' : 'w-32'}`}>{valueName}</span>
@@ -69,7 +78,9 @@ export function SelectFilterElement(
             </search>
             <FadeInOut visible={modalOpen}>
                 <div className="relative min-w-fit w-full h-0 z-20">
-                    <ul ref={modalRef} className="absolute top-2 min-w-[160px] w-full right-0 rounded-xl bg-surface-container-high shadow-md p-2 max-h-72 overflow-y-scroll overflow-x-clip ">
+                    <ul ref={modalRef} className="absolute top-2 min-w-[160px] w-full right-0 rounded-xl shadow-md p-2 max-h-72 overflow-y-scroll overflow-x-clip"
+                        style={{ backgroundColor: `var(--md-sys-color-${elevationToClass[modalElevation]})` }}
+                    >
                         {options.map((value, index) => {
                             return searchable && value.toLowerCase().match(searchQuery) || !searchable ? (
                                 <li key={index}>

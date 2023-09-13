@@ -12,6 +12,7 @@ import { SelectFilterElement } from "@/components/filter/select-filter"
 import { timeoutDebounce } from "@/lib/utils"
 import { NumberInputFilterElement } from "@/components/filter/number-input-filter"
 import { DateFilterElement } from "@/components/filter/date-filter"
+import { Elevation } from "@/material/types"
 
 function generateSelectFilterValues<valueType>(
     start: number,
@@ -71,7 +72,7 @@ function PopupIconButton(
             <FilledIconButton icon={icon} onClick={_ => setModalOpen(true)} />
             <FadeInOut visible={modalOpen}>
                 <div className="relative w-full h-0 z-10">
-                    <ul ref={modalRef} className={`absolute top-3 w-fit rounded-xl bg-surface-container-high shadow-md p-5 flex flex-col gap-3 ${alignment}`}>
+                    <ul ref={modalRef} className={`absolute top-3 w-fit rounded-xl bg-surface-container shadow-md p-5 flex flex-col gap-3 ${alignment}`}>
                         {children}
                     </ul>
                 </div>
@@ -160,7 +161,7 @@ export function SongRankingsFilterBar(
         const searchFilter = filters.search
         const timeout = useRef<NodeJS.Timeout>()
 
-        mainFilters.push(<InputFilterElement name={langDict[searchFilter.name]} value={filterValues.search || ''} placeholder={langDict[searchFilter.placeholder]} defaultValue={searchFilter.defaultValue} onValueChanged={(newValue) => {
+        mainFilters.push(<InputFilterElement icon='search' name={langDict[searchFilter.name]} value={filterValues.search || ''} placeholder={langDict[searchFilter.placeholder]} defaultValue={searchFilter.defaultValue} onValueChanged={(newValue) => {
             filterValues.search = newValue
             saveFilterValues(false)
 
@@ -273,9 +274,9 @@ export function SongRankingsFilterBar(
         } as SelectFilter<Number>
 
         // push filters to the table
-        publishDateFilters.push(<SelectFilterElement searchable name={langDict[yearFilter.name]} value={currentYearOption} defaultValue={yearDefaultValue} options={yearFilter.values.map(value => value.name)} onValueChanged={newValue => { filterValues.publishYear = String(yearFilter.values[newValue].value); saveFilterValues() }} />)
-        publishDateFilters.push(<SelectFilterElement searchable name={langDict[monthFilter.name]} value={currentMonthOption} defaultValue={monthDefaultValue} options={monthFilter.values.map(value => value.name)} onValueChanged={newValue => { filterValues.publishMonth = String(monthFilter.values[newValue].value); saveFilterValues() }} />)
-        publishDateFilters.push(<SelectFilterElement searchable name={langDict[dayFilter.name]} value={currentDayOption} defaultValue={dayDefaultValue} options={dayFilter.values.map(value => value.name)} onValueChanged={newValue => { filterValues.publishDay = String(dayFilter.values[newValue].value); saveFilterValues() }} />)
+        publishDateFilters.push(<SelectFilterElement searchable elevation={Elevation.HIGH} modalElevation={Elevation.HIGHEST} name={langDict[yearFilter.name]} value={currentYearOption} defaultValue={yearDefaultValue} options={yearFilter.values.map(value => value.name)} onValueChanged={newValue => { filterValues.publishYear = String(yearFilter.values[newValue].value); saveFilterValues() }} />)
+        publishDateFilters.push(<SelectFilterElement searchable elevation={Elevation.HIGH} modalElevation={Elevation.HIGHEST} name={langDict[monthFilter.name]} value={currentMonthOption} defaultValue={monthDefaultValue} options={monthFilter.values.map(value => value.name)} onValueChanged={newValue => { filterValues.publishMonth = String(monthFilter.values[newValue].value); saveFilterValues() }} />)
+        publishDateFilters.push(<SelectFilterElement searchable elevation={Elevation.HIGH} modalElevation={Elevation.HIGHEST} name={langDict[dayFilter.name]} value={currentDayOption} defaultValue={dayDefaultValue} options={dayFilter.values.map(value => value.name)} onValueChanged={newValue => { filterValues.publishDay = String(dayFilter.values[newValue].value); saveFilterValues() }} />)
     }
 
     // pop up filters
@@ -289,13 +290,13 @@ export function SongRankingsFilterBar(
         const minViewsTimeout = useRef<NodeJS.Timeout>()
         const maxViewsTimeout = useRef<NodeJS.Timeout>()
 
-        viewsFilters.push(<NumberInputFilterElement name={langDict[minViewsFilter.name]} value={filterValues.minViews || minViewsFilter.defaultValue} placeholder={langDict[minViewsFilter.placeholder]} defaultValue={minViewsFilter.defaultValue} onValueChanged={(newValue) => {
+        viewsFilters.push(<NumberInputFilterElement elevation={Elevation.HIGH} name={langDict[minViewsFilter.name]} value={filterValues.minViews || minViewsFilter.defaultValue} placeholder={langDict[minViewsFilter.placeholder]} defaultValue={minViewsFilter.defaultValue} onValueChanged={(newValue) => {
             filterValues.minViews = newValue;
             saveFilterValues(false)
 
             timeoutDebounce(minViewsTimeout, 500, saveFilterValues)
         }} />)
-        viewsFilters.push(<NumberInputFilterElement name={langDict[maxViewsFilter.name]} value={filterValues.maxViews || maxViewsFilter.defaultValue} placeholder={langDict[maxViewsFilter.placeholder]} defaultValue={maxViewsFilter.defaultValue} onValueChanged={(newValue) => {
+        viewsFilters.push(<NumberInputFilterElement elevation={Elevation.HIGH} name={langDict[maxViewsFilter.name]} value={filterValues.maxViews || maxViewsFilter.defaultValue} placeholder={langDict[maxViewsFilter.placeholder]} defaultValue={maxViewsFilter.defaultValue} onValueChanged={(newValue) => {
             filterValues.maxViews = newValue;
             saveFilterValues(false)
 
@@ -311,12 +312,12 @@ export function SongRankingsFilterBar(
                 </ul>
                 <PopupIconButton icon='tune' align={PopupAlignment.RIGHT}>
                     <li><ul className="flex flex-row gap-5">
-                        <SelectFilterElement name={langDict[filters.songType.name]} value={Number(filterValues.songType)} defaultValue={filters.songType.defaultValue} options={filters.songType.values.map(value => langDict[value.name])} onValueChanged={(newValue) => { filterValues.songType = newValue; saveFilterValues() }} />
+                        <SelectFilterElement elevation={Elevation.HIGH} modalElevation={Elevation.HIGHEST} name={langDict[filters.songType.name]} value={Number(filterValues.songType)} defaultValue={filters.songType.defaultValue} options={filters.songType.values.map(value => langDict[value.name])} onValueChanged={(newValue) => { filterValues.songType = newValue; saveFilterValues() }} />
                         {viewsFilters}
                     </ul></li>
                     <li><ul className="flex flex-row gap-5">{publishDateFilters}</ul></li>
                     <li><ul className="flex flex-row gap-5 items-center">
-                        <DateFilterElement name={langDict[filters.timestamp.name]} value={filterValues.timestamp || currentTimestamp} max={currentTimestamp} onValueChanged={newValue => { filterValues.timestamp = newValue; saveFilterValues() }} />
+                        <DateFilterElement elevation={Elevation.HIGH} name={langDict[filters.timestamp.name]} value={filterValues.timestamp || currentTimestamp} max={currentTimestamp} onValueChanged={newValue => { filterValues.timestamp = newValue; saveFilterValues() }} />
                         <CheckboxFilterElement name={langDict[filters.singleVideo.name]} value={decodeBoolean(filterValues.singleVideo)} onValueChanged={(newValue) => { filterValues.singleVideo = encodeBoolean(newValue); saveFilterValues() }} />
                     </ul></li>
                 </PopupIconButton>
