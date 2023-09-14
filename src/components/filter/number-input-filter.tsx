@@ -29,12 +29,12 @@ export function NumberInputFilterElement(
 
     return (
         <FilterElement key={name} name={name}>
-            <search className="py-2 px-4 rounded-xl bg-surface-container-low text-on-surface flex gap-3 text-base font-normal" onClick={e => e.preventDefault()}
+            <div className="py-2 px-4 rounded-xl bg-surface-container-low text-on-surface flex gap-3 text-base font-normal" onClick={e => e.preventDefault()}
                 style={{backgroundColor: `var(--md-sys-color-${elevationToClass[elevation]})`}}
             >
                 <input type='search' placeholder={placeholder} onChange={event => setValue(event.currentTarget.value)} value={value} className={`cursor-text bg-transparent w-32 outline-none text-left`} />
                 {value != defaultValue && <Icon icon='close'></Icon>}
-            </search>
+            </div>
         </FilterElement>
     )
 }

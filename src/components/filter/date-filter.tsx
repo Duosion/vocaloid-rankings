@@ -27,11 +27,11 @@ export function DateFilterElement(
 
     return (
         <FilterElement key={name} name={name}>
-            <search className="py-2 px-4 rounded-xl text-on-surface flex gap-3 text-base font-normal"
+            <div className="py-2 px-4 rounded-xl text-on-surface flex gap-3 text-base font-normal"
                 style={{backgroundColor: `var(--md-sys-color-${elevationToClass[elevation]})`}}
             >
                 <input type='date' value={value} min={min} max={max} onChange={event => setValue(event.currentTarget.value)} className={`cursor-text bg-transparent min-w-fit w-32 outline-none text-left`} />
-            </search>
+            </div>
         </FilterElement>
     )
 }

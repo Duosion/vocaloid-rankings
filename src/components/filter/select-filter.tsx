@@ -66,7 +66,7 @@ export function SelectFilterElement(
 
     return (
         <FilterElement key={name} name={name} minimal={minimal}>
-            <search className={minimal ? 'text-on-background py-1 gap-3 w-fit flex justify-end items-center text-lg font-normal cursor-pointer' : `py-2 px-4 rounded-xl text-on-surface flex gap-3 text-base font-normal cursor-pointer`}
+            <div className={minimal ? 'text-on-background py-1 gap-3 w-fit flex justify-end items-center text-lg font-normal cursor-pointer' : `py-2 px-4 rounded-xl text-on-surface flex gap-3 text-base font-normal cursor-pointer`}
                 style={{ backgroundColor: minimal ? undefined : `var(--md-sys-color-${elevationToClass[elevation]})` }}
                 onClick={() => setModalOpen(true)}
             >
@@ -75,7 +75,7 @@ export function SelectFilterElement(
                     : <span className={`bg-transparent outline-none cursor-pointer text-left ${valueIsDefault ? 'text-on-surface-variant' : 'text-primary'} ${minimal ? 'w-fit' : 'w-32'}`}>{valueName}</span>
                 }
                 {valueIsDefault ? <Icon icon={icon}></Icon> : <Icon icon={clearIcon}></Icon>}
-            </search>
+            </div>
             <FadeInOut visible={modalOpen}>
                 <div className="relative min-w-fit w-full h-0 z-20">
                     <ul ref={modalRef} className="absolute top-2 min-w-[160px] w-full right-0 rounded-xl shadow-md p-2 max-h-72 overflow-y-scroll overflow-x-clip"

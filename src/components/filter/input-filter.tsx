@@ -30,7 +30,7 @@ export function InputFilterElement(
 
     return (
         <FilterElement key={name} name={name}>
-            <search className="py-2 px-4 rounded-xl-low text-on-surface flex gap-3 text-base font-normal"
+            <search className="py-2 px-4 rounded-xl text-on-surface flex gap-3 text-base font-normal"
                 style={{backgroundColor: `var(--md-sys-color-${elevationToClass[elevation]})`}}
             >
                 {icon && <Icon icon={icon} />}
