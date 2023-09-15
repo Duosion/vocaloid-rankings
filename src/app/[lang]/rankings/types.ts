@@ -5,6 +5,7 @@ export enum FilterType {
     SELECT,
     INPUT,
     CHECKBOX,
+    MULTI
 }
 
 export enum PopupAlignment {
@@ -34,7 +35,7 @@ export abstract class Filter {
 
 export interface SelectFilterValue<Enum> {
     name: LanguageDictionaryKey
-    value: Enum | null | undefined
+    value: Enum | null
 }
 
 export class SelectFilter<Enum> extends Filter {
@@ -71,6 +72,20 @@ export class InputFilter extends Filter {
     }
 }
 
+export class MultiFilter<Enum> extends Filter {
+    values: SelectFilterValue<Enum>[]
+
+    constructor(
+        name: LanguageDictionaryKey,
+        key: string,
+        displayActive: boolean = true,
+        values: SelectFilterValue<Enum>[]
+    ) {
+        super(name, key, displayActive, FilterType.SELECT)
+        this.values = values
+    }
+} 
+
 export class CheckboxFilter extends Filter {
     defaultValue: boolean
 
@@ -87,13 +102,16 @@ export class CheckboxFilter extends Filter {
 
 export interface RankingsFilters {
     search: InputFilter
-    sourceType: SelectFilter<SourceType>
     timePeriod: SelectFilter<number>
     publishYear: InputFilter
     publishMonth: InputFilter
     publishDay: InputFilter
-    songType: SelectFilter<SongType>
-    artistType: SelectFilter<ArtistType>
+    includeSourceTypes: MultiFilter<SourceType>
+    includeSongTypes: MultiFilter<SongType>
+    includeArtistTypes: MultiFilter<ArtistType>
+    excludeSourceTypes: MultiFilter<SourceType>
+    excludeSongTypes: MultiFilter<SongType>
+    excludeArtistTypes: MultiFilter<ArtistType>
     minViews: InputFilter
     maxViews: InputFilter
     orderBy: SelectFilter<FilterOrder>
@@ -103,13 +121,16 @@ export interface RankingsFilters {
 
 export interface RankingsFiltersValues {
     search?: string
-    sourceType?: number
     timePeriod?: number
     publishYear?: string
     publishMonth?: string
     publishDay?: string
-    songType?: number
-    artistType?: number
+    includeSourceTypes?: string
+    includeSongTypes?: string
+    includeArtistTypes?: string
+    excludeSourceTypes?: string
+    excludeSongTypes?: string
+    excludeArtistTypes?: string
     minViews?: string
     maxViews?: string
     orderBy?: number

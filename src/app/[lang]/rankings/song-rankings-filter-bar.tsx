@@ -115,7 +115,17 @@ export function SongRankingsFilterBar(
                 const value = filterValues[key as keyof typeof filterValues]
                 const filter = filters[key as keyof typeof filters]
                 if (value && filter) {
-                    queryBuilder.push(value == filter.defaultValue ? '' : `${key}=${value}`)
+                    switch (filter.type) {
+                        case FilterType.SELECT:
+                        case FilterType.INPUT:
+                        case FilterType.CHECKBOX:
+                            queryBuilder.push(value == (filter as InputFilter).defaultValue ? '' : `${key}=${value}`)
+                            break;
+                        case FilterType.MULTI:
+                            queryBuilder.push(value == '' ? '' : `${key}=${value}`)
+                            break;
+                    }
+                    
                 }
             }
             router.push(`${href}?${queryBuilder.join('&')}`)
@@ -128,7 +138,7 @@ export function SongRankingsFilterBar(
         let filter = filters[key as keyof typeof filters] as Filter
         const value = filterValues[key as keyof typeof filterValues]
 
-        if (filter.displayActive) {
+        if (filter && filter.displayActive) {
             switch (filter.type) {
                 case FilterType.SELECT: {
                     const valueNumber = Number(value)
@@ -171,16 +181,16 @@ export function SongRankingsFilterBar(
                         timeoutDebounce(searchTimeout, 500, saveFilterValues)
                     }} />
                     {/* Source Type */}
-                    <SelectFilterElement name={langDict[filters.sourceType.name]} value={Number(filterValues.sourceType)} defaultValue={filters.sourceType.defaultValue} options={filters.sourceType.values.map(value => langDict[value.name])} onValueChanged={newValue => { filterValues.sourceType = newValue; saveFilterValues() }} />
+                    {/* <SelectFilterElement name={langDict[filters.sourceType.name]} value={Number(filterValues.sourceType)} defaultValue={filters.sourceType.defaultValue} options={filters.sourceType.values.map(value => langDict[value.name])} onValueChanged={newValue => { filterValues.sourceType = newValue; saveFilterValues() }} /> */}
                     {/* Time Period */}
                     <SelectFilterElement name={langDict[filters.timePeriod.name]} value={Number(filterValues.timePeriod)} defaultValue={filters.timePeriod.defaultValue} options={filters.timePeriod.values.map(value => langDict[value.name])} onValueChanged={(newValue) => { filterValues.timePeriod = newValue; saveFilterValues() }} />
                     {/* Artist Type */}
-                    <SelectFilterElement searchable name={langDict[filters.artistType.name]} value={Number(filterValues.artistType)} defaultValue={filters.artistType.defaultValue} options={filters.artistType.values.map(value => langDict[value.name])} onValueChanged={(newValue) => { filterValues.artistType = newValue; saveFilterValues() }} />
+                    {/* <SelectFilterElement searchable name={langDict[filters.artistType.name]} value={Number(filterValues.artistType)} defaultValue={filters.artistType.defaultValue} options={filters.artistType.values.map(value => langDict[value.name])} onValueChanged={(newValue) => { filterValues.artistType = newValue; saveFilterValues() }} /> */}
                 </ul>
                 <PopupIconButton icon='tune' align={PopupAlignment.RIGHT}>
                     <li key='popup-row-1'><ul className="flex flex-row gap-5">
                         {/* Song Type */}
-                        <SelectFilterElement elevation={Elevation.HIGH} modalElevation={Elevation.HIGHEST} name={langDict[filters.songType.name]} value={Number(filterValues.songType)} defaultValue={filters.songType.defaultValue} options={filters.songType.values.map(value => langDict[value.name])} onValueChanged={(newValue) => { filterValues.songType = newValue; saveFilterValues() }} />
+                        {/* <SelectFilterElement elevation={Elevation.HIGH} modalElevation={Elevation.HIGHEST} name={langDict[filters.songType.name]} value={Number(filterValues.songType)} defaultValue={filters.songType.defaultValue} options={filters.songType.values.map(value => langDict[value.name])} onValueChanged={(newValue) => { filterValues.songType = newValue; saveFilterValues() }} /> */}
                         {/* Minimum Views*/}
                         <NumberInputFilterElement elevation={Elevation.HIGH} name={langDict[filters.minViews.name]} value={filterValues.minViews || filters.minViews.defaultValue} placeholder={langDict[filters.minViews.placeholder]} defaultValue={filters.minViews.defaultValue} onValueChanged={(newValue) => {
                             filterValues.minViews = newValue;

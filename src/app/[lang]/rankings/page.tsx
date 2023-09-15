@@ -19,19 +19,6 @@ export const filters: RankingsFilters = {
         placeholder: 'search_hint',
         defaultValue: ''
     },
-    sourceType: {
-        name: 'filter_view_type',
-        key: 'sourceType',
-        displayActive: true,
-        type: FilterType.SELECT,
-        values: [
-            { name: 'filter_view_type_combined', value: null },
-            { name: "youtube", value: SourceType.YOUTUBE },
-            { name: 'niconico', value: SourceType.NICONICO },
-            { name: 'bilibili', value: SourceType.BILIBILI },
-        ],
-        defaultValue: 0
-    },
     timePeriod: {
         name: 'filter_time_period_offset',
         key: 'timePeriod',
@@ -69,26 +56,61 @@ export const filters: RankingsFilters = {
         placeholder: 'filter_year_any',
         defaultValue: ''
     },
-    songType: {
-        name: 'filter_song_type', // name
-        key: 'songType',
+    includeSourceTypes: {
+        name: 'filter_view_type',
+        key: 'includeSourceTypes',
         displayActive: true,
-        type: FilterType.SELECT,
+        type: FilterType.MULTI,
         values: [
-            { name: 'filter_song_type_all', value: undefined },
+            { name: 'filter_view_type_combined', value: null },
+            { name: "youtube", value: SourceType.YOUTUBE },
+            { name: 'niconico', value: SourceType.NICONICO },
+            { name: 'bilibili', value: SourceType.BILIBILI },
+        ]
+    },
+    excludeSourceTypes: {
+        name: 'filter_view_type',
+        key: 'excludeSourceTypes',
+        displayActive: true,
+        type: FilterType.MULTI,
+        values: [
+            { name: 'filter_view_type_combined', value: null },
+            { name: "youtube", value: SourceType.YOUTUBE },
+            { name: 'niconico', value: SourceType.NICONICO },
+            { name: 'bilibili', value: SourceType.BILIBILI },
+        ]
+    },
+    includeSongTypes: {
+        name: 'filter_song_type', // name
+        key: 'includeSongTypes',
+        displayActive: true,
+        type: FilterType.MULTI,
+        values: [
+            { name: 'filter_song_type_all', value: null },
             { name: 'filter_song_type_original', value: SongType.ORIGINAL },
             { name: 'filter_song_type_remix', value: SongType.REMIX },
             { name: 'filter_song_type_other', value: SongType.OTHER },
-        ],
-        defaultValue: 0 // default value
+        ]
     },
-    artistType: {
-        name: 'filter_artist_type', // name
-        key: 'artistType',
+    excludeSongTypes: {
+        name: 'filter_song_type', // name
+        key: 'excludeSongTypes',
         displayActive: true,
-        type: FilterType.SELECT,
+        type: FilterType.MULTI,
         values: [
-            { name: 'filter_artist_type_all', value: undefined },
+            { name: 'filter_song_type_all', value: null },
+            { name: 'filter_song_type_original', value: SongType.ORIGINAL },
+            { name: 'filter_song_type_remix', value: SongType.REMIX },
+            { name: 'filter_song_type_other', value: SongType.OTHER },
+        ]
+    },
+    includeArtistTypes: {
+        name: 'filter_artist_type', // name
+        key: 'includeArtistTypes',
+        displayActive: true,
+        type: FilterType.MULTI,
+        values: [
+            { name: 'filter_artist_type_all', value: null },
             { name: 'filter_artist_type_vocaloid', value: ArtistType.VOCALOID },
             { name: 'filter_artist_type_cevio', value: ArtistType.CEVIO },
             { name: 'filter_artist_type_synth_v', value: ArtistType.SYNTHESIZER_V },
@@ -101,8 +123,28 @@ export const filters: RankingsFilters = {
             { name: 'filter_artist_type_other_individual', value: ArtistType.OTHER_INDIVIDUAL },
             { name: 'filter_artist_type_other_group', value: ArtistType.OTHER_GROUP },
             { name: 'filter_artist_type_utau', value: ArtistType.UTAU },
-        ],
-        defaultValue: 0 // default value
+        ]
+    },
+    excludeArtistTypes: {
+        name: 'filter_artist_type', // name
+        key: 'excludeArtistTypes',
+        displayActive: true,
+        type: FilterType.MULTI,
+        values: [
+            { name: 'filter_artist_type_all', value: null },
+            { name: 'filter_artist_type_vocaloid', value: ArtistType.VOCALOID },
+            { name: 'filter_artist_type_cevio', value: ArtistType.CEVIO },
+            { name: 'filter_artist_type_synth_v', value: ArtistType.SYNTHESIZER_V },
+            { name: 'filter_artist_type_illustrator', value: ArtistType.ILLUSTRATOR },
+            { name: 'filter_artist_type_cover_artist', value: ArtistType.COVER_ARTIST },
+            { name: 'filter_artist_type_animator', value: ArtistType.ANIMATOR },
+            { name: 'filter_artist_type_producer', value: ArtistType.PRODUCER },
+            { name: 'filter_artist_type_other_vocalist', value: ArtistType.OTHER_VOCALIST },
+            { name: 'filter_artist_type_other_voice_synth', value: ArtistType.OTHER_VOICE_SYNTHESIZER },
+            { name: 'filter_artist_type_other_individual', value: ArtistType.OTHER_INDIVIDUAL },
+            { name: 'filter_artist_type_other_group', value: ArtistType.OTHER_GROUP },
+            { name: 'filter_artist_type_utau', value: ArtistType.UTAU },
+        ]
     },
     minViews: {
         name: 'filter_min_views',
@@ -149,22 +191,31 @@ export const filters: RankingsFilters = {
     }
 }
 
-function parseFilterParamKey(
-    paramValue: number | undefined,
-    defaultValue: number
-): number {
-    const paramValueNumber = Number(paramValue)
-    return isNaN(paramValueNumber) ? defaultValue : paramValueNumber
-}
-
 function parseParamSelectFilterValue(
     paramValue: number | undefined,
     values: SelectFilterValue<number>[],
-    defaultValue: number
-): number | null | undefined {
+    defaultValue?: number
+): number | null {
     // get the filterValue and return it
-    const valueNumber = parseFilterParamKey(paramValue, defaultValue)
-    return (values[valueNumber] || values[defaultValue]).value
+    const valueNumber = paramValue == undefined || isNaN(paramValue) ? defaultValue : paramValue
+    return valueNumber ? (values[valueNumber] || defaultValue && values[defaultValue]).value : null
+}
+
+function parseParamMultiFilterValue(
+    paramValue: string | undefined,
+    values: SelectFilterValue<number>[],
+    separator: string = ''
+): number[] | undefined {
+    const ids: number[] = []
+
+    paramValue?.split(separator).map(value => {
+        const parsed = parseParamSelectFilterValue(Number(value), values)
+        if (parsed != undefined && !isNaN(parsed)) {
+            ids.push(parsed)
+        }
+    })
+
+    return 0 >= ids.length ? undefined : ids
 }
 
 function parseParamCheckboxFilterValue(
@@ -205,8 +256,7 @@ export default async function RankingsPage(
             }
         }
 
-        filterParams.sourceType = parseParamSelectFilterValue(searchParams.sourceType, filters.sourceType.values, filters.sourceType.defaultValue) as SourceType
-        filterParams.timePeriodOffset = parseParamSelectFilterValue(searchParams.timePeriod, filters.timePeriod.values, filters.timePeriod.defaultValue) as number
+        filterParams.timePeriodOffset = parseParamSelectFilterValue(Number(searchParams.timePeriod), filters.timePeriod.values, filters.timePeriod.defaultValue) as number
         {   
             const yearParam = searchParams.publishYear
             const monthParam = searchParams.publishMonth
@@ -217,15 +267,22 @@ export default async function RankingsPage(
             const day = !dayParam || isNaN(Number(dayParam)) ? '%' : dayParam.padStart(2, '0')
             filterParams.publishDate = `${year}-${month}-${day}%`
         }
-        filterParams.songType = parseParamSelectFilterValue(searchParams.songType, filters.songType.values, filters.songType.defaultValue) as SongType
-        filterParams.artistType = parseParamSelectFilterValue(searchParams.artistType, filters.artistType.values, filters.artistType.defaultValue) as ArtistType
+        // source types
+        filterParams.includeSourceTypes = parseParamMultiFilterValue(searchParams.includeSourceTypes, filters.includeSourceTypes.values) as SourceType[] | undefined
+        filterParams.excludeSourceTypes = parseParamMultiFilterValue(searchParams.excludeSourceTypes, filters.excludeSourceTypes.values) as SourceType[] | undefined
+        // song types
+        filterParams.includeSongTypes = parseParamMultiFilterValue(searchParams.includeSongTypes, filters.includeSongTypes.values) as SongType[] | undefined
+        filterParams.excludeSongTypes = parseParamMultiFilterValue(searchParams.excludeSongTypes, filters.excludeSongTypes.values) as SongType[] | undefined
+        // artist types
+        filterParams.includeArtistTypes = parseParamMultiFilterValue(searchParams.includeArtistTypes, filters.includeArtistTypes.values) as ArtistType[] | undefined
+        filterParams.excludeArtistTypes = parseParamMultiFilterValue(searchParams.excludeArtistTypes, filters.excludeArtistTypes.values) as ArtistType[] | undefined
         {
             const minViews = Number(searchParams.minViews)
             const maxViews = Number(searchParams.maxViews)
             filterParams.minViews = isNaN(minViews) ? undefined : minViews
             filterParams.maxViews = isNaN(maxViews) ? undefined : maxViews
         }
-        filterParams.orderBy = parseParamSelectFilterValue(searchParams.orderBy, filters.orderBy.values, filters.orderBy.defaultValue) as FilterOrder
+        filterParams.orderBy = parseParamSelectFilterValue(Number(searchParams.orderBy), filters.orderBy.values, filters.orderBy.defaultValue) as FilterOrder
         filterParams.timestamp = searchParams.timestamp
         filterParams.singleVideo = parseParamCheckboxFilterValue(searchParams.singleVideo)
     }
