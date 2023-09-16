@@ -23,7 +23,7 @@ function getSongRankingsFilterQueryParams(
         startAt: filterParams.startAt,
         minViews: filterParams.minViews,
         maxViews: filterParams.maxViews,
-        search: filterParams.search
+        search: filterParams.search?.toLowerCase()
     }
 
     const buildInStatement = (values: Id[], prefix = '') => {
@@ -179,7 +179,7 @@ function filterSongRankingsRawSync(
         WHERE sa.song_id = views_breakdowns.song_id 
         AND artists.artist_type IN (${filterExcludeArtistTypes})
     )` : ''
-    
+
     return db.prepare(`
         SELECT DISTINCT views_breakdowns.song_id,
             CASE :orderBy
@@ -318,7 +318,7 @@ function filterSongRankingsRawSync(
                 ELSE DATE(:timestamp, '-' || :daysOffset || ' day')
                 END)
             AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
-            AND (songs_names.name LIKE :search OR :search IS NULL)
+            AND (lower(songs_names.name) LIKE :search OR :search IS NULL)
             AND (views_breakdowns.views = CASE WHEN :singleVideo IS NULL
                 THEN views_breakdowns.views
                 ELSE

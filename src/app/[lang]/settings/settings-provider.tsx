@@ -3,7 +3,7 @@ import React, { Fragment, createContext, useCallback, useContext, useMemo, useSt
 import { RawSettings, UseSettingsProps, SettingsProviderProps } from "./types";
 import { NameType } from "@/data/types";
 import { setCookie, getCookie } from 'cookies-next'
-import { RankingsFiltersValues } from "../rankings/types";
+import { SongRankingsFiltersValues } from "../rankings/types";
 
 const settingsContext = createContext<UseSettingsProps | undefined>(undefined)
 const defaultContext: UseSettingsProps = { setTitleLanguage: () => {}, setRankingsFilter: () => {}, settings: { titleLanguage: NameType.ENGLISH, rankingsFilter: {} } }
@@ -52,7 +52,7 @@ const SettingsElement: React.FC<SettingsProviderProps> = ({
     )
 
     const setRankingsFilter = useCallback(
-        (newParams: RankingsFiltersValues) => {
+        (newParams: SongRankingsFiltersValues) => {
             saveSettings({
                 ...settings,
                 rankingsFilter: newParams

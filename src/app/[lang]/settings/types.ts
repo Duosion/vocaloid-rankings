@@ -1,26 +1,26 @@
 import { NameType } from "@/data/types";
-import { RankingsFiltersValues } from "../rankings/types";
+import { SongRankingsFiltersValues } from "../rankings/types";
 
 export interface RawSettings {
     titleLanguage: NameType
-    rankingsFilter: RankingsFiltersValues
+    rankingsFilter: SongRankingsFiltersValues
 }
 
 export interface SettingsProxy {
     get titleLanguage(): NameType
 
-    get rankingsFilter(): RankingsFiltersValues
+    get rankingsFilter(): SongRankingsFiltersValues
 
     set titleLanguage(newTitleLanguage: NameType)
 
-    set rankingsFilter(newParams: RankingsFiltersValues)
+    set rankingsFilter(newParams: SongRankingsFiltersValues)
 }
 
 export interface UseSettingsProps {
     settings: RawSettings
 
     setTitleLanguage: (newTitleLanguage: NameType) => void
-    setRankingsFilter: (newParams: RankingsFiltersValues) => void
+    setRankingsFilter: (newParams: SongRankingsFiltersValues) => void
 }
 
 export interface SettingsProviderProps {

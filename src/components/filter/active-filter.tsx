@@ -9,7 +9,7 @@ export function ActiveFilter(
 ) {
     return (
         <li key={name}>
-            <button className="px-3 py-1 rounded-lg text-on-background border border-on-background box-border" onClick={() => {
+            <button className="px-3 py-1 rounded-lg text-on-background border border-on-background box-border whitespace-nowrap" onClick={() => {
                 if (onClick) {
                     onClick()
                 }

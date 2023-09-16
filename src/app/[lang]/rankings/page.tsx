@@ -5,7 +5,7 @@ import { cookies } from "next/dist/client/components/headers"
 import Link from "next/link"
 import { Settings } from "../settings"
 import { SongRankingsFilterBar } from "./song-rankings-filter-bar"
-import { FilterType, RankingsFiltersValues, RankingsFilters, SelectFilterValue } from "./types"
+import { FilterType, SongRankingsFiltersValues, RankingsFilters, SelectFilterValue } from "./types"
 import { EntityName } from "@/components/formatters/entity-name"
 import { NumberFormatter } from "@/components/formatters/number-formatter"
 import SongThumbnail from "@/components/song-thumbnail"
@@ -62,19 +62,17 @@ export const filters: RankingsFilters = {
         displayActive: true,
         type: FilterType.MULTI,
         values: [
-            { name: 'filter_view_type_combined', value: null },
             { name: "youtube", value: SourceType.YOUTUBE },
             { name: 'niconico', value: SourceType.NICONICO },
             { name: 'bilibili', value: SourceType.BILIBILI },
         ]
     },
     excludeSourceTypes: {
-        name: 'filter_view_type',
+        name: 'filter_view_type_exclude',
         key: 'excludeSourceTypes',
         displayActive: true,
         type: FilterType.MULTI,
         values: [
-            { name: 'filter_view_type_combined', value: null },
             { name: "youtube", value: SourceType.YOUTUBE },
             { name: 'niconico', value: SourceType.NICONICO },
             { name: 'bilibili', value: SourceType.BILIBILI },
@@ -86,19 +84,17 @@ export const filters: RankingsFilters = {
         displayActive: true,
         type: FilterType.MULTI,
         values: [
-            { name: 'filter_song_type_all', value: null },
             { name: 'filter_song_type_original', value: SongType.ORIGINAL },
             { name: 'filter_song_type_remix', value: SongType.REMIX },
             { name: 'filter_song_type_other', value: SongType.OTHER },
         ]
     },
     excludeSongTypes: {
-        name: 'filter_song_type', // name
+        name: 'filter_song_type_exclude', // name
         key: 'excludeSongTypes',
         displayActive: true,
         type: FilterType.MULTI,
         values: [
-            { name: 'filter_song_type_all', value: null },
             { name: 'filter_song_type_original', value: SongType.ORIGINAL },
             { name: 'filter_song_type_remix', value: SongType.REMIX },
             { name: 'filter_song_type_other', value: SongType.OTHER },
@@ -110,7 +106,6 @@ export const filters: RankingsFilters = {
         displayActive: true,
         type: FilterType.MULTI,
         values: [
-            { name: 'filter_artist_type_all', value: null },
             { name: 'filter_artist_type_vocaloid', value: ArtistType.VOCALOID },
             { name: 'filter_artist_type_cevio', value: ArtistType.CEVIO },
             { name: 'filter_artist_type_synth_v', value: ArtistType.SYNTHESIZER_V },
@@ -126,12 +121,11 @@ export const filters: RankingsFilters = {
         ]
     },
     excludeArtistTypes: {
-        name: 'filter_artist_type', // name
+        name: 'filter_artist_type_exclude', // name
         key: 'excludeArtistTypes',
         displayActive: true,
         type: FilterType.MULTI,
         values: [
-            { name: 'filter_artist_type_all', value: null },
             { name: 'filter_artist_type_vocaloid', value: ArtistType.VOCALOID },
             { name: 'filter_artist_type_cevio', value: ArtistType.CEVIO },
             { name: 'filter_artist_type_synth_v', value: ArtistType.SYNTHESIZER_V },
@@ -197,14 +191,14 @@ function parseParamSelectFilterValue(
     defaultValue?: number
 ): number | null {
     // get the filterValue and return it
-    const valueNumber = paramValue == undefined || isNaN(paramValue) ? defaultValue : paramValue
-    return valueNumber ? (values[valueNumber] || defaultValue && values[defaultValue]).value : null
+    const valueNumber = (paramValue == undefined || isNaN(paramValue)) ? (defaultValue == undefined || isNaN(defaultValue)) ? null : defaultValue : paramValue
+    return valueNumber != null ? (values[valueNumber]).value : null
 }
 
 function parseParamMultiFilterValue(
     paramValue: string | undefined,
     values: SelectFilterValue<number>[],
-    separator: string = ''
+    separator: string = ','
 ): number[] | undefined {
     const ids: number[] = []
 
@@ -233,7 +227,7 @@ export default async function RankingsPage(
         params: {
             lang: Locale
         },
-        searchParams: RankingsFiltersValues
+        searchParams: SongRankingsFiltersValues
     }
 ) {
     // import language dictionary
@@ -286,6 +280,7 @@ export default async function RankingsPage(
         filterParams.timestamp = searchParams.timestamp
         filterParams.singleVideo = parseParamCheckboxFilterValue(searchParams.singleVideo)
     }
+    console.log(filterParams)
     const rankings = await filterSongRankings(filterParams)
     const mostRecentTimestamp = await getMostRecentViewsTimestamp() || rankings.timestamp
 

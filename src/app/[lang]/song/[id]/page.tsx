@@ -286,7 +286,7 @@ export default async function SongPage(
 
             <div className="mt-3 w-full grid md:grid-cols-sidebar grid-cols-1 gap-5">
                 <aside className="flex flex-col gap-5">
-                    <ul className="bg-surface-container-low rounded-2xl p-5 box-border flex md:flex-col flex-row gap-5 overflow-x-scroll overflow-y-clip md:overflow-x-clip">
+                    <ul className="bg-surface-container-low rounded-2xl p-5 box-border flex md:flex-col flex-row gap-5 overflow-x-auto overflow-y-clip md:overflow-x-clip">
                         <StatRow title={langDict.filter_publish_date}>
                             <DateFormatter date={new Date(song.publishDate)} />
                         </StatRow>
@@ -341,7 +341,7 @@ export default async function SongPage(
                             </div>
                         </Section>
                         <Section title={langDict.song_daily_views}>
-                            <div className="bg-surface-container-low rounded-2xl p-5 flex justify-between md:gap-4 gap-1 overflow-x-scroll overflow-y-clip">
+                            <div className="bg-surface-container-low rounded-2xl p-5 flex justify-between md:gap-4 gap-1 overflow-x-auto overflow-y-clip">
                                 {historicalViewsResult.views.map(historicalViews => {
                                     const views = historicalViews.views as number
                                     return <section className="flex flex-col h-[142px] justify-end items-center">

@@ -2,7 +2,7 @@
 import { LanguageDictionary, LanguageDictionaryKey } from "@/localization"
 import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
-import { CheckboxFilter, Filter, FilterType, InputFilter, PopupAlignment, RankingsFilters, RankingsFiltersValues, SelectFilter, SelectFilterValue } from "./types"
+import { CheckboxFilter, Filter, FilterType, InputFilter, PopupAlignment, RankingsFilters, SongRankingsFiltersValues, SelectFilter, SelectFilterValue, SongRankingsFilterBarValues, MultiFilter } from "./types"
 import { FilledIconButton } from "@/components/material/filled-icon-button"
 import { CheckboxFilterElement } from "@/components/filter/checkbox-filter"
 import { ActiveFilter } from "@/components/filter/active-filter"
@@ -14,6 +14,8 @@ import { NumberInputFilterElement } from "@/components/filter/number-input-filte
 import { DateFilterElement } from "@/components/filter/date-filter"
 import { Elevation } from "@/material/types"
 import { NumberSelectFilterElement } from "@/components/filter/number-select-filter"
+import { ToggleGroupFilterElement } from "@/components/filter/toggle-group-filter"
+import { MultiSelectFilterElement } from "@/components/filter/multi-select-filter"
 
 function generateSelectFilterValues<valueType>(
     start: number,
@@ -38,6 +40,33 @@ function decodeBoolean(
     num?: number
 ): boolean {
     return num == 1
+}
+
+function encodeMultiFilter(
+    values: number[],
+    separator: string = ','
+): string {
+    const builder = []
+    for (const value of values) {
+        if (!isNaN(value)) builder.push(value)
+    }
+    return builder.join(separator)
+}
+
+function decodeMultiFilter(
+    input?: string,
+    separator: string = ','
+): number[] {
+    const output: number[] = []
+
+    input?.split(separator).map(rawValue => {
+        const parsed = Number(rawValue)
+        if (!isNaN(parsed)) {
+            output.push(parsed)
+        }
+    })
+
+    return output
 }
 
 function PopupIconButton(
@@ -93,18 +122,40 @@ export function SongRankingsFilterBar(
         href: string
         filters: RankingsFilters
         langDict: LanguageDictionary
-        values: RankingsFiltersValues
+        values: SongRankingsFiltersValues
         currentTimestamp: string
     }
 ) {
     const router = useRouter()
 
-    const [filterValues, setFilterValues] = useState(values)
+    const [filterValues, setFilterValues] = useState({
+        search: values.search,
+        timePeriod: values.timePeriod,
+        publishYear: values.publishYear,
+        publishMonth: values.publishMonth,
+        publishDay: values.publishDay,
+        includeSourceTypes: decodeMultiFilter(values.includeSourceTypes),
+        excludeSourceTypes: decodeMultiFilter(values.excludeSourceTypes),
+        includeSongTypes: decodeMultiFilter(values.includeSongTypes),
+        excludeSongTypes: decodeMultiFilter(values.excludeSongTypes),
+        includeArtistTypes: decodeMultiFilter(values.includeArtistTypes),
+        excludeArtistTypes: decodeMultiFilter(values.excludeArtistTypes),
+        minViews: values.minViews,
+        maxViews: values.maxViews,
+        orderBy: values.orderBy,
+        timestamp: values.timestamp,
+        singleVideo: decodeBoolean(Number(values.singleVideo))
+    } as SongRankingsFilterBarValues)
 
     // timeouts
     const searchTimeout = useRef<NodeJS.Timeout>()
     const minViewsTimeout = useRef<NodeJS.Timeout>()
     const maxViewsTimeout = useRef<NodeJS.Timeout>()
+
+    // options
+    const sourceTypesOptions = filters.includeSourceTypes.values.map(value => langDict[value.name])
+    const songTypesOptions = filters.includeSongTypes.values.map(value => langDict[value.name])
+    const artistTypesOptions = filters.includeArtistTypes.values.map(value => langDict[value.name])
 
     function saveFilterValues(route: boolean = true) {
         setFilterValues({ ...filterValues })
@@ -118,14 +169,17 @@ export function SongRankingsFilterBar(
                     switch (filter.type) {
                         case FilterType.SELECT:
                         case FilterType.INPUT:
+                            if (value != (filter as InputFilter).defaultValue) queryBuilder.push(`${key}=${value}`)
+                            break
                         case FilterType.CHECKBOX:
-                            queryBuilder.push(value == (filter as InputFilter).defaultValue ? '' : `${key}=${value}`)
-                            break;
+                            if (value) queryBuilder.push(`${key}=${encodeBoolean(value as boolean)}`)
+                            break
                         case FilterType.MULTI:
-                            queryBuilder.push(value == '' ? '' : `${key}=${value}`)
-                            break;
+                            const encoded = encodeMultiFilter(value as number[])
+                            if (encoded != '') queryBuilder.push(`${key}=${encoded}`)
+                            break
                     }
-                    
+
                 }
             }
             router.push(`${href}?${queryBuilder.join('&')}`)
@@ -153,17 +207,33 @@ export function SongRankingsFilterBar(
                 }
                 case FilterType.INPUT: {
                     const defaultValue = (filter as InputFilter).defaultValue
-                    if (value != defaultValue) {
+                    if (value && value != defaultValue) {
                         activeFilters.push(<ActiveFilter name={`${langDict[filter.name]}: ${String(value)}`} onClick={() => { filterValues[key as keyof typeof filterValues] = defaultValue as any; saveFilterValues() }} />)
                     }
                     break
                 }
                 case FilterType.CHECKBOX: {
                     const defaultValue = (filter as CheckboxFilter).defaultValue
-                    if (decodeBoolean(value as number) != defaultValue) {
+                    if (value as boolean != defaultValue) {
                         activeFilters.push(<ActiveFilter name={langDict[filter.name]} onClick={() => { filterValues[key as keyof typeof filterValues] = defaultValue as any; saveFilterValues() }} />)
                     }
                     break
+                }
+                case FilterType.MULTI: {
+                    const options = (filter as MultiFilter<number>).values
+                    const parsedValue = value as number[]
+                    if (parsedValue.length > 0) {
+                        parsedValue.forEach(val => {
+                            if (!isNaN(val)) {
+                                activeFilters.push(<ActiveFilter name={`${langDict[filter.name]}: ${langDict[options[val].name]}`} onClick={() => {
+                                    parsedValue.splice(parsedValue.indexOf(val), 1)
+                                    filterValues[key as keyof typeof filterValues] = [...parsedValue] as any
+                                    saveFilterValues()
+                                }} />)
+                            }
+                        })
+                    }
+
                 }
             }
         }
@@ -174,23 +244,66 @@ export function SongRankingsFilterBar(
             <li className="flex gap-5 items-end">
                 <ul className="flex gap-5 flex-1">
                     {/* Search */}
-                    <InputFilterElement icon='search' name={langDict[filters.search.name]} value={filterValues.search || ''} placeholder={langDict[filters.search.placeholder]} defaultValue={filters.search.defaultValue} onValueChanged={(newValue) => {
-                        filterValues.search = newValue
-                        saveFilterValues(false)
+                    <InputFilterElement
+                        icon='search'
+                        name={langDict[filters.search.name]}
+                        value={filterValues.search || ''}
+                        placeholder={langDict[filters.search.placeholder]}
+                        defaultValue={filters.search.defaultValue}
+                        onValueChanged={(newValue) => {
+                            filterValues.search = newValue
+                            saveFilterValues(false)
 
-                        timeoutDebounce(searchTimeout, 500, saveFilterValues)
-                    }} />
+                            timeoutDebounce(searchTimeout, 500, saveFilterValues)
+                        }}
+                    />
                     {/* Source Type */}
-                    {/* <SelectFilterElement name={langDict[filters.sourceType.name]} value={Number(filterValues.sourceType)} defaultValue={filters.sourceType.defaultValue} options={filters.sourceType.values.map(value => langDict[value.name])} onValueChanged={newValue => { filterValues.sourceType = newValue; saveFilterValues() }} /> */}
-                    {/* Time Period */}
-                    <SelectFilterElement name={langDict[filters.timePeriod.name]} value={Number(filterValues.timePeriod)} defaultValue={filters.timePeriod.defaultValue} options={filters.timePeriod.values.map(value => langDict[value.name])} onValueChanged={(newValue) => { filterValues.timePeriod = newValue; saveFilterValues() }} />
+                    <MultiSelectFilterElement
+                        name={langDict[filters.includeSourceTypes.name]}
+                        value={filterValues.includeSourceTypes || []}
+                        placeholder={langDict['filter_view_type_combined']}
+                        options={sourceTypesOptions}
+                        onValueChanged={newValue => {
+                            filterValues.includeSourceTypes = [...newValue]
+                            saveFilterValues()
+                        }}
+                    />
+                    {/* Song Type */}
+                    <MultiSelectFilterElement
+                        name={langDict[filters.includeSongTypes.name]}
+                        value={filterValues.includeSongTypes || []}
+                        placeholder={langDict['filter_song_type_all']}
+                        options={songTypesOptions}
+                        onValueChanged={newValue => {
+                            filterValues.includeSongTypes = [...newValue]
+                            saveFilterValues()
+                        }}
+                    />
                     {/* Artist Type */}
-                    {/* <SelectFilterElement searchable name={langDict[filters.artistType.name]} value={Number(filterValues.artistType)} defaultValue={filters.artistType.defaultValue} options={filters.artistType.values.map(value => langDict[value.name])} onValueChanged={(newValue) => { filterValues.artistType = newValue; saveFilterValues() }} /> */}
+                    <MultiSelectFilterElement
+                        name={langDict[filters.includeArtistTypes.name]}
+                        value={filterValues.includeArtistTypes || []}
+                        placeholder={langDict['filter_artist_type_all']}
+                        options={artistTypesOptions}
+                        onValueChanged={newValue => {
+                            filterValues.includeArtistTypes = [...newValue]
+                            saveFilterValues()
+                        }}
+                    />
+                    {/* Time Period */}
+                    <SelectFilterElement
+                        name={langDict[filters.timePeriod.name]}
+                        value={Number(filterValues.timePeriod)}
+                        defaultValue={filters.timePeriod.defaultValue}
+                        options={filters.timePeriod.values.map(value => langDict[value.name])}
+                        onValueChanged={(newValue) => {
+                            filterValues.timePeriod = newValue
+                            saveFilterValues()
+                        }}
+                    />
                 </ul>
                 <PopupIconButton icon='tune' align={PopupAlignment.RIGHT}>
                     <li key='popup-row-1'><ul className="flex flex-row gap-5">
-                        {/* Song Type */}
-                        {/* <SelectFilterElement elevation={Elevation.HIGH} modalElevation={Elevation.HIGHEST} name={langDict[filters.songType.name]} value={Number(filterValues.songType)} defaultValue={filters.songType.defaultValue} options={filters.songType.values.map(value => langDict[value.name])} onValueChanged={(newValue) => { filterValues.songType = newValue; saveFilterValues() }} /> */}
                         {/* Minimum Views*/}
                         <NumberInputFilterElement elevation={Elevation.HIGH} name={langDict[filters.minViews.name]} value={filterValues.minViews || filters.minViews.defaultValue} placeholder={langDict[filters.minViews.placeholder]} defaultValue={filters.minViews.defaultValue} onValueChanged={(newValue) => {
                             filterValues.minViews = newValue;
@@ -218,14 +331,34 @@ export function SongRankingsFilterBar(
                         {/* Timestamp */}
                         <DateFilterElement elevation={Elevation.HIGH} name={langDict[filters.timestamp.name]} value={filterValues.timestamp || currentTimestamp} max={currentTimestamp} onValueChanged={newValue => { filterValues.timestamp = newValue; saveFilterValues() }} />
                         {/* Single Video Mode */}
-                        <CheckboxFilterElement name={langDict[filters.singleVideo.name]} value={decodeBoolean(filterValues.singleVideo)} onValueChanged={(newValue) => { filterValues.singleVideo = encodeBoolean(newValue); saveFilterValues() }} />
+                        <CheckboxFilterElement name={langDict[filters.singleVideo.name]} value={filterValues.singleVideo || filters.singleVideo.defaultValue} onValueChanged={(newValue) => { filterValues.singleVideo = newValue; saveFilterValues() }} />
                     </ul></li>
+                    <li key='popup-row-4' className="flex flex-col gap-5">
+                        {/* Source Type */}
+                        <ToggleGroupFilterElement name={langDict['filter_view_type']} included={filterValues.includeSourceTypes || []} excluded={filterValues.excludeSourceTypes || []} options={sourceTypesOptions} onValueChanged={(newIncluded, newExcluded) => {
+                            filterValues.includeSourceTypes = [...newIncluded]
+                            filterValues.excludeSourceTypes = [...newExcluded]
+                            saveFilterValues()
+                        }}></ToggleGroupFilterElement>
+                        {/* Song Type */}
+                        <ToggleGroupFilterElement name={langDict['filter_song_type']} included={filterValues.includeSongTypes || []} excluded={filterValues.excludeSongTypes || []} options={songTypesOptions} onValueChanged={(newIncluded, newExcluded) => {
+                            filterValues.includeSongTypes = [...newIncluded]
+                            filterValues.excludeSongTypes = [...newExcluded]
+                            saveFilterValues()
+                        }}></ToggleGroupFilterElement>
+                        {/* Artist Type */}
+                        <ToggleGroupFilterElement name={langDict['filter_artist_type']} included={filterValues.includeArtistTypes || []} excluded={filterValues.excludeArtistTypes || []} options={artistTypesOptions} onValueChanged={(newIncluded, newExcluded) => {
+                            filterValues.includeArtistTypes = [...newIncluded]
+                            filterValues.excludeArtistTypes = [...newExcluded]
+                            saveFilterValues()
+                        }}></ToggleGroupFilterElement>
+                    </li>
                 </PopupIconButton>
             </li>
-            <li><ul className="flex gap-5 items-center justify-end">
+            <li key='filter-bar-row-2'><ul className="flex gap-5 items-center justify-end">
                 {/* Active Filters */}
                 {activeFilters.length > 0 &&
-                    <li key='activeFilters' className="flex-1"><ul className="flex gap-3">
+                    <li key='activeFilters' className="flex-1 overflow-x-auto overflow-y-clip"><ul className="flex gap-3">
                         {activeFilters}
                     </ul></li>
                 }

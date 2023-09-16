@@ -119,7 +119,7 @@ export interface RankingsFilters {
     singleVideo: CheckboxFilter
 }
 
-export interface RankingsFiltersValues {
+export interface SongRankingsFiltersValues {
     search?: string
     timePeriod?: number
     publishYear?: string
@@ -136,4 +136,23 @@ export interface RankingsFiltersValues {
     orderBy?: number
     timestamp?: string
     singleVideo?: number
+}
+
+export interface SongRankingsFilterBarValues {
+    search?: string
+    timePeriod?: number
+    publishYear?: string
+    publishMonth?: string
+    publishDay?: string
+    includeSourceTypes?: number[]
+    includeSongTypes?: number[]
+    includeArtistTypes?: number[]
+    excludeSourceTypes?: number[]
+    excludeSongTypes?: number[]
+    excludeArtistTypes?: number[]
+    minViews?: string
+    maxViews?: string
+    orderBy?: number
+    timestamp?: string
+    singleVideo?: boolean
 }
