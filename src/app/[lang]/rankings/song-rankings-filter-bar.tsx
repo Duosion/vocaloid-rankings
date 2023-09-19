@@ -16,6 +16,7 @@ import { Elevation } from "@/material/types"
 import { NumberSelectFilterElement } from "@/components/filter/number-select-filter"
 import { ToggleGroupFilterElement } from "@/components/filter/toggle-group-filter"
 import { MultiSelectFilterElement } from "@/components/filter/multi-select-filter"
+import { ExpansionPanel } from "@/components/transitions/expansion-panel"
 
 function generateSelectFilterValues<valueType>(
     start: number,
@@ -98,10 +99,10 @@ function PopupIconButton(
 
     const alignment = align == PopupAlignment.LEFT ? 'left-0' : align == PopupAlignment.RIGHT ? 'right-0' : 'right-0 left-0'
     return (
-        <ul className="flex flex-col">
+        <ul className="flex flex-col z-20">
             <FilledIconButton icon={icon} onClick={_ => setModalOpen(true)} />
             <FadeInOut visible={modalOpen}>
-                <div className="relative w-full h-0 z-10">
+                <div className="relative w-full h-0">
                     <ul ref={modalRef} className={`absolute top-3 w-fit rounded-xl bg-surface-container shadow-md p-5 flex flex-col gap-3 ${alignment}`}>
                         {children}
                     </ul>
@@ -240,7 +241,7 @@ export function SongRankingsFilterBar(
     }
 
     return (
-        <ul className="flex flex-col gap-5 w-full mt-5">
+        <ul className="flex flex-col gap-5 w-full mt-5 z-10">
             <li className="flex gap-5 items-end">
                 <ul className="flex gap-5 flex-1">
                     {/* Search */}
@@ -281,6 +282,7 @@ export function SongRankingsFilterBar(
                     />
                     {/* Artist Type */}
                     <MultiSelectFilterElement
+                        searchable
                         name={langDict[filters.includeArtistTypes.name]}
                         value={filterValues.includeArtistTypes || []}
                         placeholder={langDict['filter_artist_type_all']}
@@ -321,11 +323,51 @@ export function SongRankingsFilterBar(
                     </ul></li>
                     <li key='popup-row-2'><ul className="flex flex-row gap-5">
                         {/* Publish Year */}
-                        <NumberSelectFilterElement reverse elevation={Elevation.HIGH} modalElevation={Elevation.HIGHEST} name={langDict[filters.publishYear.name]} value={Number(filterValues.publishYear)} defaultValue={0} start={2007} end={new Date().getFullYear() + 1} onValueChanged={newValue => { filterValues.publishYear = String(newValue); saveFilterValues() }} />
+                        <NumberSelectFilterElement
+                            reverse
+                            elevation={Elevation.HIGH}
+                            modalElevation={Elevation.HIGHEST}
+                            name={langDict[filters.publishYear.name]}
+                            placeholder={langDict[filters.publishYear.placeholder]}
+                            value={Number(filterValues.publishYear)}
+                            defaultValue={0}
+                            start={2007}
+                            end={new Date().getFullYear() + 1}
+                            onValueChanged={newValue => {
+                                filterValues.publishYear = newValue == undefined ? undefined : String(newValue)
+                                saveFilterValues()
+                            }}
+                        />
                         {/* Publish Month */}
-                        <NumberSelectFilterElement elevation={Elevation.HIGH} modalElevation={Elevation.HIGHEST} name={langDict[filters.publishMonth.name]} value={Number(filterValues.publishMonth)} defaultValue={0} start={1} end={13} onValueChanged={newValue => { filterValues.publishMonth = String(newValue); saveFilterValues() }} />
+                        <NumberSelectFilterElement
+                            elevation={Elevation.HIGH}
+                            modalElevation={Elevation.HIGHEST}
+                            name={langDict[filters.publishMonth.name]}
+                            placeholder={langDict[filters.publishMonth.placeholder]}
+                            value={Number(filterValues.publishMonth)}
+                            defaultValue={0}
+                            start={1}
+                            end={13}
+                            onValueChanged={newValue => {
+                                filterValues.publishMonth = newValue == undefined ? undefined : String(newValue)
+                                saveFilterValues()
+                            }}
+                        />
                         {/* Publish Day */}
-                        <NumberSelectFilterElement elevation={Elevation.HIGH} modalElevation={Elevation.HIGHEST} name={langDict[filters.publishDay.name]} value={Number(filterValues.publishYear)} defaultValue={0} start={1} end={32} onValueChanged={newValue => { filterValues.publishDay = String(newValue); saveFilterValues() }} />
+                        <NumberSelectFilterElement
+                            elevation={Elevation.HIGH}
+                            modalElevation={Elevation.HIGHEST}
+                            name={langDict[filters.publishDay.name]}
+                            placeholder={langDict[filters.publishDay.placeholder]}
+                            value={Number(filterValues.publishYear)}
+                            defaultValue={0}
+                            start={1}
+                            end={32}
+                            onValueChanged={newValue => {
+                                filterValues.publishDay = newValue == undefined ? undefined : String(newValue)
+                                saveFilterValues()
+                            }}
+                        />
                     </ul></li>
                     <li key='popup-row-3'><ul className="flex flex-row gap-5 items-center">
                         {/* Timestamp */}
@@ -334,24 +376,26 @@ export function SongRankingsFilterBar(
                         <CheckboxFilterElement name={langDict[filters.singleVideo.name]} value={filterValues.singleVideo || filters.singleVideo.defaultValue} onValueChanged={(newValue) => { filterValues.singleVideo = newValue; saveFilterValues() }} />
                     </ul></li>
                     <li key='popup-row-4' className="flex flex-col gap-5">
-                        {/* Source Type */}
-                        <ToggleGroupFilterElement name={langDict['filter_view_type']} included={filterValues.includeSourceTypes || []} excluded={filterValues.excludeSourceTypes || []} options={sourceTypesOptions} onValueChanged={(newIncluded, newExcluded) => {
-                            filterValues.includeSourceTypes = [...newIncluded]
-                            filterValues.excludeSourceTypes = [...newExcluded]
-                            saveFilterValues()
-                        }}></ToggleGroupFilterElement>
-                        {/* Song Type */}
-                        <ToggleGroupFilterElement name={langDict['filter_song_type']} included={filterValues.includeSongTypes || []} excluded={filterValues.excludeSongTypes || []} options={songTypesOptions} onValueChanged={(newIncluded, newExcluded) => {
-                            filterValues.includeSongTypes = [...newIncluded]
-                            filterValues.excludeSongTypes = [...newExcluded]
-                            saveFilterValues()
-                        }}></ToggleGroupFilterElement>
-                        {/* Artist Type */}
-                        <ToggleGroupFilterElement name={langDict['filter_artist_type']} included={filterValues.includeArtistTypes || []} excluded={filterValues.excludeArtistTypes || []} options={artistTypesOptions} onValueChanged={(newIncluded, newExcluded) => {
-                            filterValues.includeArtistTypes = [...newIncluded]
-                            filterValues.excludeArtistTypes = [...newExcluded]
-                            saveFilterValues()
-                        }}></ToggleGroupFilterElement>
+                        <ExpansionPanel label='Advanced Filters'>
+                            {/* Source Type */}
+                            <ToggleGroupFilterElement name={langDict['filter_view_type']} included={filterValues.includeSourceTypes || []} excluded={filterValues.excludeSourceTypes || []} options={sourceTypesOptions} onValueChanged={(newIncluded, newExcluded) => {
+                                filterValues.includeSourceTypes = [...newIncluded]
+                                filterValues.excludeSourceTypes = [...newExcluded]
+                                saveFilterValues()
+                            }} />
+                            {/* Song Type */}
+                            <ToggleGroupFilterElement name={langDict['filter_song_type']} included={filterValues.includeSongTypes || []} excluded={filterValues.excludeSongTypes || []} options={songTypesOptions} onValueChanged={(newIncluded, newExcluded) => {
+                                filterValues.includeSongTypes = [...newIncluded]
+                                filterValues.excludeSongTypes = [...newExcluded]
+                                saveFilterValues()
+                            }} />
+                            {/* Artist Type */}
+                            <ToggleGroupFilterElement name={langDict['filter_artist_type']} included={filterValues.includeArtistTypes || []} excluded={filterValues.excludeArtistTypes || []} options={artistTypesOptions} onValueChanged={(newIncluded, newExcluded) => {
+                                filterValues.includeArtistTypes = [...newIncluded]
+                                filterValues.excludeArtistTypes = [...newExcluded]
+                                saveFilterValues()
+                            }} />
+                        </ExpansionPanel>
                     </li>
                 </PopupIconButton>
             </li>

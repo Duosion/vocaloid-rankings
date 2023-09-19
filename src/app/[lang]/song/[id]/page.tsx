@@ -56,9 +56,6 @@ const tonalSurfaceContainers = {
 }
 
 // theme generation helper functions
-const getRgbMdTokenFromArgb = (argb: number, suffix = '') => {
-    return `--md-sys-color-${suffix}-rgb: ${redFromArgb(argb)} ${greenFromArgb(argb)} ${blueFromArgb(argb)};`
-}
 const getCustomThemeStylesheet = (
     theme: Scheme,
     dynamicScheme: SchemeContent
@@ -73,18 +70,6 @@ const getCustomThemeStylesheet = (
             lines.push(`--md-sys-color-${token}: ${color} !important;`)
         }
     }
-
-    // add primary rgb values
-    const primary = theme['primary']
-    if (primary) {
-        lines.push(getRgbMdTokenFromArgb(primary, "primary"))
-    }
-    // add bg rgb values
-    const background = theme['background']
-    if (background) {
-        lines.push(getRgbMdTokenFromArgb(background, "background"))
-    }
-
     // add tonal surface container values
     for (const key in tonalSurfaceContainers) {
         const dynamicColor = tonalSurfaceContainers[key as keyof typeof tonalSurfaceContainers]
@@ -235,8 +220,8 @@ export default async function SongPage(
         const schemes = theme.schemes
         // dynamic theme config
         const contrast = 0.3
-        customThemeLightCss = getCustomThemeStylesheet(schemes.light, new SchemeContent(Hct.fromInt(argbFromHex(song.lightColor)), false, contrast)).join('')
-        customThemeDarkCss = getCustomThemeStylesheet(schemes.dark, new SchemeContent(Hct.fromInt(argbFromHex(song.darkColor)), true, contrast)).join('')
+        customThemeLightCss = getCustomThemeStylesheet(schemes.light, new SchemeContent(Hct.fromInt(schemes.light.primary), false, contrast)).join('')
+        customThemeDarkCss = getCustomThemeStylesheet(schemes.dark, new SchemeContent(Hct.fromInt(schemes.dark.primary), true, contrast)).join('')
     }
 
     // generate vocadb link
@@ -274,8 +259,7 @@ export default async function SongPage(
                     fill
                     src={song.maxresThumbnail}
                     alt={getEntityName(songNames, settingTitleLanguage)}
-                    style={{ objectFit: "cover" }}
-                    className="z-1"
+                    className="z-1 object-cover"
                 />
             </figure>
 
@@ -347,7 +331,7 @@ export default async function SongPage(
                                     return <section className="flex flex-col h-[142px] justify-end items-center">
                                         <div className="bg-primary w-5 rounded-full" style={{ flex: views / largestHistoricalViews }}></div>
                                         <h4 className="text-on-surface font-semibold md:text-lg text-md mt-1"><NumberFormatter number={views} compact /></h4>
-                                        <span className="text-on-surface md:text-base text-sm"><DateFormatter date={new Date(historicalViews.timestamp)} compact /></span>
+                                        <span className="text-on-surface-variant md:text-base text-sm"><DateFormatter date={new Date(historicalViews.timestamp)} compact /></span>
                                     </section>
                                 })}
                             </div>

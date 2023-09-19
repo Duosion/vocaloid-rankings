@@ -15,7 +15,7 @@ function ActiveValue(
     }
 ) {
     return (
-        <button className="px-3 py-1 rounded-lg text-sm text-on-surface border border-on-background box-border whitespace-nowrap" onClick={_ => {
+        <button className="px-3 rounded-lg text-sm text-on-surface border border-on-background box-border whitespace-nowrap" onClick={_ => {
             if (onClick) {
                 onClick()
             }
@@ -94,7 +94,7 @@ export function MultiSelectFilterElement(
             >
                 {searchable
                     ? <input type='search' onFocus={() => { setSearchQuery(''); setInputFocused(true) }} onBlur={() => setInputFocused(false)} onChange={(event) => { setSearchQuery(event.currentTarget.value.toLowerCase()) }} value={inputFocused ? searchQuery : ''} className={`cursor-text bg-transparent outline-none text-left w-32 ${valueIsDefault ? 'text-on-surface-variant' : 'text-primary'}`} />
-                    : <span className={`bg-transparent outline-none cursor-pointer text-left w-32 flex gap-2 ${valueIsDefault ? 'text-on-surface-variant' : 'text-primary'}`}>{valueIsDefault ? placeholder : activeValues}</span>
+                    : <span className={`bg-transparent outline-none cursor-pointer text-left w-32 flex gap-2 overflow-hidden ${valueIsDefault ? 'text-on-surface-variant' : 'text-primary'}`}>{valueIsDefault ? placeholder : activeValues}</span>
                 }
                 {valueIsDefault ? <Icon icon={icon} /> : <Icon icon={clearIcon} />}
             </div>
@@ -108,7 +108,7 @@ export function MultiSelectFilterElement(
                             const isSelected = selectedIndex != -1
                             return searchable && option.toLowerCase().match(searchQuery) || !searchable ? (
                                 <li key={index}>
-                                    <button key={index} className="flex w-full font-normal h-auto overflow-clip text-ellipsis p-2 rounded-xl relative transition-colors hover:bg-surface-container-highest" onClick={(e) => {
+                                    <button key={index} className="flex w-full font-normal h-auto p-2 rounded-xl relative transition-colors hover:bg-surface-container-highest" onClick={(e) => {
                                         e.preventDefault()
                                         if (isSelected) {
                                             value.splice(selectedIndex, 1)
