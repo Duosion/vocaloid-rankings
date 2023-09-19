@@ -1,5 +1,5 @@
-import { filterArtistRankings, filterSongRankings, getMostRecentViewsTimestamp } from "@/data/songsData"
-import { ArtistCategory, ArtistType, FilterOrder, NameType, SongRankingsFilterParams, SongType, SourceType } from "@/data/types"
+import { filterSongRankings, getMostRecentViewsTimestamp } from "@/data/songsData"
+import { ArtistCategory, ArtistType, FilterOrder, SongRankingsFilterParams, SongType, SourceType } from "@/data/types"
 import { Locale, getDictionary, getEntityName } from "@/localization"
 import { cookies } from "next/dist/client/components/headers"
 import Link from "next/link"
@@ -9,6 +9,7 @@ import { FilterType, SongRankingsFiltersValues, RankingsFilters, SelectFilterVal
 import { EntityName } from "@/components/formatters/entity-name"
 import { NumberFormatter } from "@/components/formatters/number-formatter"
 import SongThumbnail from "@/components/song-thumbnail"
+import Image from "next/image"
 
 export const filters: RankingsFilters = {
     search: {
@@ -251,7 +252,7 @@ export default async function RankingsPage(
         }
 
         filterParams.timePeriodOffset = parseParamSelectFilterValue(Number(searchParams.timePeriod), filters.timePeriod.values, filters.timePeriod.defaultValue) as number
-        {   
+        {
             const yearParam = searchParams.publishYear
             const monthParam = searchParams.publishMonth
             const dayParam = searchParams.publishDay
@@ -280,15 +281,15 @@ export default async function RankingsPage(
         filterParams.timestamp = searchParams.timestamp
         filterParams.singleVideo = parseParamCheckboxFilterValue(searchParams.singleVideo)
     }
-    console.log(filterParams)
+
     const rankings = await filterSongRankings(filterParams)
     const mostRecentTimestamp = await getMostRecentViewsTimestamp() || rankings.timestamp
 
     return (
         <section className="flex flex-col gap-5 w-full min-h-screen">
             <h1 className="font-extrabold md:text-5xl md:text-left text-4xl text-center w-full">{langDict.rankings_page_title}</h1>
-            <SongRankingsFilterBar href='' filters={filters} langDict={langDict} values={searchParams} currentTimestamp={mostRecentTimestamp}/>
-            <ol className="flex flex-col gap-3 w-full">
+            <SongRankingsFilterBar href='' filters={filters} langDict={langDict} values={searchParams} currentTimestamp={mostRecentTimestamp} />
+            <ol className="flex flex-col gap-5 w-full">
                 {0 >= rankings.totalCount ? <h2 className="text-3xl font-bold text-center text-on-background">{langDict.search_no_results}</h2> : rankings.results.map(ranking => {
                     const song = ranking.song
 
@@ -364,5 +365,51 @@ export function Ranking(
                 <span className="text-on-surface-variant text-md">{trailingSupporting}</span>
             </section>
         </li>
+    )
+}
+
+export function RankingCard(
+    {
+        key,
+        href,
+        titleContent,
+        placement,
+        icon,
+        iconAlt,
+        trailingTitleContent,
+        supportingContent,
+        trailingSupporting,
+        className = ''
+    }: {
+        key: string
+        href: string
+        titleContent: React.ReactNode
+        placement: number
+        icon: string
+        iconAlt: string
+        trailingTitleContent: React.ReactNode,
+        supportingContent?: React.ReactNode
+        trailingSupporting?: string,
+        className?: string
+    }
+) {
+    return (
+        <li key={key}><article className="flex flex-col gap-3">
+            <Link href={href}><figure className="w-full h-auto aspect-video overflow-hidden relative rounded-3xl flex justify-center items-center border border-outline-variant">
+                <Image
+                    fill
+                    src={icon}
+                    alt={iconAlt}
+                    className="object-cover"
+                />
+            </figure></Link>
+            <section className="flex flex-col gap-2">
+                <h3 className="text-on-surface text-2xl flex gap-2"><b className="font-bold">#{placement}</b><Link href={href} className="flex-1 font-semibold whitespace-nowrap overflow-hidden text-ellipsis">{titleContent}</Link></h3>
+                <section className="flex gap-1 text-xl">
+                    <h5>{trailingTitleContent}</h5>
+                    <h5>{trailingSupporting}</h5>
+                </section>
+            </section>
+        </article></li>
     )
 }
