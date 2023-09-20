@@ -4,6 +4,8 @@ import { FilterElement } from "./filter"
 import { FadeInOut } from "../transitions/fade-in-out"
 import { Elevation } from "@/material/types"
 import { elevationToClass } from "@/material"
+import { IconButton } from "../material/icon-button"
+import { MinimalIconButton } from "../material/minimal-icon-button"
 
 function ActiveValue(
     {
@@ -80,7 +82,10 @@ export function MultiSelectFilterElement(
 
     const activeValues: JSX.Element[] = []
     if (!valueIsDefault) {
-        activeValues.push(<ActiveValue name={options[value[0]]}/>)
+        activeValues.push(<ActiveValue name={options[value[0]]} onClick={() => {
+            value.splice(0, 1)
+            setValue(value)
+        }} />)
         if (valuesCount > 1) {
             activeValues.push(<ActiveValue name={`+${valuesCount - 1}`}></ActiveValue>)
         }
@@ -88,19 +93,35 @@ export function MultiSelectFilterElement(
 
     return (
         <FilterElement key={name} name={name}>
-            <div className={`py-2 px-4 rounded-xl text-on-surface flex gap-3 text-base font-normal cursor-pointer`}
+            <div className={`py-2 px-4 rounded-xl text-on-surface flex text-base font-normal`}
                 style={{ backgroundColor: `var(--md-sys-color-${elevationToClass[elevation]})` }}
-                onClick={() => setModalOpen(true)}
             >
-                {searchable
-                    ? <input type='search' onFocus={() => { setSearchQuery(''); setInputFocused(true) }} onBlur={() => setInputFocused(false)} onChange={(event) => { setSearchQuery(event.currentTarget.value.toLowerCase()) }} value={inputFocused ? searchQuery : ''} className={`cursor-text bg-transparent outline-none text-left w-32 ${valueIsDefault ? 'text-on-surface-variant' : 'text-primary'}`} />
-                    : <span className={`bg-transparent outline-none cursor-pointer text-left w-32 flex gap-2 overflow-hidden ${valueIsDefault ? 'text-on-surface-variant' : 'text-primary'}`}>{valueIsDefault ? placeholder : activeValues}</span>
+                {!valueIsDefault && !searchable ? <ul className="flex-1 flex gap-3 mr-3">{activeValues}</ul> : undefined}
+                {searchable ? <input
+                        type='search'
+                        placeholder={placeholder}
+                        onFocus={() => {
+                            setSearchQuery('')
+                            setInputFocused(true)
+                        }}
+                        onBlur={() => setInputFocused(false)}
+                        onChange={(event) => {
+                            setSearchQuery(event.currentTarget.value.toLowerCase())
+                        }}
+                        onClick={_ => setModalOpen(true)}
+                        value={inputFocused ? searchQuery : ''}
+                        className={`cursor-text bg-transparent outline-none text-left w-32 flex-1 text-on-surface pr-3`}
+                    />
+                    : valueIsDefault ? <button
+                        className={`bg-transparent outline-none cursor-pointer text-left w-32 flex gap-2 overflow-hidden flex-1 pr-3 ${valueIsDefault ? 'text-on-surface-variant' : 'text-primary'}`}
+                        onClick={_ => setModalOpen(true)}
+                    >{placeholder}</button> : undefined
                 }
-                {valueIsDefault ? <Icon icon={icon} /> : <Icon icon={clearIcon} />}
+                {valueIsDefault ? <MinimalIconButton icon={icon} onClick={_ => setModalOpen(!modalOpen)} /> : <MinimalIconButton icon={clearIcon} onClick={_ => setValue([])} />}
             </div>
             <FadeInOut visible={modalOpen}>
-                <div className="relative min-w-fit w-full h-0 z-20">
-                    <ul ref={modalRef} className="absolute top-2 min-w-[160px] w-full right-0 rounded-xl shadow-md p-2 max-h-72 overflow-y-scroll overflow-x-clip"
+                <div className="relative min-w-fit w-full h-0">
+                    <ul ref={modalRef} className="absolute top-2 min-w-fit w-full right-0 rounded-xl shadow-md p-2 max-h-72 overflow-y-scroll overflow-x-clip"
                         style={{ backgroundColor: `var(--md-sys-color-${elevationToClass[modalElevation]})` }}
                     >
                         {options.map((option, index) => {

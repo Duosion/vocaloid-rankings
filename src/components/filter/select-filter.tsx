@@ -4,6 +4,7 @@ import { FilterElement } from "./filter"
 import { FadeInOut } from "../transitions/fade-in-out"
 import { Elevation } from "@/material/types"
 import { elevationToClass } from "@/material"
+import { MinimalIconButton } from "../material/minimal-icon-button"
 
 export function SelectFilterElement(
     {
@@ -65,16 +66,31 @@ export function SelectFilterElement(
     }, [modalOpen])
 
     return (
-        <FilterElement key={name} name={name} minimal={minimal} className="z-10">
-            <div className={minimal ? 'text-on-background py-1 gap-3 w-fit flex justify-end items-center text-lg font-normal cursor-pointer' : `py-2 px-4 rounded-xl text-on-surface flex gap-3 text-base font-normal cursor-pointer`}
+        <FilterElement key={name} name={name} minimal={minimal} className={minimal ? undefined : "z-10"}>
+            <div className={minimal ? 'text-on-background py-1 w-fit flex justify-end items-center text-lg font-normal' : `py-2 px-4 rounded-xl text-on-surface flex text-base font-normal`}
                 style={{ backgroundColor: minimal ? undefined : `var(--md-sys-color-${elevationToClass[elevation]})` }}
-                onClick={() => setModalOpen(true)}
             >
                 {searchable
-                    ? <input type='search' onFocus={() => { setSearchQuery(''); setInputFocused(true) }} onBlur={() => setInputFocused(false)} onChange={(event) => { setSearchQuery(event.currentTarget.value.toLowerCase()) }} value={inputFocused ? searchQuery : valueName} className={`cursor-text bg-transparent outline-none text-left ${valueIsDefault ? 'text-on-surface-variant' : 'text-primary'} ${minimal ? 'w-fit' : 'w-32'}`} />
-                    : <span className={`bg-transparent outline-none cursor-pointer text-left ${valueIsDefault ? 'text-on-surface-variant' : 'text-primary'} ${minimal ? 'w-fit' : 'w-32'}`}>{valueName}</span>
+                    ? <input
+                        type='search'
+                        onFocus={() => {
+                            setSearchQuery('')
+                            setInputFocused(true)
+                        }}
+                        onBlur={() => setInputFocused(false)}
+                        onChange={(event) => { setSearchQuery(event.currentTarget.value.toLowerCase()) }}
+                        value={inputFocused ? searchQuery : valueName}
+                        className={`cursor-text bg-transparent outline-none text-left flex-1 pr-3 ${valueIsDefault ? 'text-on-surface-variant' : 'text-on-surface'} ${minimal ? 'w-fit' : 'w-32'}`}
+                    />
+                    : <button
+                        className={`bg-transparent outline-none cursor-pointer text-left w-fit flex gap-2 overflow-hidden flex-1 pr-3 ${valueIsDefault ? 'text-on-surface-variant' : 'text-on-surface'}`}
+                        onClick={_ => setModalOpen(true)}
+                    >{valueName}</button>
                 }
-                {valueIsDefault ? <Icon icon={icon}></Icon> : <Icon icon={clearIcon}></Icon>}
+                {valueIsDefault
+                    ? <MinimalIconButton icon={icon} onClick={_ => setModalOpen(!modalOpen)} />
+                    : <MinimalIconButton icon={clearIcon} onClick={_ => setValue(defaultValue)} />
+                }
             </div>
             <FadeInOut visible={modalOpen}>
                 <div className="relative min-w-fit w-full h-0">

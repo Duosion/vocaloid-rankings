@@ -2,6 +2,7 @@ import { Elevation } from "@/material/types"
 import { Icon } from "../material/icon"
 import { FilterElement } from "./filter"
 import { elevationToClass } from "@/material"
+import { MinimalIconButton } from "../material/minimal-icon-button"
 
 export function InputFilterElement(
     {
@@ -34,8 +35,8 @@ export function InputFilterElement(
                 style={{backgroundColor: `var(--md-sys-color-${elevationToClass[elevation]})`}}
             >
                 {icon && <Icon icon={icon} />}
-                <input type='search' placeholder={placeholder} onClick={e => e.preventDefault()} onChange={event => setValue(event.currentTarget.value)} value={value} className={`cursor-text bg-transparent w-32 outline-none text-left`} />
-                {value != defaultValue && <Icon icon='close'></Icon>}
+                <input type='search' placeholder={placeholder} onClick={e => e.preventDefault()} onChange={event => setValue(event.currentTarget.value)} value={value} className={`cursor-text bg-transparent min-w-32 w-full outline-none text-left`} />
+                {value != defaultValue && <MinimalIconButton icon='close' onClick={_ => {setValue(defaultValue)}}/>}
             </search>
         </FilterElement>
     )

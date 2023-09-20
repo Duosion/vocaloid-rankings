@@ -14,7 +14,7 @@ export function CheckboxFilterElement(
     }
 
     return (
-        <section className="flex gap-3 items-center">
+        <section className="flex flex-1 gap-3 items-center">
             <input id={name} type='checkbox' checked={value} onChange={newValue => setValue(newValue.currentTarget.checked)} />
             <label htmlFor={name} className="text-lg text-on-background font-normal">{name}</label>
         </section>

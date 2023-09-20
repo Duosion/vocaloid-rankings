@@ -30,7 +30,8 @@ const filters: RankingsFilters = {
             { name: 'filter_time_period_offset_all_time', value: null },
             { name: 'filter_time_period_offset_day', value: 1 },
             { name: 'filter_time_period_offset_week', value: 7 },
-            { name: 'filter_time_period_offset_month', value: 30 }
+            { name: 'filter_time_period_offset_month', value: 30 },
+            { name: 'filter_time_period_offset_custom', value: null}
         ],
         defaultValue: 0
     },

@@ -38,6 +38,7 @@
     "filter_time_period_offset_day": "",
     "filter_time_period_offset_week": "",
     "filter_time_period_offset_month": "",
+    "filter_time_period_offset_custom": "",
     "filter_time_period_offset_fuzzy": "",
     "filter_view_type": "",
     "filter_view_type_exclude": "",

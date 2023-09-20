@@ -292,19 +292,45 @@ export function SongRankingsFilterBar(
                             saveFilterValues()
                         }}
                     />
-                    {/* Time Period */}
-                    <SelectFilterElement
-                        name={langDict[filters.timePeriod.name]}
-                        value={Number(filterValues.timePeriod)}
-                        defaultValue={filters.timePeriod.defaultValue}
-                        options={filters.timePeriod.values.map(value => langDict[value.name])}
-                        onValueChanged={(newValue) => {
-                            filterValues.timePeriod = newValue
-                            saveFilterValues()
-                        }}
-                    />
                 </ul>
                 <PopupIconButton icon='tune' align={PopupAlignment.RIGHT}>
+                    <li key='popup-row-0'><ul className="flex flex-row gap-5">
+                        {/* Time Period */}
+                        <SelectFilterElement
+                            name={langDict[filters.timePeriod.name]}
+                            value={Number(filterValues.timePeriod)}
+                            defaultValue={filters.timePeriod.defaultValue}
+                            options={filters.timePeriod.values.map(value => langDict[value.name])}
+                            elevation={Elevation.HIGH}
+                            modalElevation={Elevation.HIGHEST}
+                            onValueChanged={(newValue) => {
+                                filterValues.timePeriod = newValue
+                                saveFilterValues()
+                            }}
+                        />
+                        {/* Custom Time Period Offset: From */}
+                        <DateFilterElement
+                            elevation={Elevation.HIGH}
+                            name={langDict[filters.timestamp.name]}
+                            value={filterValues.timestamp || currentTimestamp}
+                            max={currentTimestamp}
+                            onValueChanged={newValue => {
+                                filterValues.timestamp = newValue
+                                saveFilterValues()
+                            }}
+                        />
+                        {/* Custom Time Period Offset: To */}
+                        <DateFilterElement
+                            elevation={Elevation.HIGH}
+                            name={langDict[filters.timestamp.name]}
+                            value={filterValues.timestamp || currentTimestamp}
+                            max={currentTimestamp}
+                            onValueChanged={newValue => {
+                                filterValues.timestamp = newValue
+                                saveFilterValues()
+                            }}
+                        />
+                    </ul></li>
                     <li key='popup-row-1'><ul className="flex flex-row gap-5">
                         {/* Minimum Views*/}
                         <NumberInputFilterElement elevation={Elevation.HIGH} name={langDict[filters.minViews.name]} value={filterValues.minViews || filters.minViews.defaultValue} placeholder={langDict[filters.minViews.placeholder]} defaultValue={filters.minViews.defaultValue} onValueChanged={(newValue) => {

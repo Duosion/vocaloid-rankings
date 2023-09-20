@@ -38,6 +38,7 @@
     "filter_time_period_offset_day": "Past Day",
     "filter_time_period_offset_week": "Past Week",
     "filter_time_period_offset_month": "Past Month",
+    "filter_time_period_offset_custom": "Custom",
     "filter_time_period_offset_fuzzy": "Past :offset Days",
     "filter_view_type": "Source Type",
     "filter_view_type_exclude": "Exclude Source Type",

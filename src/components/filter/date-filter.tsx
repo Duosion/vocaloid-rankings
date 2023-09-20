@@ -30,7 +30,7 @@ export function DateFilterElement(
             <div className="py-2 px-4 rounded-xl text-on-surface flex gap-3 text-base font-normal"
                 style={{backgroundColor: `var(--md-sys-color-${elevationToClass[elevation]})`}}
             >
-                <input type='date' value={value} min={min} max={max} onChange={event => setValue(event.currentTarget.value)} className={`cursor-text bg-transparent min-w-fit w-32 outline-none text-left`} />
+                <input type='date' value={value} min={min} max={max} onChange={event => setValue(event.currentTarget.value)} className={`cursor-text bg-transparent min-w-fit w-32 outline-none text-left flex-1`} />
             </div>
         </FilterElement>
     )
