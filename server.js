@@ -29,11 +29,11 @@ fastify.register(require("@fastify/static"), {
 
 // register apis
 // v1
-{
+/*{
   const v1 = require(customModuleDirectory + "api/v1/index")
 
   fastify.register(v1.register, { prefix: "/api" + v1.prefix })
-}
+}*/
 
 // register cookie engine
 fastify.register(require('@fastify/cookie'), {
