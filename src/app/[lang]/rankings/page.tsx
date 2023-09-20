@@ -10,8 +10,9 @@ import { EntityName } from "@/components/formatters/entity-name"
 import { NumberFormatter } from "@/components/formatters/number-formatter"
 import SongThumbnail from "@/components/song-thumbnail"
 import Image from "next/image"
+import { Metadata } from "next"
 
-export const filters: RankingsFilters = {
+const filters: RankingsFilters = {
     search: {
         name: 'search_hint',
         key: 'search',
@@ -220,6 +221,22 @@ function parseParamCheckboxFilterValue(
     return !isNaN(paramNum) && paramNum == 1
 }
 
+export async function generateMetadata(
+    {
+      params
+    }: {
+      params: {
+        lang: Locale
+      }
+    }
+  ): Promise<Metadata> {
+    const langDict = await getDictionary(params.lang)
+  
+    return {
+      title: langDict.nav_rankings
+    }
+  }
+
 export default async function RankingsPage(
     {
         params,
@@ -327,7 +344,7 @@ export default async function RankingsPage(
     )
 }
 
-export function Ranking(
+function Ranking(
     {
         key,
         href,
@@ -368,7 +385,7 @@ export function Ranking(
     )
 }
 
-export function RankingCard(
+function RankingCard(
     {
         key,
         href,

@@ -1,5 +1,4 @@
 'use client'
-import type { Metadata } from 'next'
 import { NameType } from '@/data/types'
 import { useEffect, useState } from 'react'
 import { useTheme } from 'next-themes'
@@ -7,11 +6,7 @@ import { LanguageDictionary, Locale, getDictionary } from '@/localization'
 import { useSettings } from './settings-provider'
 import { NameTypeLocaleTokens } from '@/localization/DictionaryTokenMaps'
 
-export const metadata: Metadata = {
-  title: 'Settings'
-}
-
-export default function settings(
+export default function SettingsPage(
   {
     params
   }: {

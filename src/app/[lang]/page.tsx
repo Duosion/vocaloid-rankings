@@ -5,10 +5,6 @@ import { Locale, getDictionary } from '@/localization'
 import SongThumbnail from '@/components/song-thumbnail'
 import { FilledButton } from '@/components/material/filled-button'
 
-export const metadata: Metadata = {
-  title: 'Home'
-}
-
 export async function generateMetadata(
   {
     params

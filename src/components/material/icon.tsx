@@ -1,5 +1,3 @@
-import { HTMLAttributes } from "react"
-
 export function Icon(
     {
         icon,

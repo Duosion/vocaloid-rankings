@@ -3,7 +3,7 @@ import { Locale, getDictionary, getEntityName } from "@/localization"
 import { notFound } from "next/navigation"
 import { Settings } from "../../settings"
 import { cookies } from "next/dist/client/components/headers"
-import { argbFromHex, themeFromSourceColor, hexFromArgb, redFromArgb, greenFromArgb, blueFromArgb, Scheme, SchemeContent, Hct, MaterialDynamicColors } from "@material/material-color-utilities"
+import { argbFromHex, themeFromSourceColor, SchemeContent, Hct } from "@material/material-color-utilities"
 import Image from "next/image"
 import { ArtistTypeLocaleTokens, NameTypeLocaleTokens, SongTypeLocaleTokens, SourceTypeLocaleTokens } from "@/localization/DictionaryTokenMaps"
 import Link from "next/link"
@@ -11,72 +11,14 @@ import { ArtistCategory, ArtistThumbnailType, NameType, SourceType } from "@/dat
 import { EntityName } from "@/components/formatters/entity-name"
 import { DateFormatter } from "@/components/formatters/date-formatter"
 import { NumberFormatter } from "@/components/formatters/number-formatter"
+import { getCustomThemeStylesheet } from "@/lib/material"
+import { SourceTypesDisplayData } from "@/lib/sourceType"
 
 // interfaces
 interface ViewsBreakdown {
     id: string,
     views: number,
     source: SourceType
-}
-
-// source type display data
-export interface SourceTypeDisplayData {
-    color: string,
-    textColor: string,
-    videoURL: string,
-    icon: string
-}
-export const SourceTypesDisplayData: { [key in SourceType]: SourceTypeDisplayData } = {
-    [SourceType.YOUTUBE]: {
-        color: '#ff0000',
-        textColor: '#ffffff',
-        videoURL: 'https://www.youtube.com/watch?v=',
-        icon: '/yt_icon.png'
-    },
-    [SourceType.NICONICO]: {
-        color: 'var(--md-sys-color-on-surface)',
-        textColor: 'var(--md-sys-color-surface)',
-        videoURL: 'https://www.nicovideo.jp/watch/',
-        icon: '/nico_icon.png'
-    },
-    [SourceType.BILIBILI]: {
-        color: '#079fd2',
-        textColor: '#ffffff',
-        videoURL: 'https://www.bilibili.com/video/',
-        icon: '/bili_icon.png'
-    },
-}
-
-const tonalSurfaceContainers = {
-    'surface-container-lowest': MaterialDynamicColors.surfaceContainerLowest,
-    'surface-container-low': MaterialDynamicColors.surfaceContainerLow,
-    'surface-container': MaterialDynamicColors.surfaceContainer,
-    'surface-container-high': MaterialDynamicColors.surfaceContainerHigh,
-    'surface-container-highest': MaterialDynamicColors.surfaceContainerHighest
-}
-
-// theme generation helper functions
-const getCustomThemeStylesheet = (
-    theme: Scheme,
-    dynamicScheme: SchemeContent
-) => {
-
-    const lines = []
-
-    for (const [key, argb] of Object.entries(theme.toJSON())) {
-        if (key != 'background') {
-            const token = key.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
-            const color = hexFromArgb(argb);
-            lines.push(`--md-sys-color-${token}: ${color} !important;`)
-        }
-    }
-    // add tonal surface container values
-    for (const key in tonalSurfaceContainers) {
-        const dynamicColor = tonalSurfaceContainers[key as keyof typeof tonalSurfaceContainers]
-        lines.push(`--md-sys-color-${key}: ${hexFromArgb(dynamicColor.getArgb(dynamicScheme))} !important;`)
-    }
-
-    return lines
 }
 
 export default async function SongPage(
@@ -299,13 +241,14 @@ export default async function SongPage(
                             </div>
                         </Section>
                     </div>
+                    {/* Breakdown */}
                     <div className="grid gap-5 lg:grid-cols-2 grid-cols-1">
                         <Section title={langDict.song_views_breakdown}>
                             <div className="bg-surface-container-low rounded-2xl p-5 flex flex-col gap-3 box-border">
                                 <div className="h-28 flex sm:gap-5 gap-2 justify-start items-center overflow-x-auto overflow-y-clip max-w-full m-auto w-fit">
                                     {viewsBreakdowns.map(breakdown => {
                                         const displayData = SourceTypesDisplayData[breakdown.source]
-                                        return <section className="flex flex-col gap-2 items-center">
+                                        return <section key={breakdown.id} className="flex flex-col gap-2 items-center">
                                             <h4><Link href={`${displayData.videoURL}${breakdown.id}`} className="px-3 py-1 box-border text-base rounded-2xl w-fit" style={{ backgroundColor: displayData.color, color: displayData.textColor }}>
                                                 {langDict[SourceTypeLocaleTokens[breakdown.source]]}
                                             </Link></h4>
@@ -319,7 +262,7 @@ export default async function SongPage(
                                 <div className="w-full rounded-full h-5 flex overflow-clip">
                                     {viewsBreakdowns.map(breakdown => {
                                         const displayData = SourceTypesDisplayData[breakdown.source]
-                                        return <div className="rounded-full h-full box-border" style={{ flex: breakdown.views / songTotalViews, backgroundColor: displayData.color }}></div>
+                                        return <div key={breakdown.id} className="rounded-full h-full box-border" style={{ flex: breakdown.views / songTotalViews, backgroundColor: displayData.color }}></div>
                                     })}
                                 </div>
                             </div>
@@ -328,7 +271,7 @@ export default async function SongPage(
                             <div className="bg-surface-container-low rounded-2xl p-5 flex justify-between md:gap-4 gap-1 overflow-x-auto overflow-y-clip">
                                 {historicalViewsResult.views.map(historicalViews => {
                                     const views = historicalViews.views as number
-                                    return <section className="flex flex-col h-[142px] justify-end items-center">
+                                    return <section key={historicalViews.timestamp} className="flex flex-col h-[142px] justify-end items-center">
                                         <div className="bg-primary w-5 rounded-full" style={{ flex: views / largestHistoricalViews }}></div>
                                         <h4 className="text-on-surface font-semibold md:text-lg text-md mt-1"><NumberFormatter number={views} compact /></h4>
                                         <span className="text-on-surface-variant md:text-base text-sm"><DateFormatter date={new Date(historicalViews.timestamp)} compact /></span>
