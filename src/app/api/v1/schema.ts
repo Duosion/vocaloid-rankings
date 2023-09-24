@@ -1,5 +1,5 @@
-import { getSong } from '@/data/songsData'
-import { Entity, NameType, Names, Song, SongVideoIds, SourceType, ViewsBreakdown } from '@/data/types'
+import { filterSongRankings, getArtist, getSong } from '@/data/songsData'
+import { ArtistThumbnailType, ArtistThumbnails, FilterDirection, FilterOrder, NameType, Names, Song, SongRankingsFilterParams, SongVideoIds, SourceType, ViewsBreakdown } from '@/data/types'
 import {
     GraphQLEnumType,
     GraphQLInterfaceType,
@@ -8,7 +8,10 @@ import {
     GraphQLInt,
     GraphQLList,
     GraphQLObjectType,
-    GraphQLSchema
+    GraphQLSchema,
+    GraphQLScalarType,
+    Kind,
+    GraphQLBoolean
 } from 'graphql'
 
 /**
@@ -23,7 +26,11 @@ import {
  * 
  * enum ArtistCategory { VOCALIST, PRODUCER }
  * 
- * enum ArtistThumbnailType { ORIGINAL, MEDIUM, SMALL, TINY }
+ * enum PlacementChange { UP, SAME, DOWN }
+ * 
+ * enum FilterOrder { VIEWS, PUBLISH_DATE, ADDITION_DATE, POPULARITY }
+ * 
+ * enum FilterDirection { DESCENDING, ASCENDING }
  * 
  * type EntityNames {
  *   original: String!
@@ -40,7 +47,7 @@ import {
  * 
  * type VideoViews {
  *   id: String!
- *   views: Int!
+ *   views: Long!
  * }
  * 
  * type EntityViewsBreakdown {
@@ -51,7 +58,7 @@ import {
  * 
  * type EntityViews {
  *   timestamp: String
- *   total: Int!
+ *   total: Long!
  *   breakdown: EntityViewsBreakdown
  * }
  * 
@@ -64,9 +71,11 @@ import {
  *   allTime: Int
  * }
  * 
- * type ArtistThumbnail {
- *   type: ArtistThumbnailType
- *   url: String
+ * type ArtistThumbnails {
+ *   original: String
+ *   medium: String
+ *   small: String
+ *   tiny: String
  * }
  * 
  * interface Entity {
@@ -87,7 +96,7 @@ import {
  *   publishDate: String
  *   additionDate: String
  *   names: EntityNames
- *   thumbnails: [ArtistThumbnail]
+ *   thumbnails: ArtistThumbnails
  *   baseArtist: Artist
  *   averageColor: String
  *   darkColor: String
@@ -114,13 +123,70 @@ import {
  *   thumbnailType: SourceType
  * }
  * 
+ * type SongRankingsFilterResultItem {
+ *   placement: Int!
+ *   change: PlacementChange
+ *   previousPlacement: Int
+ *   views: Long!
+ *   song: Song
+ * }
+ * 
+ * type SongRankingsFilterResult {
+ *   totalCount: Int
+ *   timestamp: String
+ *   results: [SongRankingsFilterResultItem]
+ * }
+ * 
  * type Query {
  *   song(id: Int!): Song
+ * 
  *   artist(id: Int!): Artist
+ * 
+ *   songRankings(
+ *     timestamp: String
+ *     timePeriodOffset: number
+ *     changeOffset: number
+ *     daysOffset: number
+ *     includeSourceTypes: [SourceType]
+ *     excludeSourceTypes: [SourceType]
+ *     includeSongTypes: [SongType]
+ *     excludeSongTypes: [SongType]
+ *     includeArtistTypes: [ArtistType]
+ *     excludeArtistTypes: [ArtistType]
+ *     publishDate: String
+ *     orderBy: FilterOrder
+ *     direction: FilterDirection
+ *     artists: [Int]
+ *     songs: [Int]
+ *     singleVideo: Boolean
+ *     maxEntries: Int
+ *     startAt: 0
+ *     minViews: Long
+ *     maxViews: Long
+ *     search: String
+ *   ): SongRankingsFilterResult
  * }
  * 
  * ```
  */
+
+// create scalar types
+const longScalarType = new GraphQLScalarType({
+    name: 'Long',
+    description: 'Custom long scalar type.',
+    serialize(value) {
+        if (typeof value === 'number') return value
+        throw new Error('GraphQL Long Scalar serializer expected a "string".')
+    },
+    parseValue(value) {
+        if (typeof value === 'number') return value
+        throw new Error('GraphQL Long Scalar parser expected a "bigint".')
+    },
+    parseLiteral(ast) {
+        if (ast.kind === Kind.INT) return parseInt(ast.value)
+        return null
+    }
+})
 
 // create enums
 
@@ -239,23 +305,65 @@ const artistCategoryEnum = new GraphQLEnumType({
 })
 
 /**
- * enum ArtistThumbnailType { ORIGINAL, MEDIUM, SMALL, TINY }
+ * enum PlacementChange { UP, SAME, DOWN }
  */
-const artistThumbnailTypeEnum = new GraphQLEnumType({
-    name: 'ArtistThumbnailType',
-    description: "Roughly indicates the resoultion of an artist's thumbnail.",
+const placementChangeEnum = new GraphQLEnumType({
+    name: 'PlacementChange',
+    description: `Describes how an entity's rankings placement has changed.`,
     values: {
-        ORIGINAL: {
-            value: 0
+        UP: {
+            value: 0,
+            description: `The entity's placement has increased since the last period.`
         },
-        MEDIUM: {
+        SAME: {
+            value: 1,
+            description: `The entity's placement has not changed since the last period.`
+        },
+        DOWN: {
+            value: 2,
+            description: `The entity's placement has decreased since the last period.`
+        }
+    }
+})
+
+/**
+ * enum FilterOrder { VIEWS, PUBLISH_DATE, ADDITION_DATE, POPULARITY }
+ */
+const filterOrderEnum = new GraphQLEnumType({
+    name: 'FilterOrder',
+    description: `How to order entities in a rankings result.`,
+    values: {
+        VIEWS: {
+            value: 0,
+            description: `Order entities by their view counts.`
+        },
+        PUBLISH_DATE: {
+            value: 1,
+            description: `Order entities by their publish date.`
+        },
+        ADDITION_DATE: {
+            value: 2,
+            description: `Order entities by when they were added to the database..`
+        },
+        POPULARITY: {
+            value: 3,
+            description: `Order entities by their popularity.`
+        }
+    }
+})
+
+/**
+ * enum FilterDirection { DESCENDING, ASCENDING }
+ */
+const filterDirectionEnum = new GraphQLEnumType({
+    name: 'FilterDirection',
+    description: `The direction that entities in a rankings result should be aligned.`,
+    values: {
+        DESCENDING: {
+            value: 0,
+        },
+        ASCENDING: {
             value: 1
-        },
-        SMALL: {
-            value: 2
-        },
-        TINY: {
-            value: 3
         }
     }
 })
@@ -330,7 +438,7 @@ const songVideoIdsType = new GraphQLObjectType({
 /**
  * type VideoViews {
  *   id: String!
- *   views: Int!
+ *   views: Long!
  * }
  */
 const videoViewsType = new GraphQLObjectType({
@@ -342,7 +450,7 @@ const videoViewsType = new GraphQLObjectType({
             description: 'The id of the video.'
         },
         views: {
-            type: new GraphQLNonNull(GraphQLInt),
+            type: new GraphQLNonNull(longScalarType),
             description: 'The amount of views the video has.'
         }
     }
@@ -380,7 +488,7 @@ const entityViewsBreakdownType = new GraphQLObjectType({
 /**
  * type EntityViews {
  *   timestamp: String
- *   total: Int!
+ *   total: Long!
  *   breakdown: EntityViewsBreakdown
  * }
  */
@@ -393,7 +501,7 @@ const entityViewsType = new GraphQLObjectType({
             description: 'The timestamp of when these view counts were calculated.'
         },
         total: {
-            type: new GraphQLNonNull(GraphQLInt),
+            type: new GraphQLNonNull(longScalarType),
             description: 'The total amount of views a song has.'
         },
         breakdown: {
@@ -441,22 +549,36 @@ const artistObjectInterface = new GraphQLObjectType({
 })
 
 /**
- * type ArtistThumbnail {
- *   type: ArtistThumbnailType
- *   url: String
+ * type ArtistThumbnails {
+ *   original: String
+ *   medium: String
+ *   small: String
+ *   tiny: String
  * }
  */
-const artistThumbnailType = new GraphQLObjectType({
-    name: 'ArtistThumbnail',
-    description: 'The thumbnail of an artist.',
+const artistThumbnailsType = new GraphQLObjectType({
+    name: 'ArtistThumbnails',
+    description: 'The thumbnails of an artist.',
     fields: {
-        type: {
-            type: artistThumbnailTypeEnum,
-            description: 'The type of the thumbnail.'
-        },
-        url: {
+        original: {
             type: GraphQLString,
-            description: 'The URL of the thumbnail.'
+            description: `The URL of an artist's original-size thumbnail.`,
+            resolve: (thumbnails: ArtistThumbnails) => thumbnails[ArtistThumbnailType.ORIGINAL]
+        },
+        medium: {
+            type: GraphQLString,
+            description: `The URL of an artist's medium-size thumbnail.`,
+            resolve: (thumbnails: ArtistThumbnails) => thumbnails[ArtistThumbnailType.MEDIUM]
+        },
+        small: {
+            type: GraphQLString,
+            description: `The URL of an artist's small-size thumbnail.`,
+            resolve: (thumbnails: ArtistThumbnails) => thumbnails[ArtistThumbnailType.SMALL]
+        },
+        tiny: {
+            type: GraphQLString,
+            description: `The URL of an artist's tiny-size thumbnail.`,
+            resolve: (thumbnails: ArtistThumbnails) => thumbnails[ArtistThumbnailType.TINY]
         }
     }
 })
@@ -562,8 +684,14 @@ const artistType: GraphQLObjectType = new GraphQLObjectType({
             description: 'The names that the artist has.'
         },
         thumbnails: {
-            type: new GraphQLList(artistThumbnailType),
+            type: artistThumbnailsType,
             description: 'The thumbnails of the artist.'
+        },
+        get baseArtist() {
+            return {
+                type: artistType,
+                description: 'The artist an artist is based on.'
+            }
         },
         averageColor: {
             type: GraphQLString,
@@ -677,14 +805,263 @@ const songType: GraphQLObjectType = new GraphQLObjectType({
 })
 
 /**
+ * type SongRankingsFilterResultItem {
+ *   placement: Int!
+ *   change: PlacementChange
+ *   previousPlacement: Int
+ *   views: Long!
+ *   song: Song
+ * }
+ */
+const songRankingsFilterResultItemType = new GraphQLObjectType({
+    name: 'SongRankingsFilterResultItem',
+    fields: {
+        placement: {
+            type: new GraphQLNonNull(GraphQLInt),
+            description: 'The placement of the filter result.'
+        },
+        change: {
+            type: placementChangeEnum,
+            description: `How a filter result's placement changed relative to its previous placement.`
+        },
+        previousPlacement: {
+            type: GraphQLInt,
+            description: 'The placement of the filter result in the previous period.'
+        },
+        views: {
+            type: longScalarType,
+            description: 'The amount of views that the filter result has.'
+        },
+        song: {
+            type: songType,
+            description: 'The song that is related to this filter result.'
+        }
+    }
+})
+
+/**
+ * type SongRankingsFilterResult {
+ *   totalCount: Int
+ *   timestamp: String
+ *   results: [SongRankingsFilterResultItem]
+ * }
+ */
+const songRankingsFilterResultType = new GraphQLObjectType({
+    name: 'SongRankingsFilterResult',
+    description: 'Represents a song rankings filter result.',
+    fields: {
+        totalCount: {
+            type: GraphQLInt,
+            description: 'The total amount of possible results that can be returned by the query used to get this filter result. Not effected by maxEntires.'
+        },
+        timestamp: {
+            type: GraphQLString,
+            description: 'The timestamp of the filter result.'
+        },
+        results: {
+            type: new GraphQLList(songRankingsFilterResultItemType),
+            description: 'The results of this filter result.'
+        }
+    }
+})
+
+/**
  * type Query {
  *   song(id: Int!): Song
+ * 
  *   artist(id: Int!): Artist
+ * 
+ *   songRankings(
+ *     timestamp: String
+ *     timePeriodOffset: number
+ *     changeOffset: number
+ *     daysOffset: number
+ *     includeSourceTypes: [SourceType]
+ *     excludeSourceTypes: [SourceType]
+ *     includeSongTypes: [SongType]
+ *     excludeSongTypes: [SongType]
+ *     includeArtistTypes: [ArtistType]
+ *     excludeArtistTypes: [ArtistType]
+ *     publishDate: String
+ *     orderBy: FilterOrder
+ *     direction: FilterDirection
+ *     artists: [Int]
+ *     songs: [Int]
+ *     singleVideo: Boolean
+ *     maxEntries: Int
+ *     startAt: 0
+ *     minViews: Long
+ *     maxViews: Long
+ *     search: String
+ *   ): SongRankingsFilterResult
  * }
  */
 const queryType = new GraphQLObjectType({
     name: 'Query',
     fields: {
+        songRankings: {
+            type: songRankingsFilterResultType,
+            args: {
+                timestamp: {
+                    type: GraphQLString,
+                    description: 'The timestamp to filter from. If not provided, defaults to the most recent timestamp.'
+                },
+                timePeriodOffset: {
+                    type: GraphQLInt,
+                    description: `Value is in days. If provided, song view counts will consist of the views they earned between [timestamp]-timePeriodOffset and [timestamp].`
+                },
+                changeOffset: {
+                    type: GraphQLInt,
+                    description: `Value is in days. If provided, enables the 'change' and 'previousPlacement' values of a result item. Controls the "previous" period.`
+                },
+                daysOffset: {
+                    type: GraphQLInt,
+                    description: `Value is in days. If provided, offsets [timestamp], [timePeriodOffset], and [changeOffset] by the provided amount of days.`
+                },
+                includeSourceTypes: {
+                    type: new GraphQLList(sourceTypeEnum),
+                    description: 'A list of SourceTypes to include.'
+                },
+                excludeSourceTypes: {
+                    type: new GraphQLList(sourceTypeEnum),
+                    description: 'A list of SourceTypes to exclude.'
+                },
+                includeSongTypes: {
+                    type: new GraphQLList(songTypeEnum),
+                    description: 'A list of SourceTypes to include.'
+                },
+                excludeSongTypes: {
+                    type: new GraphQLList(songTypeEnum),
+                    description: 'A list of SongTypes to exclude.'
+                },
+                includeArtistTypes: {
+                    type: new GraphQLList(artistTypeEnum),
+                    description: 'A list of ArtistTypes to include.'
+                },
+                excludeArtistTypes: {
+                    type: new GraphQLList(artistTypeEnum),
+                    description: 'A list of ArtistTypes to exclude.'
+                },
+                publishDate: {
+                    type: GraphQLString,
+                    description: 'Only include songs with the provided publish date.'
+                },
+                orderBy: {
+                    type: filterOrderEnum,
+                    description: 'What to order the results by.'
+                },
+                direction: {
+                    type: filterDirectionEnum,
+                    description: 'The direction to sort the results in.'
+                },
+                artists: {
+                    type: new GraphQLList(GraphQLInt),
+                    description: `A list of artist IDs. These artists' songs will only be included in the results`
+                },
+                songs: {
+                    type: new GraphQLList(GraphQLInt),
+                    description: `A list of song IDs that will only be included in the result.`
+                },
+                singleVideo: {
+                    type: GraphQLBoolean,
+                    description: `Controls whether single video mode is on or not. Single video calculates a song's total views using only the most viewed video per source`
+                },
+                maxEntries: {
+                    type: GraphQLInt,
+                    description: 'The maximum number of results to return. The maximum value is 50.'
+                },
+                startAt: {
+                    type: GraphQLInt,
+                    description: 'The placement to start getting results at.'
+                },
+                minViews: {
+                    type: longScalarType,
+                    description: 'The minimum amount of views that songs must have to be included in the results.'
+                },
+                maxViews: {
+                    type: longScalarType,
+                    description: 'The maximum amount of views that songs must have to be included in the results.'
+                },
+                search: {
+                    type: GraphQLString,
+                    description: 'Only includes songs who have names that match the search query.'
+                }
+            },
+            resolve: (
+                _source,
+                {
+                    timestamp,
+                    timePeriodOffset,
+                    changeOffest,
+                    daysOffset,
+                    includeSourceTypes,
+                    excludeSourceType,
+                    includeSongTypes,
+                    excludeSongTypes,
+                    includeArtistTypes,
+                    excludeArtistTypes,
+                    publishDate,
+                    orderBy,
+                    direction,
+                    artists,
+                    songs,
+                    singleVideo,
+                    maxEntries,
+                    startAt,
+                    minViews,
+                    maxViews,
+                    search
+                }: {
+                    timestamp?: string
+                    timePeriodOffset?: number
+                    changeOffest?: number
+                    daysOffset?: number
+                    includeSourceTypes?: number[]
+                    excludeSourceType?: number[]
+                    includeSongTypes?: number[]
+                    excludeSongTypes?: number[]
+                    includeArtistTypes?: number[]
+                    excludeArtistTypes?: number[]
+                    publishDate?: string
+                    orderBy?: number
+                    direction?: number
+                    artists?: number[]
+                    songs?: number[]
+                    singleVideo?: boolean
+                    maxEntries?: number
+                    startAt?: number
+                    minViews?: number
+                    maxViews?: number
+                    search?: string
+                }
+            ) => {
+                // build params
+                const filterParams = new SongRankingsFilterParams()
+                filterParams.timestamp = timestamp
+                filterParams.timePeriodOffset = timePeriodOffset
+                filterParams.changeOffset = changeOffest
+                filterParams.daysOffset = daysOffset
+                filterParams.includeSourceTypes = includeSourceTypes
+                filterParams.excludeSourceTypes = excludeSourceType
+                filterParams.includeSongTypes = includeSongTypes
+                filterParams.excludeSongTypes = excludeSongTypes
+                filterParams.includeArtistTypes = includeArtistTypes
+                filterParams.excludeArtistTypes = excludeArtistTypes
+                filterParams.publishDate = publishDate
+                filterParams.orderBy = orderBy || filterParams.orderBy
+                filterParams.direction = direction || filterParams.direction
+                filterParams.artists = artists
+                filterParams.songs = songs
+                filterParams.singleVideo = singleVideo || filterParams.singleVideo
+                filterParams.maxEntries = Math.min(maxEntries || filterParams.maxEntries, 50)
+                filterParams.startAt = Math.abs(startAt || filterParams.startAt)
+                filterParams.minViews = minViews
+                filterParams.maxViews = maxViews
+                filterParams.search = search
+                console.log(filterParams)
+                return filterSongRankings(filterParams)
+            }
+        },
         song: {
             type: songType,
             args: {
@@ -698,7 +1075,7 @@ const queryType = new GraphQLObjectType({
                 { id }: { id: number }
             ) => getSong(id)
         },
-        /*artist: {
+        artist: {
             type: artistType,
             args: {
                 id: {
@@ -710,7 +1087,7 @@ const queryType = new GraphQLObjectType({
                 _source,
                 { id }: { id: number }
             ) => getArtist(id)
-        }*/
+        }
     }
 })
 

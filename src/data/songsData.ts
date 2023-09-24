@@ -567,7 +567,7 @@ function filterArtistRankingsCountSync(
         AND (CASE WHEN :maxViews IS NULL
             THEN 1
             ELSE SUM(DISTINCT views_breakdowns.views) <= :maxViews 
-            END)`).get(queryParams.params) as { count: number }).count || 0
+            END)`).get(queryParams.params) as { count: number })?.count || 0
 }
 
 function filterArtistRankingsRawSync(
@@ -1021,6 +1021,18 @@ function getArtistSync(
         placement,
         baseArtistId && getBaseArtist ? getArtistSync(baseArtistId, getViews, false) : null
     )
+}
+
+export function getArtist(
+    id: Id
+): Promise<Artist | null> {
+    return new Promise<Artist | null>((resolve, reject) => {
+        try {
+            resolve(getArtistSync(id))
+        } catch (error) {
+            reject(error)
+        }
+    })
 }
 
 export function getArtistHistoricalViews(

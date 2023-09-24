@@ -1,23 +1,24 @@
 
-import { getSong } from "@/data/songsData"
-import { graphql, buildSchema } from "graphql"
+import { graphql } from "graphql"
 import { NextResponse } from "next/server"
 import { Schema } from "./schema"
 
-// define resolvers
-const resolveGetSong = (
-    args: {
-        id: number
-    }
-) => {
-    return getSong(args.id)
+
+export async function POST(
+    request: Request
+) {
+    const { query, variables }: {query: string, variables: {[key: string]: unknown}} = await request.json()
+
+    const response = await graphql({
+        schema: Schema,
+        source: query,
+        variableValues: variables
+    })
+
+    return NextResponse.json(response)
 }
 
-const rootValue = {
-    Song: resolveGetSong
-}
-
-export async function GET(
+/*export async function GET(
     request: Request,
 ) {
     const { searchParams } = new URL(request.url)
@@ -89,9 +90,8 @@ export async function GET(
                 thumbnailType
             }
         }
-        `,
-        rootValue: rootValue
+        `
     })
 
     return NextResponse.json(response)
-}
+}*/
