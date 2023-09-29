@@ -1,3 +1,5 @@
+import { Icon } from "../material/icon"
+
 export function CheckboxFilterElement(
     {
         name,
@@ -14,9 +16,9 @@ export function CheckboxFilterElement(
     }
 
     return (
-        <section className="flex flex-1 gap-3 items-center">
-            <input id={name} type='checkbox' checked={value} onChange={newValue => setValue(newValue.currentTarget.checked)} />
-            <label htmlFor={name} className="text-lg text-on-background font-normal">{name}</label>
+        <section className="flex flex-1 gap-3 h-fit items-center py-2 px-4 rounded-xl border border-outline box-border cursor-pointer select-none" onClick={() => setValue(!value)}>
+            <h3 className="text-base text-on-surface flex-1">{name}</h3>
+            <Icon icon={value ? 'check_box' : 'check_box_outline_blank'} />
         </section>
     )
 }

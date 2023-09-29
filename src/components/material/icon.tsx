@@ -1,7 +1,7 @@
 export function Icon(
     {
         icon,
-        className
+        className = ''
     }: {
         icon: string
         className?: string

@@ -21,7 +21,7 @@ export function FilledButton(
     return (
         href ? (
             <Link
-                className={`text-base bg-primary text-on-primary h-[40px] px-[24px] rounded-full flex items-center justify-center relative before:transition-opacity before:absolute before:w-full before:h-full before:left-0 before:top-0 before:rounded-full before:opacity-0 before:hover:bg-on-primary before:hover:opacity-[0.12] transition-opacity ${className}`}
+                className={`text-base bg-primary text-on-primary h-[40px] rounded-full flex items-center justify-center relative before:transition-opacity before:absolute before:w-full before:h-full before:left-0 before:top-0 before:rounded-full before:opacity-0 before:hover:bg-on-primary before:hover:opacity-[0.12] transition-opacity ${icon ? 'pl-4 pr-6 gap-2' : 'px-6'} ${className}`}
                 href={href}
                 onClick={onClick}>
                 {iconElement}
@@ -29,7 +29,7 @@ export function FilledButton(
             </Link>
         ) : (
             <button
-                className={`text-base bg-primary text-on-primary h-[40px] px-[24px] rounded-full flex items-center justify-center relative before:transition-opacity before:absolute before:w-full before:h-full before:left-0 before:top-0 before:rounded-full before:opacity-0 before:hover:bg-on-primary before:hover:opacity-[0.12] transition-opacity ${className}`}
+                className={`text-base bg-primary text-on-primary h-[40px] px-[24px] rounded-full flex items-center justify-center relative before:transition-opacity before:absolute before:w-full before:h-full before:left-0 before:top-0 before:rounded-full before:opacity-0 before:hover:bg-on-primary before:hover:opacity-[0.12] transition-opacity ${icon ? 'pl-4 pr-6 gap-2' : 'px-6'} ${className}`}
                 onClick={onClick}>
                 {iconElement}
                 {text}

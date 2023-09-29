@@ -184,7 +184,7 @@ export default async function SongPage(
     )
 
     return (
-        <article className='w-full min-h-[100vh] flex flex-col gap-5 justify-start items-start'>
+        <article className='max-w-screen-xl m-auto w-full min-h-[100vh] flex flex-col gap-5 justify-start items-start'>
             <style>{`
                 :root {
                     ${customThemeLightCss}

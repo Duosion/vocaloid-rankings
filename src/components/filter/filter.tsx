@@ -3,7 +3,7 @@ export function FilterElement(
         name,
         children,
         minimal = false,
-        className
+        className = ''
     }: {
         name: string,
         children?: React.ReactNode

@@ -1,16 +1,10 @@
-import { filterSongRankings, getMostRecentViewsTimestamp } from "@/data/songsData"
-import { ArtistCategory, ArtistType, FilterOrder, SongRankingsFilterParams, SongType, SourceType } from "@/data/types"
-import { Locale, getDictionary, getEntityName } from "@/localization"
-import { cookies } from "next/dist/client/components/headers"
-import Link from "next/link"
-import { Settings } from "../settings"
-import { SongRankingsFilterBar } from "./song-rankings-filter-bar"
+import { ArtistType, FilterOrder, NameType, SongRankingsFilterParams, SongRankingsFilterResult, SongType, SourceType } from "@/data/types"
+import { Locale, getDictionary } from "@/localization"
 import { FilterType, SongRankingsFiltersValues, RankingsFilters, SelectFilterValue } from "./types"
-import { EntityName } from "@/components/formatters/entity-name"
-import { NumberFormatter } from "@/components/formatters/number-formatter"
-import SongThumbnail from "@/components/song-thumbnail"
-import Image from "next/image"
-import { Metadata } from "next"
+import { RankingsList } from "./rankings-list"
+import { filterSongRankings, getMostRecentViewsTimestamp } from "@/data/songsData"
+import { Settings } from "../settings"
+import { cookies } from "next/dist/client/components/headers"
 
 const filters: RankingsFilters = {
     search: {
@@ -31,7 +25,7 @@ const filters: RankingsFilters = {
             { name: 'filter_time_period_offset_day', value: 1 },
             { name: 'filter_time_period_offset_week', value: 7 },
             { name: 'filter_time_period_offset_month', value: 30 },
-            { name: 'filter_time_period_offset_custom', value: null}
+            { name: 'filter_time_period_offset_custom', value: null }
         ],
         defaultValue: 0
     },
@@ -222,22 +216,6 @@ function parseParamCheckboxFilterValue(
     return !isNaN(paramNum) && paramNum == 1
 }
 
-export async function generateMetadata(
-    {
-      params
-    }: {
-      params: {
-        lang: Locale
-      }
-    }
-  ): Promise<Metadata> {
-    const langDict = await getDictionary(params.lang)
-  
-    return {
-      title: langDict.nav_rankings
-    }
-  }
-
 export default async function RankingsPage(
     {
         params,
@@ -306,128 +284,14 @@ export default async function RankingsPage(
     return (
         <section className="flex flex-col gap-5 w-full min-h-screen">
             <h1 className="font-extrabold md:text-5xl md:text-left text-4xl text-center w-full">{langDict.rankings_page_title}</h1>
-            <SongRankingsFilterBar href='' filters={filters} langDict={langDict} values={searchParams} currentTimestamp={mostRecentTimestamp} />
-            <ol className="flex flex-col gap-5 w-full">
-                {0 >= rankings.totalCount ? <h2 className="text-3xl font-bold text-center text-on-background">{langDict.search_no_results}</h2> : rankings.results.map(ranking => {
-                    const song = ranking.song
-
-                    // generate artist links
-                    const artistLinks: React.ReactNode[] = []
-                    for (const artist of song.artists) {
-                        if (artist.category == ArtistCategory.PRODUCER) {
-                            artistLinks.push(
-                                <Link href={`/${lang}/artist/${song.id}`} className="text-md text-on-surface-variant"><EntityName names={artist.names} preferred={settingTitleLanguage} /></Link>
-                            )
-                            if (artistLinks.length == 3) {
-                                break
-                            }
-                        }
-                    }
-
-                    const names = song.names
-
-                    return (
-                        <Ranking
-                            key={song.id.toString()}
-                            href={`/${lang}/song/${song.id}`}
-                            titleContent={<EntityName names={names} preferred={settingTitleLanguage} />}
-                            placement={ranking.placement}
-                            icon={song.thumbnail}
-                            iconAlt={getEntityName(names, settingTitleLanguage)}
-                            trailingTitleContent={<NumberFormatter number={ranking.views} />}
-                            trailingSupporting={langDict.rankings_views}
-                            supportingContent={<span className="flex flex-row gap-3">{artistLinks}</span>}
-                        />
-                    )
-                })}
-            </ol>
+            <RankingsList
+                href=''
+                filters={filters}
+                langDict={langDict}
+                filterValues={searchParams}
+                currentTimestamp={mostRecentTimestamp}
+            />
         </section>
     )
-}
 
-function Ranking(
-    {
-        key,
-        href,
-        titleContent,
-        placement,
-        icon,
-        iconAlt,
-        trailingTitleContent,
-        supportingContent,
-        trailingSupporting,
-        className = ''
-    }: {
-        key: string
-        href: string
-        titleContent: React.ReactNode
-        placement: number
-        icon: string
-        iconAlt: string
-        trailingTitleContent: React.ReactNode,
-        supportingContent?: React.ReactNode
-        trailingSupporting?: string,
-        className?: string
-    }
-) {
-    return (
-        <li key={key} className={`py-2 rounded-2xl w-full flex gap-3 bg-surface-container-low box-border items-center ${className}`}>
-            <b className="ml-3 text-on-surface h-10 w-fit min-w-[40px] box-border flex items-center justify-center text-2xl font-extrabold">{placement}</b>
-            <Link href={href} className="rounded-xl border border-outline-variant box-border"><SongThumbnail src={icon} alt={iconAlt} width={50} height={50} overflowHeight={70} overflowWidth={70} /></Link>
-            <section className="flex flex-col gap flex-1">
-                <h3><Link href={href} className="text-on-surface font-semibold text-xl">{titleContent}</Link></h3>
-                {supportingContent}
-            </section>
-            <section className="flex flex-col gap items-end mr-4">
-                <h3 className="text-on-surface text-xl font-semibold">{trailingTitleContent}</h3>
-                <span className="text-on-surface-variant text-md">{trailingSupporting}</span>
-            </section>
-        </li>
-    )
-}
-
-function RankingCard(
-    {
-        key,
-        href,
-        titleContent,
-        placement,
-        icon,
-        iconAlt,
-        trailingTitleContent,
-        supportingContent,
-        trailingSupporting,
-        className = ''
-    }: {
-        key: string
-        href: string
-        titleContent: React.ReactNode
-        placement: number
-        icon: string
-        iconAlt: string
-        trailingTitleContent: React.ReactNode,
-        supportingContent?: React.ReactNode
-        trailingSupporting?: string,
-        className?: string
-    }
-) {
-    return (
-        <li key={key}><article className="flex flex-col gap-3">
-            <Link href={href}><figure className="w-full h-auto aspect-video overflow-hidden relative rounded-3xl flex justify-center items-center border border-outline-variant">
-                <Image
-                    fill
-                    src={icon}
-                    alt={iconAlt}
-                    className="object-cover"
-                />
-            </figure></Link>
-            <section className="flex flex-col gap-2">
-                <h3 className="text-on-surface text-2xl flex gap-2"><b className="font-bold">#{placement}</b><Link href={href} className="flex-1 font-semibold whitespace-nowrap overflow-hidden text-ellipsis">{titleContent}</Link></h3>
-                <section className="flex gap-1 text-xl">
-                    <h5>{trailingTitleContent}</h5>
-                    <h5>{trailingSupporting}</h5>
-                </section>
-            </section>
-        </article></li>
-    )
 }

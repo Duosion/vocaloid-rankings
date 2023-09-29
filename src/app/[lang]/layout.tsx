@@ -7,8 +7,15 @@ import { Providers } from '@/components/providers'
 import { Locale } from '@/localization/'
 import Footer from '@/components/footer'
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
-const notoSans = Noto_Sans_JP({ subsets: ['latin'], variable: '--font-noto-sans' })
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter' 
+})
+const notoSansJP = Noto_Sans_JP({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-noto-sans-jp'
+})
 const materialSymbols = localFont({
   variable: '--font-family-symbols', // Variable name (to reference after in CSS/styles)
   style: 'normal',
@@ -33,14 +40,14 @@ export default function RootLayout({
 }) {
   const locale = params.lang
   return (
-    <html lang={locale} className={`${inter.variable} ${notoSans.variable} ${materialSymbols.variable}`}>
-      <body className='font-sans bg-background'>
+    <html lang={locale} className={`${inter.variable} ${notoSansJP.variable} ${materialSymbols.variable}`}>
+      <body className='bg-background'>
         <Providers>
-          <Navbar lang={locale}/>
-          <main className='max-w-7xl min-h-screen m-auto flex flex-col justify-center items-start px-5 py-6'>
+          <Navbar lang={locale} />
+          <main className='max-w-screen-2xl min-h-screen m-auto flex flex-col justify-center items-start px-5 py-6'>
             {children}
           </main>
-          <Footer lang={locale}/>
+          <Footer lang={locale} />
         </Providers>
       </body>
     </html>

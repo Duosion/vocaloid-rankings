@@ -7,7 +7,7 @@ module.exports = {
   ],
   theme: {
     fontFamily: {
-      'sans': ['var(--font-inter)', 'var(--font-noto-sans)']
+      'sans': ['var(--font-inter)', 'var(--font-noto-sans-jp)'],
     },
     extend: {
       gridTemplateColumns: {

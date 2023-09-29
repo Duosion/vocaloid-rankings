@@ -1057,8 +1057,7 @@ const queryType = new GraphQLObjectType({
                 filterParams.startAt = Math.abs(startAt || filterParams.startAt)
                 filterParams.minViews = minViews
                 filterParams.maxViews = maxViews
-                filterParams.search = search
-                console.log(filterParams)
+                filterParams.search = search != undefined ? `%${search}%` : undefined
                 return filterSongRankings(filterParams)
             }
         },
@@ -1093,5 +1092,5 @@ const queryType = new GraphQLObjectType({
 
 export const Schema: GraphQLSchema = new GraphQLSchema({
     query: queryType,
-    types: [songType, artistType]
+    types: [songType, artistType, songRankingsFilterResultType]
 })

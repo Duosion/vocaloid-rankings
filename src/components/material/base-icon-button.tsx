@@ -5,8 +5,8 @@ import { MouseEventHandler } from "react"
 export function BaseIconButton(
     {
         icon,
-        className,
-        href,
+        className = '',
+        href = '',
         onClick
     }: {
         
