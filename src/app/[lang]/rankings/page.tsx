@@ -179,6 +179,13 @@ const filters: RankingsFilters = {
         displayActive: true,
         type: FilterType.CHECKBOX,
         defaultValue: false
+    },
+    artists: {
+        name: 'filter_artists',
+        key: 'artists',
+        displayActive: true,
+        type: FilterType.INPUT,
+        placeholder: 'filter_artists_placeholder',
     }
 }
 

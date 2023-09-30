@@ -5,7 +5,7 @@ export enum FilterType {
     SELECT,
     INPUT,
     CHECKBOX,
-    MULTI
+    MULTI,
 }
 
 export enum PopupAlignment {
@@ -81,10 +81,24 @@ export class MultiFilter<Enum> extends Filter {
         displayActive: boolean = true,
         values: SelectFilterValue<Enum>[]
     ) {
-        super(name, key, displayActive, FilterType.SELECT)
+        super(name, key, displayActive, FilterType.MULTI)
         this.values = values
     }
-} 
+}
+
+export class MultiEntityFilter extends Filter {
+    placeholder: LanguageDictionaryKey
+
+    constructor(
+        name: LanguageDictionaryKey,
+        key: string,
+        displayActive: boolean = true,
+        placeholder: LanguageDictionaryKey
+    ) {
+        super(name, key, displayActive, FilterType.MULTI)
+        this.placeholder = placeholder
+    }
+}
 
 export class CheckboxFilter extends Filter {
     defaultValue: boolean
@@ -117,6 +131,7 @@ export interface RankingsFilters {
     orderBy: SelectFilter<FilterOrder>
     timestamp: InputFilter
     singleVideo: CheckboxFilter
+    artists: MultiEntityFilter
 }
 
 export interface SongRankingsFiltersValues {
@@ -136,6 +151,7 @@ export interface SongRankingsFiltersValues {
     orderBy?: number
     timestamp?: string
     singleVideo?: number
+    artists?: string
 }
 
 export interface SongRankingsFilterBarValues {
@@ -155,4 +171,5 @@ export interface SongRankingsFilterBarValues {
     orderBy?: number
     timestamp?: string
     singleVideo?: boolean
+    artists?: number[]
 }

@@ -1,62 +1,20 @@
 'use client'
 import { LanguageDictionary } from "@/localization"
-import { useRouter } from "next/navigation"
-import { useEffect, useRef, useState } from "react"
-import { CheckboxFilter, Filter, FilterType, InputFilter, PopupAlignment, RankingsFilters, SongRankingsFiltersValues, SelectFilter, SelectFilterValue, SongRankingsFilterBarValues, MultiFilter } from "./types"
-import { FilledIconButton } from "@/components/material/filled-icon-button"
+import { useRef, useState } from "react"
+import { CheckboxFilter, Filter, FilterType, InputFilter, RankingsFilters, SelectFilter, SongRankingsFilterBarValues, MultiFilter } from "./types"
 import { ActiveFilter } from "@/components/filter/active-filter"
-import { FadeInOut } from "@/components/transitions/fade-in-out"
 import { SelectFilterElement } from "@/components/filter/select-filter"
 import { FilledButton } from "@/components/material/filled-button"
 import { Modal } from "@/components/transitions/modal"
 import { IconButton } from "@/components/material/icon-button"
 import { InputFilterElement } from "@/components/filter/input-filter"
-import { MultiSelectFilterElement } from "@/components/filter/multi-select-filter"
 import { timeoutDebounce } from "@/lib/utils"
 import { NumberInputFilterElement } from "@/components/filter/number-input-filter"
 import { NumberSelectFilterElement } from "@/components/filter/number-select-filter"
 import { DateFilterElement } from "@/components/filter/date-filter"
 import { CheckboxFilterElement } from "@/components/filter/checkbox-filter"
 import { ToggleGroupFilterElement } from "@/components/filter/toggle-group-filter"
-
-function encodeBoolean(
-    bool: boolean
-): number {
-    return bool ? 1 : 0
-}
-
-function decodeBoolean(
-    num?: number
-): boolean {
-    return num == 1
-}
-
-function encodeMultiFilter(
-    values: number[],
-    separator: string = ','
-): string {
-    const builder = []
-    for (const value of values) {
-        if (!isNaN(value)) builder.push(value)
-    }
-    return builder.join(separator)
-}
-
-function decodeMultiFilter(
-    input?: string,
-    separator: string = ','
-): number[] {
-    const output: number[] = []
-
-    input?.split(separator).map(rawValue => {
-        const parsed = Number(rawValue)
-        if (!isNaN(parsed)) {
-            output.push(parsed)
-        }
-    })
-
-    return output
-}
+import { ArtistSearchFilter } from "@/components/filter/artist-search-filter"
 
 export function SongRankingsActiveFilterBar(
     {
@@ -237,6 +195,17 @@ export function SongRankingsActiveFilterBar(
                     />
                     {/* Timestamp */}
                     <DateFilterElement name={langDict[filters.timestamp.name]} value={filterValues.timestamp || currentTimestamp} max={currentTimestamp} onValueChanged={newValue => { filterValues.timestamp = newValue; setFilterValues(filterValues) }} />
+                </ul>
+                <ul className="flex gap-5">
+                    <ArtistSearchFilter
+                        name={langDict[filters.artists.name]}
+                        value={filterValues.artists || []}
+                        placeholder={langDict[filters.artists.placeholder]}
+                        onValueChanged={newValue => {
+                            filterValues.artists = newValue
+                            setFilterValues(filterValues)
+                        }}
+                    />
                 </ul>
                 {/* Source Type */}
                 <ToggleGroupFilterElement name={langDict['filter_view_type']} included={filterValues.includeSourceTypes || []} excluded={filterValues.excludeSourceTypes || []} options={sourceTypesOptions} onValueChanged={(newIncluded, newExcluded) => {

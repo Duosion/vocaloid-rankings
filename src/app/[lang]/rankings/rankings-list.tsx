@@ -170,7 +170,8 @@ export function RankingsList(
         maxViews: filterValues.maxViews,
         orderBy: filterValues.orderBy,
         timestamp: filterValues.timestamp,
-        singleVideo: decodeBoolean(Number(filterValues.singleVideo))
+        singleVideo: decodeBoolean(Number(filterValues.singleVideo)),
+        artists: decodeMultiFilter(filterValues.artists)
     } as SongRankingsFilterBarValues)
 
     const getQueryVariables = () => {
@@ -193,7 +194,7 @@ export function RankingsList(
             publishDate: undefined,
             orderBy: filterBarValues.orderBy == undefined ? undefined : FilterOrder[filterBarValues.orderBy],
             direction: undefined,
-            artists: undefined,
+            artists: filterBarValues.artists && filterBarValues.artists.length > 0 ? filterBarValues.artists : undefined,
             songs: undefined,
             singleVideo: filterBarValues.singleVideo,
             minViews: filterBarValues.minViews ? Number(filterBarValues.minViews) : undefined,

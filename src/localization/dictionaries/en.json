@@ -81,6 +81,7 @@
     "filter_direction_ascending": "Ascending",
     "filter_direction_descending": "Descending",
     "filter_artists": "Artists",
+    "filter_artists_placeholder": "Enter an artist's name...",
     "filter_year": "Publish Year",
     "filter_month": "Publish Month",
     "filter_day": "Publish Day",

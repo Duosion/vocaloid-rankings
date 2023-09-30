@@ -81,6 +81,7 @@
     "filter_direction_ascending": "Ascendente",
     "filter_direction_descending": "Descendente",
     "filter_artists": "Artistas",
+    "filter_artists_placeholder": "",
     "filter_year": "",
     "filter_month": "",
     "filter_day": "",

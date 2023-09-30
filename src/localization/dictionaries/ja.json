@@ -81,6 +81,7 @@
     "filter_direction_ascending": "昇順",
     "filter_direction_descending": "降順",
     "filter_artists": "作者",
+    "filter_artists_placeholder": "",
     "filter_year": "",
     "filter_month": "",
     "filter_day": "",

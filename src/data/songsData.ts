@@ -159,8 +159,8 @@ function filterSongRankingsRawSync(
     const filterExcludeSourceTypesStatement = filterExcludeSourceTypes ? ` AND (views_breakdowns.view_type NOT IN (${filterExcludeSourceTypes}))` : ''
     const filterOffsetIncludeSourceTypesStatement = filterIncludeSourceTypes ? ` AND (offset_breakdowns.view_type IN (${filterIncludeSourceTypes}))` : ''
     const filterOffsetExcludeSourceTypesStatement = filterExcludeSourceTypes ? ` AND (offset_breakdowns.view_type NOT IN (${filterExcludeSourceTypes}))` : ''
-    const filterOffsetSubIncludeSourceTypesStatement = filterIncludeSourceTypes ? ` AND (offset_sub_breakdowns.view_type IN (${filterIncludeSourceTypes}))` : ''
-    const filterOffsetSubExcludeSourceTypesStatement = filterExcludeSourceTypes ? ` AND (offset_sub_breakdowns.view_type NOT IN (${filterExcludeSourceTypes}))` : ''
+    const filterOffsetSubIncludeSourceTypesStatement = filterIncludeSourceTypes ? ` AND (sub_vb.view_type IN (${filterIncludeSourceTypes}))` : ''
+    const filterOffsetSubExcludeSourceTypesStatement = filterExcludeSourceTypes ? ` AND (sub_vb.view_type NOT IN (${filterExcludeSourceTypes}))` : ''
     // song types
     const filterIncludeSongTypesStatement = filterIncludeSongTypes ? ` AND (songs.song_type IN (${filterIncludeSongTypes}))` : ''
     const filterExcludeSongTypesStatement = filterExcludeSongTypes ? ` AND (songs.song_type NOT IN (${filterExcludeSongTypes}))` : ''
@@ -202,17 +202,16 @@ function filterSongRankingsRawSync(
                             AND (offset_breakdowns.views = CASE WHEN :singleVideo IS NULL
                                 THEN offset_breakdowns.views
                                 ELSE
-                                    (SELECT MAX(offset_sub_breakdowns.views)
-                                    FROM views_breakdowns AS offset_sub_breakdowns 
-                                    INNER JOIN songs ON songs.id = offset_sub_breakdowns.song_id
-                                    INNER JOIN songs_artists ON songs_artists.song_id = offset_sub_breakdowns.song_id
-                                    INNER JOIN songs_names ON songs_names.song_id = views_breakdowns.song_id
+                                    (SELECT MAX(sub_vb.views)
+                                    FROM views_breakdowns AS sub_vb 
+                                    INNER JOIN songs ON songs.id = sub_vb.song_id
+                                    INNER JOIN songs_artists ON songs_artists.song_id = sub_vb.song_id
                                     INNER JOIN artists ON artists.id = songs_artists.artist_id
-                                    WHERE (offset_sub_breakdowns.timestamp = offset_breakdowns.timestamp)
-                                        AND (offset_sub_breakdowns.song_id = offset_breakdowns.song_id)
-                                        AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
-                                        AND (songs_names.name LIKE :search OR :search IS NULL)${filterOffsetSubIncludeSourceTypesStatement}${filterOffsetSubExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterArtistsStatement}${filterSongsStatement}
-                                    GROUP BY offset_sub_breakdowns.song_id)
+                                    WHERE (sub_vb.view_type = views_breakdowns.view_type)
+                                        AND (sub_vb.timestamp = views_breakdowns.timestamp)
+                                        AND (sub_vb.song_id = views_breakdowns.song_id)
+                                        AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)${filterOffsetSubIncludeSourceTypesStatement}${filterOffsetSubExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterArtistsStatement}${filterSongsStatement}
+                                    GROUP BY sub_vb.song_id)
                                 END)${filterOffsetIncludeSourceTypesStatement}${filterOffsetExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterArtistsStatement}${filterSongsStatement}
                         GROUP BY offset_breakdowns.song_id
                     ), CASE WHEN julianday(:timestamp) - julianday(songs.publish_date) <= :timePeriodOffset THEN 0 ELSE (
@@ -230,17 +229,16 @@ function filterSongRankingsRawSync(
                             AND (offset_breakdowns.views = CASE WHEN :singleVideo IS NULL
                                 THEN offset_breakdowns.views
                                 ELSE
-                                    (SELECT MAX(offset_sub_breakdowns.views)
-                                    FROM views_breakdowns AS offset_sub_breakdowns 
-                                    INNER JOIN songs ON songs.id = offset_sub_breakdowns.song_id
-                                    INNER JOIN songs_artists ON songs_artists.song_id = offset_sub_breakdowns.song_id
-                                    INNER JOIN songs_names ON songs_names.song_id = views_breakdowns.song_id
+                                    (SELECT MAX(sub_vb.views)
+                                    FROM views_breakdowns AS sub_vb 
+                                    INNER JOIN songs ON songs.id = sub_vb.song_id
+                                    INNER JOIN songs_artists ON songs_artists.song_id = sub_vb.song_id
                                     INNER JOIN artists ON artists.id = songs_artists.artist_id
-                                    WHERE (offset_sub_breakdowns.timestamp = offset_breakdowns.timestamp)
-                                        AND (offset_sub_breakdowns.song_id = offset_breakdowns.song_id)
-                                        AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
-                                        AND (songs_names.name LIKE :search OR :search IS NULL)${filterOffsetSubIncludeSourceTypesStatement}${filterOffsetSubExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterArtistsStatement}${filterSongsStatement}
-                                    GROUP BY offset_sub_breakdowns.song_id)
+                                    WHERE (sub_vb.view_type = views_breakdowns.view_type)
+                                        AND (sub_vb.timestamp = views_breakdowns.timestamp)
+                                        AND (sub_vb.song_id = views_breakdowns.song_id)
+                                        AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)${filterOffsetSubIncludeSourceTypesStatement}${filterOffsetSubExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterArtistsStatement}${filterSongsStatement}
+                                    GROUP BY sub_vb.song_id)
                                 END)${filterOffsetIncludeSourceTypesStatement}${filterOffsetExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterArtistsStatement}${filterSongsStatement}
                         GROUP BY offset_breakdowns.song_id
                         ) END)
@@ -264,17 +262,16 @@ function filterSongRankingsRawSync(
                             AND (offset_breakdowns.views = CASE WHEN :singleVideo IS NULL
                                 THEN offset_breakdowns.views
                                 ELSE
-                                    (SELECT MAX(offset_sub_breakdowns.views)
-                                    FROM views_breakdowns AS offset_sub_breakdowns 
-                                    INNER JOIN songs ON songs.id = offset_sub_breakdowns.song_id
-                                    INNER JOIN songs_artists ON songs_artists.song_id = offset_sub_breakdowns.song_id
-                                    INNER JOIN songs_names ON songs_names.song_id = views_breakdowns.song_id
+                                    (SELECT MAX(sub_vb.views)
+                                    FROM views_breakdowns AS sub_vb 
+                                    INNER JOIN songs ON songs.id = sub_vb.song_id
+                                    INNER JOIN songs_artists ON songs_artists.song_id = sub_vb.song_id
                                     INNER JOIN artists ON artists.id = songs_artists.artist_id
-                                    WHERE (offset_sub_breakdowns.timestamp = offset_breakdowns.timestamp)
-                                        AND (offset_sub_breakdowns.song_id = offset_breakdowns.song_id)
-                                        AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
-                                        AND (songs_names.name LIKE :search OR :search IS NULL)${filterOffsetSubIncludeSourceTypesStatement}${filterOffsetSubExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterArtistsStatement}${filterSongsStatement}
-                                    GROUP BY offset_sub_breakdowns.song_id)
+                                    WHERE (sub_vb.view_type = views_breakdowns.view_type)
+                                        AND (sub_vb.timestamp = views_breakdowns.timestamp)
+                                        AND (sub_vb.song_id = views_breakdowns.song_id)
+                                        AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)${filterOffsetSubIncludeSourceTypesStatement}${filterOffsetSubExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterArtistsStatement}${filterSongsStatement}
+                                    GROUP BY sub_vb.song_id)
                                 END)${filterOffsetIncludeSourceTypesStatement}${filterOffsetExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterArtistsStatement}${filterSongsStatement}
                         GROUP BY offset_breakdowns.song_id
                     ), CASE WHEN julianday(:timestamp) - julianday(songs.publish_date) <= :timePeriodOffset THEN 0 ELSE (
@@ -292,17 +289,16 @@ function filterSongRankingsRawSync(
                             AND (offset_breakdowns.views = CASE WHEN :singleVideo IS NULL
                                 THEN offset_breakdowns.views
                                 ELSE
-                                    (SELECT MAX(offset_sub_breakdowns.views)
-                                    FROM views_breakdowns AS offset_sub_breakdowns 
-                                    INNER JOIN songs ON songs.id = offset_sub_breakdowns.song_id
-                                    INNER JOIN songs_artists ON songs_artists.song_id = offset_sub_breakdowns.song_id
-                                    INNER JOIN songs_names ON songs_names.song_id = views_breakdowns.song_id
+                                    (SELECT MAX(sub_vb.views)
+                                    FROM views_breakdowns AS sub_vb 
+                                    INNER JOIN songs ON songs.id = sub_vb.song_id
+                                    INNER JOIN songs_artists ON songs_artists.song_id = sub_vb.song_id
                                     INNER JOIN artists ON artists.id = songs_artists.artist_id
-                                    WHERE (offset_sub_breakdowns.timestamp = offset_breakdowns.timestamp)
-                                        AND (offset_sub_breakdowns.song_id = offset_breakdowns.song_id)
-                                        AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
-                                        AND (songs_names.name LIKE :search OR :search IS NULL)${filterOffsetSubIncludeSourceTypesStatement}${filterOffsetSubExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterArtistsStatement}${filterSongsStatement}
-                                    GROUP BY offset_sub_breakdowns.song_id)
+                                    WHERE (sub_vb.view_type = views_breakdowns.view_type)
+                                        AND (sub_vb.timestamp = views_breakdowns.timestamp)
+                                        AND (sub_vb.song_id = views_breakdowns.song_id)
+                                        AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)${filterOffsetSubIncludeSourceTypesStatement}${filterOffsetSubExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterArtistsStatement}${filterSongsStatement}
+                                    GROUP BY sub_vb.song_id)
                                 END)${filterOffsetIncludeSourceTypesStatement}${filterOffsetExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterArtistsStatement}${filterSongsStatement}
                         GROUP BY offset_breakdowns.song_id
                         ) END)
@@ -322,15 +318,16 @@ function filterSongRankingsRawSync(
             AND (views_breakdowns.views = CASE WHEN :singleVideo IS NULL
                 THEN views_breakdowns.views
                 ELSE
-                    (SELECT MAX(offset_breakdowns.views)
-                    FROM views_breakdowns AS offset_breakdowns 
-                    INNER JOIN songs ON songs.id = offset_breakdowns.song_id
-                    INNER JOIN songs_artists ON songs_artists.song_id = offset_breakdowns.song_id
+                    (SELECT MAX(sub_vb.views)
+                    FROM views_breakdowns AS sub_vb 
+                    INNER JOIN songs ON songs.id = sub_vb.song_id
+                    INNER JOIN songs_artists ON songs_artists.song_id = sub_vb.song_id
                     INNER JOIN artists ON artists.id = songs_artists.artist_id
-                    WHERE (offset_breakdowns.timestamp = views_breakdowns.timestamp)
-                        AND (offset_breakdowns.song_id = views_breakdowns.song_id)
-                        AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)${filterOffsetIncludeSourceTypesStatement}${filterOffsetExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterArtistsStatement}${filterSongsStatement}
-                    GROUP BY offset_breakdowns.song_id)
+                    WHERE (sub_vb.view_type = views_breakdowns.view_type)
+                        AND (sub_vb.timestamp = views_breakdowns.timestamp)
+                        AND (sub_vb.song_id = views_breakdowns.song_id)
+                        AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)${filterOffsetSubIncludeSourceTypesStatement}${filterOffsetSubExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterArtistsStatement}${filterSongsStatement}
+                    GROUP BY sub_vb.song_id)
                 END)${filterIncludeSourceTypesStatement}${filterExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterArtistsStatement}${filterSongsStatement}
         GROUP BY views_breakdowns.song_id
         HAVING (CASE WHEN :minViews IS NULL
@@ -1035,7 +1032,7 @@ function searchArtistsSync(
         WHERE artists_names.name LIKE ?
         LIMIT ?
         OFFSET ?
-    `).all(`%${query}%`, maxEntries, startAt) as {id: number}[]
+    `).all(`%${query}%`, maxEntries, startAt) as { id: number }[]
 
     // get artists from the ids
     const artists: Artist[] = []

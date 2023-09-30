@@ -39,7 +39,7 @@ export function SelectFilterElement(
     const [inputFocused, setInputFocused] = useState(false)
 
     // parse filter value
-
+    const filterRef = useRef<HTMLDivElement>(null)
     const modalRef = useRef<HTMLUListElement>(null)
 
     const valueIsDefault = value == defaultValue
@@ -54,7 +54,9 @@ export function SelectFilterElement(
 
     useEffect(() => {
         function handleClick(event: MouseEvent) {
-            if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+            const current = modalRef.current
+            const target = event.target as Node
+            if (current && !current.contains(target) && !filterRef.current?.contains(target)) {
                 setModalOpen(false)
             }
         }
@@ -66,8 +68,8 @@ export function SelectFilterElement(
     }, [modalOpen])
 
     return (
-        <FilterElement key={name} name={name} minimal={minimal} className={minimal ? undefined : "z-10"}>
-            <div className={minimal ? 'text-on-background py-1 w-fit flex justify-end items-center text-lg font-normal' : `py-2 px-4 rounded-xl text-on-surface flex text-base font-normal`}
+        <FilterElement key={name} name={name} minimal={minimal}>
+            <div ref={filterRef} className={minimal ? 'text-on-background py-1 w-fit flex justify-end items-center text-lg font-normal' : `py-2 px-4 rounded-xl text-on-surface flex text-base font-normal`}
                 style={{ backgroundColor: minimal ? undefined : `var(--md-sys-color-${elevationToClass[elevation]})` }}
             >
                 {searchable
@@ -76,6 +78,7 @@ export function SelectFilterElement(
                         onFocus={() => {
                             setSearchQuery('')
                             setInputFocused(true)
+                            setModalOpen(true)
                         }}
                         onBlur={() => setInputFocused(false)}
                         onChange={(event) => { setSearchQuery(event.currentTarget.value.toLowerCase()) }}
@@ -93,7 +96,7 @@ export function SelectFilterElement(
                 }
             </div>
             <FadeInOut visible={modalOpen}>
-                <div className="relative min-w-fit w-full h-0">
+                <div className="relative min-w-fit w-full h-0 z-20">
                     <ul ref={modalRef} className="absolute top-2 min-w-[160px] w-full right-0 rounded-xl shadow-md p-2 max-h-72 overflow-y-scroll overflow-x-clip"
                         style={{ backgroundColor: `var(--md-sys-color-${elevationToClass[modalElevation]})` }}
                     >
