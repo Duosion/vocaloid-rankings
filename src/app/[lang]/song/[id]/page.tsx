@@ -3,7 +3,7 @@ import { Locale, getDictionary, getEntityName } from "@/localization"
 import { notFound } from "next/navigation"
 import { Settings } from "../../settings"
 import { cookies } from "next/dist/client/components/headers"
-import { argbFromHex, themeFromSourceColor, SchemeContent, Hct, argbFromRgb } from "@material/material-color-utilities"
+import { argbFromHex, themeFromSourceColor, SchemeContent, SchemeVibrant, Hct, argbFromRgb, SchemeFidelity } from "@material/material-color-utilities"
 import Image from "next/image"
 import { ArtistTypeLocaleTokens, NameTypeLocaleTokens, SongTypeLocaleTokens, SourceTypeLocaleTokens } from "@/localization/DictionaryTokenMaps"
 import Link from "next/link"
@@ -179,12 +179,10 @@ export default async function SongPage(
     {
         const primaryColor = await getPaletteFromURL(song.maxresThumbnail)
         const argbAverageColor = argbFromRgb(...(mostVibrantColor(primaryColor) || primaryColor[0]))
-        const theme = themeFromSourceColor(argbAverageColor)
-        const schemes = theme.schemes
         // dynamic theme config
         const contrast = 0.3
-        customThemeLightCss = getCustomThemeStylesheet(schemes.light, new SchemeContent(Hct.fromInt(argbAverageColor), false, contrast)).join('')
-        customThemeDarkCss = getCustomThemeStylesheet(schemes.dark, new SchemeContent(Hct.fromInt(argbAverageColor), true, contrast)).join('')
+        customThemeLightCss = getCustomThemeStylesheet(new SchemeVibrant(Hct.fromInt(argbAverageColor), false, contrast)).join('')
+        customThemeDarkCss = getCustomThemeStylesheet(new SchemeVibrant(Hct.fromInt(argbAverageColor), true, contrast)).join('')
     }
 
     // generate vocadb link

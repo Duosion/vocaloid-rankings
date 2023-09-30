@@ -4,6 +4,10 @@ import { FilledButton } from "@/components/material/filled-button"
 import { FormEvent, MutableRefObject, useRef, useState } from "react"
 
 export default function ApiPage() {
+    /* generate */
+
+    
+
     const [response, setResponse] = useState('')
 
     const inputRef: MutableRefObject<HTMLTextAreaElement | null> = useRef(null)
