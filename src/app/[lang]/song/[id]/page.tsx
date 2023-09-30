@@ -3,7 +3,7 @@ import { Locale, getDictionary, getEntityName } from "@/localization"
 import { notFound } from "next/navigation"
 import { Settings } from "../../settings"
 import { cookies } from "next/dist/client/components/headers"
-import { argbFromHex, themeFromSourceColor, SchemeContent, SchemeVibrant, Hct, argbFromRgb, SchemeFidelity } from "@material/material-color-utilities"
+import { SchemeVibrant, Hct, argbFromRgb } from "@material/material-color-utilities"
 import Image from "next/image"
 import { ArtistTypeLocaleTokens, NameTypeLocaleTokens, SongTypeLocaleTokens, SourceTypeLocaleTokens } from "@/localization/DictionaryTokenMaps"
 import Link from "next/link"
@@ -11,9 +11,9 @@ import { ArtistCategory, ArtistThumbnailType, NameType, SourceType } from "@/dat
 import { EntityName } from "@/components/formatters/entity-name"
 import { DateFormatter } from "@/components/formatters/date-formatter"
 import { NumberFormatter } from "@/components/formatters/number-formatter"
-import { getCustomThemeStylesheet } from "@/lib/material"
+import { getCustomThemeStylesheet, getMostVibrantColor } from "@/lib/material"
 import { SourceTypesDisplayData } from "@/lib/sourceType"
-import { getColorFromURL, getPaletteFromURL, Palette } from "color-thief-node"
+import { getPaletteFromURL } from "color-thief-node"
 
 // interfaces
 interface ViewsBreakdown {
@@ -21,25 +21,6 @@ interface ViewsBreakdown {
     views: number,
     source: SourceType
 }
-
-function mostVibrantColor(
-    colors: Palette[]
-): Palette | null {
-    let maxVibrancy = -1;
-    let vibrantColor = null;
-
-    for (const color of colors) {
-        const vibrancy = Math.max(...color) - Math.min(...color);
-
-        if (vibrancy > maxVibrancy) {
-            maxVibrancy = vibrancy;
-            vibrantColor = color;
-        }
-    }
-
-    return vibrantColor;
-}
-
 
 export default async function SongPage(
     {
@@ -178,7 +159,7 @@ export default async function SongPage(
     let customThemeDarkCss: string = ''
     {
         const primaryColor = await getPaletteFromURL(song.maxresThumbnail)
-        const argbAverageColor = argbFromRgb(...(mostVibrantColor(primaryColor) || primaryColor[0]))
+        const argbAverageColor = argbFromRgb(...(getMostVibrantColor(primaryColor) || primaryColor[0]))
         // dynamic theme config
         const contrast = 0.3
         customThemeLightCss = getCustomThemeStylesheet(new SchemeVibrant(Hct.fromInt(argbAverageColor), false, contrast)).join('')

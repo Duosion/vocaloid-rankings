@@ -1023,6 +1023,32 @@ function getArtistSync(
     )
 }
 
+function searchArtistsSync(
+    query: string,
+    maxEntries: number = 50,
+    startAt: number = 0
+): Artist[] {
+    const results = db.prepare(`
+        SELECT DISTINCT id
+        FROM artists
+        INNER JOIN artists_names ON artists_names.artist_id = id
+        WHERE artists_names.name LIKE ?
+        LIMIT ?
+        OFFSET ?
+    `).all(`%${query}%`, maxEntries, startAt) as {id: number}[]
+
+    // get artists from the ids
+    const artists: Artist[] = []
+
+    for (const result of results) {
+        const artist = getArtistSync(result.id, false, false)
+        if (artist) artists.push(artist)
+    }
+
+    // return the artists
+    return artists
+}
+
 export function getArtist(
     id: Id
 ): Promise<Artist | null> {
@@ -1058,6 +1084,20 @@ export function getArtistHistoricalViews(
                 period,
                 timestamp
             ))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+export function searchArtists(
+    query: string,
+    maxEntries?: number,
+    startAt?: number
+): Promise<Artist[]> {
+    return new Promise<Artist[]>((resolve, reject) => {
+        try {
+            resolve(searchArtistsSync(query, maxEntries, startAt))
         } catch (error) {
             reject(error)
         }

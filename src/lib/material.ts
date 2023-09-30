@@ -1,4 +1,5 @@
 import { DynamicColor, DynamicScheme, MaterialDynamicColors, Scheme, SchemeContent, hexFromArgb } from "@material/material-color-utilities";
+import { Palette } from "color-thief-node";
 
 const tonalSurfaceContainers = {
     'surface-container-lowest': MaterialDynamicColors.surfaceContainerLowest,
@@ -23,4 +24,23 @@ export const getCustomThemeStylesheet = (
     }
 
     return lines
+}
+
+// gets the most vibrant color from a list of rgb colors.
+export const getMostVibrantColor = (
+    colors: Palette[]
+): Palette | null => {
+    let maxVibrancy = -1;
+    let vibrantColor = null;
+
+    for (const color of colors) {
+        const vibrancy = Math.max(...color) - Math.min(...color);
+
+        if (vibrancy > maxVibrancy) {
+            maxVibrancy = vibrancy;
+            vibrantColor = color;
+        }
+    }
+
+    return vibrantColor;
 }

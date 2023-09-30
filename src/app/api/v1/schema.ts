@@ -1,4 +1,4 @@
-import { filterSongRankings, getArtist, getSong } from '@/data/songsData'
+import { filterSongRankings, getArtist, getSong, searchArtists } from '@/data/songsData'
 import { ArtistThumbnailType, ArtistThumbnails, FilterDirection, FilterOrder, NameType, Names, Song, SongRankingsFilterParams, SongVideoIds, SourceType, ViewsBreakdown } from '@/data/types'
 import {
     GraphQLEnumType,
@@ -165,6 +165,12 @@ import {
  *     maxViews: Long
  *     search: String
  *   ): SongRankingsFilterResult
+ *   
+ *   searchArtists(
+ *     query: String!
+ *     maxEntries: Int
+ *     startAt: Int
+ *   ): [Artist]
  * }
  * 
  * ```
@@ -1086,6 +1092,39 @@ const queryType = new GraphQLObjectType({
                 _source,
                 { id }: { id: number }
             ) => getArtist(id)
+        },
+        searchArtist: {
+            type: new GraphQLList(artistType),
+            args: {
+                query: {
+                    type: new GraphQLNonNull(GraphQLString),
+                    description: 'The name of the artist to search for.'
+                },
+                maxEntries: {
+                    type: GraphQLInt,
+                    description: 'The maximum number of results to return. The maximum value is 50.'
+                },
+                startAt: {
+                    type: GraphQLInt,
+                    description: 'The placement to start getting results at.'
+                }
+            },
+            resolve: async (
+                _source,
+                {
+                    query,
+                    maxEntries,
+                    startAt
+                }: {
+                    query: string
+                    maxEntries: number | undefined
+                    startAt: number | undefined
+                }
+            ) => searchArtists(
+                query,
+                Math.min(maxEntries || 50, 50),
+                Math.abs(startAt || 0)
+            )
         }
     }
 })
