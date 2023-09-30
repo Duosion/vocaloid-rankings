@@ -247,8 +247,6 @@ export function RankingsList(
         }
     }
 
-
-
     // generate dummy rankings
     const dummyElements: JSX.Element[] = []
     if (loading) {

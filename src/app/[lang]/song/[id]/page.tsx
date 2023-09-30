@@ -3,7 +3,7 @@ import { Locale, getDictionary, getEntityName } from "@/localization"
 import { notFound } from "next/navigation"
 import { Settings } from "../../settings"
 import { cookies } from "next/dist/client/components/headers"
-import { argbFromHex, themeFromSourceColor, SchemeContent, Hct } from "@material/material-color-utilities"
+import { argbFromHex, themeFromSourceColor, SchemeContent, Hct, argbFromRgb } from "@material/material-color-utilities"
 import Image from "next/image"
 import { ArtistTypeLocaleTokens, NameTypeLocaleTokens, SongTypeLocaleTokens, SourceTypeLocaleTokens } from "@/localization/DictionaryTokenMaps"
 import Link from "next/link"
@@ -13,6 +13,7 @@ import { DateFormatter } from "@/components/formatters/date-formatter"
 import { NumberFormatter } from "@/components/formatters/number-formatter"
 import { getCustomThemeStylesheet } from "@/lib/material"
 import { SourceTypesDisplayData } from "@/lib/sourceType"
+import { getColorFromURL, getPaletteFromURL, Palette } from "color-thief-node"
 
 // interfaces
 interface ViewsBreakdown {
@@ -20,6 +21,25 @@ interface ViewsBreakdown {
     views: number,
     source: SourceType
 }
+
+function mostVibrantColor(
+    colors: Palette[]
+): Palette | null {
+    let maxVibrancy = -1;
+    let vibrantColor = null;
+
+    for (const color of colors) {
+        const vibrancy = Math.max(...color) - Math.min(...color);
+
+        if (vibrancy > maxVibrancy) {
+            maxVibrancy = vibrancy;
+            vibrantColor = color;
+        }
+    }
+
+    return vibrantColor;
+}
+
 
 export default async function SongPage(
     {
@@ -157,13 +177,14 @@ export default async function SongPage(
     let customThemeLightCss: string = ''
     let customThemeDarkCss: string = ''
     {
-        const argbAverageColor = argbFromHex(song.averageColor)
+        const primaryColor = await getPaletteFromURL(song.maxresThumbnail)
+        const argbAverageColor = argbFromRgb(...(mostVibrantColor(primaryColor) || primaryColor[0]))
         const theme = themeFromSourceColor(argbAverageColor)
         const schemes = theme.schemes
         // dynamic theme config
         const contrast = 0.3
-        customThemeLightCss = getCustomThemeStylesheet(schemes.light, new SchemeContent(Hct.fromInt(schemes.light.primary), false, contrast)).join('')
-        customThemeDarkCss = getCustomThemeStylesheet(schemes.dark, new SchemeContent(Hct.fromInt(schemes.dark.primary), true, contrast)).join('')
+        customThemeLightCss = getCustomThemeStylesheet(schemes.light, new SchemeContent(Hct.fromInt(argbAverageColor), false, contrast)).join('')
+        customThemeDarkCss = getCustomThemeStylesheet(schemes.dark, new SchemeContent(Hct.fromInt(argbAverageColor), true, contrast)).join('')
     }
 
     // generate vocadb link
@@ -195,7 +216,7 @@ export default async function SongPage(
             `}</style>
 
             <figure className="w-full md:h-96 md:aspect-auto h-auto aspect-video overflow-hidden relative rounded-3xl flex justify-center items-center border border-outline-variant">
-                <div className="w-full h-full z-0" style={{ backgroundColor: song.averageColor }} />
+                <div className="w-full h-full z-0 bg-primary" />
                 <Image
                     priority
                     fill

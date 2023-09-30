@@ -21,7 +21,14 @@ const nextConfig = {
           hostname: 'i*.hdslb.com'
         },
       ],
-    }
+    },
+    webpack: (config) => {
+      config.externals.push({
+        sharp: "commonjs sharp",
+      });
+  
+      return config;
+    },
   }
   
   module.exports = nextConfig

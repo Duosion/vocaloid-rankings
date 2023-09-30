@@ -17,11 +17,11 @@ export const getCustomThemeStylesheet = (
     const lines = []
 
     for (const [key, argb] of Object.entries(theme.toJSON())) {
-        if (key != 'background') {
+        //if (key != 'background') {
             const token = key.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
             const color = hexFromArgb(argb);
             lines.push(`--md-sys-color-${token}: ${color} !important;`)
-        }
+        //}
     }
     // add tonal surface container values
     for (const key in tonalSurfaceContainers) {
