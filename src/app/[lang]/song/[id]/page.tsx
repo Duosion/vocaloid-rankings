@@ -212,7 +212,7 @@ export default async function SongPage(
 
             <div className="mt-3 w-full grid md:grid-cols-sidebar grid-cols-1 gap-5">
                 <aside className="flex flex-col gap-5">
-                    <ul className="bg-surface-container-low rounded-2xl p-5 box-border flex md:flex-col flex-row gap-5 overflow-x-auto overflow-y-clip md:overflow-x-clip">
+                    <ul className="bg-surface-container rounded-2xl p-5 box-border flex md:flex-col flex-row gap-5 overflow-x-auto overflow-y-clip md:overflow-x-clip">
                         <StatRow title={langDict.filter_publish_date}>
                             <DateFormatter date={new Date(song.publishDate)} />
                         </StatRow>
@@ -244,7 +244,7 @@ export default async function SongPage(
                     {/* Breakdown */}
                     <div className="grid gap-5 lg:grid-cols-2 grid-cols-1">
                         <Section title={langDict.song_views_breakdown}>
-                            <div className="bg-surface-container-low rounded-2xl p-5 flex flex-col gap-3 box-border">
+                            <div className="bg-surface-container rounded-2xl p-5 flex flex-col gap-3 box-border">
                                 <div className="h-28 flex sm:gap-5 gap-2 justify-start items-center overflow-x-auto overflow-y-clip max-w-full m-auto w-fit">
                                     {viewsBreakdowns.map(breakdown => {
                                         const displayData = SourceTypesDisplayData[breakdown.source]
@@ -268,7 +268,7 @@ export default async function SongPage(
                             </div>
                         </Section>
                         <Section title={langDict.song_daily_views}>
-                            <div className="bg-surface-container-low rounded-2xl p-5 flex justify-between md:gap-4 gap-1 overflow-x-auto overflow-y-clip">
+                            <div className="bg-surface-container rounded-2xl p-5 flex justify-between md:gap-4 gap-1 overflow-x-auto overflow-y-clip">
                                 {historicalViewsResult.views.map(historicalViews => {
                                     const views = historicalViews.views as number
                                     return <section key={historicalViews.timestamp} className="flex flex-col h-[142px] justify-end items-center">
@@ -335,7 +335,7 @@ function SidebarLink(
     }
 ) {
     return <li>
-        <Link className={`bg-surface-container-low text-on-surface rounded-2xl p-2 box-border flex gap-2 relative before:absolute before:w-full before:h-full before:left-0 before:top-0 before:rounded-2xl before:hover:bg-on-primary before:opacity-0 hover:before:opacity-[0.12] hover:text-primary before:transition-opacity ${className}`} href={href}>
+        <Link className={`bg-surface-container text-on-surface rounded-2xl p-2 box-border flex gap-2 relative before:absolute before:w-full before:h-full before:left-0 before:top-0 before:rounded-2xl before:bg-primary before:opacity-0 hover:before:opacity-[0.03] hover:text-primary before:transition-opacity ${className}`} href={href}>
             {icon}
             <span className="text-lg text-inherit w-full text-center flex items-center justify-center transition-colors">{text}</span>
         </Link>
@@ -382,7 +382,7 @@ function ArtistCard(
     }
 ) {
     return (
-        <Link className={`bg-surface-container-low text-on-surface rounded-2xl relative flex gap-3 items-center overflow-clip before:absolute before:w-full before:h-full before:left-0 before:top-0 before:rounded-2xl before:hover:bg-on-primary before:opacity-0 hover:before:opacity-[0.12] hover:text-primary before:transition-opacity ${className}`} href={href}>
+        <Link className={`bg-surface-container text-on-surface rounded-2xl relative flex gap-3 items-center overflow-clip before:absolute before:w-full before:h-full before:left-0 before:top-0 before:rounded-2xl before:bg-primary before:opacity-0 hover:before:opacity-[0.03] hover:text-primary before:transition-opacity ${className}`} href={href}>
             <figure className="relative aspect-square overflow-clip h-14 w-14 flex justify-start items-center m-2 rounded-2xl border border-outline-variant" style={{ backgroundColor: bgColor }}>
                 <Image
                     fill
