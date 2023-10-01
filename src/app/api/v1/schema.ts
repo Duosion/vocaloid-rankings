@@ -1063,7 +1063,7 @@ const queryType = new GraphQLObjectType({
                 filterParams.startAt = Math.abs(startAt || filterParams.startAt)
                 filterParams.minViews = minViews
                 filterParams.maxViews = maxViews
-                filterParams.search = search != undefined ? `%${search}%` : undefined
+                filterParams.search = search != undefined ? `%${search.trim()}%` : undefined
                 return filterSongRankings(filterParams)
             }
         },
@@ -1121,7 +1121,7 @@ const queryType = new GraphQLObjectType({
                     startAt: number | undefined
                 }
             ) => searchArtists(
-                query,
+                query.trim(),
                 Math.min(maxEntries || 50, 50),
                 Math.abs(startAt || 0)
             )
