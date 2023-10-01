@@ -1,7 +1,7 @@
 'use client'
 import { LanguageDictionary } from "@/localization"
 import { useRef, useState } from "react"
-import { CheckboxFilter, Filter, FilterType, InputFilter, RankingsFilters, SelectFilter, SongRankingsFilterBarValues, MultiFilter } from "./types"
+import { CheckboxFilter, Filter, FilterType, InputFilter, RankingsFilters, SelectFilter, SongRankingsFilterBarValues, MultiFilter, EntityNames } from "./types"
 import { ActiveFilter } from "@/components/filter/active-filter"
 import { SelectFilterElement } from "@/components/filter/select-filter"
 import { FilledButton } from "@/components/material/filled-button"
@@ -22,13 +22,17 @@ export function SongRankingsActiveFilterBar(
         langDict,
         filterValues,
         currentTimestamp,
-        setFilterValues
+        setFilterValues,
+        entityNames,
+        onEntityNamesChanged
     }: {
         filters: RankingsFilters
         langDict: LanguageDictionary
         filterValues: SongRankingsFilterBarValues
         currentTimestamp: string
-        setFilterValues: (newValues: SongRankingsFilterBarValues, route?: boolean) => void
+        setFilterValues: (newValues: SongRankingsFilterBarValues, route?: boolean) => void,
+        entityNames: EntityNames,
+        onEntityNamesChanged: (newNames: EntityNames) => void
     }
 ) {
     const [filterModalOpen, setFilterModalOpen] = useState(false)
@@ -201,10 +205,12 @@ export function SongRankingsActiveFilterBar(
                         name={langDict[filters.artists.name]}
                         value={filterValues.artists || []}
                         placeholder={langDict[filters.artists.placeholder]}
+                        entityNames={entityNames}
                         onValueChanged={newValue => {
                             filterValues.artists = newValue
                             setFilterValues(filterValues)
                         }}
+                        onEntityNamesChanged={onEntityNamesChanged}
                     />
                 </ul>
                 {/* Source Type */}

@@ -11,6 +11,8 @@ import { useSettings } from "@/app/[lang]/settings/settings-provider"
 import { buildEntityNames, graphClient } from "@/lib/api"
 import { timeoutDebounce } from "@/lib/utils"
 import { getEntityName } from "@/localization"
+import { EntityNames } from "@/app/[lang]/rankings/types"
+import { ActiveFilter } from "./active-filter"
 
 const ARTISTS_SEARCH = gql`
 query ArtistSearch(
@@ -36,16 +38,20 @@ export function ArtistSearchFilter(
         name,
         value,
         placeholder,
+        entityNames,
         elevation = Elevation.LOW,
         modalElevation = Elevation.NORMAL,
-        onValueChanged
+        onValueChanged,
+        onEntityNamesChanged
     }: {
         name: string
         value: number[]
         placeholder: string
+        entityNames: EntityNames
         elevation?: Elevation
         modalElevation?: Elevation
         onValueChanged?: (newValue: number[]) => void
+        onEntityNamesChanged?: (newValue: EntityNames) => void
     }
 ) {
     // react states
@@ -135,6 +141,7 @@ export function ArtistSearchFilter(
                     className='cursor-text bg-transparent outline-none text-left flex-1 pr-3 text-on-surface'
                 />
             </div>
+            {/* pop-up search box */}
             <FadeInOut visible={modalOpen}>
                 <div className="relative min-w-fit w-full h-0">
                     <ul ref={modalRef} className="absolute top-2 min-w-[160px] w-full right-0 rounded-xl shadow-md p-2 max-h-72 overflow-y-scroll overflow-x-clip"
@@ -143,16 +150,23 @@ export function ArtistSearchFilter(
                         {apiError || !searchResult ? <h3 className="text-base text-center">{apiError?.message}</h3>
                             : loading ? <h3 className="text-base text-center">Loading...</h3>
                                 : searchResult.map(result => {
+                                    const names = buildEntityNames(result.names)
+                                    const id = result.id
                                     return (
                                         <button
-                                            key={result.id}
+                                            key={id}
                                             onClick={(e) => {
                                                 e.preventDefault()
-                                                addArtist(result.id)
+                                                addArtist(id)
+                                                // add name to names
+                                                entityNames[id] = names
+                                                if (onEntityNamesChanged) onEntityNamesChanged(entityNames);
+                                                // close modal
+                                                setModalOpen(false)
                                             }}
                                             className="w-full font-normal h-auto overflow-clip text-ellipsis p-2 rounded-xl relative transition-colors hover:bg-surface-container-highest"
                                         >
-                                            {getEntityName(buildEntityNames(result.names), settingTitleLanguage)}
+                                            {getEntityName(names, settingTitleLanguage)}
                                         </button>
                                     )
                                 })
@@ -161,6 +175,17 @@ export function ArtistSearchFilter(
                     </ul>
                 </div>
             </FadeInOut>
+
+            {/* Selected values */}
+            <ul className="flex gap-3 mt-3 font-normal">
+                {value.map(id => {
+                    const names = entityNames[id]
+                    return names ? (
+                        <ActiveFilter name={getEntityName(names, settingTitleLanguage)} />
+                    ) : undefined
+                })}
+            </ul>
+            
         </FilterElement>
     )
 }

@@ -1,6 +1,6 @@
 'use client'
 import { LanguageDictionary, getEntityName } from "@/localization"
-import { FilterType, InputFilter, RankingsFilters, SongRankingsFilterBarValues, SongRankingsFiltersValues } from "./types"
+import { EntityNames, FilterType, InputFilter, RankingsFilters, SongRankingsFilterBarValues, SongRankingsFiltersValues } from "./types"
 import { useEffect, useState } from "react"
 import { SongRankingsActiveFilterBar } from "./song-rankings-active-filter-bar"
 import { DummyRankingsListItem } from "@/components/rankings/dummy-rankings-list-item"
@@ -9,12 +9,12 @@ import { RankingListItem } from "@/components/rankings/rankings-list-item"
 import { EntityName } from "@/components/formatters/entity-name"
 import { useSettings } from "../settings/settings-provider"
 import { NumberFormatter } from "@/components/formatters/number-formatter"
-import { ApiSongRankingsFilterResult } from "@/lib/api/types"
+import { ApiArtist, ApiSongRankingsFilterResult } from "@/lib/api/types"
 import { useTheme } from "next-themes"
 import Link from "next/link"
 import { ArtistType, FilterOrder, SongRankingsFilterResult, SongType, SourceType } from "@/data/types"
 import { TransitionGroup } from "react-transition-group"
-import { useQuery, gql } from "@apollo/client"
+import { useQuery, gql, ApolloQueryResult } from "@apollo/client"
 
 function encodeBoolean(
     bool: boolean
@@ -54,6 +54,24 @@ function decodeMultiFilter(
 
     return output
 }
+
+const GET_ARTISTS_NAMES = gql`
+query GetArtistsNames(
+    $ids: [Int]!
+) {
+    artists(
+        ids: $ids
+    ) {
+        id
+        names {
+            original
+            japanese
+            english
+            romaji
+        }
+    }
+}
+`
 
 const GET_SONG_RANKINGS = gql`
 query SongRankings(
@@ -153,6 +171,13 @@ export function RankingsList(
         currentTimestamp: string
     }
 ) {
+    // import contexts
+    const { settings } = useSettings()
+    const { theme } = useTheme()
+
+    // import settings
+    const settingTitleLanguage = settings.titleLanguage
+
     // convert filterValues into filterBarValues
     const [filterBarValues, setFilterValues] = useState({
         search: filterValues.search,
@@ -174,6 +199,10 @@ export function RankingsList(
         artists: decodeMultiFilter(filterValues.artists)
     } as SongRankingsFilterBarValues)
 
+    // entity names state
+    const [entityNames, setEntityNames] = useState({} as EntityNames)
+
+    // returns a table of query variables for querying GraphQL with.
     const getQueryVariables = () => {
         // build & set query variables
         const includeSourceTypes = filterBarValues.includeSourceTypes?.map(type => SourceType[type])
@@ -203,9 +232,6 @@ export function RankingsList(
         }
     }
 
-    // import router
-    const { settings } = useSettings()
-    const { theme } = useTheme()
     // import graphql context
     const [queryVariables, setQueryVariables] = useState(getQueryVariables)
     const { loading, error, data } = useQuery(GET_SONG_RANKINGS, {
@@ -213,9 +239,7 @@ export function RankingsList(
     })
     const rankingsResult = data?.songRankings as ApiSongRankingsFilterResult
 
-    // import settings
-    const settingTitleLanguage = settings.titleLanguage
-    
+    // function for saving filter values & updating the UI with the new values.
     function saveFilterValues(
         newValues: SongRankingsFilterBarValues,
         refresh: boolean = true
@@ -248,6 +272,24 @@ export function RankingsList(
         }
     }
 
+    // load entity names map
+    useEffect(() => {
+        graphClient.query({
+            query: GET_ARTISTS_NAMES,
+            variables: {
+                ids: filterBarValues.artists
+            }
+        }).then((result: ApolloQueryResult<any>) => {
+            if (!result.error) {
+                const nameMap: EntityNames = {}
+                for (const artist of result.data.artists as ApiArtist[]) {
+                    nameMap[artist.id] = buildEntityNames(artist.names)
+                }
+                setEntityNames({ ...entityNames, ...nameMap })
+            }
+        }).catch(_ => { })
+    }, [])
+
     // generate dummy rankings
     const dummyElements: JSX.Element[] = []
     if (loading) {
@@ -258,7 +300,15 @@ export function RankingsList(
 
     return (
         <section className="flex flex-col gap-5 w-full">
-            <SongRankingsActiveFilterBar filters={filters} langDict={langDict} filterValues={filterBarValues} currentTimestamp={currentTimestamp} setFilterValues={saveFilterValues} />
+            <SongRankingsActiveFilterBar
+                filters={filters}
+                langDict={langDict}
+                filterValues={filterBarValues}
+                currentTimestamp={currentTimestamp}
+                setFilterValues={saveFilterValues}
+                entityNames={entityNames}
+                onEntityNamesChanged={newNames => setEntityNames({ ...newNames })}
+            />
             <ol className="flex flex-col gap-5 w-full">
                 {error ? <h2 className="text-3xl font-bold text-center text-on-background">{error.message}</h2>
                     : !loading ? 0 >= rankingsResult.results.length ? <h2 className="text-3xl font-bold text-center text-on-background">{langDict.search_no_results}</h2>

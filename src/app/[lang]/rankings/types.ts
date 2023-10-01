@@ -1,4 +1,4 @@
-import { ArtistType, FilterOrder, SongType, SourceType } from "@/data/types"
+import { ArtistType, FilterOrder, Names, SongType, SourceType } from "@/data/types"
 import { LanguageDictionaryKey } from "@/localization"
 
 export enum FilterType {
@@ -173,3 +173,6 @@ export interface SongRankingsFilterBarValues {
     singleVideo?: boolean
     artists?: number[]
 }
+
+// describes a list of entity names with their ids mapped to a Names types
+export type EntityNames = { [key: number]: Names }
