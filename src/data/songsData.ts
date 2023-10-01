@@ -913,20 +913,21 @@ function buildArtist(
     })
     const type = artistData.artist_type as ArtistType
 
-    return new Artist(
-        artistData.id,
-        type,
-        artistData.publish_date,
-        artistData.addition_date,
-        names,
-        thumbnails,
-        artistData.average_color,
-        artistData.dark_color,
-        artistData.light_color,
-        placement,
-        views,
-        baseArtist,
-    )
+    return {
+        id: artistData.id,
+        type: type,
+        publishDate: artistData.publish_date,
+        additionDate: artistData.addition_date,
+        names: names,
+        thumbnails: thumbnails,
+        averageColor: artistData.average_color,
+        darkColor: artistData.dark_color,
+        lightColor: artistData.light_color,
+        placement: placement,
+        views: views,
+        baseArtist: baseArtist,
+        baseArtistId: artistData.base_artist_id
+    }
 }
 
 function getArtistViewsSync(
@@ -1016,7 +1017,7 @@ function getArtistSync(
         artistThumbnails,
         views,
         placement,
-        baseArtistId && getBaseArtist ? getArtistSync(baseArtistId, getViews, false) : null
+        baseArtistId != undefined && getBaseArtist ? getArtistSync(baseArtistId, getViews, false) : null
     )
 }
 
@@ -1046,12 +1047,49 @@ function searchArtistsSync(
     return artists
 }
 
-export function getArtist(
+export function getArtistPlacement(
+    id: Id,
+    views?: Views | null
+): Promise<ArtistPlacement | null> {
+    return new Promise<ArtistPlacement | null>((resolve, reject) => {
+        try {
+            const artistData = db.prepare(`
+            SELECT id, artist_type, publish_date, addition_date, base_artist_id, average_color, dark_color, light_color
+            FROM artists
+            WHERE id = ?`).get(id) as RawArtistData
+
+            const viewData = views || getArtistViewsSync(id)
+
+            // return null if the artist doesn't exist.
+            if (artistData == undefined || viewData == null) return resolve(null)
+
+            resolve(getArtistPlacementSync(artistData, viewData))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+export function getArtistViews(
     id: Id
+): Promise<Views | null> {
+    return new Promise<Views | null>((resolve, reject) => {
+        try {
+            resolve(getArtistViewsSync(id))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+export function getArtist(
+    id: Id,
+    getViews: boolean = true,
+    getBaseArtist: boolean = true
 ): Promise<Artist | null> {
     return new Promise<Artist | null>((resolve, reject) => {
         try {
-            resolve(getArtistSync(id))
+            resolve(getArtistSync(id, getViews, getBaseArtist))
         } catch (error) {
             reject(error)
         }
@@ -1138,24 +1176,24 @@ function buildSong(
     const maxresThumb = songData.maxres_thumbnail
 
     // build song
-    return new Song(
-        songId,
-        songData.publish_date,
-        songData.addition_date,
-        songData.song_type as SongType,
-        thumb,
-        maxresThumb,
-        songData.average_color,
-        songData.dark_color,
-        songData.light_color,
-        songArtists,
-        names,
-        videoIds,
-        thumbType,
-        songViews,
-        songPlacement,
-        songData.fandom_url
-    )
+    return {
+        id: songId,
+        publishDate: songData.publish_date,
+        additionDate: songData.addition_date,
+        type: songData.song_type as SongType,
+        thumbnail: thumb,
+        maxresThumbnail: maxresThumb,
+        averageColor: songData.average_color,
+        darkColor: songData.dark_color,
+        lightColor: songData.light_color,
+        artists: songArtists,
+        names: names,
+        videoIds: videoIds,
+        thumbnailType: thumbType,
+        views: songViews,
+        placement: songPlacement,
+        fandomUrl: songData.fandom_url
+    }
 }
 
 function getSongViewsSync(
@@ -1258,7 +1296,6 @@ function getSongSync(
     FROM songs_video_ids
     WHERE song_id = ?`).all(songId) as RawSongVideoId[]
 
-
     // get artists data
     const artists: Artist[] = []
     songArtists.forEach(rawArtist => {
@@ -1281,12 +1318,48 @@ function getSongSync(
     )
 }
 
-export function getSong(
+
+export function getSongPlacement(
+    id: Id,
+    views?: Views | null
+): Promise<SongPlacement | null> {
+    return new Promise<SongPlacement | null>((resolve, reject) => {
+        try {
+            const songData = db.prepare(`
+                SELECT id, publish_date, addition_date, song_type, thumbnail, maxres_thumbnail, thumbnail_type, average_color, dark_color, light_color, fandom_url
+                FROM songs
+                WHERE id = ?`).get(id) as RawSongData
+
+            const viewData = views || getSongViewsSync(id)
+            // resolve with null if the song was not found
+            if (songData == undefined || viewData == null) return resolve(null)
+
+            resolve(getSongPlacementSync(songData, viewData))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+export function getSongViews(
     id: Id
+): Promise<Views | null> {
+    return new Promise<Views | null>((resolve, reject) => {
+        try {
+            resolve(getSongViewsSync(id))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+export function getSong(
+    id: Id,
+    getViews: boolean = true
 ): Promise<Song | null> {
     return new Promise<Song | null>((resolve, reject) => {
         try {
-            resolve(getSongSync(id))
+            resolve(getSongSync(id, getViews))
         } catch (error) {
             reject(error)
         }

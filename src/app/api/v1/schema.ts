@@ -1,5 +1,5 @@
-import { filterSongRankings, getArtist, getSong, searchArtists } from '@/data/songsData'
-import { ArtistThumbnailType, ArtistThumbnails, FilterDirection, FilterOrder, NameType, Names, Song, SongRankingsFilterParams, SongVideoIds, SourceType, ViewsBreakdown } from '@/data/types'
+import { filterSongRankings, getArtist, getArtistPlacement, getArtistViews, getSong, getSongPlacement, getSongViews, searchArtists } from '@/data/songsData'
+import { Artist, ArtistThumbnailType, ArtistThumbnails, FilterDirection, FilterOrder, NameType, Names, Song, SongRankingsFilterParams, SongVideoIds, SourceType, ViewsBreakdown } from '@/data/types'
 import {
     GraphQLEnumType,
     GraphQLInterfaceType,
@@ -698,7 +698,8 @@ const artistType: GraphQLObjectType = new GraphQLObjectType({
         get baseArtist() {
             return {
                 type: artistType,
-                description: 'The artist an artist is based on.'
+                description: 'The artist an artist is based on.',
+                resolve: (artist: Artist) => artist.baseArtistId == null ? null : getArtist(artist.baseArtistId, false, false)
             }
         },
         averageColor: {
@@ -715,11 +716,13 @@ const artistType: GraphQLObjectType = new GraphQLObjectType({
         },
         views: {
             type: entityViewsType,
-            description: 'Describes the views that the artist has.'
+            description: 'Describes the views that the artist has.',
+            resolve: (artist: Artist) => getArtistViews(artist.id)
         },
         placement: {
             type: artistObjectInterface,
-            description: 'The placement of the artist in various categories.'
+            description: 'The placement of the artist in various categories.',
+            resolve: (artist: Artist) => getArtistPlacement(artist.id, artist.views)
         }
     },
     interfaces: [entityInterface]
@@ -798,11 +801,13 @@ const songType: GraphQLObjectType = new GraphQLObjectType({
         },
         views: {
             type: entityViewsType,
-            description: 'Describes the views that the song has.'
+            description: 'Describes the views that the song has.',
+            resolve: (song) => getSongViews(song.id)
         },
         placement: {
             type: songPlacementType,
-            description: 'The placement of the song in various categories.'
+            description: 'The placement of the song in various categories.',
+            resolve: (song: Song) => getSongPlacement(song.id, song.views)
         },
         thumbnailType: {
             type: sourceTypeEnum,
@@ -1080,7 +1085,7 @@ const queryType = new GraphQLObjectType({
             resolve: (
                 _source,
                 { id }: { id: number }
-            ) => getSong(id)
+            ) => getSong(id, false)
         },
         songs: {
             type: new GraphQLList(songType),
@@ -1093,7 +1098,7 @@ const queryType = new GraphQLObjectType({
             resolve: (
                 _source,
                 { ids }: { ids: number[] }
-            ) => ids.map(id => getSong(id))
+            ) => ids.map(id => getSong(id, false))
         },
         artist: {
             type: artistType,
@@ -1106,7 +1111,7 @@ const queryType = new GraphQLObjectType({
             resolve: (
                 _source,
                 { id }: { id: number }
-            ) => getArtist(id)
+            ) => getArtist(id, false, false)
         },
         artists: {
             type: new GraphQLList(artistType),
@@ -1119,7 +1124,7 @@ const queryType = new GraphQLObjectType({
             resolve: (
                 _source,
                 { ids }: { ids: number[] }
-            ) => ids.map(id => getArtist(id))
+            ) => ids.map(id => getArtist(id, false, false))
         },
         searchArtist: {
             type: new GraphQLList(artistType),

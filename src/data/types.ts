@@ -79,6 +79,10 @@ export type ViewsBreakdown = {
 
 export type Id = number | bigint
 
+export type ArtistThumbnails = {
+    [key in ArtistThumbnailType]: string
+}
+
 export interface HistoricalViews {
     views: number | bigint
     timestamp: string
@@ -117,8 +121,8 @@ export interface ArtistPlacement {
     allTime: number
 }
 
-export abstract class Entity {
-    id: Id
+export interface Entity {
+    id: Id,
     publishDate: string
     additionDate: string
     averageColor: string
@@ -126,29 +130,9 @@ export abstract class Entity {
     lightColor: string
     names: Names
     views: Views | null
-
-    constructor(
-        id: Id,
-        publishDate: string,
-        additionDate: string,
-        averageColor: string,
-        darkColor: string,
-        lightColor: string,
-        names: Names,
-        views: Views | null
-    ) {
-        this.id = id
-        this.publishDate = publishDate
-        this.additionDate = additionDate
-        this.averageColor = averageColor
-        this.darkColor = darkColor
-        this.lightColor = lightColor
-        this.names = names
-        this.views = views
-    }
 }
 
-export class Song extends Entity {
+export interface Song extends Entity {
     type: SongType
     thumbnail: string
     maxresThumbnail: string
@@ -157,70 +141,15 @@ export class Song extends Entity {
     placement: SongPlacement | null
     thumbnailType: SourceType
     fandomUrl?: string
-
-    constructor(
-        id: Id,
-        publishDate: string,
-        additionDate: string,
-        type: SongType,
-        thumbnail: string,
-        maxresThumbnail: string,
-        averageColor: string,
-        darkColor: string,
-        lightColor: string,
-        artists: Artist[],
-        names: Names,
-        videoIds: SongVideoIds,
-        thumbnailType: SourceType,
-        views: Views | null,
-        placement: SongPlacement | null,
-        fandomUrl?: string
-    ) {
-        super(id, publishDate, additionDate, averageColor, darkColor, lightColor, names, views)
-        this.type = type
-        this.thumbnail = thumbnail
-        this.maxresThumbnail = maxresThumbnail
-        this.artists = artists
-        this.videoIds = videoIds
-        this.thumbnailType = thumbnailType
-        this.placement = placement
-        this.fandomUrl = fandomUrl
-    }
 }
 
-export type ArtistThumbnails = {
-    [key in ArtistThumbnailType]: string
-}
-
-export class Artist extends Entity {
+export interface Artist extends Entity {
     type: ArtistType
     thumbnails: ArtistThumbnails
     placement: ArtistPlacement | null
     baseArtist: Artist | null
+    baseArtistId?: Id | null
     category?: ArtistCategory
-
-    constructor(
-        id: Id,
-        type: ArtistType,
-        publishDate: string,
-        additionDate: string,
-        names: Names,
-        thumbnails: ArtistThumbnails,
-        averageColor: string,
-        darkColor: string,
-        lightColor: string,
-        placement: ArtistPlacement | null,
-        views: Views | null,
-        baseArtist: Artist | null,
-        category?: ArtistCategory
-    ) {
-        super(id, publishDate, additionDate, averageColor, darkColor, lightColor, names, views)
-        this.type = type
-        this.thumbnails = thumbnails
-        this.placement = placement
-        this.baseArtist = baseArtist
-        this.category = category
-    }
 }
 
 export class SongRankingsFilterParams {
