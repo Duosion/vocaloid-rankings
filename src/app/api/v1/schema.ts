@@ -139,8 +139,10 @@ import {
  * 
  * type Query {
  *   song(id: Int!): Song
+ *   songs(ids: [Int]!): [Song] 
  * 
  *   artist(id: Int!): Artist
+ *   artists(ids: [Int]!): [Artist]
  * 
  *   songRankings(
  *     timestamp: String
@@ -1080,6 +1082,19 @@ const queryType = new GraphQLObjectType({
                 { id }: { id: number }
             ) => getSong(id)
         },
+        songs: {
+            type: new GraphQLList(songType),
+            args: {
+                ids: {
+                    type: new GraphQLNonNull(new GraphQLList(GraphQLInt)),
+                    description: 'The IDs of the songs.'
+                }
+            },
+            resolve: (
+                _source,
+                { ids }: { ids: number[] }
+            ) => ids.map(id => getSong(id))
+        },
         artist: {
             type: artistType,
             args: {
@@ -1092,6 +1107,19 @@ const queryType = new GraphQLObjectType({
                 _source,
                 { id }: { id: number }
             ) => getArtist(id)
+        },
+        artists: {
+            type: new GraphQLList(artistType),
+            args: {
+                ids: {
+                    type: new GraphQLNonNull(new GraphQLList(GraphQLInt)),
+                    description: 'The IDs of the artists.'
+                }
+            },
+            resolve: (
+                _source,
+                { ids }: { ids: number[] }
+            ) => ids.map(id => getArtist(id))
         },
         searchArtist: {
             type: new GraphQLList(artistType),
