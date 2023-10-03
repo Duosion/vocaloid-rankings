@@ -21,7 +21,7 @@
     "graphql": "^16.8.1",
     "material-symbols": "^0.9.0",
     "negotiator": "^0.6.3",
-    "next": "^13.5.1",
+    "next": "^13.5.4",
     "next-themes": "^0.2.1",
     "postcss": "8.4.25",
     "react": "^18.2.0",
@@ -32,6 +32,7 @@
     "typescript": "5.1.6"
   },
   "devDependencies": {
+    "@flydotio/dockerfile": "^0.4.10",
     "@types/better-sqlite3": "^7.6.4",
     "@types/color-thief-node": "1.0.2",
     "@types/negotiator": "^0.6.1",
@@ -39,5 +40,15 @@
     "@types/react": "18.2.14",
     "@types/react-dom": "18.2.6",
     "@types/react-transition-group": "^4.4.6"
+  },
+  "engines": {
+    "node": "20.x"
+  },
+  "dockerfile": {
+    "envs": {
+      "base": {
+        "NEXT_TELEMETRY_DISABLED": "1"
+      }
+    }
   }
 }

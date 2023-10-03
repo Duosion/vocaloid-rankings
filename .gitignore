@@ -37,3 +37,6 @@ next-env.d.ts
 #database
 /src/data/database
 /src/data/database/
+.dockerignore
+Dockerfile
+fly.toml
