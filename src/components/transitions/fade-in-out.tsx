@@ -22,7 +22,7 @@ export function FadeInOut(
             timeoutDebounce(timeoutRef, duration, () => setTransitioning(false))
         }
         setIsVisible(visible)
-    }, [visible])
+    }, [visible, duration])
 
     return (
         <div className="transition-opacity" style={{ opacity: isVisible ? 1 : 0, transform: isVisible ? 'translateY(0px)' : 'translateY(3px)', transitionDuration: `${duration}ms`, transitionProperty: 'opacity, transform' }}>

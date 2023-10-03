@@ -75,7 +75,7 @@ export function Modal(
         return () => {
             document.removeEventListener('click', handleClick)
         }
-    }, [visible])
+    }, [visible, onClose])
 
     return (
         <Transition
