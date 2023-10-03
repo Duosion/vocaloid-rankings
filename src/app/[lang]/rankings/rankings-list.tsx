@@ -274,20 +274,23 @@ export function RankingsList(
 
     // load entity names map
     useEffect(() => {
-        graphClient.query({
-            query: GET_ARTISTS_NAMES,
-            variables: {
-                ids: filterBarValues.artists
-            }
-        }).then((result: ApolloQueryResult<any>) => {
-            if (!result.error) {
-                const nameMap: EntityNames = {}
-                for (const artist of result.data.artists as ApiArtist[]) {
-                    nameMap[artist.id] = buildEntityNames(artist.names)
+        const artists = filterBarValues.artists
+        if (artists && artists.length > 0) {
+            graphClient.query({
+                query: GET_ARTISTS_NAMES,
+                variables: {
+                    ids: artists
                 }
-                setEntityNames({ ...entityNames, ...nameMap })
-            }
-        }).catch(_ => { })
+            }).then((result: ApolloQueryResult<any>) => {
+                if (!result.error) {
+                    const nameMap: EntityNames = {}
+                    for (const artist of result.data.artists as ApiArtist[]) {
+                        nameMap[artist.id] = buildEntityNames(artist.names)
+                    }
+                    setEntityNames({ ...entityNames, ...nameMap })
+                }
+            }).catch(_ => { })
+        }
     }, [])
 
     // generate dummy rankings
