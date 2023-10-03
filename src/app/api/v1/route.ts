@@ -3,7 +3,6 @@ import { graphql } from "graphql"
 import { Schema } from "./schema"
 import { NextResponse } from "next/server"
 
-
 export async function POST(
     request: Request
 ) {

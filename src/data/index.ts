@@ -14,7 +14,7 @@ const loadedDatabases: {
     [Databases.SONGS_DATA]?: Database
 } = {}
 
-const enum Databases {
+export const enum Databases {
     SONGS_DATA
 }
 
@@ -88,5 +88,3 @@ export const generateTimestamp = (
         original: date
     }
 }
-
-export { Databases }

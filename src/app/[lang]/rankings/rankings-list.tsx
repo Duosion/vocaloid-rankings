@@ -15,6 +15,7 @@ import Link from "next/link"
 import { ArtistType, FilterOrder, SongRankingsFilterResult, SongType, SourceType } from "@/data/types"
 import { TransitionGroup } from "react-transition-group"
 import { useQuery, gql, ApolloQueryResult } from "@apollo/client"
+import { RankingGridItem } from "@/components/rankings/rankings-grid-item"
 
 function encodeBoolean(
     bool: boolean
@@ -312,7 +313,7 @@ export function RankingsList(
                 entityNames={entityNames}
                 onEntityNamesChanged={newNames => setEntityNames({ ...newNames })}
             />
-            <ol className="flex flex-col gap-5 w-full">
+            <ol className="grid grid-cols-6 gap-10 w-full">
                 {error ? <h2 className="text-3xl font-bold text-center text-on-background">{error.message}</h2>
                     : !loading ? 0 >= rankingsResult.results.length ? <h2 className="text-3xl font-bold text-center text-on-background">{langDict.search_no_results}</h2>
                         : <TransitionGroup component={null}>
@@ -334,7 +335,7 @@ export function RankingsList(
                                     }
                                 }
                                 return (
-                                    <RankingListItem
+                                    <RankingGridItem
                                         key={song.id.toString()}
                                         href={`song/${song.id}`}
                                         titleContent={
