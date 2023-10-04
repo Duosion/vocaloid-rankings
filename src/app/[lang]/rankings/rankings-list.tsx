@@ -224,7 +224,7 @@ export function RankingsList(
             publishDate: undefined,
             orderBy: filterBarValues.orderBy == undefined ? undefined : FilterOrder[filterBarValues.orderBy],
             direction: undefined,
-            artists: filterBarValues.artists && filterBarValues.artists.length > 0 ? filterBarValues.artists : undefined,
+            artists: filterBarValues.artists && filterBarValues.artists.length > 0 ? [...filterBarValues.artists] : undefined, // unpack artists into new table so that the reference is different
             songs: undefined,
             singleVideo: filterBarValues.singleVideo,
             minViews: filterBarValues.minViews ? Number(filterBarValues.minViews) : undefined,
