@@ -170,6 +170,7 @@ import {
  *   
  *   searchArtists(
  *     query: String!
+ *     excludeArtists: [Int]
  *     maxEntries: Int
  *     startAt: Int
  *   ): [Artist]
@@ -1140,23 +1141,30 @@ const queryType = new GraphQLObjectType({
                 startAt: {
                     type: GraphQLInt,
                     description: 'The placement to start getting results at.'
-                }
+                },
+                excludeArtists: {
+                    type: new GraphQLList(GraphQLInt),
+                    description: 'A list of artist IDs to exclude from the search results.'
+                },
             },
             resolve: async (
                 _source,
                 {
                     query,
                     maxEntries,
-                    startAt
+                    startAt,
+                    excludeArtists
                 }: {
                     query: string
                     maxEntries: number | undefined
                     startAt: number | undefined
+                    excludeArtists: number[]
                 }
             ) => searchArtists(
                 query.trim(),
                 Math.min(maxEntries || 50, 50),
-                Math.abs(startAt || 0)
+                Math.abs(startAt || 0),
+                excludeArtists
             )
         }
     }

@@ -1,6 +1,6 @@
 import getDatabase, { generateTimestamp } from ".";
 import { Databases } from ".";
-import { Artist, ArtistCategory, ArtistPlacement, ArtistThumbnailType, ArtistType, HistoricalViews, HistoricalViewsResult, Id, NameType, Names, PlacementChange, SongRankingsFilterParams, SongRankingsFilterResult, SongRankingsFilterResultItem, RawArtistData, RawArtistName, RawArtistThumbnail, RawSongRankingsResult, RawSongArtist, RawSongData, RawSongName, RawSongVideoId, RawViewBreakdown, Song, SongPlacement, SongType, SongVideoIds, SourceType, SqlRankingsFilterParams, Views, ViewsBreakdown, ArtistRankingsFilterParams, ArtistRankingsFilterResult, ArtistRankingsFilterResultItem, RawArtistRankingResult } from "./types";
+import { Artist, ArtistCategory, ArtistPlacement, ArtistThumbnailType, ArtistType, HistoricalViews, HistoricalViewsResult, Id, NameType, Names, PlacementChange, SongRankingsFilterParams, SongRankingsFilterResult, SongRankingsFilterResultItem, RawArtistData, RawArtistName, RawArtistThumbnail, RawSongRankingsResult, RawSongArtist, RawSongData, RawSongName, RawSongVideoId, RawViewBreakdown, Song, SongPlacement, SongType, SongVideoIds, SourceType, SqlRankingsFilterParams, Views, ViewsBreakdown, ArtistRankingsFilterParams, ArtistRankingsFilterResult, ArtistRankingsFilterResultItem, RawArtistRankingResult, SqlSearchArtistsFilterParams } from "./types";
 import type { Statement } from "better-sqlite3";
 
 // import database
@@ -1021,19 +1021,56 @@ function getArtistSync(
     )
 }
 
+function buildSearchArtistsQueryParams(
+    query: string,
+    maxEntries: number = 50,
+    startAt: number = 0,
+    excludeArtists?: Id[],
+): SqlSearchArtistsFilterParams {
+
+    const queryParams: {[key: string]: any} = {
+        query: `%${query}%`,
+        maxEntries: maxEntries,
+        startAt: startAt,
+    }
+
+    const buildInStatement = (values: Id[], prefix = '') => {
+        const stringBuilder = []
+        let n = 0
+        for (const value of values) {
+            const key = `${prefix}${n}`
+            stringBuilder.push(`:${key}`)
+            queryParams[key] = value
+            n++
+        }
+        return stringBuilder.join(',')
+    }
+
+    return {
+        excludeArtists: excludeArtists ? buildInStatement(excludeArtists, 'excludeArtists') : '',
+        params: queryParams
+    }
+}
+
 function searchArtistsSync(
     query: string,
     maxEntries: number = 50,
-    startAt: number = 0
+    startAt: number = 0,
+    excludeArtists?: Id[],
 ): Artist[] {
+    const params = buildSearchArtistsQueryParams(query, maxEntries, startAt, excludeArtists)
+
+    const excludeArtistsValues = params.excludeArtists
+    const excludeArtistsStatement = excludeArtistsValues ? ` AND (artists.id NOT IN (${excludeArtistsValues}))` : ''
+
     const results = db.prepare(`
         SELECT DISTINCT id
         FROM artists
         INNER JOIN artists_names ON artists_names.artist_id = id
-        WHERE artists_names.name LIKE ?
-        LIMIT ?
-        OFFSET ?
-    `).all(`%${query}%`, maxEntries, startAt) as { id: number }[]
+        WHERE (artists_names.name LIKE :query)${excludeArtistsStatement}
+        LIMIT :maxEntries
+        OFFSET :startAt
+    `).all(params.params) as { id: number }[]
 
     // get artists from the ids
     const artists: Artist[] = []
@@ -1128,11 +1165,12 @@ export function getArtistHistoricalViews(
 export function searchArtists(
     query: string,
     maxEntries?: number,
-    startAt?: number
+    startAt?: number,
+    excludeArtists?: Id[]
 ): Promise<Artist[]> {
     return new Promise<Artist[]>((resolve, reject) => {
         try {
-            resolve(searchArtistsSync(query, maxEntries, startAt))
+            resolve(searchArtistsSync(query, maxEntries, startAt, excludeArtists))
         } catch (error) {
             reject(error)
         }

@@ -1,7 +1,7 @@
 'use client'
-import { LanguageDictionary } from "@/localization"
+import { LanguageDictionary, getEntityName } from "@/localization"
 import { useRef, useState } from "react"
-import { CheckboxFilter, Filter, FilterType, InputFilter, RankingsFilters, SelectFilter, SongRankingsFilterBarValues, MultiFilter, EntityNames } from "./types"
+import { CheckboxFilter, Filter, FilterType, InputFilter, RankingsFilters, SelectFilter, SongRankingsFilterBarValues, MultiFilter, EntityNames, MultiEntityFilter } from "./types"
 import { ActiveFilter } from "@/components/filter/active-filter"
 import { SelectFilterElement } from "@/components/filter/select-filter"
 import { FilledButton } from "@/components/material/filled-button"
@@ -94,7 +94,24 @@ export function SongRankingsActiveFilterBar(
                             }
                         })
                     }
-
+                    break
+                }
+                case FilterType.MULTI_ENTITY: {
+                    const parsedValue = value as number[]
+                    if (parsedValue.length > 0) {
+                        parsedValue.forEach(val => {
+                            if (!isNaN(val)) {
+                                const name = entityNames[val]
+                                const filterName = name ?  `${langDict[filter.name]}: ${name}` : undefined
+                                activeFilters.push(<ActiveFilter name={filterName} onClick={() => {
+                                    parsedValue.splice(parsedValue.indexOf(val), 1)
+                                    filterValues[key as keyof typeof filterValues] = [...parsedValue] as any
+                                    setFilterValues(filterValues)
+                                }} />)
+                            }
+                        })
+                    }
+                    break
                 }
             }
         }

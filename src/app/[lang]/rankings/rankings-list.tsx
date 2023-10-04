@@ -261,6 +261,7 @@ export function RankingsList(
                         case FilterType.CHECKBOX:
                             if (value) queryBuilder.push(`${key}=${encodeBoolean(value as boolean)}`)
                             break
+                        case FilterType.MULTI_ENTITY:
                         case FilterType.MULTI:
                             const encoded = encodeMultiFilter(value as number[])
                             if (encoded != '') queryBuilder.push(`${key}=${encoded}`)
@@ -286,13 +287,13 @@ export function RankingsList(
                 if (!result.error) {
                     const nameMap: EntityNames = {}
                     for (const artist of result.data.artists as ApiArtist[]) {
-                        nameMap[artist.id] = buildEntityNames(artist.names)
+                        nameMap[artist.id] = getEntityName(buildEntityNames(artist.names), settingTitleLanguage)
                     }
                     setEntityNames({ ...entityNames, ...nameMap })
                 }
             }).catch(_ => { })
         }
-    }, [])
+    }, [settingTitleLanguage])
 
     // generate dummy rankings
     const dummyElements: JSX.Element[] = []

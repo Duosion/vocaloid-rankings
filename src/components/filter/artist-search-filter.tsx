@@ -17,10 +17,12 @@ import { ActiveFilter } from "./active-filter"
 const ARTISTS_SEARCH = gql`
 query ArtistSearch(
     $query: String!
+    $excludeArtists: [Int]
 ) {
     searchArtist(
         query: $query
         maxEntries: 5
+        excludeArtists: $excludeArtists
     ) {
         id
         names {
@@ -82,6 +84,13 @@ export function ArtistSearchFilter(
         }
     }
 
+    function removeArtist(id: number) {
+        value.splice(value.indexOf(id), 1)
+        if (onValueChanged) {
+            onValueChanged(value)
+        }
+    }
+
     const onInputChanged = (input: string) => {
         setSearchQuery(input.toLowerCase())
         if (!modalOpen) {
@@ -94,7 +103,8 @@ export function ArtistSearchFilter(
             graphClient.query({
                 query: ARTISTS_SEARCH,
                 variables: {
-                    query: input
+                    query: input,
+                    excludeArtists: value
                 }
             }).then((result: ApolloQueryResult<any>) => { 
                 const error = result.error
@@ -150,7 +160,7 @@ export function ArtistSearchFilter(
                         {apiError || !searchResult ? <h3 className="text-base text-center">{apiError?.message}</h3>
                             : loading ? <h3 className="text-base text-center">Loading...</h3>
                                 : searchResult.map(result => {
-                                    const names = buildEntityNames(result.names)
+                                    const name = getEntityName(buildEntityNames(result.names), settingTitleLanguage)
                                     const id = result.id
                                     return (
                                         <button
@@ -159,14 +169,14 @@ export function ArtistSearchFilter(
                                                 e.preventDefault()
                                                 addArtist(id)
                                                 // add name to names
-                                                entityNames[id] = names
+                                                entityNames[id] = name
                                                 if (onEntityNamesChanged) onEntityNamesChanged(entityNames);
                                                 // close modal
                                                 setModalOpen(false)
                                             }}
                                             className="w-full font-normal h-auto overflow-clip text-ellipsis p-2 rounded-xl relative transition-colors hover:bg-surface-container-highest"
                                         >
-                                            {getEntityName(names, settingTitleLanguage)}
+                                            {name}
                                         </button>
                                     )
                                 })
@@ -179,9 +189,9 @@ export function ArtistSearchFilter(
             {/* Selected values */}
             <ul className="flex gap-3 mt-3 font-normal">
                 {value.map(id => {
-                    const names = entityNames[id]
-                    return names ? (
-                        <ActiveFilter name={getEntityName(names, settingTitleLanguage)} />
+                    const name = entityNames[id]
+                    return name ? (
+                        <ActiveFilter name={name} onClick={() => removeArtist(id)}/>
                     ) : undefined
                 })}
             </ul>

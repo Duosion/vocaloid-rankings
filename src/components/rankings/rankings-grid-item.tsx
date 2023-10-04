@@ -62,13 +62,13 @@ export function RankingGridItem(
         >
             {state => (
                 <article ref={nodeRef} key={key} className={`py-2 rounded-2xl w-full flex flex-col gap-3 relative box-border items-center transition-all ${className}`} style={transitionStyles[state]}>
-                    <div className="text-xl bg-inverse-surface text-inverse-on-surface rounded-xl absolute -left-4 -top-4 p-2 z-10 font-black border border-outline-variant box-border">#{placement}</div>
+                    <div className="text-xl bg-inverse-surface text-inverse-on-surface rounded-xl absolute -left-5 -top-4 p-2 z-10 font-black border border-outline-variant box-border">#{placement}</div>
                     <Link href={href} className="aspect-square w-full h-auto overflow-hidden relative rounded-3xl flex justify-center items-center border border-outline-variant box-border">
                         <Image
                             fill
                             src={icon}
                             alt={iconAlt}
-                            className="z-1 scale-150 object-cover"
+                            className="scale-150 object-cover"
                         />
                     </Link>
                     <Link href={href} className="max-w-full"><h3 className="overflow-clip text-ellipsis text-on-surface text-center font-semibold text-2xl">{titleContent}</h3></Link>

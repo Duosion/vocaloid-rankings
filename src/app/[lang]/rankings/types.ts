@@ -6,6 +6,7 @@ export enum FilterType {
     INPUT,
     CHECKBOX,
     MULTI,
+    MULTI_ENTITY
 }
 
 export enum PopupAlignment {
@@ -95,7 +96,7 @@ export class MultiEntityFilter extends Filter {
         displayActive: boolean = true,
         placeholder: LanguageDictionaryKey
     ) {
-        super(name, key, displayActive, FilterType.MULTI)
+        super(name, key, displayActive, FilterType.MULTI_ENTITY)
         this.placeholder = placeholder
     }
 }
@@ -175,4 +176,4 @@ export interface SongRankingsFilterBarValues {
 }
 
 // describes a list of entity names with their ids mapped to a Names types
-export type EntityNames = { [key: number]: Names }
+export type EntityNames = { [key: number]: string }

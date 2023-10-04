@@ -184,7 +184,7 @@ const filters: RankingsFilters = {
         name: 'filter_artists',
         key: 'artists',
         displayActive: true,
-        type: FilterType.INPUT,
+        type: FilterType.MULTI_ENTITY,
         placeholder: 'filter_artists_placeholder',
     }
 }
