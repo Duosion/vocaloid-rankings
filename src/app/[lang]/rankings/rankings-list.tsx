@@ -314,7 +314,7 @@ export function RankingsList(
                 entityNames={entityNames}
                 onEntityNamesChanged={newNames => setEntityNames({ ...newNames })}
             />
-            <ol className="grid grid-cols-6 gap-10 w-full">
+            <ol className="grid grid-cols-7 gap-10 w-full">
                 {error ? <h2 className="text-3xl font-bold text-center text-on-background">{error.message}</h2>
                     : !loading ? 0 >= rankingsResult.results.length ? <h2 className="text-3xl font-bold text-center text-on-background">{langDict.search_no_results}</h2>
                         : <TransitionGroup component={null}>

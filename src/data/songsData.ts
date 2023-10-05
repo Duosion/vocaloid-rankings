@@ -1,6 +1,6 @@
 import getDatabase, { generateTimestamp } from ".";
 import { Databases } from ".";
-import { Artist, ArtistCategory, ArtistPlacement, ArtistThumbnailType, ArtistType, HistoricalViews, HistoricalViewsResult, Id, NameType, Names, PlacementChange, SongRankingsFilterParams, SongRankingsFilterResult, SongRankingsFilterResultItem, RawArtistData, RawArtistName, RawArtistThumbnail, RawSongRankingsResult, RawSongArtist, RawSongData, RawSongName, RawSongVideoId, RawViewBreakdown, Song, SongPlacement, SongType, SongVideoIds, SourceType, SqlRankingsFilterParams, Views, ViewsBreakdown, ArtistRankingsFilterParams, ArtistRankingsFilterResult, ArtistRankingsFilterResultItem, RawArtistRankingResult, SqlSearchArtistsFilterParams } from "./types";
+import { Artist, ArtistCategory, ArtistPlacement, ArtistThumbnailType, ArtistType, HistoricalViews, HistoricalViewsResult, Id, NameType, Names, PlacementChange, SongRankingsFilterParams, SongRankingsFilterResult, SongRankingsFilterResultItem, RawArtistData, RawArtistName, RawArtistThumbnail, RawSongRankingsResult, RawSongArtist, RawSongData, RawSongName, RawSongVideoId, RawViewBreakdown, Song, SongPlacement, SongType, SongVideoIds, SourceType, SqlRankingsFilterParams, Views, ViewsBreakdown, ArtistRankingsFilterParams, ArtistRankingsFilterResult, ArtistRankingsFilterResultItem, RawArtistRankingResult, SqlSearchArtistsFilterParams, FilterInclusionMode } from "./types";
 import type { Statement } from "better-sqlite3";
 
 // import database
@@ -35,7 +35,7 @@ function getSongRankingsFilterQueryParams(
             queryParams[key] = value
             n++
         }
-        return stringBuilder.join(',')
+        return stringBuilder
     }
 
     // prepare build statements
@@ -52,8 +52,8 @@ function getSongRankingsFilterQueryParams(
     const filterParamsExcludeArtistTypes = filterParams.excludeArtistTypes
 
     return {
-        filterArtists: filterParamsArtists ? buildInStatement(filterParamsArtists, 'artist') : '',
-        filterSongs: filterParamsSongs ? buildInStatement(filterParamsSongs, 'song') : '',
+        filterArtists: filterParamsArtists && buildInStatement(filterParamsArtists, 'artist'),
+        filterSongs: filterParamsSongs && buildInStatement(filterParamsSongs, 'song'),
         filterIncludeSourceTypes: filterParamsIncludeSourceTypes && buildInStatement(filterParamsIncludeSourceTypes, 'includeSourceTypes'),
         filterExcludeSourceTypes: filterParamsExcludeSourceTypes && buildInStatement(filterParamsExcludeSourceTypes, 'excludeSourceTypes'),
         filterIncludeSongTypes: filterParamsIncludeSongTypes && buildInStatement(filterParamsIncludeSongTypes, 'includeSongTypes'),
@@ -65,6 +65,7 @@ function getSongRankingsFilterQueryParams(
 }
 
 function filterSongRankingsCountSync(
+    originalParams: SongRankingsFilterParams,
     queryParams: SqlRankingsFilterParams
 ): number {
     const filterArtists = queryParams.filterArtists
@@ -76,16 +77,27 @@ function filterSongRankingsCountSync(
     const filterIncludeArtistTypes = queryParams.filterIncludeArtistTypes
     const filterExcludeArtistTypes = queryParams.filterExcludeArtistTypes
 
-    const filterArtistsStatement = filterArtists == '' ? '' : ` AND (songs_artists.artist_id IN (${filterArtists}))`
-    const filterSongsStatement = filterSongs == '' ? '' : ` AND (songs.id IN (${filterSongs}))`
+    // filter artists statement
+    const filterArtistsStatement = filterArtists ? 
+        originalParams.includeArtistsMode == FilterInclusionMode.OR ? ` AND (songs_artists.artist_id IN (${filterArtists}))` 
+            : `AND(
+                ${filterArtists.map(varName => `EXISTS ( SELECT 1 FROM songs_artists sa WHERE sa.song_id = views_breakdowns.song_id AND sa.artist_id = ${varName} )`).join(' AND ')}
+              )`
+            : ''
+
+    // filter songs statement
+    const filterSongsStatement = filterSongs  ? ` AND (songs.id IN (${filterSongs.join(', ')}))` : ''
+
     // source types
-    const filterIncludeSourceTypesStatement = filterIncludeSourceTypes ? ` AND (views_breakdowns.view_type IN (${filterIncludeSourceTypes}))` : ''
-    const filterExcludeSourceTypesStatement = filterExcludeSourceTypes ? ` AND (views_breakdowns.view_type NOT IN (${filterExcludeSourceTypes}))` : ''
-    const filterOffsetIncludeSourceTypesStatement = filterIncludeSourceTypes ? ` AND (offset_breakdowns.view_type IN (${filterIncludeSourceTypes}))` : ''
-    const filterOffsetExcludeSourceTypesStatement = filterExcludeSourceTypes ? ` AND (offset_breakdowns.view_type NOT IN (${filterExcludeSourceTypes}))` : ''
+    const filterIncludeSourceTypesStatement = filterIncludeSourceTypes ? ` AND (views_breakdowns.view_type IN (${filterIncludeSourceTypes.join(', ')}))` : ''
+    const filterExcludeSourceTypesStatement = filterExcludeSourceTypes ? ` AND (views_breakdowns.view_type NOT IN (${filterExcludeSourceTypes.join(', ')}))` : ''
+    const filterOffsetIncludeSourceTypesStatement = filterIncludeSourceTypes ? ` AND (offset_breakdowns.view_type IN (${filterIncludeSourceTypes.join(', ')}))` : ''
+    const filterOffsetExcludeSourceTypesStatement = filterExcludeSourceTypes ? ` AND (offset_breakdowns.view_type NOT IN (${filterExcludeSourceTypes.join(', ')}))` : ''
+    
     // song types
-    const filterIncludeSongTypesStatement = filterIncludeSongTypes ? ` AND (songs.song_type IN (${filterIncludeSongTypes}))` : ''
-    const filterExcludeSongTypesStatement = filterExcludeSongTypes ? ` AND (songs.song_type NOT IN (${filterExcludeSongTypes}))` : ''
+    const filterIncludeSongTypesStatement = filterIncludeSongTypes ? ` AND (songs.song_type IN (${filterIncludeSongTypes.join(', ')}))` : ''
+    const filterExcludeSongTypesStatement = filterExcludeSongTypes ? ` AND (songs.song_type NOT IN (${filterExcludeSongTypes.join(', ')}))` : ''
+    
     // artist types
     const filterIncludeArtistTypesStatement = filterIncludeArtistTypes ? ` AND EXISTS (
         SELECT 1 
@@ -141,6 +153,7 @@ function filterSongRankingsCountSync(
 }
 
 function filterSongRankingsRawSync(
+    originalParams: SongRankingsFilterParams,
     queryParams: SqlRankingsFilterParams
 ): RawSongRankingsResult[] {
     const filterArtists = queryParams.filterArtists
@@ -152,18 +165,29 @@ function filterSongRankingsRawSync(
     const filterIncludeArtistTypes = queryParams.filterIncludeArtistTypes
     const filterExcludeArtistTypes = queryParams.filterExcludeArtistTypes
 
-    const filterArtistsStatement = filterArtists == '' ? '' : ` AND (songs_artists.artist_id IN (${filterArtists}))`
-    const filterSongsStatement = filterSongs == '' ? '' : ` AND (songs.id IN (${filterSongs}))`
+    // artists
+    const filterArtistsStatement = filterArtists ? 
+        originalParams.includeArtistsMode == FilterInclusionMode.OR ? ` AND (songs_artists.artist_id IN (${filterArtists}))` 
+            : `AND(
+                ${filterArtists.map(varName => `EXISTS ( SELECT 1 FROM songs_artists sa WHERE sa.song_id = views_breakdowns.song_id AND sa.artist_id = ${varName} )`).join(' AND ')}
+              )`
+            : ''
+
+    // songs
+    const filterSongsStatement = filterSongs  ? ` AND (songs.id IN (${filterSongs.join(', ')}))` : ''
+
     // source types
-    const filterIncludeSourceTypesStatement = filterIncludeSourceTypes ? ` AND (views_breakdowns.view_type IN (${filterIncludeSourceTypes}))` : ''
-    const filterExcludeSourceTypesStatement = filterExcludeSourceTypes ? ` AND (views_breakdowns.view_type NOT IN (${filterExcludeSourceTypes}))` : ''
-    const filterOffsetIncludeSourceTypesStatement = filterIncludeSourceTypes ? ` AND (offset_breakdowns.view_type IN (${filterIncludeSourceTypes}))` : ''
-    const filterOffsetExcludeSourceTypesStatement = filterExcludeSourceTypes ? ` AND (offset_breakdowns.view_type NOT IN (${filterExcludeSourceTypes}))` : ''
-    const filterOffsetSubIncludeSourceTypesStatement = filterIncludeSourceTypes ? ` AND (sub_vb.view_type IN (${filterIncludeSourceTypes}))` : ''
-    const filterOffsetSubExcludeSourceTypesStatement = filterExcludeSourceTypes ? ` AND (sub_vb.view_type NOT IN (${filterExcludeSourceTypes}))` : ''
+    const filterIncludeSourceTypesStatement = filterIncludeSourceTypes ? ` AND (views_breakdowns.view_type IN (${filterIncludeSourceTypes.join(', ')}))` : ''
+    const filterExcludeSourceTypesStatement = filterExcludeSourceTypes ? ` AND (views_breakdowns.view_type NOT IN (${filterExcludeSourceTypes.join(', ')}))` : ''
+    const filterOffsetIncludeSourceTypesStatement = filterIncludeSourceTypes ? ` AND (offset_breakdowns.view_type IN (${filterIncludeSourceTypes.join(', ')}))` : ''
+    const filterOffsetExcludeSourceTypesStatement = filterExcludeSourceTypes ? ` AND (offset_breakdowns.view_type NOT IN (${filterExcludeSourceTypes.join(', ')}))` : ''
+    const filterOffsetSubIncludeSourceTypesStatement = filterIncludeSourceTypes ? ` AND (sub_vb.view_type IN (${filterIncludeSourceTypes.join(', ')}))` : ''
+    const filterOffsetSubExcludeSourceTypesStatement = filterExcludeSourceTypes ? ` AND (sub_vb.view_type NOT IN (${filterExcludeSourceTypes.join(', ')}))` : ''
+
     // song types
-    const filterIncludeSongTypesStatement = filterIncludeSongTypes ? ` AND (songs.song_type IN (${filterIncludeSongTypes}))` : ''
-    const filterExcludeSongTypesStatement = filterExcludeSongTypes ? ` AND (songs.song_type NOT IN (${filterExcludeSongTypes}))` : ''
+    const filterIncludeSongTypesStatement = filterIncludeSongTypes ? ` AND (songs.song_type IN (${filterIncludeSongTypes.join(', ')}))` : ''
+    const filterExcludeSongTypesStatement = filterExcludeSongTypes ? ` AND (songs.song_type NOT IN (${filterExcludeSongTypes.join(', ')}))` : ''
+
     // artist types
     const filterIncludeArtistTypesStatement = filterIncludeArtistTypes ? ` AND EXISTS (
         SELECT 1 
@@ -366,12 +390,12 @@ function filterSongRankingsSync(
 ): SongRankingsFilterResult {
     const queryParams = getSongRankingsFilterQueryParams(filterParams)
 
-    const primaryResult = filterSongRankingsRawSync(queryParams)
+    const primaryResult = filterSongRankingsRawSync(filterParams, queryParams)
     // handle change offset
     const changeOffset = filterParams.changeOffset
     const changeOffsetMap: { [key: string]: number } = {}
     if (changeOffset && changeOffset > 0) {
-        const changeOffsetResult = filterSongRankingsRawSync(getSongRankingsFilterQueryParams(filterParams, changeOffset))
+        const changeOffsetResult = filterSongRankingsRawSync(filterParams, getSongRankingsFilterQueryParams(filterParams, changeOffset))
         for (let placement = 0; placement < changeOffsetResult.length; placement++) {
             changeOffsetMap[changeOffsetResult[placement].song_id.toString()] = placement
         }
@@ -401,7 +425,7 @@ function filterSongRankingsSync(
     }
 
     // get entry count
-    const entryCount = filterSongRankingsCountSync(queryParams)
+    const entryCount = filterSongRankingsCountSync(filterParams, queryParams)
 
     return {
         totalCount: entryCount,
@@ -423,7 +447,7 @@ export function filterSongRankings(
 }
 
 // Artist Rankings
-function getFilterArtistsQueryParams(
+/*function getFilterArtistsQueryParams(
     filterParams: ArtistRankingsFilterParams,
     daysOffset?: number
 ): SqlRankingsFilterParams {
@@ -771,7 +795,7 @@ export function filterArtistRankings(
             reject(error)
         }
     })
-}
+}*/
 
 // Views
 function getMostRecentViewsTimestampSync(): string | null {
@@ -975,7 +999,7 @@ function getArtistPlacementSync(
         const category = artistData.artist_type
         allTimePlacementFilterParams.artistCategory = category
 
-        allTimePlacement = filterArtistRankingsCountSync(getFilterArtistsQueryParams(allTimePlacementFilterParams))
+        allTimePlacement = 0 //filterArtistRankingsCountSync(getFilterArtistsQueryParams(allTimePlacementFilterParams))
     }
 
     return {
@@ -1282,7 +1306,7 @@ function getSongPlacementSync(
         const allTimePlacementFilterParams = new SongRankingsFilterParams()
         allTimePlacementFilterParams.minViews = Number(songViews.total)
 
-        allTimePlacement = filterSongRankingsCountSync(getSongRankingsFilterQueryParams(allTimePlacementFilterParams))
+        allTimePlacement = filterSongRankingsCountSync(allTimePlacementFilterParams, getSongRankingsFilterQueryParams(allTimePlacementFilterParams))
     }
 
     // get release year placement
@@ -1294,7 +1318,7 @@ function getSongPlacementSync(
         releaseYearPlacementFilterParams.minViews = Number(songViews.total)
         releaseYearPlacementFilterParams.publishDate = releaseYear
 
-        releaseYearPlacement = filterSongRankingsCountSync(getSongRankingsFilterQueryParams(releaseYearPlacementFilterParams))
+        releaseYearPlacement = filterSongRankingsCountSync(releaseYearPlacementFilterParams, getSongRankingsFilterQueryParams(releaseYearPlacementFilterParams))
     }
 
     return buildSongPlacement(

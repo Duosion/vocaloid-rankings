@@ -62,6 +62,11 @@ export enum FilterDirection {
     ASCENDING
 }
 
+export enum FilterInclusionMode {
+    AND,
+    OR
+}
+
 export type Names = {
     [NameType.ORIGINAL]: string
     [NameType.JAPANESE]?: string
@@ -174,6 +179,7 @@ export class SongRankingsFilterParams {
     minViews?: number
     maxViews?: number
     search?: string
+    includeArtistsMode: FilterInclusionMode = FilterInclusionMode.AND
 
     constructor(
         timestamp?: string,
@@ -196,7 +202,8 @@ export class SongRankingsFilterParams {
         startAt?: number,
         minViews?: number,
         maxViews?: number,
-        search?: string
+        search?: string,
+        includeArtistsMode?: FilterInclusionMode
     ) {
         this.timestamp = timestamp
         this.timePeriodOffset = timePeriodOffset || this.timePeriodOffset
@@ -219,6 +226,7 @@ export class SongRankingsFilterParams {
         this.minViews = minViews
         this.maxViews = maxViews
         this.search = search
+        this.includeArtistsMode = includeArtistsMode || this.includeArtistsMode
     }
 }
 
@@ -318,14 +326,14 @@ export interface ArtistRankingsFilterResultItem {
 }
 
 export interface SqlRankingsFilterParams {
-    filterArtists: string
-    filterSongs: string
-    filterIncludeSourceTypes?: string
-    filterExcludeSourceTypes?: string
-    filterIncludeSongTypes?: string
-    filterExcludeSongTypes?: string
-    filterIncludeArtistTypes?: string
-    filterExcludeArtistTypes?: string
+    filterArtists?: string[]
+    filterSongs?: string[]
+    filterIncludeSourceTypes?: string[]
+    filterExcludeSourceTypes?: string[]
+    filterIncludeSongTypes?: string[]
+    filterExcludeSongTypes?: string[]
+    filterIncludeArtistTypes?: string[]
+    filterExcludeArtistTypes?: string[]
     params: { [key: string]: any }
 }
 

@@ -1,5 +1,5 @@
 import { filterSongRankings, getArtist, getArtistPlacement, getArtistViews, getSong, getSongPlacement, getSongViews, searchArtists } from '@/data/songsData'
-import { Artist, ArtistThumbnailType, ArtistThumbnails, FilterDirection, FilterOrder, NameType, Names, Song, SongRankingsFilterParams, SongVideoIds, SourceType, ViewsBreakdown } from '@/data/types'
+import { Artist, ArtistThumbnailType, ArtistThumbnails, FilterDirection, FilterInclusionMode, FilterOrder, NameType, Names, Song, SongRankingsFilterParams, SongVideoIds, SourceType, ViewsBreakdown } from '@/data/types'
 import {
     GraphQLEnumType,
     GraphQLInterfaceType,
@@ -31,6 +31,8 @@ import {
  * enum FilterOrder { VIEWS, PUBLISH_DATE, ADDITION_DATE, POPULARITY }
  * 
  * enum FilterDirection { DESCENDING, ASCENDING }
+ * 
+ * enum FilterInclusionMode { AND, OR }
  * 
  * type EntityNames {
  *   original: String!
@@ -159,6 +161,7 @@ import {
  *     orderBy: FilterOrder
  *     direction: FilterDirection
  *     artists: [Int]
+ *     includeArtistsMode: FilterInclusionMode
  *     songs: [Int]
  *     singleVideo: Boolean
  *     maxEntries: Int
@@ -372,6 +375,22 @@ const filterDirectionEnum = new GraphQLEnumType({
             value: 0,
         },
         ASCENDING: {
+            value: 1
+        }
+    }
+})
+
+/**
+ * enum FilterInclusionMode { AND, OR }
+ */
+const filterInclusionModeEnum = new GraphQLEnumType({
+    name: 'FilterInclusionMode',
+    description: `The operator that should be used upon inclusion/exclusion.`,
+    values: {
+        AND: {
+            value: 0,
+        },
+        OR: {
             value: 1
         }
     }
@@ -972,6 +991,10 @@ const queryType = new GraphQLObjectType({
                     type: new GraphQLList(GraphQLInt),
                     description: `A list of artist IDs. These artists' songs will only be included in the results`
                 },
+                includeArtistsMode: {
+                    type: filterInclusionModeEnum,
+                    description: 'How artists should be included within the results.'
+                },
                 songs: {
                     type: new GraphQLList(GraphQLInt),
                     description: `A list of song IDs that will only be included in the result.`
@@ -1018,6 +1041,7 @@ const queryType = new GraphQLObjectType({
                     orderBy,
                     direction,
                     artists,
+                    includeArtistsMode,
                     songs,
                     singleVideo,
                     maxEntries,
@@ -1040,6 +1064,7 @@ const queryType = new GraphQLObjectType({
                     orderBy?: number
                     direction?: number
                     artists?: number[]
+                    includeArtistsMode?: number
                     songs?: number[]
                     singleVideo?: boolean
                     maxEntries?: number
@@ -1065,6 +1090,7 @@ const queryType = new GraphQLObjectType({
                 filterParams.orderBy = orderBy || filterParams.orderBy
                 filterParams.direction = direction || filterParams.direction
                 filterParams.artists = artists
+                filterParams.includeArtistsMode = includeArtistsMode || filterParams.includeArtistsMode
                 filterParams.songs = songs
                 filterParams.singleVideo = singleVideo || filterParams.singleVideo
                 filterParams.maxEntries = Math.min(maxEntries || filterParams.maxEntries, 50)
