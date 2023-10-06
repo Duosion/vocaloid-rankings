@@ -1,16 +1,18 @@
 import getDatabase, { generateTimestamp } from ".";
 import { Databases } from ".";
-import { Artist, ArtistCategory, ArtistPlacement, ArtistThumbnailType, ArtistType, HistoricalViews, HistoricalViewsResult, Id, NameType, Names, PlacementChange, SongRankingsFilterParams, SongRankingsFilterResult, SongRankingsFilterResultItem, RawArtistData, RawArtistName, RawArtistThumbnail, RawSongRankingsResult, RawSongArtist, RawSongData, RawSongName, RawSongVideoId, RawViewBreakdown, Song, SongPlacement, SongType, SongVideoIds, SourceType, SqlRankingsFilterParams, Views, ViewsBreakdown, ArtistRankingsFilterParams, ArtistRankingsFilterResult, ArtistRankingsFilterResultItem, RawArtistRankingResult, SqlSearchArtistsFilterParams, FilterInclusionMode } from "./types";
+import { Artist, ArtistCategory, ArtistPlacement, ArtistThumbnailType, ArtistType, HistoricalViews, HistoricalViewsResult, Id, NameType, Names, PlacementChange, SongRankingsFilterParams, SongRankingsFilterResult, SongRankingsFilterResultItem, RawArtistData, RawArtistName, RawArtistThumbnail, RawSongRankingsResult, RawSongArtist, RawSongData, RawSongName, RawSongVideoId, RawViewBreakdown, Song, SongPlacement, SongType, SongVideoIds, SourceType, SqlRankingsFilterParams, Views, ViewsBreakdown, ArtistRankingsFilterParams, ArtistRankingsFilterResult, ArtistRankingsFilterResultItem, RawArtistRankingResult, SqlSearchArtistsFilterParams, FilterInclusionMode, FilterOrder, FilterDirection } from "./types";
 import type { Statement } from "better-sqlite3";
 
 // import database
 const db = getDatabase(Databases.SONGS_DATA)
 
 // rankings
+
 function getSongRankingsFilterQueryParams(
     filterParams: SongRankingsFilterParams,
     daysOffset?: number
 ): SqlRankingsFilterParams {
+    // merge the filter params with the defaults
     const queryParams: { [key: string]: any } = {
         timestamp: filterParams.timestamp || getMostRecentViewsTimestampSync(),
         timePeriodOffset: filterParams.timePeriodOffset,
@@ -39,7 +41,8 @@ function getSongRankingsFilterQueryParams(
     }
 
     // prepare build statements
-    const filterParamsArtists = filterParams.artists
+    const filterParamsIncludeArtists = filterParams.includeArtists
+    const filterParamsExcludeArtists = filterParams.excludeArtists
     const filterParamsSongs = filterParams.songs
     // source types
     const filterParamsIncludeSourceTypes = filterParams.includeSourceTypes
@@ -52,7 +55,8 @@ function getSongRankingsFilterQueryParams(
     const filterParamsExcludeArtistTypes = filterParams.excludeArtistTypes
 
     return {
-        filterArtists: filterParamsArtists && buildInStatement(filterParamsArtists, 'artist'),
+        filterIncludeArtists: filterParamsIncludeArtists && buildInStatement(filterParamsIncludeArtists, 'includeArtist'),
+        filterExcludeArtists: filterParamsExcludeArtists && buildInStatement(filterParamsExcludeArtists, 'excludeArtist'),
         filterSongs: filterParamsSongs && buildInStatement(filterParamsSongs, 'song'),
         filterIncludeSourceTypes: filterParamsIncludeSourceTypes && buildInStatement(filterParamsIncludeSourceTypes, 'includeSourceTypes'),
         filterExcludeSourceTypes: filterParamsExcludeSourceTypes && buildInStatement(filterParamsExcludeSourceTypes, 'excludeSourceTypes'),
@@ -68,7 +72,8 @@ function filterSongRankingsCountSync(
     originalParams: SongRankingsFilterParams,
     queryParams: SqlRankingsFilterParams
 ): number {
-    const filterArtists = queryParams.filterArtists
+    const filterIncludeArtists = queryParams.filterIncludeArtists
+    const filterExcludeArtists = queryParams.filterExcludeArtists
     const filterSongs = queryParams.filterSongs
     const filterIncludeSourceTypes = queryParams.filterIncludeSourceTypes
     const filterExcludeSourceTypes = queryParams.filterExcludeSourceTypes
@@ -77,27 +82,34 @@ function filterSongRankingsCountSync(
     const filterIncludeArtistTypes = queryParams.filterIncludeArtistTypes
     const filterExcludeArtistTypes = queryParams.filterExcludeArtistTypes
 
-    // filter artists statement
-    const filterArtistsStatement = filterArtists ? 
-        originalParams.includeArtistsMode == FilterInclusionMode.OR ? ` AND (songs_artists.artist_id IN (${filterArtists}))` 
-            : `AND(
-                ${filterArtists.map(varName => `EXISTS ( SELECT 1 FROM songs_artists sa WHERE sa.song_id = views_breakdowns.song_id AND sa.artist_id = ${varName} )`).join(' AND ')}
+    // filter include/exclude artists statement
+    const filterIncludeArtistsStatement = filterIncludeArtists ?
+        originalParams.includeArtistsMode == FilterInclusionMode.OR ? ` AND (songs_artists.artist_id IN (${filterIncludeArtists}))`
+            : ` AND (
+                ${filterIncludeArtists.map(varName => `EXISTS ( SELECT 1 FROM songs_artists sa WHERE sa.song_id = views_breakdowns.song_id AND sa.artist_id = ${varName} )`).join(' AND ')}
               )`
-            : ''
+        : ''
+
+    const filterExcludeArtistsStatement = filterExcludeArtists ?
+        originalParams.includeArtistsMode == FilterInclusionMode.OR ? ` AND (songs_artists.artist_id NOT IN (${filterExcludeArtists}))`
+            : ` AND (
+                    ${filterExcludeArtists.map(varName => `NOT EXISTS ( SELECT 1 FROM songs_artists sa WHERE sa.song_id = views_breakdowns.song_id AND sa.artist_id = ${varName} )`).join(' AND ')}
+                  )`
+        : ''
 
     // filter songs statement
-    const filterSongsStatement = filterSongs  ? ` AND (songs.id IN (${filterSongs.join(', ')}))` : ''
+    const filterSongsStatement = filterSongs ? ` AND (songs.id IN (${filterSongs.join(', ')}))` : ''
 
     // source types
     const filterIncludeSourceTypesStatement = filterIncludeSourceTypes ? ` AND (views_breakdowns.view_type IN (${filterIncludeSourceTypes.join(', ')}))` : ''
     const filterExcludeSourceTypesStatement = filterExcludeSourceTypes ? ` AND (views_breakdowns.view_type NOT IN (${filterExcludeSourceTypes.join(', ')}))` : ''
     const filterOffsetIncludeSourceTypesStatement = filterIncludeSourceTypes ? ` AND (offset_breakdowns.view_type IN (${filterIncludeSourceTypes.join(', ')}))` : ''
     const filterOffsetExcludeSourceTypesStatement = filterExcludeSourceTypes ? ` AND (offset_breakdowns.view_type NOT IN (${filterExcludeSourceTypes.join(', ')}))` : ''
-    
+
     // song types
     const filterIncludeSongTypesStatement = filterIncludeSongTypes ? ` AND (songs.song_type IN (${filterIncludeSongTypes.join(', ')}))` : ''
     const filterExcludeSongTypesStatement = filterExcludeSongTypes ? ` AND (songs.song_type NOT IN (${filterExcludeSongTypes.join(', ')}))` : ''
-    
+
     // artist types
     const filterIncludeArtistTypesStatement = filterIncludeArtistTypes ? ` AND EXISTS (
         SELECT 1 
@@ -139,9 +151,9 @@ function filterSongRankingsCountSync(
                 WHERE (offset_breakdowns.timestamp = views_breakdowns.timestamp)
                     AND (offset_breakdowns.song_id = views_breakdowns.song_id)
                     AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
-                    AND (songs_names.name LIKE :search OR :search IS NULL)${filterOffsetIncludeSourceTypesStatement}${filterOffsetExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterArtistsStatement}${filterSongsStatement}
+                    AND (songs_names.name LIKE :search OR :search IS NULL)${filterOffsetIncludeSourceTypesStatement}${filterOffsetExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterIncludeArtistsStatement}${filterExcludeArtistsStatement}${filterSongsStatement}
                 GROUP BY offset_breakdowns.song_id)
-            END)${filterIncludeSourceTypesStatement}${filterExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterArtistsStatement}${filterSongsStatement}
+            END)${filterIncludeSourceTypesStatement}${filterExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterIncludeArtistsStatement}${filterExcludeArtistsStatement}${filterSongsStatement}
     GROUP BY views_breakdowns.song_id
     HAVING (CASE WHEN :minViews IS NULL
         THEN 1
@@ -156,7 +168,8 @@ function filterSongRankingsRawSync(
     originalParams: SongRankingsFilterParams,
     queryParams: SqlRankingsFilterParams
 ): RawSongRankingsResult[] {
-    const filterArtists = queryParams.filterArtists
+    const filterIncludeArtists = queryParams.filterIncludeArtists
+    const filterExcludeArtists = queryParams.filterExcludeArtists
     const filterSongs = queryParams.filterSongs
     const filterIncludeSourceTypes = queryParams.filterIncludeSourceTypes
     const filterExcludeSourceTypes = queryParams.filterExcludeSourceTypes
@@ -165,16 +178,23 @@ function filterSongRankingsRawSync(
     const filterIncludeArtistTypes = queryParams.filterIncludeArtistTypes
     const filterExcludeArtistTypes = queryParams.filterExcludeArtistTypes
 
-    // artists
-    const filterArtistsStatement = filterArtists ? 
-        originalParams.includeArtistsMode == FilterInclusionMode.OR ? ` AND (songs_artists.artist_id IN (${filterArtists}))` 
-            : `AND(
-                ${filterArtists.map(varName => `EXISTS ( SELECT 1 FROM songs_artists sa WHERE sa.song_id = views_breakdowns.song_id AND sa.artist_id = ${varName} )`).join(' AND ')}
+    // filter include/exclude artists statement
+    const filterIncludeArtistsStatement = filterIncludeArtists ?
+        originalParams.includeArtistsMode == FilterInclusionMode.OR ? ` AND (songs_artists.artist_id IN (${filterIncludeArtists}))`
+            : ` AND (
+                ${filterIncludeArtists.map(varName => `EXISTS ( SELECT 1 FROM songs_artists sa WHERE sa.song_id = views_breakdowns.song_id AND sa.artist_id = ${varName} )`).join(' AND ')}
               )`
-            : ''
+        : ''
+
+    const filterExcludeArtistsStatement = filterExcludeArtists ?
+        originalParams.excludeArtistsMode == FilterInclusionMode.OR ? ` AND (songs_artists.artist_id NOT IN (${filterExcludeArtists}))`
+            : ` AND (
+                    ${filterExcludeArtists.map(varName => `NOT EXISTS ( SELECT 1 FROM songs_artists sa WHERE sa.song_id = views_breakdowns.song_id AND sa.artist_id = ${varName} )`).join(' OR ')}
+                  )`
+        : ''
 
     // songs
-    const filterSongsStatement = filterSongs  ? ` AND (songs.id IN (${filterSongs.join(', ')}))` : ''
+    const filterSongsStatement = filterSongs ? ` AND (songs.id IN (${filterSongs.join(', ')}))` : ''
 
     // source types
     const filterIncludeSourceTypesStatement = filterIncludeSourceTypes ? ` AND (views_breakdowns.view_type IN (${filterIncludeSourceTypes.join(', ')}))` : ''
@@ -234,9 +254,9 @@ function filterSongRankingsRawSync(
                                     WHERE (sub_vb.view_type = views_breakdowns.view_type)
                                         AND (sub_vb.timestamp = views_breakdowns.timestamp)
                                         AND (sub_vb.song_id = views_breakdowns.song_id)
-                                        AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)${filterOffsetSubIncludeSourceTypesStatement}${filterOffsetSubExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterArtistsStatement}${filterSongsStatement}
+                                        AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)${filterOffsetSubIncludeSourceTypesStatement}${filterOffsetSubExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterIncludeArtistsStatement}${filterExcludeArtistsStatement}${filterSongsStatement}
                                     GROUP BY sub_vb.song_id)
-                                END)${filterOffsetIncludeSourceTypesStatement}${filterOffsetExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterArtistsStatement}${filterSongsStatement}
+                                END)${filterOffsetIncludeSourceTypesStatement}${filterOffsetExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterIncludeArtistsStatement}${filterExcludeArtistsStatement}${filterSongsStatement}
                         GROUP BY offset_breakdowns.song_id
                     ), CASE WHEN julianday(:timestamp) - julianday(songs.publish_date) <= :timePeriodOffset THEN 0 ELSE (
                         SELECT SUM(DISTINCT offset_breakdowns.views) AS offset_views
@@ -261,9 +281,9 @@ function filterSongRankingsRawSync(
                                     WHERE (sub_vb.view_type = views_breakdowns.view_type)
                                         AND (sub_vb.timestamp = views_breakdowns.timestamp)
                                         AND (sub_vb.song_id = views_breakdowns.song_id)
-                                        AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)${filterOffsetSubIncludeSourceTypesStatement}${filterOffsetSubExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterArtistsStatement}${filterSongsStatement}
+                                        AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)${filterOffsetSubIncludeSourceTypesStatement}${filterOffsetSubExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterIncludeArtistsStatement}${filterExcludeArtistsStatement}${filterSongsStatement}
                                     GROUP BY sub_vb.song_id)
-                                END)${filterOffsetIncludeSourceTypesStatement}${filterOffsetExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterArtistsStatement}${filterSongsStatement}
+                                END)${filterOffsetIncludeSourceTypesStatement}${filterOffsetExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterIncludeArtistsStatement}${filterExcludeArtistsStatement}${filterSongsStatement}
                         GROUP BY offset_breakdowns.song_id
                         ) END)
                 END) * (1 / MAX(julianday('now') - julianday(songs.publish_date), 1))
@@ -294,9 +314,9 @@ function filterSongRankingsRawSync(
                                     WHERE (sub_vb.view_type = views_breakdowns.view_type)
                                         AND (sub_vb.timestamp = views_breakdowns.timestamp)
                                         AND (sub_vb.song_id = views_breakdowns.song_id)
-                                        AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)${filterOffsetSubIncludeSourceTypesStatement}${filterOffsetSubExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterArtistsStatement}${filterSongsStatement}
+                                        AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)${filterOffsetSubIncludeSourceTypesStatement}${filterOffsetSubExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterIncludeArtistsStatement}${filterExcludeArtistsStatement}${filterSongsStatement}
                                     GROUP BY sub_vb.song_id)
-                                END)${filterOffsetIncludeSourceTypesStatement}${filterOffsetExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterArtistsStatement}${filterSongsStatement}
+                                END)${filterOffsetIncludeSourceTypesStatement}${filterOffsetExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterIncludeArtistsStatement}${filterExcludeArtistsStatement}${filterSongsStatement}
                         GROUP BY offset_breakdowns.song_id
                     ), CASE WHEN julianday(:timestamp) - julianday(songs.publish_date) <= :timePeriodOffset THEN 0 ELSE (
                         SELECT SUM(DISTINCT offset_breakdowns.views) AS offset_views
@@ -321,9 +341,9 @@ function filterSongRankingsRawSync(
                                     WHERE (sub_vb.view_type = views_breakdowns.view_type)
                                         AND (sub_vb.timestamp = views_breakdowns.timestamp)
                                         AND (sub_vb.song_id = views_breakdowns.song_id)
-                                        AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)${filterOffsetSubIncludeSourceTypesStatement}${filterOffsetSubExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterArtistsStatement}${filterSongsStatement}
+                                        AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)${filterOffsetSubIncludeSourceTypesStatement}${filterOffsetSubExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterIncludeArtistsStatement}${filterExcludeArtistsStatement}${filterSongsStatement}
                                     GROUP BY sub_vb.song_id)
-                                END)${filterOffsetIncludeSourceTypesStatement}${filterOffsetExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterArtistsStatement}${filterSongsStatement}
+                                END)${filterOffsetIncludeSourceTypesStatement}${filterOffsetExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterIncludeArtistsStatement}${filterExcludeArtistsStatement}${filterSongsStatement}
                         GROUP BY offset_breakdowns.song_id
                         ) END)
                 END 
@@ -350,9 +370,9 @@ function filterSongRankingsRawSync(
                     WHERE (sub_vb.view_type = views_breakdowns.view_type)
                         AND (sub_vb.timestamp = views_breakdowns.timestamp)
                         AND (sub_vb.song_id = views_breakdowns.song_id)
-                        AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)${filterOffsetSubIncludeSourceTypesStatement}${filterOffsetSubExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterArtistsStatement}${filterSongsStatement}
+                        AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)${filterOffsetSubIncludeSourceTypesStatement}${filterOffsetSubExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterIncludeArtistsStatement}${filterExcludeArtistsStatement}${filterSongsStatement}
                     GROUP BY sub_vb.song_id)
-                END)${filterIncludeSourceTypesStatement}${filterExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterArtistsStatement}${filterSongsStatement}
+                END)${filterIncludeSourceTypesStatement}${filterExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterIncludeArtistsStatement}${filterExcludeArtistsStatement}${filterSongsStatement}
         GROUP BY views_breakdowns.song_id
         HAVING (CASE WHEN :minViews IS NULL
             THEN 1
@@ -1052,7 +1072,7 @@ function buildSearchArtistsQueryParams(
     excludeArtists?: Id[],
 ): SqlSearchArtistsFilterParams {
 
-    const queryParams: {[key: string]: any} = {
+    const queryParams: { [key: string]: any } = {
         query: `%${query}%`,
         maxEntries: maxEntries,
         startAt: startAt,

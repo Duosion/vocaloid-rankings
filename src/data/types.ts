@@ -156,7 +156,6 @@ export interface Artist extends Entity {
     baseArtistId?: Id | null
     category?: ArtistCategory
 }
-
 export class SongRankingsFilterParams {
     timestamp?: string
     timePeriodOffset?: number
@@ -168,10 +167,15 @@ export class SongRankingsFilterParams {
     excludeSongTypes?: SongType[]
     includeArtistTypes?: ArtistType[]
     excludeArtistTypes?: ArtistType[]
+    includeArtistTypesMode: FilterInclusionMode = FilterInclusionMode.AND
+    excludeArtistTypesMode: FilterInclusionMode = FilterInclusionMode.OR
     publishDate?: string
     orderBy: FilterOrder = FilterOrder.VIEWS
     direction: FilterDirection = FilterDirection.DESCENDING
-    artists?: Id[]
+    includeArtists?: Id[]
+    excludeArtists?: Id[]
+    includeArtistsMode: FilterInclusionMode = FilterInclusionMode.AND
+    excludeArtistsMode: FilterInclusionMode = FilterInclusionMode.OR
     songs?: Id[]
     singleVideo: boolean = false
     maxEntries: number = 50
@@ -179,55 +183,6 @@ export class SongRankingsFilterParams {
     minViews?: number
     maxViews?: number
     search?: string
-    includeArtistsMode: FilterInclusionMode = FilterInclusionMode.AND
-
-    constructor(
-        timestamp?: string,
-        timePeriodOffset?: number,
-        changeOffset?: number,
-        daysOffset?: number,
-        includeSourceTypes?: SourceType[],
-        excludeSourceTypes?: SourceType[],
-        includeSongTypes?: SongType[],
-        excludeSongTypes?: SongType[],
-        includeArtistTypes?: ArtistType[],
-        excludeArtistTypes?: ArtistType[],
-        publishDate?: string,
-        orderBy?: FilterOrder,
-        direction?: FilterDirection,
-        artists?: Id[],
-        songs?: Id[],
-        singleVideo?: boolean,
-        maxEntries?: number,
-        startAt?: number,
-        minViews?: number,
-        maxViews?: number,
-        search?: string,
-        includeArtistsMode?: FilterInclusionMode
-    ) {
-        this.timestamp = timestamp
-        this.timePeriodOffset = timePeriodOffset || this.timePeriodOffset
-        this.changeOffset = changeOffset || this.changeOffset
-        this.daysOffset = daysOffset || this.daysOffset
-        this.includeSourceTypes = includeSourceTypes
-        this.excludeSourceTypes = excludeSourceTypes
-        this.includeSongTypes = includeSongTypes
-        this.excludeSongTypes = excludeSongTypes
-        this.includeArtistTypes = includeArtistTypes
-        this.excludeArtistTypes = excludeArtistTypes
-        this.publishDate = publishDate
-        this.orderBy = orderBy || this.orderBy
-        this.direction = direction || this.direction
-        this.artists = artists
-        this.songs = songs
-        this.singleVideo = singleVideo || this.singleVideo
-        this.maxEntries = maxEntries || this.maxEntries
-        this.startAt = startAt || this.startAt
-        this.minViews = minViews
-        this.maxViews = maxViews
-        this.search = search
-        this.includeArtistsMode = includeArtistsMode || this.includeArtistsMode
-    }
 }
 
 export class ArtistRankingsFilterParams {
@@ -326,7 +281,8 @@ export interface ArtistRankingsFilterResultItem {
 }
 
 export interface SqlRankingsFilterParams {
-    filterArtists?: string[]
+    filterIncludeArtists?: string[]
+    filterExcludeArtists?: string[]
     filterSongs?: string[]
     filterIncludeSourceTypes?: string[]
     filterExcludeSourceTypes?: string[]

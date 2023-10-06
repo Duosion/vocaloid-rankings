@@ -157,11 +157,15 @@ import {
  *     excludeSongTypes: [SongType]
  *     includeArtistTypes: [ArtistType]
  *     excludeArtistTypes: [ArtistType]
+ *     includeArtistsTypesMode: FilterInclusionMode
+ *     excludeArtistsTypesMode: FilterInclusionMode
  *     publishDate: String
  *     orderBy: FilterOrder
  *     direction: FilterDirection
- *     artists: [Int]
+ *     includeArtists: [Int]
+ *     excludeArtists: [Int]
  *     includeArtistsMode: FilterInclusionMode
+ *     excludeArtistsMode: FilterInclusionMode
  *     songs: [Int]
  *     singleVideo: Boolean
  *     maxEntries: Int
@@ -975,6 +979,14 @@ const queryType = new GraphQLObjectType({
                     type: new GraphQLList(artistTypeEnum),
                     description: 'A list of ArtistTypes to exclude.'
                 },
+                includeArtistTypesMode: {
+                    type: filterInclusionModeEnum,
+                    description: 'The inclusion mode to use when including artist types.'
+                },
+                excludeArtistTypesMode: {
+                    type: filterInclusionModeEnum,
+                    description: 'The exclusion mode to use when excluduing artist types.'
+                },
                 publishDate: {
                     type: GraphQLString,
                     description: 'Only include songs with the provided publish date.'
@@ -987,13 +999,21 @@ const queryType = new GraphQLObjectType({
                     type: filterDirectionEnum,
                     description: 'The direction to sort the results in.'
                 },
-                artists: {
+                includeArtists: {
                     type: new GraphQLList(GraphQLInt),
                     description: `A list of artist IDs. These artists' songs will only be included in the results`
+                },
+                excludeArtists: {
+                    type: new GraphQLList(GraphQLInt),
+                    description: `A list of artist IDs. Songs that include these artists will be excluded from the results.`
                 },
                 includeArtistsMode: {
                     type: filterInclusionModeEnum,
                     description: 'How artists should be included within the results.'
+                },
+                excludeArtistsMode: {
+                    type: filterInclusionModeEnum,
+                    description: 'How artists should be excluded within the results.'
                 },
                 songs: {
                     type: new GraphQLList(GraphQLInt),
@@ -1037,11 +1057,15 @@ const queryType = new GraphQLObjectType({
                     excludeSongTypes,
                     includeArtistTypes,
                     excludeArtistTypes,
+                    includeArtistTypesMode,
+                    excludeArtistTypesMode,
                     publishDate,
                     orderBy,
                     direction,
-                    artists,
+                    includeArtists,
+                    excludeArtists,
                     includeArtistsMode,
+                    excludeArtistsMode,
                     songs,
                     singleVideo,
                     maxEntries,
@@ -1060,11 +1084,15 @@ const queryType = new GraphQLObjectType({
                     excludeSongTypes?: number[]
                     includeArtistTypes?: number[]
                     excludeArtistTypes?: number[]
+                    includeArtistTypesMode?: number
+                    excludeArtistTypesMode?: number
                     publishDate?: string
                     orderBy?: number
                     direction?: number
-                    artists?: number[]
+                    includeArtists?: number[]
+                    excludeArtists?: number[]
                     includeArtistsMode?: number
+                    excludeArtistsMode?: number
                     songs?: number[]
                     singleVideo?: boolean
                     maxEntries?: number
@@ -1086,11 +1114,15 @@ const queryType = new GraphQLObjectType({
                 filterParams.excludeSongTypes = excludeSongTypes
                 filterParams.includeArtistTypes = includeArtistTypes
                 filterParams.excludeArtistTypes = excludeArtistTypes
+                filterParams.includeArtistTypesMode = includeArtistTypesMode === undefined ? filterParams.includeArtistTypesMode : includeArtistTypesMode
+                filterParams.excludeArtistTypesMode = excludeArtistTypesMode === undefined ? filterParams.excludeArtistTypesMode : excludeArtistTypesMode
                 filterParams.publishDate = publishDate
                 filterParams.orderBy = orderBy || filterParams.orderBy
                 filterParams.direction = direction || filterParams.direction
-                filterParams.artists = artists
-                filterParams.includeArtistsMode = includeArtistsMode || filterParams.includeArtistsMode
+                filterParams.includeArtists = includeArtists
+                filterParams.excludeArtists = excludeArtists
+                filterParams.includeArtistsMode = includeArtistsMode === undefined ? filterParams.includeArtistsMode : includeArtistsMode
+                filterParams.excludeArtistsMode = excludeArtistsMode === undefined ? filterParams.excludeArtistsMode : excludeArtistsMode
                 filterParams.songs = songs
                 filterParams.singleVideo = singleVideo || filterParams.singleVideo
                 filterParams.maxEntries = Math.min(maxEntries || filterParams.maxEntries, 50)
