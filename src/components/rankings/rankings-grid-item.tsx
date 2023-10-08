@@ -22,7 +22,7 @@ const transitionStyles: { [key in TransitionStatus]: CSSProperties } = {
     }
 }
 
-export function RankingGridItem(
+export function RankingsGridItem(
     {
         key,
         href,
@@ -34,7 +34,8 @@ export function RankingGridItem(
         supportingContent,
         trailingSupporting,
         in: inProp = false,
-        className = ''
+        className = '',
+        color
     }: {
         key: string
         href: string
@@ -46,7 +47,8 @@ export function RankingGridItem(
         supportingContent?: React.ReactNode
         trailingSupporting?: string,
         in?: boolean
-        className?: string
+        className?: string,
+        color?: string
     }
 ) {
     const nodeRef = useRef<HTMLLIElement>(null)
@@ -61,7 +63,10 @@ export function RankingGridItem(
             timeout={150}
         >
             {state => (
-                <article ref={nodeRef} key={key} className={`py-2 rounded-2xl w-full flex flex-col gap-3 relative box-border items-center transition-all ${className}`} style={transitionStyles[state]}>
+                <article ref={nodeRef} key={key} className={`py-2 rounded-2xl w-full flex flex-col gap-3 relative box-border items-center transition-all ${className}`} style={{
+                    color: color,
+                    ...transitionStyles[state]
+                }}>
                     <div className="text-xl bg-inverse-surface text-inverse-on-surface rounded-xl absolute -left-5 -top-4 p-2 z-10 font-black border border-outline-variant box-border">#{placement}</div>
                     <Link href={href} className="aspect-square w-full h-auto overflow-hidden relative rounded-3xl flex justify-center items-center border border-outline-variant box-border">
                         <Image
@@ -71,7 +76,7 @@ export function RankingGridItem(
                             className="scale-150 object-cover"
                         />
                     </Link>
-                    <Link href={href} className="max-w-full"><h3 className="overflow-clip text-ellipsis text-on-surface text-center font-semibold text-2xl">{titleContent}</h3></Link>
+                    <Link href={href} className="max-w-full"><h3 className="overflow-clip text-ellipsis text-on-surface transition-colors hover:text-inherit text-center font-semibold text-2xl">{titleContent}</h3></Link>
                     <section className="flex text-on-surface gap-1 items-center justify-center text-xl">
                         <h3 className="w-fit font-semibold">{trailingTitleContent}</h3>
                         <span className="w-fit">{trailingSupporting}</span>

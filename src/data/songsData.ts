@@ -192,7 +192,7 @@ function filterSongRankingsRawSync(
                     ${filterExcludeArtists.map(varName => `NOT EXISTS ( SELECT 1 FROM songs_artists sa WHERE sa.song_id = views_breakdowns.song_id AND sa.artist_id = ${varName} )`).join(' OR ')}
                   )`
         : ''
-    console.log(filterIncludeArtistsStatement, filterExcludeArtistsStatement)
+        
     // songs
     const filterSongsStatement = filterSongs ? ` AND (songs.id IN (${filterSongs.join(', ')}))` : ''
 

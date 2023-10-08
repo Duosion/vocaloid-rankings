@@ -1,4 +1,5 @@
 import { Icon } from "../material/icon"
+import { Switch } from "../material/switch"
 
 export function CheckboxFilterElement(
     {
@@ -16,9 +17,9 @@ export function CheckboxFilterElement(
     }
 
     return (
-        <section className="flex flex-1 gap-3 h-fit items-center py-2 px-4 rounded-xl border border-outline box-border cursor-pointer select-none" onClick={() => setValue(!value)}>
+        <section className="flex flex-1 gap-3 h-fit items-center py-2 px-4 rounded-xl box-border cursor-pointer select-none" onClick={() => setValue(!value)}>
             <h3 className="text-base text-on-surface flex-1">{name}</h3>
-            <Icon icon={value ? 'check_box' : 'check_box_outline_blank'} />
+            <Switch selected={value} />
         </section>
     )
 }

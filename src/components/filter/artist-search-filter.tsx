@@ -199,8 +199,6 @@ export function ArtistSearchFilter(
                     ) : undefined
                 })}
             </ul>
-            
-            <Switch selected={switched} onClick={() => {setSwitched(!switched)}}/>
         </FilterElement>
     )
 }

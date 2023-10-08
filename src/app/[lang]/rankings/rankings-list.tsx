@@ -15,7 +15,7 @@ import Link from "next/link"
 import { ArtistType, FilterInclusionMode, FilterOrder, SongRankingsFilterResult, SongType, SourceType } from "@/data/types"
 import { TransitionGroup } from "react-transition-group"
 import { useQuery, gql, ApolloQueryResult } from "@apollo/client"
-import { RankingGridItem } from "@/components/rankings/rankings-grid-item"
+import { RankingsGridItem } from "@/components/rankings/rankings-grid-item"
 
 function encodeBoolean(
     bool: boolean
@@ -184,7 +184,7 @@ export function RankingsList(
 ) {
     // import contexts
     const { settings } = useSettings()
-    const { theme } = useTheme()
+    const { resolvedTheme } = useTheme()
 
     // import settings
     const settingTitleLanguage = settings.titleLanguage
@@ -356,20 +356,17 @@ export function RankingsList(
                                     }
                                 }
                                 return (
-                                    <RankingGridItem
+                                    <RankingsGridItem
                                         key={song.id.toString()}
                                         href={`song/${song.id}`}
-                                        titleContent={
-                                            <div className='text-on-surface transition-colors'>
-                                                <EntityName names={names} preferred={settingTitleLanguage} />
-                                            </div>
-                                        }
+                                        titleContent={<EntityName names={names} preferred={settingTitleLanguage} />}
                                         placement={ranking.placement}
                                         icon={song.thumbnail}
                                         iconAlt={getEntityName(names, settingTitleLanguage)}
                                         trailingTitleContent={<NumberFormatter number={ranking.views} />}
                                         trailingSupporting={langDict.rankings_views}
                                         supportingContent={<span className="flex flex-row gap-3">{artistLinks}</span>}
+                                        color={resolvedTheme == 'dark' ? song.darkColor : song.lightColor}
                                     />
                                 )
                             })}
