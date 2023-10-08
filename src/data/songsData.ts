@@ -187,12 +187,12 @@ function filterSongRankingsRawSync(
         : ''
 
     const filterExcludeArtistsStatement = filterExcludeArtists ?
-        originalParams.excludeArtistsMode == FilterInclusionMode.OR ? ` AND (songs_artists.artist_id NOT IN (${filterExcludeArtists}))`
+        originalParams.excludeArtistsMode == FilterInclusionMode.OR ? `AND ( ${filterExcludeArtists.map(varName => `NOT EXISTS ( SELECT 1 FROM songs_artists sa WHERE sa.song_id = views_breakdowns.song_id AND sa.artist_id = ${varName} )`).join(' AND ')} )`
             : ` AND (
                     ${filterExcludeArtists.map(varName => `NOT EXISTS ( SELECT 1 FROM songs_artists sa WHERE sa.song_id = views_breakdowns.song_id AND sa.artist_id = ${varName} )`).join(' OR ')}
                   )`
         : ''
-
+    console.log(filterIncludeArtistsStatement, filterExcludeArtistsStatement)
     // songs
     const filterSongsStatement = filterSongs ? ` AND (songs.id IN (${filterSongs.join(', ')}))` : ''
 
@@ -209,20 +209,38 @@ function filterSongRankingsRawSync(
     const filterExcludeSongTypesStatement = filterExcludeSongTypes ? ` AND (songs.song_type NOT IN (${filterExcludeSongTypes.join(', ')}))` : ''
 
     // artist types
-    const filterIncludeArtistTypesStatement = filterIncludeArtistTypes ? ` AND EXISTS (
-        SELECT 1 
-        FROM artists 
-        INNER JOIN songs_artists sa ON sa.artist_id = artists.id 
-        WHERE sa.song_id = views_breakdowns.song_id 
-        AND artists.artist_type IN (${filterIncludeArtistTypes})
-    )` : ''
-    const filterExcludeArtistTypesStatement = filterExcludeArtistTypes ? ` AND NOT EXISTS (
-        SELECT 1 
-        FROM artists 
-        INNER JOIN songs_artists sa ON sa.artist_id = artists.id 
-        WHERE sa.song_id = views_breakdowns.song_id 
-        AND artists.artist_type IN (${filterExcludeArtistTypes})
-    )` : ''
+    const filterIncludeArtistTypesStatement = filterIncludeArtistTypes ?
+        originalParams.includeArtistTypesMode == FilterInclusionMode.OR ? ` AND EXISTS (
+            SELECT 1 
+            FROM artists 
+            INNER JOIN songs_artists sa ON sa.artist_id = artists.id 
+            WHERE sa.song_id = views_breakdowns.song_id 
+            AND artists.artist_type IN (${filterIncludeArtistTypes.join(', ')})
+        )`
+            : `AND ( ${filterIncludeArtistTypes.map(varName => `EXISTS (
+                SELECT 1 
+                FROM artists 
+                INNER JOIN songs_artists sa ON sa.artist_id = artists.id 
+                WHERE sa.song_id = views_breakdowns.song_id 
+                AND artists.artist_type = ${varName}
+            )`).join(' AND ')})`
+        : ''
+    const filterExcludeArtistTypesStatement = filterExcludeArtistTypes ?
+        originalParams.excludeArtistTypesMode == FilterInclusionMode.OR ? ` AND NOT EXISTS (
+            SELECT 1 
+            FROM artists 
+            INNER JOIN songs_artists sa ON sa.artist_id = artists.id 
+            WHERE sa.song_id = views_breakdowns.song_id 
+            AND artists.artist_type IN (${filterExcludeArtistTypes.join(', ')})
+        )`
+            : `AND ( ${filterExcludeArtistTypes.map(varName => `NOT EXISTS (
+                SELECT 1 
+                FROM artists 
+                INNER JOIN songs_artists sa ON sa.artist_id = artists.id 
+                WHERE sa.song_id = views_breakdowns.song_id 
+                AND artists.artist_type = ${varName}
+            )`).join(' OR ')})`
+        : ''
 
     return db.prepare(`
         SELECT DISTINCT views_breakdowns.song_id,
