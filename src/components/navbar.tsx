@@ -1,4 +1,4 @@
-import Image from "next/image"
+import Image from '@/components/image'
 import Link from "next/link"
 import { SearchBar } from "./search-bar"
 import { Locale, getDictionary } from "@/localization"

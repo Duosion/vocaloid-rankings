@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import Image from 'next/image'
+import Image from '@/components/image'
 import Link from 'next/link'
 import { Locale, getDictionary } from '@/localization'
 import SongThumbnail from '@/components/song-thumbnail'

@@ -4,7 +4,7 @@ import { notFound } from "next/navigation"
 import { Settings } from "../../settings"
 import { cookies } from "next/dist/client/components/headers"
 import { SchemeVibrant, Hct, argbFromRgb } from "@material/material-color-utilities"
-import Image from "next/image"
+import Image from '@/components/image'
 import { ArtistTypeLocaleTokens, NameTypeLocaleTokens, SongTypeLocaleTokens, SourceTypeLocaleTokens } from "@/localization/DictionaryTokenMaps"
 import Link from "next/link"
 import { ArtistCategory, ArtistThumbnailType, NameType, SourceType } from "@/data/types"
@@ -195,13 +195,13 @@ export default async function SongPage(
             `}</style>
 
             <figure className="w-full md:h-96 md:aspect-auto h-auto aspect-video overflow-hidden relative rounded-3xl flex justify-center items-center border border-outline-variant">
-                <div className="w-full h-full z-0 bg-primary" />
+                <div className="w-full h-full z-0 bg-primary absolute top-0 left-0" />
                 <Image
                     priority
                     fill
                     src={song.maxresThumbnail}
                     alt={getEntityName(songNames, settingTitleLanguage)}
-                    className="z-1 object-cover"
+                    className="z-10 object-cover"
                 />
             </figure>
 

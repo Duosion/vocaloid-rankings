@@ -2,7 +2,7 @@ import Link from "next/link"
 import SongThumbnail from "../song-thumbnail"
 import { Transition, TransitionStatus } from "react-transition-group"
 import { CSSProperties, useEffect, useRef, useState } from "react"
-import Image from "next/image"
+import Image from '@/components/image'
 
 const transitionStyles: { [key in TransitionStatus]: CSSProperties } = {
     entering: {
