@@ -1,4 +1,4 @@
-import { ArtistType, FilterOrder, Names, SongType, SourceType } from "@/data/types"
+import { ArtistType, FilterInclusionMode, FilterOrder, Names, SongType, SourceType } from "@/data/types"
 import { LanguageDictionaryKey } from "@/localization"
 
 export enum FilterType {
@@ -127,12 +127,17 @@ export interface RankingsFilters {
     excludeSourceTypes: MultiFilter<SourceType>
     excludeSongTypes: MultiFilter<SongType>
     excludeArtistTypes: MultiFilter<ArtistType>
+    includeArtistTypesMode: SelectFilter<FilterInclusionMode>
+    excludeArtistTypesMode: SelectFilter<FilterInclusionMode>
     minViews: InputFilter
     maxViews: InputFilter
     orderBy: SelectFilter<FilterOrder>
     timestamp: InputFilter
     singleVideo: CheckboxFilter
-    artists: MultiEntityFilter
+    includeArtists: MultiEntityFilter
+    excludeArtists: MultiEntityFilter
+    includeArtistsMode: SelectFilter<FilterInclusionMode>
+    excludeArtistsMode: SelectFilter<FilterInclusionMode>
 }
 
 export interface SongRankingsFiltersValues {
@@ -147,12 +152,17 @@ export interface SongRankingsFiltersValues {
     excludeSourceTypes?: string
     excludeSongTypes?: string
     excludeArtistTypes?: string
+    includeArtistTypesMode?: number
+    excludeArtistTypesMode?: number
     minViews?: string
     maxViews?: string
     orderBy?: number
     timestamp?: string
     singleVideo?: number
-    artists?: string
+    includeArtists?: string
+    excludeArtists?: string
+    includeArtistsMode?: number
+    excludeArtistsMode?: number
 }
 
 export interface SongRankingsFilterBarValues {
@@ -167,12 +177,17 @@ export interface SongRankingsFilterBarValues {
     excludeSourceTypes?: number[]
     excludeSongTypes?: number[]
     excludeArtistTypes?: number[]
+    includeArtistTypesMode?: number
+    excludeArtistTypesMode?: number
     minViews?: string
     maxViews?: string
     orderBy?: number
     timestamp?: string
     singleVideo?: boolean
-    artists?: number[]
+    includeArtists?: number[]
+    excludeArtists?: number[]
+    includeArtistsMode?: number
+    excludeArtistsMode?: number
 }
 
 // describes a list of entity names with their ids mapped to a Names types

@@ -12,7 +12,7 @@ import { NumberFormatter } from "@/components/formatters/number-formatter"
 import { ApiArtist, ApiSongRankingsFilterResult } from "@/lib/api/types"
 import { useTheme } from "next-themes"
 import Link from "next/link"
-import { ArtistType, FilterOrder, SongRankingsFilterResult, SongType, SourceType } from "@/data/types"
+import { ArtistType, FilterInclusionMode, FilterOrder, SongRankingsFilterResult, SongType, SourceType } from "@/data/types"
 import { TransitionGroup } from "react-transition-group"
 import { useQuery, gql, ApolloQueryResult } from "@apollo/client"
 import { RankingGridItem } from "@/components/rankings/rankings-grid-item"
@@ -86,10 +86,15 @@ query SongRankings(
     $excludeSongTypes: [SongType]
     $includeArtistTypes: [ArtistType]
     $excludeArtistTypes: [ArtistType]
+    $includeArtistTypesMode: FilterInclusionMode
+    $excludeArtistTypesMode: FilterInclusionMode
     $publishDate: String
     $orderBy: FilterOrder
     $direction: FilterDirection
-    $artists: [Int]
+    $includeArtists: [Int]
+    $includeArtistsMode: FilterInclusionMode
+    $excludeArtists: [Int]
+    $excludeArtistsMode: FilterInclusionMode
     $songs: [Int]
     $singleVideo: Boolean
     $maxEntries: Int
@@ -109,10 +114,15 @@ query SongRankings(
         excludeSongTypes: $excludeSongTypes
         includeArtistTypes: $includeArtistTypes
         excludeArtistTypes: $excludeArtistTypes
+        includeArtistTypesMode: $includeArtistTypesMode
+        excludeArtistTypesMode: $excludeArtistTypesMode
         publishDate: $publishDate
         orderBy: $orderBy
         direction: $direction
-        artists: $artists
+        includeArtists: $includeArtists
+        includeArtistsMode: $includeArtistsMode
+        excludeArtists: $excludeArtists
+        excludeArtistsMode: $excludeArtistsMode
         songs: $songs
         singleVideo: $singleVideo
         maxEntries: $maxEntries
@@ -192,12 +202,17 @@ export function RankingsList(
         excludeSongTypes: decodeMultiFilter(filterValues.excludeSongTypes),
         includeArtistTypes: decodeMultiFilter(filterValues.includeArtistTypes),
         excludeArtistTypes: decodeMultiFilter(filterValues.excludeArtistTypes),
+        includeArtistTypesMode: filterValues.includeArtistTypesMode,
+        excludeArtistTypesMode: filterValues.excludeArtistTypesMode,
         minViews: filterValues.minViews,
         maxViews: filterValues.maxViews,
         orderBy: filterValues.orderBy,
         timestamp: filterValues.timestamp,
         singleVideo: decodeBoolean(Number(filterValues.singleVideo)),
-        artists: decodeMultiFilter(filterValues.artists)
+        includeArtists: decodeMultiFilter(filterValues.includeArtists),
+        excludeArtists: decodeMultiFilter(filterValues.excludeArtists),
+        includeArtistsMode: filterValues.includeArtistsMode,
+        excludeArtistsMode: filterValues.excludeArtistsMode
     } as SongRankingsFilterBarValues)
 
     // entity names state
@@ -221,10 +236,15 @@ export function RankingsList(
             excludeSongTypes: excludeSongTypes && excludeSongTypes.length > 0 ? excludeSongTypes : undefined,
             includeArtistTypes: includeArtistTypes && includeArtistTypes.length > 0 ? includeArtistTypes : undefined,
             excludeArtistTypes: excludeArtistTypes && excludeArtistTypes.length > 0 ? excludeArtistTypes : undefined,
+            includeArtistTypesMode: filterBarValues.includeArtistTypesMode == undefined ? undefined : FilterInclusionMode[filterBarValues.includeArtistTypesMode],
+            excludeArtistTypesMode: filterBarValues.excludeArtistTypesMode == undefined ? undefined : FilterInclusionMode[filterBarValues.excludeArtistTypesMode],
             publishDate: undefined,
             orderBy: filterBarValues.orderBy == undefined ? undefined : FilterOrder[filterBarValues.orderBy],
             direction: undefined,
-            artists: filterBarValues.artists && filterBarValues.artists.length > 0 ? [...filterBarValues.artists] : undefined, // unpack artists into new table so that the reference is different
+            includeArtists: filterBarValues.includeArtists && filterBarValues.includeArtists.length > 0 ? [...filterBarValues.includeArtists] : undefined, // unpack artists into new table so that the reference is different
+            excludeArtists: filterBarValues.excludeArtists && filterBarValues.excludeArtists.length > 0 ? [...filterBarValues.excludeArtists] : undefined,
+            includeArtistsMode: filterBarValues.includeArtistsMode == undefined ? undefined : FilterInclusionMode[filterBarValues.includeArtistsMode],
+            excludeArtistsMode: filterBarValues.excludeArtistsMode == undefined ? undefined : FilterInclusionMode[filterBarValues.excludeArtistsMode],
             songs: undefined,
             singleVideo: filterBarValues.singleVideo,
             minViews: filterBarValues.minViews ? Number(filterBarValues.minViews) : undefined,
@@ -276,7 +296,7 @@ export function RankingsList(
 
     // load entity names map
     useEffect(() => {
-        const artists = filterBarValues.artists
+        const artists = [...(filterBarValues.includeArtists || []), ...(filterBarValues.excludeArtists || [])]
         if (artists && artists.length > 0) {
             graphClient.query({
                 query: GET_ARTISTS_NAMES,

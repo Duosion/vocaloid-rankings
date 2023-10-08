@@ -1,4 +1,4 @@
-import { ArtistType, FilterOrder, NameType, SongRankingsFilterParams, SongRankingsFilterResult, SongType, SourceType } from "@/data/types"
+import { ArtistType, FilterInclusionMode, FilterOrder, NameType, SongRankingsFilterParams, SongRankingsFilterResult, SongType, SourceType } from "@/data/types"
 import { Locale, getDictionary } from "@/localization"
 import { FilterType, SongRankingsFiltersValues, RankingsFilters, SelectFilterValue } from "./types"
 import { RankingsList } from "./rankings-list"
@@ -137,6 +137,28 @@ const filters: RankingsFilters = {
             { name: 'filter_artist_type_utau', value: ArtistType.UTAU },
         ]
     },
+    includeArtistTypesMode: {
+        name: 'filter_artist_type_mode',
+        key: 'includeArtistTypesMode',
+        displayActive: false,
+        type: FilterType.SELECT,
+        values: [
+            { name: 'filter_inclusion_mode_and', value: FilterInclusionMode.AND },
+            { name: 'filter_inclusion_mode_or', value: FilterInclusionMode.OR },
+        ],
+        defaultValue: 0 // default value
+    },
+    excludeArtistTypesMode: {
+        name: 'filter_artist_type_exclude_mode',
+        key: 'excludeArtistTypesMode',
+        displayActive: false,
+        type: FilterType.SELECT,
+        values: [
+            { name: 'filter_inclusion_mode_and', value: FilterInclusionMode.AND },
+            { name: 'filter_inclusion_mode_or', value: FilterInclusionMode.OR },
+        ],
+        defaultValue: 0 // default value
+    },
     minViews: {
         name: 'filter_min_views',
         key: 'minViews',
@@ -180,12 +202,41 @@ const filters: RankingsFilters = {
         type: FilterType.CHECKBOX,
         defaultValue: false
     },
-    artists: {
+    includeArtists: {
         name: 'filter_artists',
-        key: 'artists',
+        key: 'includeArtists',
         displayActive: true,
         type: FilterType.MULTI_ENTITY,
         placeholder: 'filter_artists_placeholder',
+    },
+    excludeArtists: {
+        name: 'filter_exclude_artists',
+        key: 'excludeArtists',
+        displayActive: true,
+        type: FilterType.MULTI_ENTITY,
+        placeholder: 'filter_artists_placeholder',
+    },
+    includeArtistsMode: {
+        name: 'filter_artists_mode',
+        key: 'includeArtistsMode',
+        displayActive: false,
+        type: FilterType.SELECT,
+        values: [
+            { name: 'filter_inclusion_mode_and', value: FilterInclusionMode.AND },
+            { name: 'filter_inclusion_mode_or', value: FilterInclusionMode.OR },
+        ],
+        defaultValue: 0 // default value
+    },
+    excludeArtistsMode: {
+        name: 'filter_exclude_artists_mode',
+        key: 'excludeArtistsMode',
+        displayActive: false,
+        type: FilterType.SELECT,
+        values: [
+            { name: 'filter_inclusion_mode_and', value: FilterInclusionMode.AND },
+            { name: 'filter_inclusion_mode_or', value: FilterInclusionMode.OR },
+        ],
+        defaultValue: 0 // default value
     }
 }
 

@@ -218,13 +218,26 @@ export function SongRankingsActiveFilterBar(
                     <DateFilterElement name={langDict[filters.timestamp.name]} value={filterValues.timestamp || currentTimestamp} max={currentTimestamp} onValueChanged={newValue => { filterValues.timestamp = newValue; setFilterValues(filterValues) }} />
                 </ul>
                 <ul className="flex gap-5">
+                    {/* Include Artists */}
                     <ArtistSearchFilter
-                        name={langDict[filters.artists.name]}
-                        value={filterValues.artists || []}
-                        placeholder={langDict[filters.artists.placeholder]}
+                        name={langDict[filters.includeArtists.name]}
+                        value={filterValues.includeArtists || []}
+                        placeholder={langDict[filters.includeArtists.placeholder]}
                         entityNames={entityNames}
                         onValueChanged={newValue => {
-                            filterValues.artists = newValue
+                            filterValues.includeArtists = newValue
+                            setFilterValues(filterValues)
+                        }}
+                        onEntityNamesChanged={onEntityNamesChanged}
+                    />
+                    {/* Exclude Artists */}
+                    <ArtistSearchFilter
+                        name={langDict[filters.excludeArtists.name]}
+                        value={filterValues.excludeArtists || []}
+                        placeholder={langDict[filters.excludeArtists.placeholder]}
+                        entityNames={entityNames}
+                        onValueChanged={newValue => {
+                            filterValues.excludeArtists = newValue
                             setFilterValues(filterValues)
                         }}
                         onEntityNamesChanged={onEntityNamesChanged}
