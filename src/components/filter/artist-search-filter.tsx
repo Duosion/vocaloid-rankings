@@ -13,6 +13,7 @@ import { timeoutDebounce } from "@/lib/utils"
 import { getEntityName } from "@/localization"
 import { EntityNames } from "@/app/[lang]/rankings/types"
 import { ActiveFilter } from "./active-filter"
+import { Switch } from "../material/switch"
 
 const ARTISTS_SEARCH = gql`
 query ArtistSearch(
@@ -133,6 +134,9 @@ export function ArtistSearchFilter(
         }
     }, [modalOpen])
 
+
+    const [switched, setSwitched] = useState(false)
+
     return (
         <FilterElement key={name} name={name}>
             <div className='py-2 px-4 rounded-xl text-on-surface flex text-base font-normal'
@@ -196,6 +200,7 @@ export function ArtistSearchFilter(
                 })}
             </ul>
             
+            <Switch selected={switched} onClick={() => {setSwitched(!switched)}}/>
         </FilterElement>
     )
 }
