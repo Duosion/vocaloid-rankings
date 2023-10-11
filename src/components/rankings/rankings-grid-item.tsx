@@ -73,7 +73,10 @@ export function RankingsGridItem(
                             fill
                             src={icon}
                             alt={iconAlt}
-                            className="scale-150 object-cover"
+                            className="scale-150 object-cover text-on-surface"
+                            style={{
+                                backgroundColor: color
+                            }}
                         />
                     </Link>
                     <Link href={href} className="max-w-full"><h3 className="overflow-clip text-ellipsis text-on-surface transition-colors hover:text-inherit text-center font-semibold text-2xl">{titleContent}</h3></Link>

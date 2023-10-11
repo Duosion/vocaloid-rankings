@@ -83,10 +83,10 @@ export function SelectFilterElement(
                         onBlur={() => setInputFocused(false)}
                         onChange={(event) => { setSearchQuery(event.currentTarget.value.toLowerCase()) }}
                         value={inputFocused ? searchQuery : valueName}
-                        className={`cursor-text bg-transparent outline-none text-left flex-1 pr-3 ${valueIsDefault ? 'text-on-surface-variant' : 'text-on-surface'} ${minimal ? 'w-fit' : 'w-32'}`}
+                        className={`cursor-text bg-transparent outline-none text-left flex-1 pr-3 ${valueIsDefault ? 'text-on-surface-variant' : 'text-on-surface font-semibold'} ${minimal ? 'w-fit' : 'w-32'}`}
                     />
                     : <button
-                        className={`bg-transparent outline-none cursor-pointer text-left w-fit flex gap-2 overflow-hidden flex-1 pr-3 ${valueIsDefault ? 'text-on-surface-variant' : 'text-on-surface'}`}
+                        className={`bg-transparent outline-none cursor-pointer text-left w-fit flex gap-2 overflow-hidden flex-1 pr-3 ${valueIsDefault ? 'text-on-surface-variant' : 'text-on-surface font-semibold'}`}
                         onClick={_ => setModalOpen(true)}
                     >{valueName}</button>
                 }

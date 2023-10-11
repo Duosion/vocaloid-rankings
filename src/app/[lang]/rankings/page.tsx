@@ -5,6 +5,7 @@ import { RankingsList } from "./rankings-list"
 import { filterSongRankings, getMostRecentViewsTimestamp } from "@/data/songsData"
 import { Settings } from "../settings"
 import { cookies } from "next/dist/client/components/headers"
+import { generateTimestamp } from "@/data"
 
 const filters: RankingsFilters = {
     search: {
@@ -336,8 +337,7 @@ export default async function RankingsPage(
         filterParams.singleVideo = parseParamCheckboxFilterValue(searchParams.singleVideo)
     }
 
-    const rankings = await filterSongRankings(filterParams)
-    const mostRecentTimestamp = await getMostRecentViewsTimestamp() || rankings.timestamp
+    const mostRecentTimestamp = (await getMostRecentViewsTimestamp()) || generateTimestamp().formatted
 
     return (
         <section className="flex flex-col gap-5 w-full min-h-screen">

@@ -1,6 +1,6 @@
 'use client'
 import { LanguageDictionary, getEntityName } from "@/localization"
-import { EntityNames, FilterType, InputFilter, RankingsFilters, SongRankingsFilterBarValues, SongRankingsFiltersValues } from "./types"
+import { EntityNames, FilterType, InputFilter, RankingsFilters, SelectFilterValue, SongRankingsFilterBarValues, SongRankingsFiltersValues } from "./types"
 import { useEffect, useState } from "react"
 import { SongRankingsActiveFilterBar } from "./song-rankings-active-filter-bar"
 import { DummyRankingsListItem } from "@/components/rankings/dummy-rankings-list-item"
@@ -54,6 +54,16 @@ function decodeMultiFilter(
     })
 
     return output
+}
+
+function parseParamSelectFilterValue(
+    paramValue: number | undefined,
+    values: SelectFilterValue<number>[],
+    defaultValue?: number
+): number | null {
+    // get the filterValue and return it
+    const valueNumber = (paramValue == undefined || isNaN(paramValue)) ? (defaultValue == undefined || isNaN(defaultValue)) ? null : defaultValue : paramValue
+    return valueNumber != null ? (values[valueNumber]).value : null
 }
 
 const GET_ARTISTS_NAMES = gql`
@@ -227,9 +237,23 @@ export function RankingsList(
         const excludeSongTypes = filterBarValues.excludeSongTypes?.map(type => SongType[type])
         const includeArtistTypes = filterBarValues.includeArtistTypes?.map(type => ArtistType[type])
         const excludeArtistTypes = filterBarValues.excludeArtistTypes?.map(type => ArtistType[type])
+
+        // build publish date
+        const yearParam = filterBarValues.publishYear
+        const monthParam = filterBarValues.publishMonth
+        const dayParam = filterBarValues.publishDay
+
+        let publishDate: string | undefined = undefined
+        if (yearParam || monthParam || dayParam) {
+            const year = !yearParam || isNaN(Number(yearParam)) ? '%' : yearParam
+            const month = !monthParam || isNaN(Number(monthParam)) ? '%' : monthParam.padStart(2, '0')
+            const day = !dayParam || isNaN(Number(dayParam)) ? '%' : dayParam.padStart(2, '0')
+            publishDate = `${year}-${month}-${day}%`
+        }
+
         return {
             timestamp: filterBarValues.timestamp,
-            timePeriodOffset: undefined,
+            timePeriodOffset: parseParamSelectFilterValue(filterBarValues.timePeriod, filters.timePeriod.values, filters.timePeriod.defaultValue),
             includeSourceTypes: includeSourceTypes && includeSourceTypes.length > 0 ? includeSourceTypes : undefined,
             excludeSourceTypes: excludeSourceTypes && excludeSourceTypes.length > 0 ? excludeSourceTypes : undefined,
             includeSongTypes: includeSongTypes && includeSongTypes.length > 0 ? includeSongTypes : undefined,
@@ -238,14 +262,14 @@ export function RankingsList(
             excludeArtistTypes: excludeArtistTypes && excludeArtistTypes.length > 0 ? excludeArtistTypes : undefined,
             includeArtistTypesMode: filterBarValues.includeArtistTypesMode == undefined ? undefined : FilterInclusionMode[filterBarValues.includeArtistTypesMode],
             excludeArtistTypesMode: filterBarValues.excludeArtistTypesMode == undefined ? undefined : FilterInclusionMode[filterBarValues.excludeArtistTypesMode],
-            publishDate: undefined,
+            publishDate: publishDate,
             orderBy: filterBarValues.orderBy == undefined ? undefined : FilterOrder[filterBarValues.orderBy],
-            direction: undefined,
+            //direction: undefined,
             includeArtists: filterBarValues.includeArtists && filterBarValues.includeArtists.length > 0 ? [...filterBarValues.includeArtists] : undefined, // unpack artists into new table so that the reference is different
             excludeArtists: filterBarValues.excludeArtists && filterBarValues.excludeArtists.length > 0 ? [...filterBarValues.excludeArtists] : undefined,
             includeArtistsMode: filterBarValues.includeArtistsMode == undefined ? undefined : FilterInclusionMode[filterBarValues.includeArtistsMode],
             excludeArtistsMode: filterBarValues.excludeArtistsMode == undefined ? undefined : FilterInclusionMode[filterBarValues.excludeArtistsMode],
-            songs: undefined,
+            //songs: undefined,
             singleVideo: filterBarValues.singleVideo,
             minViews: filterBarValues.minViews ? Number(filterBarValues.minViews) : undefined,
             maxViews: filterBarValues.maxViews ? Number(filterBarValues.maxViews) : undefined,
