@@ -223,7 +223,44 @@ export function SongRankingsActiveFilterBar(
                         }}
                     />
                     {/* Timestamp */}
-                    <DateFilterElement name={langDict[filters.timestamp.name]} value={filterValues.timestamp || currentTimestamp} max={currentTimestamp} onValueChanged={newValue => { filterValues.timestamp = newValue; setFilterValues(filterValues) }} />
+                    {filterValues.timePeriod == 4 ? (
+                        <>
+                            {/* Custom Date Range Selector */}
+                            {/* From Date */}
+                            <DateFilterElement
+                                name={langDict.filter_time_period_offset_custom_from}
+                                value={filterValues.timestamp || currentTimestamp}
+                                max={currentTimestamp}
+                                onValueChanged={newValue => {
+                                    filterValues.timestamp = newValue
+                                    setFilterValues(filterValues)
+                                }
+                                }
+                            />
+                            {/* To Date */}
+                            <DateFilterElement
+                                name={langDict.filter_time_period_offset_custom_to}
+                                value={filterValues.timestamp || currentTimestamp}
+                                max={currentTimestamp}
+                                onValueChanged={newValue => {
+                                    filterValues.timestamp = newValue
+                                    setFilterValues(filterValues)
+                                }
+                                }
+                            />
+                        </>
+                    )
+                        : <DateFilterElement
+                            name={langDict[filters.timestamp.name]}
+                            value={filterValues.timestamp || currentTimestamp}
+                            max={currentTimestamp}
+                            onValueChanged={newValue => {
+                                filterValues.timestamp = newValue
+                                setFilterValues(filterValues)
+                            }
+                            }
+                        />
+                    }
                 </FilterGroup>
 
                 <Divider />

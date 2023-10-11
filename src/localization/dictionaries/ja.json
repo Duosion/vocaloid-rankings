@@ -39,6 +39,8 @@
     "filter_time_period_offset_week": "過去1週間",
     "filter_time_period_offset_month": "過去1か月間",
     "filter_time_period_offset_custom": "",
+    "filter_time_period_offset_custom_from": "",
+    "filter_time_period_offset_custom_to": "",
     "filter_time_period_offset_fuzzy": "過去:offsetか日間",
     "filter_view_type": "視聴のタイプ",
     "filter_view_type_exclude": "",
