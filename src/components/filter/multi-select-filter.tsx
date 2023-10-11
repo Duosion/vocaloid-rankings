@@ -119,7 +119,7 @@ export function MultiSelectFilterElement(
                 }
                 {valueIsDefault ? <MinimalIconButton icon={icon} onClick={_ => setModalOpen(!modalOpen)} /> : <MinimalIconButton icon={clearIcon} onClick={_ => setValue([])} />}
             </div>
-            <FadeInOut visible={modalOpen}>
+            <FadeInOut visible={modalOpen} className="z-10">
                 <div className="relative min-w-fit w-full h-0">
                     <ul ref={modalRef} className="absolute top-2 min-w-fit w-full right-0 rounded-xl shadow-md p-2 max-h-72 overflow-y-scroll overflow-x-clip"
                         style={{ backgroundColor: `var(--md-sys-color-${elevationToClass[modalElevation]})` }}

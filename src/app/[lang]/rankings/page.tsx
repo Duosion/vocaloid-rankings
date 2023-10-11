@@ -157,7 +157,7 @@ const filters: RankingsFilters = {
             { name: 'filter_inclusion_mode_and', value: FilterInclusionMode.AND },
             { name: 'filter_inclusion_mode_or', value: FilterInclusionMode.OR },
         ],
-        defaultValue: 0 // default value
+        defaultValue: 1 // default value
     },
     minViews: {
         name: 'filter_min_views',
@@ -236,7 +236,7 @@ const filters: RankingsFilters = {
             { name: 'filter_inclusion_mode_and', value: FilterInclusionMode.AND },
             { name: 'filter_inclusion_mode_or', value: FilterInclusionMode.OR },
         ],
-        defaultValue: 0 // default value
+        defaultValue: 1 // default value
     }
 }
 

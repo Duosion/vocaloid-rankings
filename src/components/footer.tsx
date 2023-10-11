@@ -1,5 +1,6 @@
 import { Locale, getDictionary } from "@/localization";
 import Link from "next/link";
+import { Divider } from "./material/divider";
 
 export default async function Footer(
     {
@@ -11,7 +12,7 @@ export default async function Footer(
     const langDict = await getDictionary(lang)
     return (
         <footer>
-            <hr className="w-full max-w-screen-2xl opacity-50 border-outline-variant border-t-1 m-auto"/>
+            <Divider className="max-w-screen-2xl"/>
             <ul className="w-full min-h-24 h-fit box-border p-7 flex justify-center items-center gap-7 flex-wrap">
                 <FooterLink text={langDict.home_about} href='/about' />
                 <FooterLink text={langDict.add_song} href='/song/add' />

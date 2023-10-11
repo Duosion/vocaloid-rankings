@@ -1,33 +1,66 @@
 import { timeoutDebounce } from "@/lib/utils"
-import { useEffect, useRef, useState } from "react"
+import { CSSProperties, useEffect, useRef, useState } from "react"
+import { Transition, TransitionStatus } from "react-transition-group"
+
+const transitionStyles: { [key in TransitionStatus]: CSSProperties } = {
+    entering: {
+        opacity: 1,
+        transform: 'translateY(0px)'
+    },
+    entered: {
+        opacity: 1,
+        transform: 'translateY(0px)'
+    },
+    exiting: {
+        opacity: 0,
+        transform: 'translateY(5px)'
+    },
+    exited: {
+        opacity: 0,
+        transform: 'translateY(5px)'
+    },
+    unmounted: {
+        opacity: 0,
+        transform: 'translateY(5px)'
+    }
+}
 
 export function FadeInOut(
     {
         visible = false,
+        className = '',
         duration = 150,
-        children
+        children,
     }: {
-        visible?: boolean,
+        visible?: boolean
+        className?: string
         duration?: number
         children?: React.ReactNode
     }
 ) {
-    const [isVisible, setIsVisible] = useState(visible)
-    const [transitioning, setTransitioning] = useState(false)
-    const timeoutRef = useRef<NodeJS.Timeout>()
-
-    useEffect(() => {
-        if (!visible) {
-            setTransitioning(true)
-            timeoutDebounce(timeoutRef, duration, () => setTransitioning(false))
-        }
-        setIsVisible(visible)
-    }, [visible, duration])
+    const divRef = useRef<HTMLDivElement>(null)
 
     return (
-        <div className="transition-opacity" style={{ opacity: isVisible ? 1 : 0, transform: isVisible ? 'translateY(0px)' : 'translateY(3px)', transitionDuration: `${duration}ms`, transitionProperty: 'opacity, transform' }}>
-            {isVisible || transitioning ? children : undefined}
-        </div>
+        <Transition
+            mountOnEnter
+            unmountOnExit
+            nodeRef={divRef}
+            in={visible}
+            timeout={duration}
+        >
+            {state => (
+                <div ref={divRef}
+                    className={`transition-opacity ${className}`}
+                    style={{
+                        transitionDuration: `${duration}ms`,
+                        transitionProperty: 'opacity, transform',
+                        ...transitionStyles[state]
+                    }}
+                >
+                    {children}
+                </div>
+            )}
+        </Transition>
     )
 
 }

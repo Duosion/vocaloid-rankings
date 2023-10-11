@@ -1,7 +1,6 @@
-import { Icon } from "../material/icon"
 import { Switch } from "../material/switch"
 
-export function CheckboxFilterElement(
+export function SwitchFilterElement(
     {
         name,
         value,

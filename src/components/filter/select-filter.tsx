@@ -95,8 +95,8 @@ export function SelectFilterElement(
                     : <MinimalIconButton icon={clearIcon} onClick={_ => setValue(defaultValue)} />
                 }
             </div>
-            <FadeInOut visible={modalOpen}>
-                <div className="relative min-w-fit w-full h-0 z-20">
+            <FadeInOut visible={modalOpen} className="z-10">
+                <div className="relative min-w-fit w-full h-0">
                     <ul ref={modalRef} className="absolute top-2 min-w-[160px] w-full right-0 rounded-xl shadow-md p-2 max-h-72 overflow-y-scroll overflow-x-clip"
                         style={{ backgroundColor: `var(--md-sys-color-${elevationToClass[modalElevation]})` }}
                     >

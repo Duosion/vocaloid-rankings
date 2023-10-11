@@ -272,7 +272,7 @@ export function RankingsList(
             for (const key in filterBarValues) {
                 const value = filterBarValues[key as keyof typeof filterBarValues]
                 const filter = filters[key as keyof typeof filters]
-                if (value && filter) {
+                if (value != undefined && filter) {
                     switch (filter.type) {
                         case FilterType.SELECT:
                         case FilterType.INPUT:

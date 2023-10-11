@@ -156,7 +156,7 @@ export function ArtistSearchFilter(
                 />
             </div>
             {/* pop-up search box */}
-            <FadeInOut visible={modalOpen}>
+            <FadeInOut visible={modalOpen} className="z-10">
                 <div className="relative min-w-fit w-full h-0">
                     <ul ref={modalRef} className="absolute top-2 min-w-[160px] w-full right-0 rounded-xl shadow-md p-2 max-h-72 overflow-y-scroll overflow-x-clip"
                         style={{ backgroundColor: `var(--md-sys-color-${elevationToClass[modalElevation]})` }}
@@ -195,7 +195,7 @@ export function ArtistSearchFilter(
                 {value.map(id => {
                     const name = entityNames[id]
                     return name ? (
-                        <ActiveFilter name={name} onClick={() => removeArtist(id)}/>
+                        <ActiveFilter name={name} icon='close' onClick={() => removeArtist(id)}/>
                     ) : undefined
                 })}
             </ul>
