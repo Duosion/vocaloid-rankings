@@ -3,7 +3,7 @@ import { Locale, getDictionary, getEntityName } from "@/localization"
 import { notFound } from "next/navigation"
 import { Settings } from "../../settings"
 import { cookies } from "next/dist/client/components/headers"
-import { SchemeVibrant, Hct, argbFromRgb } from "@material/material-color-utilities"
+import { SchemeVibrant, Hct, argbFromRgb, argbFromHex, rgbaFromArgb } from "@material/material-color-utilities"
 import Image from '@/components/image'
 import { ArtistTypeLocaleTokens, NameTypeLocaleTokens, SongTypeLocaleTokens, SourceTypeLocaleTokens } from "@/localization/DictionaryTokenMaps"
 import Link from "next/link"
@@ -13,7 +13,7 @@ import { DateFormatter } from "@/components/formatters/date-formatter"
 import { NumberFormatter } from "@/components/formatters/number-formatter"
 import { getCustomThemeStylesheet, getMostVibrantColor } from "@/lib/material"
 import { SourceTypesDisplayData } from "@/lib/sourceType"
-import { getPaletteFromURL } from "color-thief-node"
+import { Palette, getPaletteFromURL } from "color-thief-node"
 
 // interfaces
 interface ViewsBreakdown {
@@ -158,8 +158,7 @@ export default async function SongPage(
     let customThemeLightCss: string = ''
     let customThemeDarkCss: string = ''
     {
-        const primaryColor = await getPaletteFromURL(song.maxresThumbnail)
-        const argbAverageColor = argbFromRgb(...(getMostVibrantColor(primaryColor) || primaryColor[0]))
+        const argbAverageColor = argbFromHex(song.averageColor)
         // dynamic theme config
         const contrast = 0.3
         customThemeLightCss = getCustomThemeStylesheet(new SchemeVibrant(Hct.fromInt(argbAverageColor), false, contrast)).join('')

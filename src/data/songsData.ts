@@ -1,7 +1,10 @@
+import { Hct, MaterialDynamicColors, SchemeVibrant, argbFromHex, argbFromRgb, hexFromArgb, rgbaFromArgb } from "@material/material-color-utilities";
 import getDatabase, { generateTimestamp } from ".";
 import { Databases } from ".";
 import { Artist, ArtistCategory, ArtistPlacement, ArtistThumbnailType, ArtistType, HistoricalViews, HistoricalViewsResult, Id, NameType, Names, PlacementChange, SongRankingsFilterParams, SongRankingsFilterResult, SongRankingsFilterResultItem, RawArtistData, RawArtistName, RawArtistThumbnail, RawSongRankingsResult, RawSongArtist, RawSongData, RawSongName, RawSongVideoId, RawViewBreakdown, Song, SongPlacement, SongType, SongVideoIds, SourceType, SqlRankingsFilterParams, Views, ViewsBreakdown, ArtistRankingsFilterParams, ArtistRankingsFilterResult, ArtistRankingsFilterResultItem, RawArtistRankingResult, SqlSearchArtistsFilterParams, FilterInclusionMode, FilterOrder, FilterDirection } from "./types";
 import type { Statement } from "better-sqlite3";
+import { getPaletteFromURL } from "color-thief-node";
+import { getMostVibrantColor } from "@/lib/material";
 
 // import database
 const db = getDatabase(Databases.SONGS_DATA)
@@ -14,7 +17,7 @@ function getSongRankingsFilterQueryParams(
 ): SqlRankingsFilterParams {
     // merge the filter params with the defaults
     const queryParams: { [key: string]: any } = {
-        timestamp: filterParams.timestamp || getMostRecentViewsTimestampSync(),
+        timestamp: getMostRecentViewsTimestampSync(filterParams.timestamp),
         timePeriodOffset: filterParams.timePeriodOffset,
         daysOffset: daysOffset == null ? filterParams.daysOffset : daysOffset + (filterParams.daysOffset || 0),
         publishDate: filterParams.publishDate || null,
@@ -192,7 +195,7 @@ function filterSongRankingsRawSync(
                     ${filterExcludeArtists.map(varName => `NOT EXISTS ( SELECT 1 FROM songs_artists sa WHERE sa.song_id = views_breakdowns.song_id AND sa.artist_id = ${varName} )`).join(' OR ')}
                   )`
         : ''
-        
+
     // songs
     const filterSongsStatement = filterSongs ? ` AND (songs.id IN (${filterSongs.join(', ')}))` : ''
 
@@ -836,19 +839,41 @@ export function filterArtistRankings(
 }*/
 
 // Views
-function getMostRecentViewsTimestampSync(): string | null {
+
+function getMostRecentViewsTimestampSync(
+    timestamp: string | null = new Date().toISOString() // the ISO timestamp to normalize
+): string | null {
     const result = db.prepare(`
     SELECT timestamp
-    FROM views_metadata
-    ORDER BY timestamp DESC
-    LIMIT 1`).get() as { timestamp: string }
+    FROM (
+        SELECT timestamp
+        FROM views_metadata
+        WHERE datetime(timestamp) >= datetime(:timestamp)
+        ORDER BY timestamp ASC
+        LIMIT 1
+    )
+    UNION ALL
+    SELECT timestamp
+    FROM (
+        SELECT timestamp
+        FROM views_metadata
+        WHERE datetime(timestamp) < datetime(:timestamp)
+        ORDER BY timestamp DESC
+        LIMIT 1
+    )
+    LIMIT 1
+    `).get({
+        timestamp: timestamp
+    }) as { timestamp: string }
     return result ? result.timestamp : null
 }
 
-export function getMostRecentViewsTimestamp(): Promise<string | null> {
+export function getMostRecentViewsTimestamp(
+    timestamp?: string
+): Promise<string | null> {
     return new Promise<string | null>((resolve, reject) => {
         try {
-            resolve(getMostRecentViewsTimestampSync())
+            resolve(getMostRecentViewsTimestampSync(timestamp))
         } catch (error) {
             reject(error)
         }
@@ -893,13 +918,14 @@ function getHistoricalViewsSync(
     params: Object,
     range: number = 7,
     period: number = 1,
-    timestamp: string | null = getMostRecentViewsTimestampSync()
+    timestamp?: string | null
 ): HistoricalViewsResult {
-    if (!timestamp) {
+    const recentTimestamp = getMostRecentViewsTimestampSync(timestamp)
+    if (!recentTimestamp) {
         return {
             range: range,
             period: period,
-            startAt: timestamp,
+            startAt: recentTimestamp,
             largest: 0,
             views: []
         }
@@ -912,14 +938,14 @@ function getHistoricalViewsSync(
         const dbResult = statement.get({
             ...params,
             daysOffset: daysOffset,
-            timestamp: timestamp
+            timestamp: recentTimestamp
         }) as HistoricalViews
         views.push(dbResult.views)
         const dbResultTimestamp = dbResult.timestamp
         if (dbResultTimestamp) {
             timestamps.push(dbResultTimestamp)
         } else {
-            const timestampDate = new Date(timestamp)
+            const timestampDate = new Date(recentTimestamp)
             timestampDate.setDate(timestampDate.getDate() - daysOffset)
             timestamps.push(generateTimestamp(timestampDate)?.formatted || dbResultTimestamp)
         }
@@ -939,7 +965,7 @@ function getHistoricalViewsSync(
     return {
         range: range,
         period: period,
-        startAt: timestamp,
+        startAt: recentTimestamp,
         largest: largest,
         views: historicalViews
     }
@@ -994,9 +1020,10 @@ function buildArtist(
 
 function getArtistViewsSync(
     id: Id,
-    timestamp: string | null = getMostRecentViewsTimestampSync()
+    timestamp?: string
 ): Views | null {
-    if (!timestamp) {
+    const recentTimestamp = getMostRecentViewsTimestampSync(timestamp)
+    if (!recentTimestamp) {
         return buildEntityViews([])
     }
 
@@ -1008,12 +1035,12 @@ function getArtistViewsSync(
         AND (views_breakdowns.song_id = songs_artists.song_id)
     GROUP BY views_breakdowns.view_type`).all({
         id: id,
-        timestamp: timestamp
+        timestamp: recentTimestamp
     }) as RawViewBreakdown[]
 
     return buildEntityViews(
         viewsBreakdown,
-        timestamp
+        recentTimestamp
     )
 }
 
@@ -1197,10 +1224,11 @@ export function getArtist(
 
 export function getArtistHistoricalViews(
     id: Id,
-    range = 7,
-    period = 1,
-    timestamp = getMostRecentViewsTimestampSync()
+    range: number = 7,
+    period: number = 1,
+    timestamp?: string
 ): Promise<HistoricalViewsResult> {
+    const recentTimestamp = getMostRecentViewsTimestampSync(timestamp)
     return new Promise<HistoricalViewsResult>((resolve, reject) => {
         try {
             resolve(getHistoricalViewsSync(
@@ -1216,7 +1244,7 @@ export function getArtistHistoricalViews(
                 },
                 range,
                 period,
-                timestamp
+                recentTimestamp
             ))
         } catch (error) {
             reject(error)
@@ -1298,9 +1326,10 @@ function buildSong(
 
 function getSongViewsSync(
     songId: Id,
-    timestamp: string | null = getMostRecentViewsTimestampSync()
+    timestamp?: string | null
 ): Views | null {
-    if (!timestamp) {
+    const recentTimestamp = getMostRecentViewsTimestampSync(timestamp)
+    if (!recentTimestamp) {
         return buildEntityViews([])
     }
 
@@ -1308,11 +1337,11 @@ function getSongViewsSync(
     SELECT views, video_id, view_type
     FROM views_breakdowns
     WHERE song_id = ? AND timestamp = ?
-    ORDER BY views DESC`).all(songId, timestamp) as RawViewBreakdown[]
+    ORDER BY views DESC`).all(songId, recentTimestamp) as RawViewBreakdown[]
 
     return buildEntityViews(
         breakdowns,
-        timestamp
+        recentTimestamp
     )
 }
 
@@ -1482,7 +1511,7 @@ export function getSongHistoricalViews(
     id: Id,
     range = 7,
     period = 1,
-    timestamp = getMostRecentViewsTimestampSync()
+    timestamp?: string
 ): Promise<HistoricalViewsResult> {
     return new Promise<HistoricalViewsResult>((resolve, reject) => {
         try {
@@ -1497,10 +1526,116 @@ export function getSongHistoricalViews(
                 },
                 range,
                 period,
-                timestamp
+                getMostRecentViewsTimestampSync(timestamp)
             ))
         } catch (error) {
             reject(error)
         }
     })
 }
+
+// update all songs' colors
+const convertDatabase = async (
+    maximumConcurrent: number = 20
+) => {
+    const convertSongAverageColor = async (song: RawSongData) => {
+        try {
+            const averageColor = rgbaFromArgb(argbFromHex(song.average_color))
+            const palette = await getPaletteFromURL(song.maxres_thumbnail)
+            const mostVibrantColorRgb = getMostVibrantColor(palette, [averageColor.r, averageColor.b, averageColor.g])
+            const mostVibrantColorArgb = argbFromRgb(mostVibrantColorRgb[0], mostVibrantColorRgb[1], mostVibrantColorRgb[2])
+
+            // get dark color & light color
+            const lightColor = hexFromArgb(MaterialDynamicColors.primary.getArgb(new SchemeVibrant(Hct.fromInt(mostVibrantColorArgb), false, 0.3)))
+            const darkColor = hexFromArgb(MaterialDynamicColors.primary.getArgb(new SchemeVibrant(Hct.fromInt(mostVibrantColorArgb), true, 0.3)))
+
+            // update database
+            db.prepare(`
+            UPDATE songs
+            SET average_color = ?, dark_color = ?, light_color = ?
+            WHERE id = ?
+            `).run(hexFromArgb(mostVibrantColorArgb), darkColor, lightColor, song.id)
+        } catch (error) {
+            console.log(`Error when updating song ${song.id}: Error: ${error}`)
+        }
+        return true
+    }
+
+    const convertArtistAverageColor = async (artist: { id: number, average_color: string, url: string }) => {
+        try {
+            const averageColor = rgbaFromArgb(argbFromHex(artist.average_color))
+            const palette = await getPaletteFromURL(artist.url)
+            const mostVibrantColorRgb = getMostVibrantColor(palette, [averageColor.r, averageColor.b, averageColor.g])
+            const mostVibrantColorArgb = argbFromRgb(mostVibrantColorRgb[0], mostVibrantColorRgb[1], mostVibrantColorRgb[2])
+
+            // get dark color & light color
+            const lightColor = hexFromArgb(MaterialDynamicColors.primary.getArgb(new SchemeVibrant(Hct.fromInt(mostVibrantColorArgb), false, 0.3)))
+            const darkColor = hexFromArgb(MaterialDynamicColors.primary.getArgb(new SchemeVibrant(Hct.fromInt(mostVibrantColorArgb), true, 0.3)))
+
+            // update database
+            db.prepare(`
+            UPDATE artists
+            SET average_color = ?, dark_color = ?, light_color = ?
+            WHERE id = ?
+            `).run(hexFromArgb(mostVibrantColorArgb), darkColor, lightColor, artist.id)
+        } catch (error) {
+            console.log(`Error when updating artist ${artist.id}: Error: ${error}`)
+        }
+        return true
+    }
+
+    // compute new song average colors
+    {
+        const songs = db.prepare(`
+        SELECT *
+        FROM songs
+        `).all() as RawSongData[]
+
+        let promises = []
+        let n = 0
+        for (const song of songs) {
+
+            if (promises.length > maximumConcurrent) {
+                await Promise.allSettled(promises)
+                promises = []
+                console.log(`Songs [${n++}/${songs.length}]`)
+            } else {
+                promises.push(convertSongAverageColor(song))
+                n++
+            }
+        }
+    }
+
+    // compute artists average colors
+    {
+        const artists = db.prepare(`
+        SELECT id, average_color, artists_thumbnails.url
+        FROM artists
+        INNER JOIN artists_thumbnails ON artists_thumbnails.artist_id = artists.id
+        WHERE artists_thumbnails.thumbnail_type = 2
+        `).all() as { id: number, average_color: string, url: string }[]
+
+        let promises = []
+        let n = 0
+        for (const artist of artists) {
+
+            if (promises.length > maximumConcurrent) {
+                await Promise.allSettled(promises)
+                promises = []
+                console.log(`Artists [${n++}/${artists.length}]`)
+            } else {
+                promises.push(convertArtistAverageColor(artist))
+                n++
+            }
+        }
+
+        if (promises.length > 0) {
+            await Promise.allSettled(promises)
+        }
+
+        console.log('Databases converted.')
+
+    }
+}
+
+//convertDatabase()
