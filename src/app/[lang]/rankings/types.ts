@@ -6,7 +6,8 @@ export enum FilterType {
     INPUT,
     CHECKBOX,
     MULTI,
-    MULTI_ENTITY
+    MULTI_ENTITY,
+    TIMESTAMP
 }
 
 export enum PopupAlignment {
@@ -115,6 +116,20 @@ export class CheckboxFilter extends Filter {
     }
 }
 
+export class TimestampFilter extends Filter {
+    placeholder: LanguageDictionaryKey
+
+    constructor(
+        name: LanguageDictionaryKey,
+        key: string,
+        displayActive: boolean = true,
+        placeholder: LanguageDictionaryKey,
+    ) {
+        super(name, key, displayActive, FilterType.TIMESTAMP)
+        this.placeholder = placeholder
+    }
+}
+
 export interface RankingsFilters {
     search: InputFilter
     timePeriod: SelectFilter<number>
@@ -132,7 +147,7 @@ export interface RankingsFilters {
     minViews: InputFilter
     maxViews: InputFilter
     orderBy: SelectFilter<FilterOrder>
-    timestamp: InputFilter
+    timestamp: TimestampFilter
     singleVideo: CheckboxFilter
     includeArtists: MultiEntityFilter
     excludeArtists: MultiEntityFilter
@@ -182,7 +197,7 @@ export interface SongRankingsFilterBarValues {
     minViews?: string
     maxViews?: string
     orderBy?: number
-    timestamp?: string
+    timestamp?: Date
     singleVideo?: boolean
     includeArtists?: number[]
     excludeArtists?: number[]

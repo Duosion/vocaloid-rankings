@@ -1,10 +1,11 @@
 import { Hct, MaterialDynamicColors, SchemeVibrant, argbFromHex, argbFromRgb, hexFromArgb, rgbaFromArgb } from "@material/material-color-utilities";
-import getDatabase, { generateTimestamp } from ".";
+import getDatabase from ".";
 import { Databases } from ".";
 import { Artist, ArtistCategory, ArtistPlacement, ArtistThumbnailType, ArtistType, HistoricalViews, HistoricalViewsResult, Id, NameType, Names, PlacementChange, SongRankingsFilterParams, SongRankingsFilterResult, SongRankingsFilterResultItem, RawArtistData, RawArtistName, RawArtistThumbnail, RawSongRankingsResult, RawSongArtist, RawSongData, RawSongName, RawSongVideoId, RawViewBreakdown, Song, SongPlacement, SongType, SongVideoIds, SourceType, SqlRankingsFilterParams, Views, ViewsBreakdown, ArtistRankingsFilterParams, ArtistRankingsFilterResult, ArtistRankingsFilterResultItem, RawArtistRankingResult, SqlSearchArtistsFilterParams, FilterInclusionMode, FilterOrder, FilterDirection } from "./types";
 import type { Statement } from "better-sqlite3";
 import { getPaletteFromURL } from "color-thief-node";
 import { getMostVibrantColor } from "@/lib/material";
+import { generateTimestamp } from "@/lib/utils";
 
 // import database
 const db = getDatabase(Databases.SONGS_DATA)
@@ -947,7 +948,7 @@ function getHistoricalViewsSync(
         } else {
             const timestampDate = new Date(recentTimestamp)
             timestampDate.setDate(timestampDate.getDate() - daysOffset)
-            timestamps.push(generateTimestamp(timestampDate)?.formatted || dbResultTimestamp)
+            timestamps.push(generateTimestamp(timestampDate) || dbResultTimestamp)
         }
 
     }

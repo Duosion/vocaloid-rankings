@@ -1,6 +1,7 @@
 import { Elevation } from "@/material/types"
 import { FilterElement } from "./filter"
 import { elevationToClass } from "@/material"
+import { generateTimestamp, localISOTimestampToDate } from "@/lib/utils"
 
 export function DateFilterElement(
     {
@@ -12,14 +13,14 @@ export function DateFilterElement(
         onValueChanged
     }: {
         name: string
-        value: string
+        value: Date
         min?: string
         max?: string
         elevation?: Elevation
-        onValueChanged?: (newValue: string) => void
+        onValueChanged?: (newValue?: Date) => void
     }
 ) {
-    function setValue(newValue: string) {
+    function setValue(newValue?: Date) {
         if (value != newValue && onValueChanged) {
             onValueChanged(newValue)
         }
@@ -28,9 +29,20 @@ export function DateFilterElement(
     return (
         <FilterElement key={name} name={name}>
             <div className="py-2 px-4 rounded-xl text-on-surface flex gap-3 text-base font-normal"
-                style={{backgroundColor: `var(--md-sys-color-${elevationToClass[elevation]})`}}
+                style={{ backgroundColor: `var(--md-sys-color-${elevationToClass[elevation]})` }}
             >
-                <input type='date' value={value} min={min} max={max} onChange={event => setValue(event.currentTarget.value)} className={`cursor-text bg-transparent min-w-fit w-32 outline-none text-left flex-1`} />
+                <input
+                    type='date'
+                    value={generateTimestamp(value)}
+                    min={min}
+                    max={max}
+                    onChange={
+                        event => {
+                            const asDate = localISOTimestampToDate(event.currentTarget.value)
+                            setValue(asDate ? asDate : undefined)
+                        }
+                    }
+                    className={`cursor-text bg-transparent min-w-fit w-32 outline-none text-left flex-1`} />
             </div>
         </FilterElement>
     )

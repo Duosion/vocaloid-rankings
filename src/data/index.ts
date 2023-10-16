@@ -2,7 +2,6 @@ import { Database } from "better-sqlite3"
 import sqlite3 from 'better-sqlite3'
 import initSongsData from "./initializers/songsData"
 import { existsSync, mkdirSync } from "fs"
-import { Timestamp } from "./types"
 
 const rootDirectory = process.cwd()
 const dataDirectory = rootDirectory + "/src/data/database/"
@@ -77,13 +76,4 @@ export default function getDatabase(
     loadedDatabases[database] = db
 
     return db
-}
-
-export const generateTimestamp = (
-    date: Date = new Date()
-): Timestamp => {
-    return {
-        formatted: date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, '0') + "-" + String(date.getDate()).padStart(2, '0'),
-        original: date
-    }
 }

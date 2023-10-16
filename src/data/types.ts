@@ -101,11 +101,6 @@ export interface HistoricalViewsResult {
     views: HistoricalViews[]
 }
 
-export interface Timestamp {
-    formatted: string,
-    original: Date
-}
-
 export interface VideoViews {
     id: string
     views: number | bigint

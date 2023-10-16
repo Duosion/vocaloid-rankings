@@ -12,7 +12,7 @@ import { NumberFormatter } from "@/components/formatters/number-formatter"
 import { ApiArtist, ApiSongRankingsFilterResult } from "@/lib/api/types"
 import { useTheme } from "next-themes"
 import Link from "next/link"
-import { ArtistType, FilterInclusionMode, FilterOrder, SongRankingsFilterResult, SongType, SourceType } from "@/data/types"
+import { ArtistType, FilterInclusionMode, FilterOrder, SongType, SourceType } from "@/data/types"
 import { TransitionGroup } from "react-transition-group"
 import { useQuery, gql, ApolloQueryResult } from "@apollo/client"
 import { RankingsGridItem } from "@/components/rankings/rankings-grid-item"
@@ -217,7 +217,7 @@ export function RankingsList(
         minViews: filterValues.minViews,
         maxViews: filterValues.maxViews,
         orderBy: filterValues.orderBy,
-        timestamp: filterValues.timestamp,
+        timestamp: filterValues.timestamp ? new Date(filterValues.timestamp) : undefined,
         singleVideo: decodeBoolean(Number(filterValues.singleVideo)),
         includeArtists: decodeMultiFilter(filterValues.includeArtists),
         excludeArtists: decodeMultiFilter(filterValues.excludeArtists),
@@ -252,7 +252,7 @@ export function RankingsList(
         }
 
         return {
-            timestamp: filterBarValues.timestamp,
+            timestamp: filterBarValues.timestamp ? filterBarValues.timestamp?.toISOString() : undefined,
             timePeriodOffset: parseParamSelectFilterValue(filterBarValues.timePeriod, filters.timePeriod.values, filters.timePeriod.defaultValue),
             includeSourceTypes: includeSourceTypes && includeSourceTypes.length > 0 ? includeSourceTypes : undefined,
             excludeSourceTypes: excludeSourceTypes && excludeSourceTypes.length > 0 ? excludeSourceTypes : undefined,
@@ -309,6 +309,9 @@ export function RankingsList(
                         case FilterType.MULTI:
                             const encoded = encodeMultiFilter(value as number[])
                             if (encoded != '') queryBuilder.push(`${key}=${encoded}`)
+                            break
+                        case FilterType.TIMESTAMP:
+                            queryBuilder.push(`${key}=${(value as Date).toISOString()}`)
                             break
                     }
                 }
