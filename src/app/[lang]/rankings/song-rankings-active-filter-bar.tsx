@@ -31,7 +31,7 @@ export function SongRankingsActiveFilterBar(
         filters: RankingsFilters
         langDict: LanguageDictionary
         filterValues: SongRankingsFilterBarValues
-        currentTimestamp: string
+        currentTimestamp: Date
         setFilterValues: (newValues: SongRankingsFilterBarValues, route?: boolean) => void,
         entityNames: EntityNames,
         onEntityNamesChanged: (newNames: EntityNames) => void
@@ -50,7 +50,7 @@ export function SongRankingsActiveFilterBar(
     const artistTypesOptions = filters.includeArtistTypes.values.map(value => langDict[value.name])
 
     // timestamps
-    const currentTimestampDate = new Date(currentTimestamp)
+    const currentTimestampIso = generateTimestamp(currentTimestamp)
 
     // build active filters
     const activeFilters: React.ReactNode[] = []
@@ -65,7 +65,7 @@ export function SongRankingsActiveFilterBar(
                     const defaultValue = (filter as SelectFilter<number>).defaultValue
                     const options = (filter as SelectFilter<number>).values
                     const parsedValue = isNaN(valueNumber) ? defaultValue : valueNumber
-                    if (parsedValue != defaultValue) {
+                    if (parsedValue != defaultValue && (filter == filters.timePeriod && valueNumber != 4 && !filterValues.from)) {
                         const name = options[parsedValue].name
                         activeFilters.push(<ActiveFilter name={langDict[name]} onClick={() => { filterValues[key as keyof typeof filterValues] = defaultValue as any; setFilterValues(filterValues) }} />)
                     }
@@ -80,7 +80,8 @@ export function SongRankingsActiveFilterBar(
                 }
                 case FilterType.TIMESTAMP: {
                     if (value != undefined) {
-                        activeFilters.push(<ActiveFilter name={`${langDict[filter.name]}: ${generateTimestamp(value as Date)}`} onClick={() => { filterValues[key as keyof typeof filterValues] = undefined; setFilterValues(filterValues) }} />)
+                        const name = filter == filters.timestamp && filterValues.timePeriod == 4 && filterValues.from ? filters.to.name : filter.name
+                        activeFilters.push(<ActiveFilter name={`${langDict[name]}: ${generateTimestamp(value as Date)}`} onClick={() => { filterValues[key as keyof typeof filterValues] = undefined; setFilterValues(filterValues) }} />)
                     }
                     break
                 }
@@ -238,10 +239,10 @@ export function SongRankingsActiveFilterBar(
                             {/* From Date */}
                             <DateFilterElement
                                 name={langDict.filter_time_period_offset_custom_from}
-                                value={filterValues.timestamp || currentTimestampDate}
-                                max={currentTimestamp}
+                                value={filterValues.from || currentTimestamp}
+                                max={currentTimestampIso}
                                 onValueChanged={newValue => {
-                                    filterValues.timestamp = newValue
+                                    filterValues.from = newValue
                                     setFilterValues(filterValues)
                                 }
                                 }
@@ -249,8 +250,8 @@ export function SongRankingsActiveFilterBar(
                             {/* To Date */}
                             <DateFilterElement
                                 name={langDict.filter_time_period_offset_custom_to}
-                                value={filterValues.timestamp || currentTimestampDate}
-                                max={currentTimestamp}
+                                value={filterValues.timestamp || currentTimestamp}
+                                max={currentTimestampIso}
                                 onValueChanged={newValue => {
                                     filterValues.timestamp = newValue
                                     setFilterValues(filterValues)
@@ -261,8 +262,8 @@ export function SongRankingsActiveFilterBar(
                     )
                         : <DateFilterElement
                             name={langDict[filters.timestamp.name]}
-                            value={filterValues.timestamp || currentTimestampDate}
-                            max={currentTimestamp}
+                            value={filterValues.timestamp || currentTimestamp}
+                            max={currentTimestampIso}
                             onValueChanged={newValue => {
                                 filterValues.timestamp = newValue
                                 setFilterValues(filterValues)

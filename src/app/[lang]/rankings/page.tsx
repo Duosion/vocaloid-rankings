@@ -188,6 +188,20 @@ const filters: RankingsFilters = {
         ],
         defaultValue: 0 // default value
     },
+    from: {
+        name: 'filter_time_period_offset_custom_from',
+        key: 'from',
+        displayActive: true,
+        type: FilterType.TIMESTAMP,
+        placeholder: 'filter_timestamp_latest',
+    },
+    to: {
+        name: 'filter_time_period_offset_custom_to',
+        key: 'to',
+        displayActive: false,
+        type: FilterType.TIMESTAMP,
+        placeholder: 'filter_timestamp_latest',
+    },
     timestamp: {
         name: 'filter_timestamp',
         key: 'timestamp',

@@ -199,6 +199,9 @@ export function RankingsList(
     // import settings
     const settingTitleLanguage = settings.titleLanguage
 
+    // convert current timestamp to date
+    const currentTimestampDate = new Date(currentTimestamp)
+
     // convert filterValues into filterBarValues
     const [filterBarValues, setFilterValues] = useState({
         search: filterValues.search,
@@ -217,6 +220,7 @@ export function RankingsList(
         minViews: filterValues.minViews,
         maxViews: filterValues.maxViews,
         orderBy: filterValues.orderBy,
+        from: filterValues.from ? new Date(filterValues.from) : undefined,
         timestamp: filterValues.timestamp ? new Date(filterValues.timestamp) : undefined,
         singleVideo: decodeBoolean(Number(filterValues.singleVideo)),
         includeArtists: decodeMultiFilter(filterValues.includeArtists),
@@ -251,9 +255,21 @@ export function RankingsList(
             publishDate = `${year}-${month}-${day}%`
         }
 
+        // get custom time period offset
+        const to = filterBarValues.timestamp || currentTimestampDate
+        const from = filterBarValues.from
+
+        let customTimePeriodOffset: number | undefined
+        if (filterBarValues.timePeriod == 4 && from && to) {
+            // get the difference in milliseconds between the two dates
+            const difference = Math.abs(to.getTime() - from.getTime())
+            // convert the difference, which is in milliseconds into days and set the timePeriodOffset to that value
+            customTimePeriodOffset = Math.floor(difference / (24 * 60 * 60 * 1000))
+        }
+
         return {
             timestamp: filterBarValues.timestamp ? filterBarValues.timestamp?.toISOString() : undefined,
-            timePeriodOffset: parseParamSelectFilterValue(filterBarValues.timePeriod, filters.timePeriod.values, filters.timePeriod.defaultValue),
+            timePeriodOffset: customTimePeriodOffset !== undefined ? customTimePeriodOffset : parseParamSelectFilterValue(filterBarValues.timePeriod, filters.timePeriod.values, filters.timePeriod.defaultValue),
             includeSourceTypes: includeSourceTypes && includeSourceTypes.length > 0 ? includeSourceTypes : undefined,
             excludeSourceTypes: excludeSourceTypes && excludeSourceTypes.length > 0 ? excludeSourceTypes : undefined,
             includeSongTypes: includeSongTypes && includeSongTypes.length > 0 ? includeSongTypes : undefined,
@@ -356,7 +372,7 @@ export function RankingsList(
                 filters={filters}
                 langDict={langDict}
                 filterValues={filterBarValues}
-                currentTimestamp={currentTimestamp}
+                currentTimestamp={currentTimestampDate}
                 setFilterValues={saveFilterValues}
                 entityNames={entityNames}
                 onEntityNamesChanged={newNames => setEntityNames({ ...newNames })}

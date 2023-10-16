@@ -147,6 +147,8 @@ export interface RankingsFilters {
     minViews: InputFilter
     maxViews: InputFilter
     orderBy: SelectFilter<FilterOrder>
+    to: TimestampFilter
+    from: TimestampFilter
     timestamp: TimestampFilter
     singleVideo: CheckboxFilter
     includeArtists: MultiEntityFilter
@@ -172,6 +174,7 @@ export interface SongRankingsFiltersValues {
     minViews?: string
     maxViews?: string
     orderBy?: number
+    from?: string
     timestamp?: string
     singleVideo?: number
     includeArtists?: string
@@ -197,6 +200,7 @@ export interface SongRankingsFilterBarValues {
     minViews?: string
     maxViews?: string
     orderBy?: number
+    from?: Date
     timestamp?: Date
     singleVideo?: boolean
     includeArtists?: number[]
