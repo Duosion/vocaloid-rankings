@@ -25,6 +25,7 @@ function getSongRankingsFilterQueryParams(
         orderBy: filterParams.orderBy,
         direction: filterParams.direction,
         singleVideo: filterParams.singleVideo && 1 || null,
+        includeSimilarArtists: filterParams.includeSimilarArtists ? 1 : null,
         maxEntries: filterParams.maxEntries,
         startAt: filterParams.startAt,
         minViews: filterParams.minViews,
@@ -90,14 +91,40 @@ function filterSongRankingsCountSync(
     const filterIncludeArtistsStatement = filterIncludeArtists ?
         originalParams.includeArtistsMode == FilterInclusionMode.OR ? ` AND (songs_artists.artist_id IN (${filterIncludeArtists}))`
             : ` AND (
-                ${filterIncludeArtists.map(varName => `EXISTS ( SELECT 1 FROM songs_artists sa WHERE sa.song_id = views_breakdowns.song_id AND sa.artist_id = ${varName} )`).join(' AND ')}
+                ${filterIncludeArtists.map(varName => `
+                EXISTS (
+                    WITH RECURSIVE descendants AS (
+                        SELECT id FROM artists WHERE id = ${varName}
+                        UNION ALL
+                        SELECT a.id FROM artists a
+                        INNER JOIN descendants d ON a.base_artist_id = d.id
+                    )
+                    SELECT 1 FROM songs_artists sa 
+                    WHERE sa.song_id = views_breakdowns.song_id 
+                        AND (sa.artist_id = ${varName}
+                            OR :includeSimilarArtists IS NOT NULL AND sa.artist_id IN descendants
+                            )
+                    )`).join(' AND ')}
               )`
         : ''
 
     const filterExcludeArtistsStatement = filterExcludeArtists ?
-        originalParams.includeArtistsMode == FilterInclusionMode.OR ? ` AND (songs_artists.artist_id NOT IN (${filterExcludeArtists}))`
+        originalParams.excludeArtistsMode == FilterInclusionMode.OR ? `AND ( ${filterExcludeArtists.map(varName => `NOT EXISTS ( SELECT 1 FROM songs_artists sa WHERE sa.song_id = views_breakdowns.song_id AND sa.artist_id = ${varName} )`).join(' AND ')} )`
             : ` AND (
-                    ${filterExcludeArtists.map(varName => `NOT EXISTS ( SELECT 1 FROM songs_artists sa WHERE sa.song_id = views_breakdowns.song_id AND sa.artist_id = ${varName} )`).join(' AND ')}
+                    ${filterExcludeArtists.map(varName => `
+                    NOT EXISTS (
+                        WITH RECURSIVE descendants AS (
+                            SELECT id FROM artists WHERE id = ${varName}
+                            UNION ALL
+                            SELECT a.id FROM artists a
+                            INNER JOIN descendants d ON a.base_artist_id = d.id
+                        )
+                        SELECT 1 FROM songs_artists sa 
+                        WHERE sa.song_id = views_breakdowns.song_id 
+                        AND (sa.artist_id = ${varName}
+                            OR :includeSimilarArtists IS NOT NULL AND sa.artist_id IN descendants
+                            )
+                        )`).join(' OR ')}
                   )`
         : ''
 
@@ -186,14 +213,40 @@ function filterSongRankingsRawSync(
     const filterIncludeArtistsStatement = filterIncludeArtists ?
         originalParams.includeArtistsMode == FilterInclusionMode.OR ? ` AND (songs_artists.artist_id IN (${filterIncludeArtists}))`
             : ` AND (
-                ${filterIncludeArtists.map(varName => `EXISTS ( SELECT 1 FROM songs_artists sa WHERE sa.song_id = views_breakdowns.song_id AND sa.artist_id = ${varName} )`).join(' AND ')}
+                ${filterIncludeArtists.map(varName => `
+                EXISTS (
+                    WITH RECURSIVE descendants AS (
+                        SELECT id FROM artists WHERE id = ${varName}
+                        UNION ALL
+                        SELECT a.id FROM artists a
+                        INNER JOIN descendants d ON a.base_artist_id = d.id
+                    )
+                    SELECT 1 FROM songs_artists sa 
+                    WHERE sa.song_id = views_breakdowns.song_id 
+                        AND (sa.artist_id = ${varName}
+                            OR :includeSimilarArtists IS NOT NULL AND sa.artist_id IN descendants
+                            )
+                    )`).join(' AND ')}
               )`
         : ''
 
     const filterExcludeArtistsStatement = filterExcludeArtists ?
         originalParams.excludeArtistsMode == FilterInclusionMode.OR ? `AND ( ${filterExcludeArtists.map(varName => `NOT EXISTS ( SELECT 1 FROM songs_artists sa WHERE sa.song_id = views_breakdowns.song_id AND sa.artist_id = ${varName} )`).join(' AND ')} )`
             : ` AND (
-                    ${filterExcludeArtists.map(varName => `NOT EXISTS ( SELECT 1 FROM songs_artists sa WHERE sa.song_id = views_breakdowns.song_id AND sa.artist_id = ${varName} )`).join(' OR ')}
+                    ${filterExcludeArtists.map(varName => `
+                    NOT EXISTS (
+                        WITH RECURSIVE descendants AS (
+                            SELECT id FROM artists WHERE id = ${varName}
+                            UNION ALL
+                            SELECT a.id FROM artists a
+                            INNER JOIN descendants d ON a.base_artist_id = d.id
+                        )
+                        SELECT 1 FROM songs_artists sa 
+                        WHERE sa.song_id = views_breakdowns.song_id 
+                        AND (sa.artist_id = ${varName}
+                            OR :includeSimilarArtists IS NOT NULL AND sa.artist_id IN descendants
+                            )
+                        )`).join(' OR ')}
                   )`
         : ''
 

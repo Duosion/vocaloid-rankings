@@ -89,6 +89,7 @@
     "filter_exclude_artists": "Exclude Artists",
     "filter_exclude_artists_mode": "Artists Exclusion Mode",
     "filter_artists_placeholder": "Enter an artist's name...",
+    "filter_artists_include_similar": "Include Similar Artists",
     "filter_year": "Publish Year",
     "filter_month": "Publish Month",
     "filter_day": "Publish Day",

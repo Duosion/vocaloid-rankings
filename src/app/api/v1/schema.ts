@@ -166,6 +166,7 @@ import {
  *     excludeArtists: [Int]
  *     includeArtistsMode: FilterInclusionMode
  *     excludeArtistsMode: FilterInclusionMode
+ *     includeSimilarArtists: Boolean
  *     songs: [Int]
  *     singleVideo: Boolean
  *     maxEntries: Int
@@ -1015,6 +1016,10 @@ const queryType = new GraphQLObjectType({
                     type: filterInclusionModeEnum,
                     description: 'How artists should be excluded within the results.'
                 },
+                includeSimilarArtists: {
+                    type: GraphQLBoolean,
+                    description: `When including or excluding artists, whether to also include/exclude artists that are based on them.`
+                },
                 songs: {
                     type: new GraphQLList(GraphQLInt),
                     description: `A list of song IDs that will only be included in the result.`
@@ -1066,6 +1071,7 @@ const queryType = new GraphQLObjectType({
                     excludeArtists,
                     includeArtistsMode,
                     excludeArtistsMode,
+                    includeSimilarArtists,
                     songs,
                     singleVideo,
                     maxEntries,
@@ -1093,6 +1099,7 @@ const queryType = new GraphQLObjectType({
                     excludeArtists?: number[]
                     includeArtistsMode?: number
                     excludeArtistsMode?: number
+                    includeSimilarArtists?: boolean
                     songs?: number[]
                     singleVideo?: boolean
                     maxEntries?: number
@@ -1123,8 +1130,9 @@ const queryType = new GraphQLObjectType({
                 filterParams.excludeArtists = excludeArtists
                 filterParams.includeArtistsMode = includeArtistsMode === undefined ? filterParams.includeArtistsMode : includeArtistsMode
                 filterParams.excludeArtistsMode = excludeArtistsMode === undefined ? filterParams.excludeArtistsMode : excludeArtistsMode
+                filterParams.includeSimilarArtists = includeSimilarArtists == undefined ? filterParams.includeSimilarArtists : includeSimilarArtists
                 filterParams.songs = songs
-                filterParams.singleVideo = singleVideo || filterParams.singleVideo
+                filterParams.singleVideo = singleVideo == undefined ? filterParams.singleVideo : singleVideo
                 filterParams.maxEntries = Math.min(maxEntries || filterParams.maxEntries, 50)
                 filterParams.startAt = Math.abs(startAt || filterParams.startAt)
                 filterParams.minViews = minViews

@@ -155,6 +155,7 @@ export interface RankingsFilters {
     excludeArtists: MultiEntityFilter
     includeArtistsMode: SelectFilter<FilterInclusionMode>
     excludeArtistsMode: SelectFilter<FilterInclusionMode>
+    includeSimilarArtists: CheckboxFilter
 }
 
 export interface SongRankingsFiltersValues {
@@ -181,6 +182,7 @@ export interface SongRankingsFiltersValues {
     excludeArtists?: string
     includeArtistsMode?: number
     excludeArtistsMode?: number
+    includeSimilarArtists?: number
 }
 
 export interface SongRankingsFilterBarValues {
@@ -207,6 +209,7 @@ export interface SongRankingsFilterBarValues {
     excludeArtists?: number[]
     includeArtistsMode?: number
     excludeArtistsMode?: number
+    includeSimilarArtists?: boolean
 }
 
 // describes a list of entity names with their ids mapped to a Names types

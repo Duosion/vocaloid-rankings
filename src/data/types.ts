@@ -171,6 +171,7 @@ export class SongRankingsFilterParams {
     excludeArtists?: Id[]
     includeArtistsMode: FilterInclusionMode = FilterInclusionMode.AND
     excludeArtistsMode: FilterInclusionMode = FilterInclusionMode.OR
+    includeSimilarArtists: boolean = false
     songs?: Id[]
     singleVideo: boolean = false
     maxEntries: number = 50

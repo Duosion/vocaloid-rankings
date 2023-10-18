@@ -251,7 +251,14 @@ const filters: RankingsFilters = {
             { name: 'filter_inclusion_mode_or', value: FilterInclusionMode.OR },
         ],
         defaultValue: 1 // default value
-    }
+    },
+    includeSimilarArtists: {
+        name: 'filter_artists_include_similar',
+        key: 'includeSimilarArtists',
+        displayActive: true,
+        type: FilterType.CHECKBOX,
+        defaultValue: false
+    },
 }
 
 function parseParamSelectFilterValue(

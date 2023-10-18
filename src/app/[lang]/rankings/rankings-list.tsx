@@ -105,6 +105,7 @@ query SongRankings(
     $includeArtistsMode: FilterInclusionMode
     $excludeArtists: [Int]
     $excludeArtistsMode: FilterInclusionMode
+    $includeSimilarArtists: Boolean
     $songs: [Int]
     $singleVideo: Boolean
     $maxEntries: Int
@@ -133,6 +134,7 @@ query SongRankings(
         includeArtistsMode: $includeArtistsMode
         excludeArtists: $excludeArtists
         excludeArtistsMode: $excludeArtistsMode
+        includeSimilarArtists: $includeSimilarArtists
         songs: $songs
         singleVideo: $singleVideo
         maxEntries: $maxEntries
@@ -226,7 +228,8 @@ export function RankingsList(
         includeArtists: decodeMultiFilter(filterValues.includeArtists),
         excludeArtists: decodeMultiFilter(filterValues.excludeArtists),
         includeArtistsMode: filterValues.includeArtistsMode,
-        excludeArtistsMode: filterValues.excludeArtistsMode
+        excludeArtistsMode: filterValues.excludeArtistsMode,
+        includeSimilarArtists: decodeBoolean(Number(filterValues.includeSimilarArtists))
     } as SongRankingsFilterBarValues)
 
     // entity names state
@@ -285,6 +288,7 @@ export function RankingsList(
             excludeArtists: filterBarValues.excludeArtists && filterBarValues.excludeArtists.length > 0 ? [...filterBarValues.excludeArtists] : undefined,
             includeArtistsMode: filterBarValues.includeArtistsMode == undefined ? undefined : FilterInclusionMode[filterBarValues.includeArtistsMode],
             excludeArtistsMode: filterBarValues.excludeArtistsMode == undefined ? undefined : FilterInclusionMode[filterBarValues.excludeArtistsMode],
+            includeSimilarArtists: filterBarValues.includeSimilarArtists,
             //songs: undefined,
             singleVideo: filterBarValues.singleVideo,
             minViews: filterBarValues.minViews ? Number(filterBarValues.minViews) : undefined,

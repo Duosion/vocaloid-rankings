@@ -324,6 +324,8 @@ export function SongRankingsActiveFilterBar(
                             setFilterValues(filterValues)
                         }}
                     />
+                    {/* Include Similar Artists */}
+                    <SwitchFilterElement name={langDict[filters.includeSimilarArtists.name]} value={filterValues.includeSimilarArtists || filters.includeSimilarArtists.defaultValue} onValueChanged={(newValue) => { filterValues.includeSimilarArtists = newValue; setFilterValues(filterValues) }} />
                 </FilterGroup>
 
                 <Divider />

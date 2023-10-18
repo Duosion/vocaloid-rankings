@@ -89,6 +89,7 @@
     "filter_exclude_artists": "",
     "filter_exclude_artists_mode": "",
     "filter_artists_placeholder": "",
+    "filter_artists_include_similar": "",
     "filter_year": "",
     "filter_month": "",
     "filter_day": "",
