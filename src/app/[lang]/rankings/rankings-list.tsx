@@ -157,9 +157,12 @@ query SongRankings(
                 thumbnail
                 darkColor
                 lightColor
+                artistsCategories {
+                    vocalists
+                    producers
+                }
                 artists {
                     id
-                    category
                     names {
                         original
                         japanese
@@ -402,8 +405,8 @@ export function RankingsList(
                             const song = ranking.song
                             const names = buildEntityNames(song.names)
 
-                            const artistsLabel = <SongArtistsLabel artists={song.artists} preferredNameType={settingTitleLanguage} />
-
+                            const color = resolvedTheme == 'dark' ? song.darkColor : song.lightColor
+                            
                             return rankingsViewMode == RankingsViewMode.LIST ? (
                                 <RankingListItem
                                     key={song.id.toString()}
@@ -414,7 +417,8 @@ export function RankingsList(
                                     iconAlt={getEntityName(names, settingTitleLanguage)}
                                     trailingTitleContent={<NumberFormatter number={ranking.views} />}
                                     trailingSupporting={langDict.rankings_views}
-                                    supportingContent={artistsLabel}
+                                    supportingContent={<SongArtistsLabel artists={song.artists} categories={song.artistsCategories} preferredNameType={settingTitleLanguage} theme={resolvedTheme} />}
+                                    color={color}
                                 />
                             ) : (
                                 <RankingsGridItem
@@ -426,8 +430,7 @@ export function RankingsList(
                                     iconAlt={getEntityName(names, settingTitleLanguage)}
                                     trailingTitleContent={<NumberFormatter number={ranking.views} />}
                                     trailingSupporting={langDict.rankings_views}
-                                    supportingContent={artistsLabel}
-                                    color={resolvedTheme == 'dark' ? song.darkColor : song.lightColor}
+                                    color={color}
                                 />
                             )
                         })}</TransitionGroup>}

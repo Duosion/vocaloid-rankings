@@ -1,7 +1,7 @@
 import { Hct, MaterialDynamicColors, SchemeVibrant, argbFromHex, argbFromRgb, hexFromArgb, rgbaFromArgb } from "@material/material-color-utilities";
 import getDatabase from ".";
 import { Databases } from ".";
-import { Artist, ArtistCategory, ArtistPlacement, ArtistThumbnailType, ArtistType, HistoricalViews, HistoricalViewsResult, Id, NameType, Names, PlacementChange, SongRankingsFilterParams, SongRankingsFilterResult, SongRankingsFilterResultItem, RawArtistData, RawArtistName, RawArtistThumbnail, RawSongRankingsResult, RawSongArtist, RawSongData, RawSongName, RawSongVideoId, RawViewBreakdown, Song, SongPlacement, SongType, SongVideoIds, SourceType, SqlRankingsFilterParams, Views, ViewsBreakdown, ArtistRankingsFilterParams, ArtistRankingsFilterResult, ArtistRankingsFilterResultItem, RawArtistRankingResult, SqlSearchArtistsFilterParams, FilterInclusionMode, FilterOrder, FilterDirection } from "./types";
+import { Artist, ArtistCategory, ArtistPlacement, ArtistThumbnailType, ArtistType, HistoricalViews, HistoricalViewsResult, Id, NameType, Names, PlacementChange, SongRankingsFilterParams, SongRankingsFilterResult, SongRankingsFilterResultItem, RawArtistData, RawArtistName, RawArtistThumbnail, RawSongRankingsResult, RawSongArtist, RawSongData, RawSongName, RawSongVideoId, RawViewBreakdown, Song, SongPlacement, SongType, SongVideoIds, SourceType, SqlRankingsFilterParams, Views, ViewsBreakdown, ArtistRankingsFilterParams, ArtistRankingsFilterResult, ArtistRankingsFilterResultItem, RawArtistRankingResult, SqlSearchArtistsFilterParams, FilterInclusionMode, FilterOrder, FilterDirection, SongArtistsCategories } from "./types";
 import type { Statement } from "better-sqlite3";
 import { getPaletteFromURL } from "color-thief-node";
 import { getMostVibrantColor } from "@/lib/material";
@@ -1325,6 +1325,7 @@ export function searchArtists(
 function buildSong(
     songData: RawSongData,
     songNames: RawSongName[],
+    songArtistsCategories: SongArtistsCategories,
     songArtists: Artist[],
     songVideoIds: RawSongVideoId[],
     songViews: Views | null,
@@ -1368,12 +1369,15 @@ function buildSong(
         averageColor: songData.average_color,
         darkColor: songData.dark_color,
         lightColor: songData.light_color,
+        artistsCategories: songArtistsCategories,
         artists: songArtists,
         names: names,
         videoIds: videoIds,
         thumbnailType: thumbType,
         views: songViews,
         placement: songPlacement,
+        lastUpdated: songData.last_updated,
+        isDormant: songData.dormant == 1 ? true : false,
         fandomUrl: songData.fandom_url
     }
 }
@@ -1454,7 +1458,7 @@ function getSongSync(
 ): Song | null {
 
     const songData = db.prepare(`
-        SELECT id, publish_date, addition_date, song_type, thumbnail, maxres_thumbnail, thumbnail_type, average_color, dark_color, light_color, fandom_url
+        SELECT id, publish_date, addition_date, song_type, thumbnail, maxres_thumbnail, thumbnail_type, average_color, dark_color, light_color, fandom_url, last_updated, dormant
         FROM songs
         WHERE id = ?`).get(songId) as RawSongData
 
@@ -1481,10 +1485,21 @@ function getSongSync(
 
     // get artists data
     const artists: Artist[] = []
+    const existingArtists: { [key: number]: boolean } = {}
+    const artistsCategories: SongArtistsCategories = {
+        [ArtistCategory.VOCALIST]: [],
+        [ArtistCategory.PRODUCER]: []
+    }
     songArtists.forEach(rawArtist => {
-        const artist = getArtistSync(rawArtist.artist_id, false, false)
+        const id = rawArtist.artist_id as number
+        const category = rawArtist.artist_category as ArtistCategory
+        const categoryArtists = artistsCategories[category]
+
+        categoryArtists.push(id)
+
+        const artist = !existingArtists[id] ? getArtistSync(id, false, false) : null
         if (artist) {
-            artist.category = rawArtist.artist_category as ArtistCategory
+            existingArtists[id] = true
             artists.push(artist)
         }
     })
@@ -1494,6 +1509,7 @@ function getSongSync(
     return buildSong(
         songData,
         songNames,
+        artistsCategories,
         artists,
         songVideoIds,
         songViews,
@@ -1509,7 +1525,7 @@ export function getSongPlacement(
     return new Promise<SongPlacement | null>((resolve, reject) => {
         try {
             const songData = db.prepare(`
-                SELECT id, publish_date, addition_date, song_type, thumbnail, maxres_thumbnail, thumbnail_type, average_color, dark_color, light_color, fandom_url
+                SELECT id, publish_date, addition_date, song_type, thumbnail, maxres_thumbnail, thumbnail_type, average_color, dark_color, light_color, fandom_url, last_updated, dormant
                 FROM songs
                 WHERE id = ?`).get(id) as RawSongData
 

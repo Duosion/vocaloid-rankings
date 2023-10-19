@@ -1,5 +1,5 @@
 import { filterSongRankings, getArtist, getArtistPlacement, getArtistViews, getSong, getSongPlacement, getSongViews, searchArtists } from '@/data/songsData'
-import { Artist, ArtistThumbnailType, ArtistThumbnails, FilterDirection, FilterInclusionMode, FilterOrder, NameType, Names, Song, SongRankingsFilterParams, SongVideoIds, SourceType, ViewsBreakdown } from '@/data/types'
+import { Artist, ArtistCategory, ArtistThumbnailType, ArtistThumbnails, FilterDirection, FilterInclusionMode, FilterOrder, NameType, Names, Song, SongArtistsCategories, SongRankingsFilterParams, SongVideoIds, SourceType, ViewsBreakdown } from '@/data/types'
 import {
     GraphQLEnumType,
     GraphQLInterfaceType,
@@ -80,6 +80,11 @@ import {
  *   tiny: String
  * }
  * 
+ * type SongArtistsCategories {
+ *   vocalists: Int[]
+ *   producers: Int[]
+ * }
+ * 
  * interface Entity {
  *   id: Int!
  *   publishDate: String
@@ -94,7 +99,6 @@ import {
  * type Artist implements Entity {
  *   id: Int!
  *   type: ArtistType
- *   category: ArtistCategory
  *   publishDate: String
  *   additionDate: String
  *   names: EntityNames
@@ -118,11 +122,14 @@ import {
  *   darkColor: String
  *   lightColor: String
  *   artists: [Artist]
- *   names: Entitynames
+ *   artistsCategories: SongArtistsCategories
+ *   names: EntityNames
  *   videoIds: SongVideoIds
  *   views: EntityViews
  *   placement: SongPlacement
  *   thumbnailType: SourceType
+ *   lastUpdated: String
+ *   isDormant: Boolean
  * }
  * 
  * type SongRankingsFilterResultItem {
@@ -617,6 +624,29 @@ const artistThumbnailsType = new GraphQLObjectType({
 })
 
 /**
+ * type SongArtistsCategories {
+ *   vocalists: Int[]
+ *   producers: Int[]
+ * }
+ */
+const songArtistsCategoriesType = new GraphQLObjectType({
+    name: 'SongArtistsCategories',
+    description: 'Describes what categories each artist of a song belongs to.',
+    fields: {
+        vocalists: {
+            type: new GraphQLList(GraphQLInt),
+            description: 'A list of the Artist IDs of every vocalist involved with this song.',
+            resolve: (artistsCategories: SongArtistsCategories) => artistsCategories[ArtistCategory.VOCALIST]
+        },
+        producers: {
+            type: new GraphQLList(GraphQLInt),
+            description: 'A list of the Artist IDs of every producer involved with this song.',
+            resolve: (artistsCategories: SongArtistsCategories) => artistsCategories[ArtistCategory.PRODUCER]
+        }
+    }
+})
+
+/**
  * interface Entity {
  *   id: Int!
  *   publishDate: String
@@ -675,7 +705,6 @@ const entityInterface = new GraphQLInterfaceType({
  * type Artist implements Entity {
  *   id: Int!
  *   type: ArtistType
- *   category: ArtistCategory
  *   publishDate: String
  *   additionDate: String
  *   names: EntityNames
@@ -699,10 +728,6 @@ const artistType: GraphQLObjectType = new GraphQLObjectType({
         type: {
             type: artistTypeEnum,
             description: 'The type of the artist.'
-        },
-        category: {
-            type: artistCategoryEnum,
-            description: 'The role of the artist.'
         },
         publishDate: {
             type: GraphQLString,
@@ -765,11 +790,14 @@ const artistType: GraphQLObjectType = new GraphQLObjectType({
  *   darkColor: String
  *   lightColor: String
  *   artists: [Artist]
+ *   artistsCategories: SongArtistsCategories
  *   names: Entitynames
  *   videoIds: SongVideoIds
  *   views: EntityViews
  *   placement: SongPlacement
  *   thumbnailType: SourceType
+ *   lastUpdated: String
+ *   isDormant: Boolean
  * }
  */
 const songType: GraphQLObjectType = new GraphQLObjectType({
@@ -816,6 +844,10 @@ const songType: GraphQLObjectType = new GraphQLObjectType({
             type: new GraphQLList(artistType),
             description: 'The artists involved with the song.'
         },
+        artistsCategories: {
+            type: songArtistsCategoriesType,
+            description: 'A list of the categories that every artist involved with this song belongs to.'
+        },
         names: {
             type: entityNamesType,
             description: 'The names that the song has.'
@@ -837,6 +869,14 @@ const songType: GraphQLObjectType = new GraphQLObjectType({
         thumbnailType: {
             type: sourceTypeEnum,
             description: 'The source type that the thumbnail of the song originated from.'
+        },
+        lastUpdated: {
+            type: GraphQLString,
+            description: 'A timestamp that describes when this song was last updated.'
+        },
+        isDormant: {
+            type: GraphQLBoolean,
+            description: 'Whether this song is dormant or not.'
         }
     },
     interfaces: [entityInterface]

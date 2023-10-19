@@ -37,6 +37,11 @@ export interface ApiEntityViews {
     breakdown: ApiViewsBreakdown
 }
 
+export interface ApiSongArtistsCategories {
+    vocalists: number[]
+    producers: number[]
+}
+
 export interface ApiEntity {
     id: number
     publishDate: string
@@ -61,8 +66,11 @@ export interface ApiSong extends ApiEntity {
     maxresThumbnail: string
     videoIds: ApiSongVideoIds
     artists: ApiArtist[]
+    artistsCategories: ApiSongArtistsCategories
     placement: SongPlacement | null
     thumbnailType: string
+    lastUpdated: string
+    isDormant: boolean
 }
 
 /* api artist */

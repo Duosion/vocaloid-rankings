@@ -7,7 +7,7 @@ import { SchemeVibrant, Hct, argbFromRgb, argbFromHex, rgbaFromArgb } from "@mat
 import Image from '@/components/image'
 import { ArtistTypeLocaleTokens, NameTypeLocaleTokens, SongTypeLocaleTokens, SourceTypeLocaleTokens } from "@/localization/DictionaryTokenMaps"
 import Link from "next/link"
-import { ArtistCategory, ArtistThumbnailType, NameType, SourceType } from "@/data/types"
+import { ArtistCategory, ArtistThumbnailType, Id, NameType, SourceType } from "@/data/types"
 import { EntityName } from "@/components/formatters/entity-name"
 import { DateFormatter } from "@/components/formatters/date-formatter"
 import { NumberFormatter } from "@/components/formatters/number-formatter"
@@ -65,26 +65,33 @@ export default async function SongPage(
     }
 
     // generate artist elements
-    const singers: JSX.Element[] = []
-    const producers: JSX.Element[] = []
-    song.artists.forEach(artist => {
-        const isSinger = artist.category == ArtistCategory.VOCALIST
-        const artistNames = artist.names
-        const element = <ArtistCard
-            src={artist.thumbnails[ArtistThumbnailType.MEDIUM]}
-            alt={getEntityName(artistNames, settingTitleLanguage)}
-            bgColor={artist.averageColor}
-            href={`/${lang}/artist/${artist.id}`}
-            title={<EntityName names={artistNames} preferred={settingTitleLanguage} />}
-            text={langDict[ArtistTypeLocaleTokens[artist.type]]}
-            isSinger={isSinger}
-        />
-        if (isSinger) {
-            singers.push(element)
-        } else {
-            producers.push(element)
+    const artistsMap = new Map(song.artists.map(artist => [artist.id, artist]))
+
+    const generateArtistElements = (ids: Id[], category: ArtistCategory): JSX.Element[] => {
+        const elements: JSX.Element[] = []
+        const isSinger = category == ArtistCategory.VOCALIST
+        for (const id of ids) {
+            const artist = artistsMap.get(id)
+            if (artist) {
+                const artistNames = artist.names
+                elements.push(<ArtistCard
+                    src={artist.thumbnails[ArtistThumbnailType.MEDIUM]}
+                    alt={getEntityName(artistNames, settingTitleLanguage)}
+                    bgColor={artist.averageColor}
+                    href={`/${lang}/artist/${artist.id}`}
+                    title={<EntityName names={artistNames} preferred={settingTitleLanguage} />}
+                    text={langDict[ArtistTypeLocaleTokens[artist.type]]}
+                    isSinger={isSinger}
+                />)
+            }
         }
-    })
+        return elements
+    }
+
+    const artistsCategories = song.artistsCategories
+    const singers: JSX.Element[] = generateArtistElements(artistsCategories[ArtistCategory.VOCALIST], ArtistCategory.VOCALIST)
+    const producers: JSX.Element[] = generateArtistElements(artistsCategories[ArtistCategory.PRODUCER], ArtistCategory.PRODUCER)
+
     const largestArtistColumnCount = Math.max(singers.length, producers.length)
     const artistColumnSize = largestArtistColumnCount >= 3 ? 'lg:grid-cols-3' : `lg:grid-cols-${largestArtistColumnCount}`
 
@@ -266,7 +273,9 @@ export default async function SongPage(
                                 </div>
                             </div>
                         </Section>
-                        <Section title={langDict.song_daily_views}>
+
+                        {/* Daily Views */}
+                        {song.isDormant ? undefined : <Section title={langDict.song_daily_views}>
                             <div className="bg-surface-container rounded-2xl p-5 flex justify-between md:gap-4 gap-1 overflow-x-auto overflow-y-clip">
                                 {historicalViewsResult.views.map(historicalViews => {
                                     const views = historicalViews.views as number
@@ -277,7 +286,7 @@ export default async function SongPage(
                                     </section>
                                 })}
                             </div>
-                        </Section>
+                        </Section>}
                     </div>
 
                     {mostViewedSources[SourceType.YOUTUBE] ? <div className="grid gap-5 lg:grid-cols-2 grid-cols-1">

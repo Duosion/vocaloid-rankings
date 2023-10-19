@@ -88,6 +88,8 @@ export type ArtistThumbnails = {
     [key in ArtistThumbnailType]: string
 }
 
+export type SongArtistsCategories = { [key in ArtistCategory]: Id[] }
+
 export interface HistoricalViews {
     views: number | bigint
     timestamp: string
@@ -136,10 +138,13 @@ export interface Song extends Entity {
     type: SongType
     thumbnail: string
     maxresThumbnail: string
+    artistsCategories: SongArtistsCategories
     artists: Artist[]
     videoIds: SongVideoIds
     placement: SongPlacement | null
     thumbnailType: SourceType
+    lastUpdated: string
+    isDormant: boolean
     fandomUrl?: string
 }
 
@@ -149,7 +154,6 @@ export interface Artist extends Entity {
     placement: ArtistPlacement | null
     baseArtist: Artist | null
     baseArtistId?: Id | null
-    category?: ArtistCategory
 }
 export class SongRankingsFilterParams {
     timestamp?: string
@@ -305,6 +309,8 @@ export interface RawSongData {
     average_color: string
     dark_color: string
     light_color: string
+    last_updated: string
+    dormant: number
     fandom_url?: string
 }
 
