@@ -314,7 +314,7 @@ export default async function RankingsPage(
     const settings = new Settings(cookies())
 
     // general variables
-    const settingTitleLanguage = settings.titleLanguage
+    const viewMode = settings.rankingsViewMode
 
     // build filterParams
     const filterParams = new SongRankingsFilterParams()
@@ -368,6 +368,7 @@ export default async function RankingsPage(
                 langDict={langDict}
                 filterValues={searchParams}
                 currentTimestamp={mostRecentTimestamp}
+                viewMode={viewMode}
             />
         </section>
     )

@@ -4,6 +4,7 @@ import { RawSettings, UseSettingsProps, SettingsProviderProps } from "./types";
 import { NameType } from "@/data/types";
 import { setCookie, getCookie } from 'cookies-next'
 import { RankingsViewMode, SongRankingsFiltersValues } from "../rankings/types";
+import { cookies } from "next/dist/client/components/headers";
 
 const settingsContext = createContext<UseSettingsProps | undefined>(undefined)
 const defaultContext: UseSettingsProps = {
@@ -42,7 +43,7 @@ const SettingsElement: React.FC<SettingsProviderProps> = ({
                 })
             } catch (_) { }
         },
-        []
+        [cookieExpires, cookieName]
     )
 
     const setTitleLanguage = useCallback(
@@ -52,7 +53,7 @@ const SettingsElement: React.FC<SettingsProviderProps> = ({
                 titleLanguage: titleLanguage,
             })
         },
-        []
+        [saveSettings, settings]
     )
 
     const setRankingsViewMode = useCallback(
@@ -62,14 +63,14 @@ const SettingsElement: React.FC<SettingsProviderProps> = ({
                 rankingsViewMode: newViewMode
             })
         },
-        []
+        [saveSettings, settings]
     )
 
     const providerValue = useMemo(() => ({
         settings,
         setTitleLanguage,
         setRankingsViewMode
-    }), [settings, setTitleLanguage])
+    }), [settings, setTitleLanguage, setRankingsViewMode])
 
     return (
         <settingsContext.Provider

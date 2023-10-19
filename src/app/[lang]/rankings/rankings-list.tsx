@@ -17,6 +17,7 @@ import { TransitionGroup } from "react-transition-group"
 import { useQuery, gql, ApolloQueryResult } from "@apollo/client"
 import { RankingsGridItem } from "@/components/rankings/rankings-grid-item"
 import { Divider } from "@/components/material/divider"
+import { SongArtistsLabel } from "@/components/formatters/song-artists-label"
 
 function encodeBoolean(
     bool: boolean
@@ -186,13 +187,15 @@ export function RankingsList(
         filters,
         langDict,
         filterValues,
-        currentTimestamp
+        currentTimestamp,
+        viewMode
     }: {
         href: string
         filters: RankingsFilters
         langDict: LanguageDictionary
         filterValues: SongRankingsFiltersValues
         currentTimestamp: string
+        viewMode: RankingsViewMode
     }
 ) {
     // import contexts
@@ -201,7 +204,7 @@ export function RankingsList(
 
     // import settings
     const settingTitleLanguage = settings.titleLanguage
-    const rankingsViewMode = settings.rankingsViewMode
+    const [rankingsViewMode, setViewMode] = useState(viewMode)
 
     // convert current timestamp to date
     const currentTimestampDate = new Date(currentTimestamp)
@@ -366,6 +369,11 @@ export function RankingsList(
         }
     }, [settingTitleLanguage])
 
+    // load view mode
+    useEffect(() => {
+        setViewMode(settings.rankingsViewMode)
+    }, [settings.rankingsViewMode])
+
     // generate dummy rankings
     const dummyElements: JSX.Element[] = []
     if (loading) {
@@ -389,25 +397,14 @@ export function RankingsList(
             <Divider />
             {error ? <h2 className="text-3xl font-bold text-center text-on-background">{error.message}</h2>
                 : !loading && 0 >= rankingsResult.results.length ? <h2 className="text-3xl font-bold text-center text-on-background">{langDict.search_no_results}</h2>
-                    : rankingsViewMode == RankingsViewMode.LIST ? <ol className="flex flex-col gap-5 w-full">
+                    : <ol key='list-view' className={rankingsViewMode == RankingsViewMode.LIST ? "flex flex-col gap-5 w-full" : "grid xl:grid-cols-7 lg:grid-cols-5 md:grid-cols-4 sm:grid-cols-3 grid-cols-2 gap-10 w-full mt-3"}>
                         {rankingsResult == undefined ? dummyElements : <TransitionGroup component={null}>{rankingsResult.results.map(ranking => {
                             const song = ranking.song
                             const names = buildEntityNames(song.names)
 
-                            // generate artist links
-                            const artistLinks: React.ReactNode[] = []
-                            for (const artist of song.artists) {
-                                if (artist.category == 'PRODUCER') {
-                                    const artistNames = buildEntityNames(artist.names)
-                                    artistLinks.push(
-                                        <Link href={`artist/${song.id}`} className="text-md text-on-surface-variant transition-colors hover:text-on-surface"><EntityName names={artistNames} preferred={settingTitleLanguage} /></Link>
-                                    )
-                                    if (artistLinks.length == 3) {
-                                        break
-                                    }
-                                }
-                            }
-                            return (
+                            const artistsLabel = <SongArtistsLabel artists={song.artists} preferredNameType={settingTitleLanguage} />
+
+                            return rankingsViewMode == RankingsViewMode.LIST ? (
                                 <RankingListItem
                                     key={song.id.toString()}
                                     href={`song/${song.id}`}
@@ -417,45 +414,24 @@ export function RankingsList(
                                     iconAlt={getEntityName(names, settingTitleLanguage)}
                                     trailingTitleContent={<NumberFormatter number={ranking.views} />}
                                     trailingSupporting={langDict.rankings_views}
-                                    supportingContent={<span className="flex flex-row gap-3">{artistLinks}</span>}
+                                    supportingContent={artistsLabel}
+                                />
+                            ) : (
+                                <RankingsGridItem
+                                    key={song.id.toString()}
+                                    href={`song/${song.id}`}
+                                    titleContent={<EntityName names={names} preferred={settingTitleLanguage} />}
+                                    placement={ranking.placement}
+                                    icon={song.thumbnail}
+                                    iconAlt={getEntityName(names, settingTitleLanguage)}
+                                    trailingTitleContent={<NumberFormatter number={ranking.views} />}
+                                    trailingSupporting={langDict.rankings_views}
+                                    supportingContent={artistsLabel}
+                                    color={resolvedTheme == 'dark' ? song.darkColor : song.lightColor}
                                 />
                             )
                         })}</TransitionGroup>}
                     </ol>
-                        : <ol className="grid xl:grid-cols-7 lg:grid-cols-5 md:grid-cols-4 sm:grid-cols-3 grid-cols-2 gap-10 w-full mt-3">
-                            {rankingsResult == undefined ? dummyElements : <TransitionGroup component={null}>{rankingsResult.results.map(ranking => {
-                                const song = ranking.song
-                                const names = buildEntityNames(song.names)
-
-                                // generate artist links
-                                const artistLinks: React.ReactNode[] = []
-                                for (const artist of song.artists) {
-                                    if (artist.category == 'PRODUCER') {
-                                        const artistNames = buildEntityNames(artist.names)
-                                        artistLinks.push(
-                                            <Link href={`artist/${song.id}`} className="text-md text-on-surface-variant transition-colors hover:text-on-surface"><EntityName names={artistNames} preferred={settingTitleLanguage} /></Link>
-                                        )
-                                        if (artistLinks.length == 3) {
-                                            break
-                                        }
-                                    }
-                                }
-                                return (
-                                    <RankingsGridItem
-                                        key={song.id.toString()}
-                                        href={`song/${song.id}`}
-                                        titleContent={<EntityName names={names} preferred={settingTitleLanguage} />}
-                                        placement={ranking.placement}
-                                        icon={song.thumbnail}
-                                        iconAlt={getEntityName(names, settingTitleLanguage)}
-                                        trailingTitleContent={<NumberFormatter number={ranking.views} />}
-                                        trailingSupporting={langDict.rankings_views}
-                                        supportingContent={<span className="flex flex-row gap-3">{artistLinks}</span>}
-                                        color={resolvedTheme == 'dark' ? song.darkColor : song.lightColor}
-                                    />
-                                )
-                            })}</TransitionGroup>}
-                        </ol>
             }
         </section>
     )

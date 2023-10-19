@@ -18,7 +18,7 @@ export function EntityName(
 
     useEffect(() => {
         setPreferredNameType(settings.titleLanguage)
-    }, [])
+    }, [settings.titleLanguage])
 
     return (
         getEntityName(names, preferredNameType)

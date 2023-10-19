@@ -379,57 +379,39 @@ export function SongRankingsActiveFilterBar(
                 </FilterGroup>
             </Modal>
 
-            <ul className="flex sm:flex-col sm:justify-center justify-between gap-3 w-full">
-                <li key='row-1' className="flex-1 overflow-x-auto overflow-y-clip"><ul className="flex flex-1 gap-3 items-center justify-end">
-                    {/* Active Filters */}
-                    {activeFilterCount > 0 ?
-                        <li key='activeFilters' className="flex-1 overflow-x-auto overflow-y-clip"><ul className="flex gap-3">
-                            {activeFilterCount > 1 ?
-                                <ActiveFilter name={langDict.filter_clear_all} iconAlwaysVisible filled
-                                    onClick={() => {
-                                        filterValues = {}
-                                        setFilterValues(filterValues, true, false)
-                                    }} />
-                                : undefined}
-                            {activeFilters}
-                        </ul></li>
-                        : undefined}
-                    <li key='filter-button' className="sm:block hidden"><FilledButton icon='filter_alt' text={langDict.rankings_filter} onClick={_ => setFilterModalOpen(true)} /></li>
-                </ul></li>
-                <li key='row-2'><ul className="flex gap-2 items-center justify-end w-full relative">
-                    {/* Search */}
-                    <li key='quick-search' className="sm:block hidden"><InputFilterElement
-                        icon='search'
-                        value={filterValues.search || ''}
-                        placeholder={langDict[filters.search.placeholder]}
-                        defaultValue={filters.search.defaultValue}
-                        onValueChanged={(newValue) => {
-                            filterValues.search = newValue
-                            setFilterValues(filterValues, false)
+            <ul className="flex justify-end items-center gap-3 w-full">
+                {/* Active Filters */}
+                {activeFilterCount > 0 ?
+                    <li key='activeFilters' className="flex-1 overflow-x-auto overflow-y-clip"><ul className="flex gap-3">
+                        {activeFilterCount > 1 ?
+                            <ActiveFilter name={langDict.filter_clear_all} iconAlwaysVisible filled
+                                onClick={() => {
+                                    filterValues = {}
+                                    setFilterValues(filterValues, true, false)
+                                }} />
+                            : undefined}
+                        {activeFilters}
+                    </ul></li>
+                    : undefined}
 
-                            timeoutDebounce(searchTimeout, 500, () => { setFilterValues(filterValues) })
-                        }}
-                    /></li>
 
-                    {/* divider */}
-                    <li key='divider' className="flex-1"></li>
+                {/* Order By */}
+                <SelectFilterElement
+                    minimal
+                    icon='sort'
+                    clearIcon="sort"
+                    name={langDict[filters.orderBy.name]}
+                    value={Number(filterValues.orderBy)}
+                    defaultValue={filters.orderBy.defaultValue}
+                    options={filters.orderBy.values.map(value => langDict[value.name])}
+                    onValueChanged={(newValue) => { filterValues.orderBy = newValue; setFilterValues(filterValues) }}
+                />
 
-                    {/* Order By */}
-                    <SelectFilterElement
-                        minimal
-                        icon='sort'
-                        clearIcon="sort"
-                        name={langDict[filters.orderBy.name]}
-                        value={Number(filterValues.orderBy)}
-                        defaultValue={filters.orderBy.defaultValue}
-                        options={filters.orderBy.values.map(value => langDict[value.name])}
-                        onValueChanged={(newValue) => { filterValues.orderBy = newValue; setFilterValues(filterValues) }}
-                    />
+                <VerticalDivider className=" h-5" />
+                <IconButton icon='view_agenda' onClick={_ => setRankingsViewMode(RankingsViewMode.LIST)} />
+                <IconButton icon='view_cozy' onClick={_ => setRankingsViewMode(RankingsViewMode.GRID)} />
 
-                    <VerticalDivider className=" h-5" />
-                    <IconButton icon='view_agenda' onClick={_ => setRankingsViewMode(RankingsViewMode.LIST)} />
-                    <IconButton icon='view_cozy' onClick={_ => setRankingsViewMode(RankingsViewMode.GRID)} />
-                </ul></li>
+                <li key='filter-button' className="sm:block hidden"><FilledButton icon='filter_alt' text={langDict.rankings_filter} onClick={_ => setFilterModalOpen(true)} /></li>
             </ul>
         </>
 

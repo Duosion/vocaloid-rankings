@@ -6,6 +6,6 @@ export function VerticalDivider(
     }
 ) {
     return (
-        <hr className={`opacity-50 border-outline-variant border-r m-auto ${className}`}/>
+        <hr className={`opacity-50 border-outline-variant w-0 border-r m-0 ${className}`}/>
     )
 }
