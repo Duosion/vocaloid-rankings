@@ -1,6 +1,6 @@
 'use client'
 import { LanguageDictionary, getEntityName } from "@/localization"
-import { EntityNames, FilterType, InputFilter, RankingsFilters, SelectFilterValue, SongRankingsFilterBarValues, SongRankingsFiltersValues } from "./types"
+import { EntityNames, FilterType, InputFilter, RankingsFilters, RankingsViewMode, SelectFilterValue, SongRankingsFilterBarValues, SongRankingsFiltersValues } from "./types"
 import { useEffect, useState } from "react"
 import { SongRankingsActiveFilterBar } from "./song-rankings-active-filter-bar"
 import { DummyRankingsListItem } from "@/components/rankings/dummy-rankings-list-item"
@@ -196,11 +196,12 @@ export function RankingsList(
     }
 ) {
     // import contexts
-    const { settings } = useSettings()
+    const { settings, setRankingsViewMode } = useSettings()
     const { resolvedTheme } = useTheme()
 
     // import settings
     const settingTitleLanguage = settings.titleLanguage
+    const rankingsViewMode = settings.rankingsViewMode
 
     // convert current timestamp to date
     const currentTimestampDate = new Date(currentTimestamp)
@@ -381,15 +382,48 @@ export function RankingsList(
                 filterValues={filterBarValues}
                 currentTimestamp={currentTimestampDate}
                 setFilterValues={saveFilterValues}
+                setRankingsViewMode={setRankingsViewMode}
                 entityNames={entityNames}
                 onEntityNamesChanged={newNames => setEntityNames({ ...newNames })}
             />
-            <Divider/>
-            <ol className="grid grid-cols-7 gap-10 w-full mt-3">
-                {error ? <h2 className="text-3xl font-bold text-center text-on-background">{error.message}</h2>
-                    : !loading ? 0 >= rankingsResult.results.length ? <h2 className="text-3xl font-bold text-center text-on-background">{langDict.search_no_results}</h2>
-                        : <TransitionGroup component={null}>
-                            {rankingsResult.results.map(ranking => {
+            <Divider />
+            {error ? <h2 className="text-3xl font-bold text-center text-on-background">{error.message}</h2>
+                : !loading && 0 >= rankingsResult.results.length ? <h2 className="text-3xl font-bold text-center text-on-background">{langDict.search_no_results}</h2>
+                    : rankingsViewMode == RankingsViewMode.LIST ? <ol className="flex flex-col gap-5 w-full">
+                        {rankingsResult == undefined ? dummyElements : <TransitionGroup component={null}>{rankingsResult.results.map(ranking => {
+                            const song = ranking.song
+                            const names = buildEntityNames(song.names)
+
+                            // generate artist links
+                            const artistLinks: React.ReactNode[] = []
+                            for (const artist of song.artists) {
+                                if (artist.category == 'PRODUCER') {
+                                    const artistNames = buildEntityNames(artist.names)
+                                    artistLinks.push(
+                                        <Link href={`artist/${song.id}`} className="text-md text-on-surface-variant transition-colors hover:text-on-surface"><EntityName names={artistNames} preferred={settingTitleLanguage} /></Link>
+                                    )
+                                    if (artistLinks.length == 3) {
+                                        break
+                                    }
+                                }
+                            }
+                            return (
+                                <RankingListItem
+                                    key={song.id.toString()}
+                                    href={`song/${song.id}`}
+                                    titleContent={<EntityName names={names} preferred={settingTitleLanguage} />}
+                                    placement={ranking.placement}
+                                    icon={song.thumbnail}
+                                    iconAlt={getEntityName(names, settingTitleLanguage)}
+                                    trailingTitleContent={<NumberFormatter number={ranking.views} />}
+                                    trailingSupporting={langDict.rankings_views}
+                                    supportingContent={<span className="flex flex-row gap-3">{artistLinks}</span>}
+                                />
+                            )
+                        })}</TransitionGroup>}
+                    </ol>
+                        : <ol className="grid xl:grid-cols-7 lg:grid-cols-5 md:grid-cols-4 sm:grid-cols-3 grid-cols-2 gap-10 w-full mt-3">
+                            {rankingsResult == undefined ? dummyElements : <TransitionGroup component={null}>{rankingsResult.results.map(ranking => {
                                 const song = ranking.song
                                 const names = buildEntityNames(song.names)
 
@@ -420,10 +454,9 @@ export function RankingsList(
                                         color={resolvedTheme == 'dark' ? song.darkColor : song.lightColor}
                                     />
                                 )
-                            })}
-                        </TransitionGroup>
-                        : dummyElements}
-            </ol>
+                            })}</TransitionGroup>}
+                        </ol>
+            }
         </section>
     )
 }

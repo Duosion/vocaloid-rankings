@@ -1,7 +1,7 @@
 'use client'
 import { LanguageDictionary } from "@/localization"
 import { useRef, useState } from "react"
-import { CheckboxFilter, Filter, FilterType, InputFilter, RankingsFilters, SelectFilter, SongRankingsFilterBarValues, MultiFilter, EntityNames, MultiEntityFilter } from "./types"
+import { CheckboxFilter, Filter, FilterType, InputFilter, RankingsFilters, SelectFilter, SongRankingsFilterBarValues, MultiFilter, EntityNames, MultiEntityFilter, RankingsViewMode } from "./types"
 import { ActiveFilter } from "@/components/filter/active-filter"
 import { SelectFilterElement } from "@/components/filter/select-filter"
 import { FilledButton } from "@/components/material/filled-button"
@@ -17,6 +17,7 @@ import { ToggleGroupFilterElement } from "@/components/filter/toggle-group-filte
 import { ArtistSearchFilter } from "@/components/filter/artist-search-filter"
 import { Divider } from "@/components/material/divider"
 import { BinaryToggleFilterElement } from "@/components/filter/binary-toggle-filter"
+import { VerticalDivider } from "@/components/material/vertical-divider"
 
 export function SongRankingsActiveFilterBar(
     {
@@ -25,6 +26,7 @@ export function SongRankingsActiveFilterBar(
         filterValues,
         currentTimestamp,
         setFilterValues,
+        setRankingsViewMode,
         entityNames,
         onEntityNamesChanged
     }: {
@@ -33,6 +35,7 @@ export function SongRankingsActiveFilterBar(
         filterValues: SongRankingsFilterBarValues
         currentTimestamp: Date
         setFilterValues: (newValues: SongRankingsFilterBarValues, route?: boolean, merge?: boolean) => void,
+        setRankingsViewMode: (newMode: RankingsViewMode) => void,
         entityNames: EntityNames,
         onEntityNamesChanged: (newNames: EntityNames) => void
     }
@@ -139,6 +142,7 @@ export function SongRankingsActiveFilterBar(
                     <IconButton icon='close' onClick={() => setFilterModalOpen(false)} />
                 </header>
                 <FilterGroup>
+                    {/* Search */}
                     <InputFilterElement
                         icon='search'
                         name={langDict[filters.search.name]}
@@ -152,25 +156,7 @@ export function SongRankingsActiveFilterBar(
                             timeoutDebounce(searchTimeout, 500, () => { setFilterValues(filterValues) })
                         }}
                     />
-                </FilterGroup>
 
-                <Divider />
-
-                <FilterGroup>
-                    {/* Minimum Views*/}
-                    <NumberInputFilterElement name={langDict[filters.minViews.name]} value={filterValues.minViews || filters.minViews.defaultValue} placeholder={langDict[filters.minViews.placeholder]} defaultValue={filters.minViews.defaultValue} onValueChanged={(newValue) => {
-                        filterValues.minViews = newValue;
-                        setFilterValues(filterValues)
-
-                        timeoutDebounce(minViewsTimeout, 500, () => { setFilterValues(filterValues) })
-                    }} />
-                    {/* Maximum Views */}
-                    <NumberInputFilterElement name={langDict[filters.maxViews.name]} value={filterValues.maxViews || filters.maxViews.defaultValue} placeholder={langDict[filters.maxViews.placeholder]} defaultValue={filters.maxViews.defaultValue} onValueChanged={(newValue) => {
-                        filterValues.maxViews = newValue;
-                        setFilterValues(filterValues)
-
-                        timeoutDebounce(maxViewsTimeout, 500, () => { setFilterValues(filterValues) })
-                    }} />
                     {/* Single Video Mode */}
                     <SwitchFilterElement name={langDict[filters.singleVideo.name]} value={filterValues.singleVideo || filters.singleVideo.defaultValue} onValueChanged={(newValue) => { filterValues.singleVideo = newValue; setFilterValues(filterValues) }} />
                 </FilterGroup>
@@ -330,6 +316,25 @@ export function SongRankingsActiveFilterBar(
 
                 <Divider />
 
+                <FilterGroup>
+                    {/* Minimum Views*/}
+                    <NumberInputFilterElement name={langDict[filters.minViews.name]} value={filterValues.minViews || filters.minViews.defaultValue} placeholder={langDict[filters.minViews.placeholder]} defaultValue={filters.minViews.defaultValue} onValueChanged={(newValue) => {
+                        filterValues.minViews = newValue;
+                        setFilterValues(filterValues)
+
+                        timeoutDebounce(minViewsTimeout, 500, () => { setFilterValues(filterValues) })
+                    }} />
+                    {/* Maximum Views */}
+                    <NumberInputFilterElement name={langDict[filters.maxViews.name]} value={filterValues.maxViews || filters.maxViews.defaultValue} placeholder={langDict[filters.maxViews.placeholder]} defaultValue={filters.maxViews.defaultValue} onValueChanged={(newValue) => {
+                        filterValues.maxViews = newValue;
+                        setFilterValues(filterValues)
+
+                        timeoutDebounce(maxViewsTimeout, 500, () => { setFilterValues(filterValues) })
+                    }} />
+                </FilterGroup>
+
+                <Divider />
+
                 {/* Source Type */}
                 <ToggleGroupFilterElement name={langDict['filter_view_type']} included={filterValues.includeSourceTypes || []} excluded={filterValues.excludeSourceTypes || []} options={sourceTypesOptions} onValueChanged={(newIncluded, newExcluded) => {
                     filterValues.includeSourceTypes = [...newIncluded]
@@ -374,26 +379,26 @@ export function SongRankingsActiveFilterBar(
                 </FilterGroup>
             </Modal>
 
-            <ul className="flex flex-col gap-3 justify-center w-full">
-                <li key='row-1'><ul className="flex gap-5 items-center justify-end w-full">
+            <ul className="flex sm:flex-col sm:justify-center justify-between gap-3 w-full">
+                <li key='row-1' className="flex-1 overflow-x-auto overflow-y-clip"><ul className="flex flex-1 gap-3 items-center justify-end">
                     {/* Active Filters */}
                     {activeFilterCount > 0 ?
                         <li key='activeFilters' className="flex-1 overflow-x-auto overflow-y-clip"><ul className="flex gap-3">
                             {activeFilterCount > 1 ?
-                                <ActiveFilter name={langDict.filter_clear_all} iconAlwaysVisible filled 
-                                onClick={() => {
-                                    filterValues = {}
-                                    setFilterValues(filterValues, true, false)
-                                }}/>
+                                <ActiveFilter name={langDict.filter_clear_all} iconAlwaysVisible filled
+                                    onClick={() => {
+                                        filterValues = {}
+                                        setFilterValues(filterValues, true, false)
+                                    }} />
                                 : undefined}
                             {activeFilters}
                         </ul></li>
                         : undefined}
-                    <li key='filter-button'><FilledButton icon='filter_alt' text={langDict.rankings_filter} onClick={_ => setFilterModalOpen(true)} /></li>
+                    <li key='filter-button' className="sm:block hidden"><FilledButton icon='filter_alt' text={langDict.rankings_filter} onClick={_ => setFilterModalOpen(true)} /></li>
                 </ul></li>
-                <li key='row-1'><ul className="flex gap-5 items-center justify-end w-full">
+                <li key='row-2'><ul className="flex gap-2 items-center justify-end w-full relative">
                     {/* Search */}
-                    <InputFilterElement
+                    <li key='quick-search' className="sm:block hidden"><InputFilterElement
                         icon='search'
                         value={filterValues.search || ''}
                         placeholder={langDict[filters.search.placeholder]}
@@ -404,13 +409,26 @@ export function SongRankingsActiveFilterBar(
 
                             timeoutDebounce(searchTimeout, 500, () => { setFilterValues(filterValues) })
                         }}
-                    />
+                    /></li>
 
                     {/* divider */}
                     <li key='divider' className="flex-1"></li>
 
                     {/* Order By */}
-                    <SelectFilterElement minimal icon='sort' clearIcon="sort" name={langDict[filters.orderBy.name]} value={Number(filterValues.orderBy)} defaultValue={filters.orderBy.defaultValue} options={filters.orderBy.values.map(value => langDict[value.name])} onValueChanged={(newValue) => { filterValues.orderBy = newValue; setFilterValues(filterValues) }} />
+                    <SelectFilterElement
+                        minimal
+                        icon='sort'
+                        clearIcon="sort"
+                        name={langDict[filters.orderBy.name]}
+                        value={Number(filterValues.orderBy)}
+                        defaultValue={filters.orderBy.defaultValue}
+                        options={filters.orderBy.values.map(value => langDict[value.name])}
+                        onValueChanged={(newValue) => { filterValues.orderBy = newValue; setFilterValues(filterValues) }}
+                    />
+
+                    <VerticalDivider className=" h-5" />
+                    <IconButton icon='view_agenda' onClick={_ => setRankingsViewMode(RankingsViewMode.LIST)} />
+                    <IconButton icon='view_cozy' onClick={_ => setRankingsViewMode(RankingsViewMode.GRID)} />
                 </ul></li>
             </ul>
         </>

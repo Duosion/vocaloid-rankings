@@ -5,6 +5,7 @@ import { useTheme } from 'next-themes'
 import { LanguageDictionary, Locale, getDictionary } from '@/localization'
 import { useSettings } from './settings-provider'
 import { NameTypeLocaleTokens } from '@/localization/DictionaryTokenMaps'
+import { RankingsViewMode } from '../rankings/types'
 
 export default function SettingsPage(
   {
@@ -17,7 +18,7 @@ export default function SettingsPage(
 ) {
   const [mounted, setMounted] = useState(false)
   const { theme, setTheme } = useTheme()
-  const { settings, setTitleLanguage } = useSettings()
+  const { settings, setTitleLanguage, setRankingsViewMode } = useSettings()
   const [langDict, setLangDict] = useState({} as LanguageDictionary)
 
   useEffect(() => {
@@ -42,6 +43,11 @@ export default function SettingsPage(
         <option value={NameType.ORIGINAL}>Native</option>
         <option value={NameType.ENGLISH}>English</option>
         <option value={NameType.ROMAJI}>Romaji</option>
+      </select>
+      <div className='text-xl'>Rankings View Mode: {settings.rankingsViewMode}</div>
+      <select value={settings.rankingsViewMode} onChange={ e => setRankingsViewMode((Number.parseInt(e.target.value))) }>
+        <option value={RankingsViewMode.LIST}>List</option>
+        <option value={RankingsViewMode.GRID}>Grid</option>
       </select>
     </div>
   )

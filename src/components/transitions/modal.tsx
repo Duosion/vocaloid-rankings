@@ -87,7 +87,7 @@ export function Modal(
         >
             {/* modal container */}
             {state => (
-                <div ref={modalContainerRef} className='fixed w-full h-full top-0 left-0 flex items-start justify-center p-5 pt-36 box-border z-50'>
+                <div ref={modalContainerRef} className='fixed w-full h-full top-0 left-0 flex items-start justify-center p-5 md:pt-36 box-border z-50'>
                     {/* modal scrim */}
                     <div
                         className="absolute w-full h-full top-0 left-0 transition-all before:w-full before:h-full"

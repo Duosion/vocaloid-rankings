@@ -3,10 +3,17 @@ import React, { Fragment, createContext, useCallback, useContext, useMemo, useSt
 import { RawSettings, UseSettingsProps, SettingsProviderProps } from "./types";
 import { NameType } from "@/data/types";
 import { setCookie, getCookie } from 'cookies-next'
-import { SongRankingsFiltersValues } from "../rankings/types";
+import { RankingsViewMode, SongRankingsFiltersValues } from "../rankings/types";
 
 const settingsContext = createContext<UseSettingsProps | undefined>(undefined)
-const defaultContext: UseSettingsProps = { setTitleLanguage: () => {}, setRankingsFilter: () => {}, settings: { titleLanguage: NameType.ENGLISH, rankingsFilter: {} } }
+const defaultContext: UseSettingsProps = {
+    setTitleLanguage: () => { },
+    setRankingsViewMode: () => { },
+    settings: {
+        titleLanguage: NameType.ENGLISH,
+        rankingsViewMode: RankingsViewMode.LIST
+    }
+}
 
 export const useSettings = () => useContext(settingsContext) ?? defaultContext
 
@@ -14,20 +21,17 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = props => {
     const context = useContext(settingsContext)
 
     if (context) { return <Fragment>{props.children}</Fragment> }
-    return <SettingsElement {...props}/>
+    return <SettingsElement {...props} />
 }
 
 const SettingsElement: React.FC<SettingsProviderProps> = ({
     cookieName = 'settings',
     cookieExpires = new Date('2037/12/31'),
-    defaultSettings = {
-        titleLanguage: NameType.ENGLISH,
-        rankingsFilter: {}
-    },
+    defaultSettings = defaultContext.settings,
     children
 }) => {
     const [settings, setSettingsState] = useState(() => getSettings(cookieName, defaultSettings))
-    
+
     const saveSettings = useCallback(
         (settings: RawSettings) => {
             setSettingsState(settings)
@@ -36,7 +40,7 @@ const SettingsElement: React.FC<SettingsProviderProps> = ({
                 setCookie(cookieName, JSON.stringify(settings), {
                     expires: cookieExpires
                 })
-            } catch (_) {}
+            } catch (_) { }
         },
         []
     )
@@ -51,11 +55,11 @@ const SettingsElement: React.FC<SettingsProviderProps> = ({
         []
     )
 
-    const setRankingsFilter = useCallback(
-        (newParams: SongRankingsFiltersValues) => {
+    const setRankingsViewMode = useCallback(
+        (newViewMode: RankingsViewMode) => {
             saveSettings({
                 ...settings,
-                rankingsFilter: newParams
+                rankingsViewMode: newViewMode
             })
         },
         []
@@ -64,7 +68,7 @@ const SettingsElement: React.FC<SettingsProviderProps> = ({
     const providerValue = useMemo(() => ({
         settings,
         setTitleLanguage,
-        setRankingsFilter
+        setRankingsViewMode
     }), [settings, setTitleLanguage])
 
     return (

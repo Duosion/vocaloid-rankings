@@ -64,7 +64,7 @@ export function RankingListItem(
                     <b className="ml-3 text-on-surface h-10 w-fit min-w-[40px] box-border flex items-center justify-center text-2xl font-extrabold">{placement}</b>
                     <Link href={href} className="rounded-xl border border-outline-variant box-border"><SongThumbnail src={icon} alt={iconAlt} width={50} height={50} overflowHeight={70} overflowWidth={70} /></Link>
                     <section className="flex flex-col gap flex-1">
-                        <h3><Link href={href} className="text-on-surface font-semibold text-xl">{titleContent}</Link></h3>
+                        <h3 className="overflow-clip text-ellipsis"><Link href={href} className="text-on-surface font-semibold text-xl">{titleContent}</Link></h3>
                         {supportingContent}
                     </section>
                     <section className="flex flex-col gap items-end mr-4">

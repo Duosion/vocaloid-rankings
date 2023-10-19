@@ -16,6 +16,11 @@ export enum PopupAlignment {
     LEFT
 }
 
+export enum RankingsViewMode {
+    LIST,
+    GRID
+}
+
 export abstract class Filter {
     name: LanguageDictionaryKey
     key: string

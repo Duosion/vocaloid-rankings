@@ -67,7 +67,7 @@ export function RankingsGridItem(
                     color: color,
                     ...transitionStyles[state]
                 }}>
-                    <div className="text-xl bg-inverse-surface text-inverse-on-surface rounded-xl absolute -left-5 -top-4 p-2 z-10 font-black border border-outline-variant box-border">#{placement}</div>
+                    <div className="text-xl bg-inverse-surface text-inverse-on-surface rounded-xl absolute -left-5 -top-4 p-2 z-[5] font-black border border-outline-variant box-border">#{placement}</div>
                     <Link href={href} className="aspect-square w-full h-auto overflow-hidden relative rounded-3xl flex justify-center items-center border border-outline-variant box-border">
                         <Image
                             fill
