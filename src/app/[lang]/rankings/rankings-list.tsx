@@ -16,6 +16,7 @@ import { ArtistType, FilterInclusionMode, FilterOrder, SongType, SourceType } fr
 import { TransitionGroup } from "react-transition-group"
 import { useQuery, gql, ApolloQueryResult } from "@apollo/client"
 import { RankingsGridItem } from "@/components/rankings/rankings-grid-item"
+import { Divider } from "@/components/material/divider"
 
 function encodeBoolean(
     bool: boolean
@@ -205,7 +206,7 @@ export function RankingsList(
     const currentTimestampDate = new Date(currentTimestamp)
 
     // convert filterValues into filterBarValues
-    const [filterBarValues, setFilterValues] = useState({
+    let [filterBarValues, setFilterValues] = useState({
         search: filterValues.search,
         timePeriod: filterValues.timePeriod,
         publishYear: filterValues.publishYear,
@@ -307,9 +308,11 @@ export function RankingsList(
     // function for saving filter values & updating the UI with the new values.
     function saveFilterValues(
         newValues: SongRankingsFilterBarValues,
-        refresh: boolean = true
+        refresh: boolean = true,
+        merge: boolean = true
     ) {
-        setFilterValues({ ...newValues })
+        filterBarValues = merge ? { ...newValues } : newValues
+        setFilterValues(filterBarValues)
         // set url
         if (refresh) {
             const queryBuilder = []
@@ -381,7 +384,8 @@ export function RankingsList(
                 entityNames={entityNames}
                 onEntityNamesChanged={newNames => setEntityNames({ ...newNames })}
             />
-            <ol className="grid grid-cols-7 gap-10 w-full">
+            <Divider/>
+            <ol className="grid grid-cols-7 gap-10 w-full mt-3">
                 {error ? <h2 className="text-3xl font-bold text-center text-on-background">{error.message}</h2>
                     : !loading ? 0 >= rankingsResult.results.length ? <h2 className="text-3xl font-bold text-center text-on-background">{langDict.search_no_results}</h2>
                         : <TransitionGroup component={null}>

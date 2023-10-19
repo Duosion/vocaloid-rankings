@@ -99,6 +99,7 @@
     "filter_views_any": "",
     "filter_inclusion_mode_and": "",
     "filter_inclusion_mode_or": "",
+    "filter_clear_all": "",
     "quick_filter": "プリセットフィルタ",
     "quick_filter_past_day": "過去1日間",
     "quick_filter_youtube": "YouTubeのみ",

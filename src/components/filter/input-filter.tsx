@@ -6,18 +6,19 @@ import { MinimalIconButton } from "../material/minimal-icon-button"
 
 export function InputFilterElement(
     {
-        name,
         value,
         placeholder,
         defaultValue,
+        name,
         icon,
         elevation = Elevation.LOW,
         onValueChanged
     }: {
-        name: string
+        
         value: string
         placeholder: string
         defaultValue: string
+        name?: string
         icon?: string
         elevation?: Elevation
         onValueChanged?: (newValue: string) => void
@@ -30,7 +31,7 @@ export function InputFilterElement(
     }
 
     return (
-        <FilterElement key={name} name={name}>
+        <FilterElement key={name} name={name || ''} minimal={name == undefined}>
             <search className='px-4 rounded-xl text-on-surface flex gap-3 text-base font-normal py-2'
                 style={{backgroundColor: `var(--md-sys-color-${elevationToClass[elevation]})`}}
             >

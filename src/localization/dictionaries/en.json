@@ -99,6 +99,7 @@
     "filter_views_any": "None",
     "filter_inclusion_mode_and": "AND",
     "filter_inclusion_mode_or": "OR",
+    "filter_clear_all": "Clear All",
     "quick_filter": "Quick Filters",
     "quick_filter_past_day": "Past Day",
     "quick_filter_youtube": "Youtube Only",
