@@ -196,7 +196,7 @@ export function SongRankingsActiveFilterBar(
                     <NumberSelectFilterElement
                         name={langDict[filters.publishDay.name]}
                         placeholder={langDict[filters.publishDay.placeholder]}
-                        value={Number(filterValues.publishYear)}
+                        value={Number(filterValues.publishDay)}
                         defaultValue={0}
                         start={1}
                         end={32}
