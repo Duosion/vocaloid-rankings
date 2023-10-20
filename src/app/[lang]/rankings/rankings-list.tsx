@@ -18,6 +18,7 @@ import { useQuery, gql, ApolloQueryResult } from "@apollo/client"
 import { RankingsGridItem } from "@/components/rankings/rankings-grid-item"
 import { Divider } from "@/components/material/divider"
 import { SongArtistsLabel } from "@/components/formatters/song-artists-label"
+import { DummyRankingsGridItem } from "@/components/rankings/dummy-rankings-grid-item"
 
 function encodeBoolean(
     bool: boolean
@@ -381,7 +382,7 @@ export function RankingsList(
     const dummyElements: JSX.Element[] = []
     if (loading) {
         for (let i = 0; i < 50; i++) {
-            dummyElements.push(<DummyRankingsListItem keyValue={i} />)
+            dummyElements.push(rankingsViewMode == RankingsViewMode.LIST ? <DummyRankingsListItem keyValue={i} /> : <DummyRankingsGridItem keyValue={i}/>)
         }
     }
 
@@ -406,7 +407,7 @@ export function RankingsList(
                             const names = buildEntityNames(song.names)
 
                             const color = resolvedTheme == 'dark' ? song.darkColor : song.lightColor
-                            
+
                             return rankingsViewMode == RankingsViewMode.LIST ? (
                                 <RankingListItem
                                     key={song.id.toString()}

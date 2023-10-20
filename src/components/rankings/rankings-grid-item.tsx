@@ -63,7 +63,7 @@ export function RankingsGridItem(
             timeout={150}
         >
             {state => (
-                <article ref={nodeRef} key={key} className={`py-2 rounded-2xl w-full flex flex-col gap-3 relative box-border items-center transition-all ${className}`} style={{
+                <article ref={nodeRef} key={key} className={`w-full flex flex-col gap-3 relative box-border items-center transition-all ${className}`} style={{
                     color: color,
                     ...transitionStyles[state]
                 }}>
@@ -80,9 +80,9 @@ export function RankingsGridItem(
                         />
                     </Link>
                     <Link href={href} className="max-w-full"><h3 className="overflow-clip text-ellipsis text-on-surface transition-colors hover:text-inherit text-center font-semibold text-2xl">{titleContent}</h3></Link>
-                    <section className="flex text-on-surface gap-1 items-center justify-center text-xl">
-                        <h3 className="w-fit font-semibold">{trailingTitleContent}</h3>
-                        <span className="w-fit">{trailingSupporting}</span>
+                    <section className="text-on-surface items-center justify-center text-xl inline text-center">
+                        <h3 className="w-fit font-semibold inline">{trailingTitleContent}</h3>
+                        <span className="w-fit inline">{trailingSupporting}</span>
                     </section>
                 </article>
             )}
