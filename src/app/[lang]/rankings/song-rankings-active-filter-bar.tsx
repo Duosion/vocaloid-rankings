@@ -18,6 +18,7 @@ import { ArtistSearchFilter } from "@/components/filter/artist-search-filter"
 import { Divider } from "@/components/material/divider"
 import { BinaryToggleFilterElement } from "@/components/filter/binary-toggle-filter"
 import { VerticalDivider } from "@/components/material/vertical-divider"
+import { FloatingActionButton } from "@/components/material/floating-action-button"
 
 export function SongRankingsActiveFilterBar(
     {
@@ -413,6 +414,9 @@ export function SongRankingsActiveFilterBar(
 
                 <li key='filter-button' className="sm:block hidden"><FilledButton icon='filter_alt' text={langDict.rankings_filter} onClick={_ => setFilterModalOpen(true)} /></li>
             </ul>
+
+            {/* floating action button */}
+            <FloatingActionButton icon='filter_alt' className="sm:hidden fixed" onClick={_ => setFilterModalOpen(true)} />
         </>
 
     )
