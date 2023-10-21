@@ -75,7 +75,7 @@ export default async function SongPage(
             if (artist) {
                 const artistNames = artist.names
                 elements.push(<ArtistCard
-                    src={artist.thumbnails[ArtistThumbnailType.MEDIUM]}
+                    src={artist.thumbnails[ArtistThumbnailType.SMALL]}
                     alt={getEntityName(artistNames, settingTitleLanguage)}
                     bgColor={artist.averageColor}
                     href={`/${lang}/artist/${artist.id}`}

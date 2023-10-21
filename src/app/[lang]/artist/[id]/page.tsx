@@ -1,19 +1,18 @@
-import { getArtist, getArtistHistoricalViews, getSong, getSongHistoricalViews } from "@/data/songsData"
+import { DateFormatter } from "@/components/formatters/date-formatter"
+import { EntityName } from "@/components/formatters/entity-name"
+import { NumberFormatter } from "@/components/formatters/number-formatter"
+import Image from '@/components/image'
+import { getArtist, getArtistHistoricalViews } from "@/data/songsData"
+import { ArtistThumbnailType, NameType, SourceType } from "@/data/types"
+import { getCustomThemeStylesheet } from "@/lib/material"
+import { SourceTypesDisplayData } from "@/lib/sourceType"
 import { Locale, getDictionary, getEntityName } from "@/localization"
+import { ArtistTypeLocaleTokens, NameTypeLocaleTokens, SourceTypeLocaleTokens } from "@/localization/DictionaryTokenMaps"
+import { Hct, SchemeVibrant, argbFromHex } from "@material/material-color-utilities"
+import { cookies } from "next/dist/client/components/headers"
+import Link from "next/link"
 import { notFound } from "next/navigation"
 import { Settings } from "../../settings"
-import { cookies } from "next/dist/client/components/headers"
-import { SchemeVibrant, Hct, argbFromRgb, argbFromHex, rgbaFromArgb } from "@material/material-color-utilities"
-import Image from '@/components/image'
-import { ArtistTypeLocaleTokens, NameTypeLocaleTokens, SongTypeLocaleTokens, SourceTypeLocaleTokens } from "@/localization/DictionaryTokenMaps"
-import Link from "next/link"
-import { ArtistCategory, ArtistThumbnailType, Id, NameType, SourceType } from "@/data/types"
-import { EntityName } from "@/components/formatters/entity-name"
-import { DateFormatter } from "@/components/formatters/date-formatter"
-import { NumberFormatter } from "@/components/formatters/number-formatter"
-import { getCustomThemeStylesheet, getMostVibrantColor } from "@/lib/material"
-import { SourceTypesDisplayData } from "@/lib/sourceType"
-import { Palette, getPaletteFromURL } from "color-thief-node"
 
 // interfaces
 interface ViewsBreakdown {
@@ -147,7 +146,7 @@ export default async function SongPage(
 
                 <Image
                     priority
-                    src={artist.thumbnails[ArtistThumbnailType.MEDIUM] || artist.thumbnails[ArtistThumbnailType.ORIGINAL]}
+                    src={artist.thumbnails[ArtistThumbnailType.ORIGINAL]}
                     alt={getEntityName(artistNames, settingTitleLanguage)}
                     className="z-10 object-contain h-full p-3 rounded-3xl text-3xl flex items-center justify-center font-extrabold text-on-primary-container drop"
                     style={{
