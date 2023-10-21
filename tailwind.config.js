@@ -13,6 +13,9 @@ module.exports = {
       gridTemplateColumns: {
         'sidebar': '220px auto'
       },
+      dropShadow: {
+        'image': '8px 8px 0px var(--md-sys-color-primary)'
+      },
       colors: {
         'primary': 'var(--md-sys-color-primary)',
         'on-primary': 'var(--md-sys-color-on-primary)',

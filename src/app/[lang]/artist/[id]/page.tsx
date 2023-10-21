@@ -146,12 +146,9 @@ export default async function SongPage(
 
                 <Image
                     priority
-                    src={artist.thumbnails[ArtistThumbnailType.ORIGINAL]}
+                    src={artist.thumbnails[ArtistThumbnailType.MEDIUM] || artist.thumbnails[ArtistThumbnailType.ORIGINAL]}
                     alt={getEntityName(artistNames, settingTitleLanguage)}
-                    className="z-10 object-contain h-full p-3 rounded-3xl text-3xl flex items-center justify-center font-extrabold text-on-primary-container drop"
-                    style={{
-                        filter: 'drop-shadow(8px 8px var(--md-sys-color-primary));'
-                    }}
+                    className="z-10 object-contain h-full p-3 rounded-3xl text-3xl flex items-center justify-center font-extrabold text-on-primary-container filter drop-shadow-image"
                 />
             </figure>
 
