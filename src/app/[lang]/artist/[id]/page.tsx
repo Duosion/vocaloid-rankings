@@ -137,12 +137,22 @@ export default async function SongPage(
             `}</style>
 
             <figure className="w-full md:h-96 md:aspect-auto h-auto aspect-video overflow-hidden relative rounded-3xl flex justify-center items-center border border-outline-variant">
-                <div className="w-full h-full z-0 bg-primary-container absolute top-0 left-0" />
+                <div
+                    className="w-full h-full z-0 absolute top-0 left-0 flex items-center justify-center"
+                    style={{
+                        background: 'radial-gradient(var(--md-sys-color-primary) 1px, var(--md-sys-color-primary-container) 1px)',
+                        backgroundSize: '20px 20px'
+                    }}
+                />
+
                 <Image
                     priority
                     src={artist.thumbnails[ArtistThumbnailType.MEDIUM] || artist.thumbnails[ArtistThumbnailType.ORIGINAL]}
                     alt={getEntityName(artistNames, settingTitleLanguage)}
-                    className="z-10 object-contain h-full p-3 rounded-3xl"
+                    className="z-10 object-contain h-full p-3 rounded-3xl text-3xl flex items-center justify-center font-extrabold text-on-primary-container drop"
+                    style={{
+                        filter: 'drop-shadow(8px 8px var(--md-sys-color-primary));'
+                    }}
                 />
             </figure>
 
