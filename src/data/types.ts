@@ -190,15 +190,26 @@ export class ArtistRankingsFilterParams {
     timePeriodOffset?: number
     changeOffset?: number
     daysOffset?: number
-    sourceType?: SourceType
-    songType?: SongType
-    artistType?: ArtistType
+    includeSourceTypes?: SourceType[]
+    excludeSourceTypes?: SourceType[]
+    includeSongTypes?: SongType[]
+    excludeSongTypes?: SongType[]
+    includeArtistTypes?: ArtistType[]
+    excludeArtistTypes?: ArtistType[]
+    includeArtistTypesMode: FilterInclusionMode = FilterInclusionMode.AND
+    excludeArtistTypesMode: FilterInclusionMode = FilterInclusionMode.OR
     artistCategory?: ArtistCategory
     publishDate?: string
     orderBy: FilterOrder = FilterOrder.VIEWS
     direction: FilterDirection = FilterDirection.DESCENDING
-    artists?: Id[]
-    songs?: Id[]
+    includeArtists?: Id[]
+    excludeArtists?: Id[]
+    includeArtistsMode: FilterInclusionMode = FilterInclusionMode.AND
+    excludeArtistsMode: FilterInclusionMode = FilterInclusionMode.OR
+    includeSongs?: Id[]
+    excludeSongs?: Id[]
+    includeSongsMode: FilterInclusionMode = FilterInclusionMode.AND
+    excludeSongsMode: FilterInclusionMode = FilterInclusionMode.OR
     singleVideo: boolean = false
     combineSimilarArtists: boolean = false
     maxEntries: number = 50

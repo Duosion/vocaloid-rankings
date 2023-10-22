@@ -2,8 +2,8 @@ import { DateFormatter } from "@/components/formatters/date-formatter"
 import { EntityName } from "@/components/formatters/entity-name"
 import { NumberFormatter } from "@/components/formatters/number-formatter"
 import Image from '@/components/image'
-import { getArtist, getArtistHistoricalViews } from "@/data/songsData"
-import { ArtistThumbnailType, NameType, SourceType } from "@/data/types"
+import { getArtist, getArtistHistoricalViews, mapArtistTypeToCategory } from "@/data/songsData"
+import { ArtistCategory, ArtistThumbnailType, NameType, SourceType } from "@/data/types"
 import { getCustomThemeStylesheet } from "@/lib/material"
 import { SourceTypesDisplayData } from "@/lib/sourceType"
 import { Locale, getDictionary, getEntityName } from "@/localization"
@@ -13,6 +13,11 @@ import { cookies } from "next/dist/client/components/headers"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { Settings } from "../../settings"
+import { TopSongs } from "./top-songs"
+import { BaseIconButton } from "@/components/material/base-icon-button"
+import { IconButton } from "@/components/material/icon-button"
+import { FilledIconButton } from "@/components/material/filled-icon-button"
+import { FilledButton } from "@/components/material/filled-button"
 
 // interfaces
 interface ViewsBreakdown {
@@ -44,6 +49,9 @@ export default async function SongPage(
     const artistTotalViews = Number(artist.views?.total) || 0
     const settingTitleLanguage = settings.titleLanguage
     const artistNames = artist.names
+
+    const artistType = artist.type
+    const artistCategory = mapArtistTypeToCategory(artistType)
 
     // import language dictionary
     const lang = params.lang
@@ -148,7 +156,7 @@ export default async function SongPage(
                     priority
                     src={artist.thumbnails[ArtistThumbnailType.MEDIUM] || artist.thumbnails[ArtistThumbnailType.ORIGINAL]}
                     alt={getEntityName(artistNames, settingTitleLanguage)}
-                    className="z-10 object-contain h-full p-3 rounded-3xl text-3xl flex items-center justify-center font-extrabold text-on-primary-container filter drop-shadow-image"
+                    className={`z-10 object-contain h-full p-3 rounded-3xl text-3xl flex items-center justify-center font-extrabold text-on-primary-container filter${artistCategory == ArtistCategory.VOCALIST ? ' drop-shadow-image' : ''}`}
                 />
             </figure>
 
@@ -166,7 +174,7 @@ export default async function SongPage(
                         <StatRow title={langDict.filter_order_by_addition}>
                             <DateFormatter date={new Date(artist.additionDate)} />
                         </StatRow>
-                        <StatRow title={langDict.filter_artist_type} text={langDict[ArtistTypeLocaleTokens[artist.type]]} />
+                        <StatRow title={langDict.filter_artist_type} text={langDict[ArtistTypeLocaleTokens[artistType]]} />
                         {nameElements}
                     </ul>
                     <ul className="flex-col gap-5 md:flex hidden">
@@ -174,6 +182,19 @@ export default async function SongPage(
                     </ul>
                 </aside>
                 <div className="flex gap-5 flex-col">
+                    {/* Top Songs */}
+                    <Section
+                        title={langDict.artist_top_songs}
+                        titleSupporting={
+                            <>
+                                <FilledButton className="sm:flex hidden" text={langDict.artist_view_all} icon={'open_in_full'} href={`../rankings?includeArtists=${artistId}`} />
+                                <FilledIconButton className="sm:hidden flex" icon={'open_in_full'} href={`../rankings?includeArtists=${artistId}`}/>
+                            </>
+                        }
+                    >
+                        <TopSongs artistId={artistId} langDict={langDict} />
+                    </Section>
+
                     {/* Breakdown */}
                     <div className="grid gap-5 lg:grid-cols-2 grid-cols-1">
                         <Section title={langDict.song_views_breakdown}>
@@ -224,15 +245,20 @@ export default async function SongPage(
 function Section(
     {
         children,
-        title
+        title,
+        titleSupporting
     }: {
         children: React.ReactNode,
         title: string,
-        className?: string
+        className?: string,
+        titleSupporting?: React.ReactNode
     }
 ) {
     return <section>
-        <h3 className='text-xl font-bold mb-2'>{title}</h3>
+        <section className="flex gap-5 items-center mb-2">
+            <h3 className='text-xl font-bold'>{title}</h3>
+            <div className="flex gap-5 flex-1 justify-end">{titleSupporting}</div>
+        </section>
         {children}
     </section>
 }

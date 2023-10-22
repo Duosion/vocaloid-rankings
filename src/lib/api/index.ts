@@ -1,6 +1,6 @@
 import { NameType, Names, PlacementChange, SongType, SourceType } from "@/data/types";
 import { ApiNames } from "./types";
-import { ApolloClient, InMemoryCache } from "@apollo/client";
+import { ApolloClient, InMemoryCache, gql } from "@apollo/client";
 
 const apiEndpoint = '/api/v1'
 
@@ -9,6 +9,103 @@ export const graphClient = new ApolloClient({
     uri: apiEndpoint,
     cache: new InMemoryCache()
 })
+
+// queries
+export const GET_SONG_RANKINGS = gql`
+query SongRankings(
+    $timestamp: String
+    $timePeriodOffset: Int
+    $changeOffset: Int
+    $daysOffset: Int
+    $includeSourceTypes: [SourceType]
+    $excludeSourceTypes: [SourceType]
+    $includeSongTypes: [SongType]
+    $excludeSongTypes: [SongType]
+    $includeArtistTypes: [ArtistType]
+    $excludeArtistTypes: [ArtistType]
+    $includeArtistTypesMode: FilterInclusionMode
+    $excludeArtistTypesMode: FilterInclusionMode
+    $publishDate: String
+    $orderBy: FilterOrder
+    $direction: FilterDirection
+    $includeArtists: [Int]
+    $includeArtistsMode: FilterInclusionMode
+    $excludeArtists: [Int]
+    $excludeArtistsMode: FilterInclusionMode
+    $includeSimilarArtists: Boolean
+    $songs: [Int]
+    $singleVideo: Boolean
+    $maxEntries: Int
+    $startAt: Int
+    $minViews: Long
+    $maxViews: Long
+    $search: String
+) {
+    songRankings(
+        timestamp: $timestamp
+        timePeriodOffset: $timePeriodOffset
+        changeOffset: $changeOffset
+        daysOffset: $daysOffset
+        includeSourceTypes: $includeSourceTypes
+        excludeSourceTypes: $excludeSourceTypes
+        includeSongTypes: $includeSongTypes
+        excludeSongTypes: $excludeSongTypes
+        includeArtistTypes: $includeArtistTypes
+        excludeArtistTypes: $excludeArtistTypes
+        includeArtistTypesMode: $includeArtistTypesMode
+        excludeArtistTypesMode: $excludeArtistTypesMode
+        publishDate: $publishDate
+        orderBy: $orderBy
+        direction: $direction
+        includeArtists: $includeArtists
+        includeArtistsMode: $includeArtistsMode
+        excludeArtists: $excludeArtists
+        excludeArtistsMode: $excludeArtistsMode
+        includeSimilarArtists: $includeSimilarArtists
+        songs: $songs
+        singleVideo: $singleVideo
+        maxEntries: $maxEntries
+        startAt: $startAt
+        minViews: $minViews
+        maxViews: $maxViews
+        search: $search
+    ) {
+        totalCount
+        timestamp
+        results {
+            placement
+            views
+            song {
+                id
+                thumbnail
+                darkColor
+                lightColor
+                artistsCategories {
+                    vocalists
+                    producers
+                }
+                artists {
+                    id
+                    names {
+                        original
+                        japanese
+                        romaji
+                        english
+                    }
+                    darkColor
+                    lightColor
+                }
+                names {
+                    original
+                    japanese
+                    romaji
+                    english
+                }
+            }
+        }
+    }
+}
+`
 
 // enum mappers
 export function mapPlacementChange(

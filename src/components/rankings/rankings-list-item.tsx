@@ -65,14 +65,14 @@ export function RankingListItem(
                 <li
                     ref={nodeRef}
                     key={key}
-                    className={`py-2 rounded-2xl w-full flex gap-3 bg-surface-container-low box-border items-center transition-all ${className}`}
+                    className={`py-2 rounded-2xl w-full flex gap-3 bg-surface-container box-border items-center transition-all ${className}`}
                     style={{
                         color: color,
                         ...transitionStyles[state]
                     }}
                 >
                     <b className="ml-3 text-on-surface h-10 w-fit min-w-[40px] box-border flex items-center justify-center text-2xl font-extrabold">{placement}</b>
-                    <Link href={href} className="rounded-xl border border-outline-variant box-border"><SongThumbnail src={icon} alt={iconAlt} width={50} height={50} overflowHeight={70} overflowWidth={70} /></Link>
+                    <Link href={href} className="sm:block hidden rounded-xl border border-outline-variant box-border"><SongThumbnail src={icon} alt={iconAlt} width={50} height={50} overflowHeight={70} overflowWidth={70} /></Link>
                     <section className="flex flex-col gap flex-1 text-inherit">
                         <h3 className="text-on-surface overflow-clip text-ellipsis hover:text-inherit"><Link href={href} className="font-semibold transition-colors text-inherit text-xl">{titleContent}</Link></h3>
                         {supportingContent}

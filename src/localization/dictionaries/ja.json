@@ -138,6 +138,8 @@
     "artist_refresh": "アーティストを更新する",
     "artist_delete": "アーティストを削除する",
     "artist_placement_all_time": "歴代:placement位の最も再生数の多い:category",
+    "artist_top_songs": "",
+    "artist_view_all": "",
     "name_type_original": "オリジナル名",
     "name_type_japanese": "日本語名",
     "name_type_english": "英語名",

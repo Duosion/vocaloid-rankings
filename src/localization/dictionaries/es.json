@@ -138,6 +138,8 @@
     "artist_refresh": "Actualizar Artista",
     "artist_delete": "Eliminar Artista",
     "artist_placement_all_time": "#:placement Más Visto :category de Todos los Tiempos",
+    "artist_top_songs": "",
+    "artist_view_all": "",
     "name_type_original": "Nombre Original",
     "name_type_japanese": "Nombre en Japonés",
     "name_type_english": "Nombre en Inglés",

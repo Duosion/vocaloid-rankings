@@ -1604,6 +1604,22 @@ export function getSongHistoricalViews(
     })
 }
 
+export function mapArtistTypeToCategory(
+    type: ArtistType
+): ArtistCategory {
+    switch (type) {
+        case ArtistType.VOCALOID:
+        case ArtistType.CEVIO:
+        case ArtistType.SYNTHESIZER_V:
+        case ArtistType.OTHER_VOCALIST:
+        case ArtistType.OTHER_VOICE_SYNTHESIZER:
+        case ArtistType.UTAU:
+            return ArtistCategory.VOCALIST
+        default:
+            return ArtistCategory.PRODUCER
+    }
+}
+
 // update all songs' colors
 const convertDatabase = async (
     maximumConcurrent: number = 20

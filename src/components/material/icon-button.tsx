@@ -15,6 +15,6 @@ export function IconButton(
     }
 ) {
     return (
-        <BaseIconButton icon={icon} className="hover:bg-surface-container-low transition-colors" href={href} onClick={onClick} style={style}/>
+        <BaseIconButton icon={icon} className="hover:bg-surface-container transition-colors" href={href} onClick={onClick} style={style}/>
     )
 }
