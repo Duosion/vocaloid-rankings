@@ -33,7 +33,8 @@ query SongRankings(
     $excludeArtists: [Int]
     $excludeArtistsMode: FilterInclusionMode
     $includeSimilarArtists: Boolean
-    $songs: [Int]
+    $includeSongs: [Int]
+    $excludeSongs: [Int]
     $singleVideo: Boolean
     $maxEntries: Int
     $startAt: Int
@@ -62,7 +63,8 @@ query SongRankings(
         excludeArtists: $excludeArtists
         excludeArtistsMode: $excludeArtistsMode
         includeSimilarArtists: $includeSimilarArtists
-        songs: $songs
+        includeSongs: $includeSongs
+        excludeSongs: $excludeSongs
         singleVideo: $singleVideo
         maxEntries: $maxEntries
         startAt: $startAt

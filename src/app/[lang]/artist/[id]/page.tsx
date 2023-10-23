@@ -18,6 +18,7 @@ import { BaseIconButton } from "@/components/material/base-icon-button"
 import { IconButton } from "@/components/material/icon-button"
 import { FilledIconButton } from "@/components/material/filled-icon-button"
 import { FilledButton } from "@/components/material/filled-button"
+import { Divider } from "@/components/material/divider"
 
 // interfaces
 interface ViewsBreakdown {
