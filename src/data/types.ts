@@ -198,16 +198,12 @@ export class ArtistRankingsFilterParams {
     excludeSongTypes?: SongType[]
     includeArtistTypes?: ArtistType[]
     excludeArtistTypes?: ArtistType[]
-    includeArtistTypesMode: FilterInclusionMode = FilterInclusionMode.AND
-    excludeArtistTypesMode: FilterInclusionMode = FilterInclusionMode.OR
     artistCategory?: ArtistCategory
     publishDate?: string
     orderBy: FilterOrder = FilterOrder.VIEWS
     direction: FilterDirection = FilterDirection.DESCENDING
     includeArtists?: Id[]
     excludeArtists?: Id[]
-    includeArtistsMode: FilterInclusionMode = FilterInclusionMode.AND
-    excludeArtistsMode: FilterInclusionMode = FilterInclusionMode.OR
     includeSongs?: Id[]
     excludeSongs?: Id[]
     includeSongsMode: FilterInclusionMode = FilterInclusionMode.AND
@@ -231,16 +227,12 @@ export class ArtistRankingsFilterParams {
         excludeSongTypes?: SongType[],
         includeArtistTypes?: ArtistType[],
         excludeArtistTypes?: ArtistType[],
-        includeArtistTypesMode?: FilterInclusionMode,
-        excludeArtistTypesMode?: FilterInclusionMode,
         artistCategory?: ArtistCategory,
         publishDate?: string,
         orderBy?: FilterOrder,
         direction?: FilterDirection,
         includeArtists?: Id[],
         excludeArtists?: Id[],
-        includeArtistsMode?: FilterInclusionMode,
-        excludeArtistsMode?: FilterInclusionMode,
         includeSongs?: Id[],
         excludeSongs?: Id[],
         includeSongsMode?: FilterInclusionMode,
@@ -263,16 +255,12 @@ export class ArtistRankingsFilterParams {
         this.excludeSongTypes = excludeSongTypes
         this.includeArtistTypes = includeArtistTypes
         this.excludeArtistTypes = excludeArtistTypes
-        this.includeArtistTypesMode = includeArtistTypesMode == undefined ? this.includeArtistTypesMode : includeArtistTypesMode
-        this.excludeArtistTypesMode = excludeArtistTypesMode == undefined ? this.excludeArtistTypesMode : excludeArtistTypesMode
         this.artistCategory = artistCategory
         this.publishDate = publishDate
         this.orderBy = orderBy || this.orderBy
         this.direction = direction || this.direction
         this.includeArtists = includeArtists
         this.excludeArtists = excludeArtists
-        this.includeArtistsMode = includeArtistsMode == undefined ? this.includeArtistsMode : includeArtistsMode
-        this.excludeArtistsMode = excludeArtistsMode == undefined ? this.excludeArtistsMode : excludeArtistsMode
         this.includeSongs = includeSongs == undefined ? this.includeSongs : includeSongs
         this.excludeSongs = excludeSongs == undefined ? this.excludeSongs : excludeSongs
         this.includeSongsMode = includeSongsMode == undefined ? this.includeSongsMode : includeSongsMode

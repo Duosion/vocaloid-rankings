@@ -1,5 +1,5 @@
-import { filterSongRankings, getArtist, getArtistPlacement, getArtistViews, getSong, getSongPlacement, getSongViews, searchArtists } from '@/data/songsData'
-import { Artist, ArtistCategory, ArtistThumbnailType, ArtistThumbnails, FilterDirection, FilterInclusionMode, FilterOrder, NameType, Names, Song, SongArtistsCategories, SongRankingsFilterParams, SongVideoIds, SourceType, ViewsBreakdown } from '@/data/types'
+import { filterArtistRankings, filterSongRankings, getArtist, getArtistPlacement, getArtistViews, getSong, getSongPlacement, getSongViews, searchArtists } from '@/data/songsData'
+import { Artist, ArtistCategory, ArtistRankingsFilterParams, ArtistThumbnailType, ArtistThumbnails, FilterDirection, FilterInclusionMode, FilterOrder, NameType, Names, Song, SongArtistsCategories, SongRankingsFilterParams, SongVideoIds, SourceType, ViewsBreakdown } from '@/data/types'
 import {
     GraphQLEnumType,
     GraphQLInterfaceType,
@@ -146,6 +146,20 @@ import {
  *   results: [SongRankingsFilterResultItem]
  * }
  * 
+ * type ArtistRankingsFilterResultItem {
+ *   placement: Int!
+ *   change: PlacementChange
+ *   previousPlacement: Int
+ *   views: Long!
+ *   artist: Artist
+ * }
+ * 
+ * type ArtistRankingsFilterResult {
+ *   totalCount: int
+ *   timestamp: String
+ *   results: [ArtistRankingsFilterResultItem]
+ * }
+ * 
  * type Query {
  *   song(id: Int!): Song
  *   songs(ids: [Int]!): [Song] 
@@ -183,6 +197,34 @@ import {
  *     maxViews: Long
  *     search: String
  *   ): SongRankingsFilterResult
+ * 
+ *   artistRankings(
+ *     timestamp: String
+ *     timePeriodOffset: number
+ *     changeOffset: number
+ *     daysOffset: number
+ *     includeSourceTypes: [SourceType]
+ *     excludeSourceTypes: [SourceType]
+ *     includeSongTypes: [SongType]
+ *     excludeSongTypes: [SongType]
+ *     includeArtistTypes: [ArtistType]
+ *     excludeArtistTypes: [ArtistType]
+ *     artistCategory: ArtistCategory
+ *     publishDate: String
+ *     orderBy: FilterOrder
+ *     direction: FilterDirection
+ *     includeArtists: [Int]
+ *     excludeArtists: [Int]
+ *     combineSimilarArtists: boolean
+ *     includeSongs: [Int]
+ *     excludeSongs: [Int]
+ *     singleVideo: Boolean
+ *     maxEntries: Int
+ *     startAt: 0
+ *     minViews: Long
+ *     maxViews: Long
+ *     search: String
+ *   ): ArtistRankingsFilterResult
  *   
  *   searchArtists(
  *     query: String!
@@ -945,36 +987,141 @@ const songRankingsFilterResultType = new GraphQLObjectType({
 })
 
 /**
- * type Query {
- *   song(id: Int!): Song
- * 
- *   artist(id: Int!): Artist
- * 
- *   songRankings(
- *     timestamp: String
- *     timePeriodOffset: number
- *     changeOffset: number
- *     daysOffset: number
- *     includeSourceTypes: [SourceType]
- *     excludeSourceTypes: [SourceType]
- *     includeSongTypes: [SongType]
- *     excludeSongTypes: [SongType]
- *     includeArtistTypes: [ArtistType]
- *     excludeArtistTypes: [ArtistType]
- *     publishDate: String
- *     orderBy: FilterOrder
- *     direction: FilterDirection
- *     artists: [Int]
- *     songs: [Int]
- *     singleVideo: Boolean
- *     maxEntries: Int
- *     startAt: 0
- *     minViews: Long
- *     maxViews: Long
- *     search: String
- *   ): SongRankingsFilterResult
+ * type ArtistRankingsFilterResultItem {
+ *   placement: Int!
+ *   change: PlacementChange
+ *   previousPlacement: Int
+ *   views: Long!
+ *   artist: Artist
  * }
  */
+const artistRankingsFilterResultItemType = new GraphQLObjectType({
+    name: 'ArtistRankingsFilterResultItem',
+    fields: {
+        placement: {
+            type: new GraphQLNonNull(GraphQLInt),
+            description: 'The placement of the filter result.'
+        },
+        change: {
+            type: placementChangeEnum,
+            description: `How a filter result's placement changed relative to its previous placement.`
+        },
+        previousPlacement: {
+            type: GraphQLInt,
+            description: 'The placement of the filter result in the previous period.'
+        },
+        views: {
+            type: longScalarType,
+            description: 'The amount of views that the filter result has.'
+        },
+        artist: {
+            type: artistType,
+            description: 'The artist that is related to this filter result.'
+        }
+    }
+})
+
+/**
+ * type ArtistRankingsFilterResult {
+ *   totalCount: int
+ *   timestamp: String
+ *   results: [ArtistRankingsFilterResultItem]
+ * }
+ */
+const artistRankingsFilterResultType = new GraphQLObjectType({
+    name: 'ArtistRankingsFilterResult',
+    description: 'Represents a artist rankings filter result.',
+    fields: {
+        totalCount: {
+            type: GraphQLInt,
+            description: 'The total amount of possible results that can be returned by the query used to get this filter result. Not effected by maxEntires.'
+        },
+        timestamp: {
+            type: GraphQLString,
+            description: 'The timestamp of the filter result.'
+        },
+        results: {
+            type: new GraphQLList(artistRankingsFilterResultItemType),
+            description: 'The results of this filter result.'
+        }
+    }
+})
+
+/**
+* type Query {
+*   song(id: Int!): Song
+*   songs(ids: [Int]!): [Song] 
+* 
+*   artist(id: Int!): Artist
+*   artists(ids: [Int]!): [Artist]
+* 
+*   songRankings(
+*     timestamp: String
+*     timePeriodOffset: number
+*     changeOffset: number
+*     daysOffset: number
+*     includeSourceTypes: [SourceType]
+*     excludeSourceTypes: [SourceType]
+*     includeSongTypes: [SongType]
+*     excludeSongTypes: [SongType]
+*     includeArtistTypes: [ArtistType]
+*     excludeArtistTypes: [ArtistType]
+*     includeArtistsTypesMode: FilterInclusionMode
+*     excludeArtistsTypesMode: FilterInclusionMode
+*     publishDate: String
+*     orderBy: FilterOrder
+*     direction: FilterDirection
+*     includeArtists: [Int]
+*     excludeArtists: [Int]
+*     includeArtistsMode: FilterInclusionMode
+*     excludeArtistsMode: FilterInclusionMode
+*     includeSimilarArtists: Boolean
+*     includeSongs: [Int]
+*     excludeSongs: [Int]
+*     singleVideo: Boolean
+*     maxEntries: Int
+*     startAt: 0
+*     minViews: Long
+*     maxViews: Long
+*     search: String
+*   ): SongRankingsFilterResult
+* 
+*   artistRankings(
+*     timestamp: String
+*     timePeriodOffset: number
+*     changeOffset: number
+*     daysOffset: number
+*     includeSourceTypes: [SourceType]
+*     excludeSourceTypes: [SourceType]
+*     includeSongTypes: [SongType]
+*     excludeSongTypes: [SongType]
+*     includeArtistTypes: [ArtistType]
+*     excludeArtistTypes: [ArtistType]
+*     artistCategory: ArtistCategory
+*     publishDate: String
+*     orderBy: FilterOrder
+*     direction: FilterDirection
+*     includeArtists: [Int]
+*     excludeArtists: [Int]
+*     combineSimilarArtists: boolean
+*     includeSongs: [Int]
+*     excludeSongs: [Int]
+*     singleVideo: Boolean
+*     maxEntries: Int
+*     startAt: 0
+*     minViews: Long
+*     maxViews: Long
+*     search: String
+*   ): ArtistRankingsFilterResult
+*   
+*   searchArtists(
+*     query: String!
+*     excludeArtists: [Int]
+*     maxEntries: Int
+*     startAt: Int
+*   ): [Artist]
+* }
+*/
 const queryType = new GraphQLObjectType({
     name: 'Query',
     fields: {
@@ -1187,6 +1334,196 @@ const queryType = new GraphQLObjectType({
                 filterParams.maxViews = maxViews
                 filterParams.search = search != undefined ? `%${search.trim()}%` : undefined
                 return filterSongRankings(filterParams)
+            }
+        },
+        artistRankings: {
+            type: artistRankingsFilterResultType,
+            args: {
+                timestamp: {
+                    type: GraphQLString,
+                    description: 'The timestamp to filter from. If not provided, defaults to the most recent timestamp.'
+                },
+                timePeriodOffset: {
+                    type: GraphQLInt,
+                    description: `Value is in days. If provided, song view counts will consist of the views they earned between [timestamp]-timePeriodOffset and [timestamp].`
+                },
+                changeOffset: {
+                    type: GraphQLInt,
+                    description: `Value is in days. If provided, enables the 'change' and 'previousPlacement' values of a result item. Controls the "previous" period.`
+                },
+                daysOffset: {
+                    type: GraphQLInt,
+                    description: `Value is in days. If provided, offsets [timestamp], [timePeriodOffset], and [changeOffset] by the provided amount of days.`
+                },
+                includeSourceTypes: {
+                    type: new GraphQLList(sourceTypeEnum),
+                    description: 'A list of SourceTypes to include.'
+                },
+                excludeSourceTypes: {
+                    type: new GraphQLList(sourceTypeEnum),
+                    description: 'A list of SourceTypes to exclude.'
+                },
+                includeSongTypes: {
+                    type: new GraphQLList(songTypeEnum),
+                    description: 'A list of SourceTypes to include.'
+                },
+                excludeSongTypes: {
+                    type: new GraphQLList(songTypeEnum),
+                    description: 'A list of SongTypes to exclude.'
+                },
+                includeArtistTypes: {
+                    type: new GraphQLList(artistTypeEnum),
+                    description: 'A list of ArtistTypes to include.'
+                },
+                excludeArtistTypes: {
+                    type: new GraphQLList(artistTypeEnum),
+                    description: 'A list of ArtistTypes to exclude.'
+                },
+                artistCategory: {
+                    type: artistCategoryEnum,
+                    description: 'If provided, only counts songs where artists are of the specified category.'
+                },
+                publishDate: {
+                    type: GraphQLString,
+                    description: 'Only include songs with the provided publish date.'
+                },
+                orderBy: {
+                    type: filterOrderEnum,
+                    description: 'What to order the results by.'
+                },
+                direction: {
+                    type: filterDirectionEnum,
+                    description: 'The direction to sort the results in.'
+                },
+                includeArtists: {
+                    type: new GraphQLList(GraphQLInt),
+                    description: `A list of artist IDs. These artists' songs will only be included in the results`
+                },
+                excludeArtists: {
+                    type: new GraphQLList(GraphQLInt),
+                    description: `A list of artist IDs. Songs that include these artists will be excluded from the results.`
+                },
+                combineSimilarArtists: {
+                    type: GraphQLBoolean,
+                    description: `Whether to combine artists that are based on eachother.`
+                },
+                includeSongs: {
+                    type: new GraphQLList(GraphQLInt),
+                    description: `A list of song IDs that will only be included in the result.`
+                },
+                excludeSongs: {
+                    type: new GraphQLList(GraphQLInt),
+                    description: `A list of song IDs that will not be included in the result.`
+                },
+                singleVideo: {
+                    type: GraphQLBoolean,
+                    description: `Controls whether single video mode is on or not. Single video calculates a song's total views using only the most viewed video per source`
+                },
+                maxEntries: {
+                    type: GraphQLInt,
+                    description: 'The maximum number of results to return. The maximum value is 50.'
+                },
+                startAt: {
+                    type: GraphQLInt,
+                    description: 'The placement to start getting results at.'
+                },
+                minViews: {
+                    type: longScalarType,
+                    description: 'The minimum amount of views that songs must have to be included in the results.'
+                },
+                maxViews: {
+                    type: longScalarType,
+                    description: 'The maximum amount of views that songs must have to be included in the results.'
+                },
+                search: {
+                    type: GraphQLString,
+                    description: 'Only includes songs who have names that match the search query.'
+                }
+            },
+            resolve: (
+                _source,
+                {
+                    timestamp,
+                    timePeriodOffset,
+                    changeOffest,
+                    daysOffset,
+                    includeSourceTypes,
+                    excludeSourceType,
+                    includeSongTypes,
+                    excludeSongTypes,
+                    includeArtistTypes,
+                    excludeArtistTypes,
+                    artistCategory,
+                    publishDate,
+                    orderBy,
+                    direction,
+                    includeArtists,
+                    excludeArtists,
+                    combineSimilarArtists,
+                    includeSongs,
+                    excludeSongs,
+                    singleVideo,
+                    maxEntries,
+                    startAt,
+                    minViews,
+                    maxViews,
+                    search
+                }: {
+                    timestamp?: string
+                    timePeriodOffset?: number
+                    changeOffest?: number
+                    daysOffset?: number
+                    includeSourceTypes?: number[]
+                    excludeSourceType?: number[]
+                    includeSongTypes?: number[]
+                    excludeSongTypes?: number[]
+                    includeArtistTypes?: number[]
+                    excludeArtistTypes?: number[]
+                    artistCategory?: number
+                    publishDate?: string
+                    orderBy?: number
+                    direction?: number
+                    includeArtists?: number[]
+                    excludeArtists?: number[]
+                    combineSimilarArtists?: boolean
+                    includeSongs?: number[]
+                    excludeSongs?: number[]
+                    singleVideo?: boolean
+                    maxEntries?: number
+                    startAt?: number
+                    minViews?: number
+                    maxViews?: number
+                    search?: string
+                }
+            ) => {
+                // build params
+                const filterParams = new ArtistRankingsFilterParams()
+                filterParams.timestamp = timestamp
+                filterParams.timePeriodOffset = timePeriodOffset
+                filterParams.changeOffset = changeOffest
+                filterParams.daysOffset = daysOffset
+                filterParams.includeSourceTypes = includeSourceTypes
+                filterParams.excludeSourceTypes = excludeSourceType
+                filterParams.includeSongTypes = includeSongTypes
+                filterParams.excludeSongTypes = excludeSongTypes
+                filterParams.includeArtistTypes = includeArtistTypes
+                filterParams.excludeArtistTypes = excludeArtistTypes
+                filterParams.artistCategory = artistCategory
+                filterParams.publishDate = publishDate
+                filterParams.orderBy = orderBy === undefined ? filterParams.orderBy : orderBy
+                filterParams.direction = direction === undefined ? filterParams.direction : direction
+                filterParams.includeArtists = includeArtists
+                filterParams.excludeArtists = excludeArtists
+                filterParams.combineSimilarArtists = combineSimilarArtists == undefined ? filterParams.combineSimilarArtists : combineSimilarArtists
+                filterParams.includeSongs = includeSongs
+                filterParams.excludeSongs = excludeSongs
+                filterParams.singleVideo = singleVideo == undefined ? filterParams.singleVideo : singleVideo
+                filterParams.maxEntries = Math.min(maxEntries || filterParams.maxEntries, 50)
+                filterParams.startAt = Math.abs(startAt || filterParams.startAt)
+                filterParams.minViews = minViews
+                filterParams.maxViews = maxViews
+                filterParams.search = search != undefined ? `%${search.trim()}%` : undefined
+                return filterArtistRankings(filterParams)
             }
         },
         song: {
