@@ -331,6 +331,8 @@ export interface SqlRankingsFilterStatements {
     excludeSongTypes?: string
     includeArtistTypes?: string
     excludeArtistTypes?: string
+    ancestorIncludeArtistTypes?: string
+    ancestorExcludeArtistTypes?: string
 }
 
 export interface SqlRankingsFilterParams {
