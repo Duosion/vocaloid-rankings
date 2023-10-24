@@ -562,10 +562,10 @@ const buildArtistRankingsFilterStatements = (
         const excludeArtistTypesVariablesJoined = excludeArtistTypesVariables ? excludeArtistTypesVariables.join(', ') : null
 
         statements.includeArtistTypes = includeArtistTypesVariablesJoined ? ` AND artists.artist_type IN (${includeArtistTypesVariablesJoined})` : ''
-        statements.ancestorIncludeArtistTypes = includeArtistTypesVariablesJoined ? ` WHERE a.artist_type IN (${includeArtistTypesVariablesJoined})` : ''
+        statements.ancestorIncludeArtistTypes = includeArtistTypesVariablesJoined ? ` WHERE artists.artist_type IN (${includeArtistTypesVariablesJoined})` : ''
 
         statements.excludeArtistTypes = excludeArtistTypesVariablesJoined ? ` AND artists.artist_type NOT IN (${excludeArtistTypesVariablesJoined})` : ''
-        statements.ancestorExcludeArtistTypes = excludeArtistTypesVariablesJoined ? `${statements.ancestorIncludeArtistTypes ? ' AND' : ' WHERE'} a.artist_type NOT IN (${excludeArtistTypesVariablesJoined})` : ''
+        statements.ancestorExcludeArtistTypes = excludeArtistTypesVariablesJoined ? `${statements.ancestorIncludeArtistTypes ? ' AND' : ' WHERE'} artists.artist_type NOT IN (${excludeArtistTypesVariablesJoined})` : ''
     }
 
 
@@ -763,28 +763,29 @@ function filterArtistRankingsRawSync(
     const filterAncestorExcludeArtistTypesStatement = statements.ancestorExcludeArtistTypes || ''
 
     const newQuery = `
-    WITH RECURSIVE ancestors(id, base_artist_id, artist_type) AS (
-        SELECT sub_artists.id, sub_artists.base_artist_id, sub_artists.artist_type
-        FROM artists AS sub_artists
-        WHERE id = artists.id
-      
+    WITH RECURSIVE artist_hierarchy AS (
+        SELECT id, base_artist_id, id AS root_artist_id
+        FROM artists
+        WHERE base_artist_id IS NULL
+    
         UNION ALL
-
-        SELECT a.id, a.base_artist_id, a.artist_type
-        FROM artists a
-        JOIN ancestors ap ON a.id = ap.base_artist_id${filterAncestorIncludeArtistTypesStatement}${filterAncestorExcludeArtistTypesStatement}
+    
+        SELECT artists.id, artists.base_artist_id, artist_hierarchy.root_artist_id
+        FROM artists
+        JOIN artist_hierarchy ON artists.base_artist_id = artist_hierarchy.id
     ),
     no_period_offset AS (
         SELECT 
             (CASE WHEN :combineSimilarArtists IS NULL THEN artists.id
                 WHEN artists.base_artist_id IS NULL then artists.id
-                ELSE ( SELECT id FROM ancestors )
+                ELSE artist_hierarchy.root_artist_id
             END) AS artist_id,
             SUM(views_breakdowns.views) AS views
         FROM views_breakdowns
         INNER JOIN songs_artists ON songs_artists.song_id = views_breakdowns.song_id
         INNER JOIN songs ON songs.id = songs_artists.song_id
         INNER JOIN artists ON artists.id = songs_artists.artist_id
+        INNER JOIN artist_hierarchy ON songs_artists.artist_id = artist_hierarchy.id
         WHERE (views_breakdowns.timestamp = CASE WHEN :daysOffset IS NULL
             THEN :timestamp
             ELSE DATE(:timestamp, '-' || :daysOffset || ' day')
@@ -809,21 +810,22 @@ function filterArtistRankingsRawSync(
                 GROUP BY sub_vb.song_id)
             END)${filterIncludeSourceTypesStatement}${filterExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterIncludeArtistsStatement}${filterExcludeArtistsStatement}${filterIncludeSongsStatement}${filterExcludeSongsStatement}
         GROUP BY (CASE WHEN :combineSimilarArtists IS NULL THEN artists.id
-            WHEN artists.base_artist_id IS NULL then artists.id
-            ELSE ( SELECT id FROM ancestors )
+                WHEN artists.base_artist_id IS NULL then artists.id
+                ELSE artist_hierarchy.root_artist_id
             END)
     ),
     period_offset AS (
         SELECT 
             (CASE WHEN :combineSimilarArtists IS NULL THEN artists.id
                 WHEN artists.base_artist_id IS NULL then artists.id
-                ELSE ( SELECT id FROM ancestors )
+                ELSE artist_hierarchy.root_artist_id
             END) AS artist_id,
             SUM(views_breakdowns.views) AS views
         FROM views_breakdowns
         INNER JOIN songs_artists ON songs_artists.song_id = views_breakdowns.song_id
         INNER JOIN songs ON songs.id = songs_artists.song_id
         INNER JOIN artists ON artists.id = songs_artists.artist_id
+        INNER JOIN artist_hierarchy ON songs_artists.artist_id = artist_hierarchy.id
         WHERE (views_breakdowns.timestamp = CASE WHEN :daysOffset IS NULL
             THEN DATE(:timestamp, '-' || :timePeriodOffset || ' day')
             ELSE DATE(DATE(:timestamp, '-' || :daysOffset || ' day'), '-' || :timePeriodOffset || ' day')
@@ -848,8 +850,8 @@ function filterArtistRankingsRawSync(
                 GROUP BY sub_vb.song_id)
             END)${filterIncludeSourceTypesStatement}${filterExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterIncludeArtistsStatement}${filterExcludeArtistsStatement}${filterIncludeSongsStatement}${filterExcludeSongsStatement}
         GROUP BY (CASE WHEN :combineSimilarArtists IS NULL THEN artists.id
-            WHEN artists.base_artist_id IS NULL then artists.id
-            ELSE ( SELECT id FROM ancestors )
+                WHEN artists.base_artist_id IS NULL then artists.id
+                ELSE artist_hierarchy.root_artist_id
             END)
     )
     SELECT no_period_offset.artist_id,
