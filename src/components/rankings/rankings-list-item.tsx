@@ -28,6 +28,7 @@ export function RankingListItem(
         titleContent,
         placement,
         icon,
+        iconPosition,
         iconAlt,
         trailingTitleContent,
         supportingContent,
@@ -41,6 +42,7 @@ export function RankingListItem(
         titleContent: React.ReactNode
         placement: number
         icon: string
+        iconPosition?: string,
         iconAlt: string
         trailingTitleContent: React.ReactNode,
         supportingContent?: React.ReactNode

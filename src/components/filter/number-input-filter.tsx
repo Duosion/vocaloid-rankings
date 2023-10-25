@@ -2,6 +2,7 @@ import { Elevation } from "@/material/types"
 import { Icon } from "../material/icon"
 import { FilterElement } from "./filter"
 import { elevationToClass } from "@/material"
+import { MinimalIconButton } from "../material/minimal-icon-button"
 
 export function NumberInputFilterElement(
     {
@@ -29,11 +30,11 @@ export function NumberInputFilterElement(
 
     return (
         <FilterElement key={name} name={name}>
-            <div className="py-2 px-4 rounded-xl bg-surface-container-low text-on-surface flex gap-3 text-base font-normal" onClick={e => e.preventDefault()}
+            <div className="w-full py-2 px-4 rounded-xl bg-surface-container-low text-on-surface flex gap-3 text-base font-normal" onClick={e => e.preventDefault()}
                 style={{backgroundColor: `var(--md-sys-color-${elevationToClass[elevation]})`}}
             >
-                <input type='search' placeholder={placeholder} onChange={event => setValue(event.currentTarget.value)} value={value} className={`cursor-text bg-transparent w-32 outline-none text-left`} />
-                {value != defaultValue && <Icon icon='close'></Icon>}
+                <input type='search' placeholder={placeholder} onChange={event => setValue(event.currentTarget.value)} value={value} className='flex-1 cursor-text bg-transparent w-32 outline-none text-left' />
+                {value != defaultValue && <MinimalIconButton icon='close' onClick={_ => {setValue(defaultValue)}}/>}
             </div>
         </FilterElement>
     )

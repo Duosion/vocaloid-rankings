@@ -109,11 +109,93 @@ query SongRankings(
 }
 `
 
+export const GET_ARTIST_RANKINGS = gql`
+query ArtistRankings(
+    $timestamp: String
+    $timePeriodOffset: Int
+    $changeOffset: Int
+    $daysOffset: Int
+    $includeSourceTypes: [SourceType]
+    $excludeSourceTypes: [SourceType]
+    $includeSongTypes: [SongType]
+    $excludeSongTypes: [SongType]
+    $includeArtistTypes: [ArtistType]
+    $excludeArtistTypes: [ArtistType]
+    $artistCategory: ArtistCategory
+    $publishDate: String
+    $orderBy: FilterOrder
+    $direction: FilterDirection
+    $includeArtists: [Int]
+    $excludeArtists: [Int]
+    $combineSimilarArtists: Boolean
+    $includeSongs: [Int]
+    $excludeSongs: [Int]
+    $singleVideo: Boolean
+    $maxEntries: Int
+    $startAt: Int
+    $minViews: Long
+    $maxViews: Long
+    $search: String
+) {
+    artistRankings(
+        timestamp: $timestamp
+        timePeriodOffset: $timePeriodOffset
+        changeOffset: $changeOffset
+        daysOffset: $daysOffset
+        includeSourceTypes: $includeSourceTypes
+        excludeSourceTypes: $excludeSourceTypes
+        includeSongTypes: $includeSongTypes
+        excludeSongTypes: $excludeSongTypes
+        includeArtistTypes: $includeArtistTypes
+        excludeArtistTypes: $excludeArtistTypes
+        artistCategory: $artistCategory
+        publishDate: $publishDate
+        orderBy: $orderBy
+        direction: $direction
+        includeArtists: $includeArtists
+        excludeArtists: $excludeArtists
+        combineSimilarArtists: $combineSimilarArtists
+        includeSongs: $includeSongs
+        excludeSongs: $excludeSongs
+        singleVideo: $singleVideo
+        maxEntries: $maxEntries
+        startAt: $startAt
+        minViews: $minViews
+        maxViews: $maxViews
+        search: $search
+    ) {
+        totalCount
+        timestamp
+        results {
+            placement
+            views
+            artist {
+                id
+                names {
+                    original
+                    japanese
+                    romaji
+                    english
+                }
+                thumbnails {
+                    original
+                    medium
+                    small
+                    tiny
+                }
+                darkColor
+                lightColor
+            }
+        }
+    }
+}
+`
+
 // enum mappers
 export function mapPlacementChange(
     apiValue: string
 ): PlacementChange {
-    switch(apiValue) {
+    switch (apiValue) {
         case 'UP':
             return PlacementChange.UP
         case 'SAME':
@@ -128,7 +210,7 @@ export function mapPlacementChange(
 export function mapSongType(
     apiValue: string
 ): SongType {
-    switch(apiValue) {
+    switch (apiValue) {
         case 'ORIGINAL':
             return SongType.ORIGINAL
         case 'REMIX':
@@ -143,7 +225,7 @@ export function mapSongType(
 export function mapSourceType(
     apiValue: string
 ): SourceType {
-    switch(apiValue) {
+    switch (apiValue) {
         case 'YOUTUBE':
             return SourceType.YOUTUBE
         case 'NICONICO':

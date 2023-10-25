@@ -29,9 +29,9 @@ export function RankingsGridItem(
         titleContent,
         placement,
         icon,
+        iconPosition,
         iconAlt,
         trailingTitleContent,
-        supportingContent,
         trailingSupporting,
         in: inProp = false,
         className = '',
@@ -42,9 +42,9 @@ export function RankingsGridItem(
         titleContent: React.ReactNode
         placement: number
         icon: string
+        iconPosition?: string,
         iconAlt: string
         trailingTitleContent: React.ReactNode,
-        supportingContent?: React.ReactNode
         trailingSupporting?: string,
         in?: boolean
         className?: string,
@@ -75,7 +75,8 @@ export function RankingsGridItem(
                             alt={iconAlt}
                             className="scale-150 object-cover text-on-surface"
                             style={{
-                                backgroundColor: color
+                                backgroundColor: color,
+                                objectPosition: iconPosition
                             }}
                         />
                     </Link>

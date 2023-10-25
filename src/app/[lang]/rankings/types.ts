@@ -135,6 +135,7 @@ export class TimestampFilter extends Filter {
     }
 }
 
+// song rankings filters
 export interface RankingsFilters {
     search: InputFilter
     timePeriod: SelectFilter<number>
@@ -215,6 +216,77 @@ export interface SongRankingsFilterBarValues {
     includeArtistsMode?: number
     excludeArtistsMode?: number
     includeSimilarArtists?: boolean
+}
+
+// artists rankings filters
+export interface ArtistRankingsFilters {
+    search: InputFilter
+    timePeriod: SelectFilter<number>
+    releaseYear: InputFilter
+    releaseMonth: InputFilter
+    releaseDay: InputFilter
+    includeSourceTypes: MultiFilter<SourceType>
+    includeSongTypes: MultiFilter<SongType>
+    includeArtistTypes: MultiFilter<ArtistType>
+    excludeSourceTypes: MultiFilter<SourceType>
+    excludeSongTypes: MultiFilter<SongType>
+    excludeArtistTypes: MultiFilter<ArtistType>
+    minViews: InputFilter
+    maxViews: InputFilter
+    orderBy: SelectFilter<FilterOrder>
+    to: TimestampFilter
+    from: TimestampFilter
+    timestamp: TimestampFilter
+    singleVideo: CheckboxFilter
+    includeArtists: MultiEntityFilter
+    excludeArtists: MultiEntityFilter
+    combineSimilarArtists: CheckboxFilter
+}
+
+export interface ArtistRankingsFiltersValues {
+    search?: string
+    timePeriod?: number
+    releaseYear?: string
+    releaseMonth?: string
+    releaseDay?: string
+    includeSourceTypes?: string
+    includeSongTypes?: string
+    includeArtistTypes?: string
+    excludeSourceTypes?: string
+    excludeSongTypes?: string
+    excludeArtistTypes?: string
+    minViews?: string
+    maxViews?: string
+    orderBy?: number
+    from?: string
+    timestamp?: string
+    singleVideo?: number
+    includeArtists?: string
+    excludeArtists?: string
+    combineSimilarArtists?: number
+}
+
+export interface ArtistRankingsFilterBarValues {
+    search?: string
+    timePeriod?: number
+    releaseYear?: string
+    releaseMonth?: string
+    releaseDay?: string
+    includeSourceTypes?: number[]
+    includeSongTypes?: number[]
+    includeArtistTypes?: number[]
+    excludeSourceTypes?: number[]
+    excludeSongTypes?: number[]
+    excludeArtistTypes?: number[]
+    minViews?: string
+    maxViews?: string
+    orderBy?: number
+    from?: Date
+    timestamp?: Date
+    singleVideo?: boolean
+    includeArtists?: number[]
+    excludeArtists?: number[]
+    combineSimilarArtists?: boolean
 }
 
 // describes a list of entity names with their ids mapped to a Names types

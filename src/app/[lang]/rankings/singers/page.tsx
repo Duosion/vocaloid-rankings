@@ -1,13 +1,13 @@
 import { getMostRecentViewsTimestamp } from "@/data/songsData"
-import { ArtistType, FilterInclusionMode, FilterOrder, SongType, SourceType } from "@/data/types"
+import { ArtistCategory, ArtistType, FilterOrder, SongType, SourceType } from "@/data/types"
 import { generateTimestamp } from "@/lib/utils"
 import { Locale, getDictionary } from "@/localization"
 import { cookies } from "next/dist/client/components/headers"
-import { Settings } from "../settings"
-import { RankingsList } from "./rankings-list"
-import { FilterType, RankingsFilters, SongRankingsFiltersValues } from "./types"
+import { Settings } from "../../settings"
+import { ArtistRankingsFilters, ArtistRankingsFiltersValues, FilterType, SongRankingsFiltersValues } from "../types"
+import { SingerRankingsList } from "./singer-rankings-filters"
 
-const filters: RankingsFilters = {
+const filters: ArtistRankingsFilters = {
     search: {
         name: 'search_hint',
         key: 'search',
@@ -30,25 +30,25 @@ const filters: RankingsFilters = {
         ],
         defaultValue: 0
     },
-    publishYear: {
-        name: 'filter_year',
-        key: 'publishYear',
+    releaseYear: {
+        name: 'artist_filter_year',
+        key: 'releaseYear',
         displayActive: true,
         type: FilterType.INPUT,
         placeholder: 'filter_year_any',
         defaultValue: ''
     },
-    publishMonth: {
-        name: 'filter_month',
-        key: 'publishMonth',
+    releaseMonth: {
+        name: 'artist_filter_month',
+        key: 'releaseMonth',
         displayActive: true,
         type: FilterType.INPUT,
         placeholder: 'filter_year_any',
         defaultValue: ''
     },
-    publishDay: {
-        name: 'filter_day',
-        key: 'publishDay',
+    releaseDay: {
+        name: 'artist_filter_day',
+        key: 'releaseDay',
         displayActive: true,
         type: FilterType.INPUT,
         placeholder: 'filter_year_any',
@@ -138,28 +138,6 @@ const filters: RankingsFilters = {
             { name: 'filter_artist_type_utau', value: ArtistType.UTAU },
         ]
     },
-    includeArtistTypesMode: {
-        name: 'filter_artist_type_mode',
-        key: 'includeArtistTypesMode',
-        displayActive: false,
-        type: FilterType.SELECT,
-        values: [
-            { name: 'filter_inclusion_mode_and', value: FilterInclusionMode.AND },
-            { name: 'filter_inclusion_mode_or', value: FilterInclusionMode.OR },
-        ],
-        defaultValue: 0 // default value
-    },
-    excludeArtistTypesMode: {
-        name: 'filter_artist_type_exclude_mode',
-        key: 'excludeArtistTypesMode',
-        displayActive: false,
-        type: FilterType.SELECT,
-        values: [
-            { name: 'filter_inclusion_mode_and', value: FilterInclusionMode.AND },
-            { name: 'filter_inclusion_mode_or', value: FilterInclusionMode.OR },
-        ],
-        defaultValue: 1 // default value
-    },
     minViews: {
         name: 'filter_min_views',
         key: 'minViews',
@@ -230,31 +208,9 @@ const filters: RankingsFilters = {
         type: FilterType.MULTI_ENTITY,
         placeholder: 'filter_artists_placeholder',
     },
-    includeArtistsMode: {
-        name: 'filter_artists_mode',
-        key: 'includeArtistsMode',
-        displayActive: false,
-        type: FilterType.SELECT,
-        values: [
-            { name: 'filter_inclusion_mode_and', value: FilterInclusionMode.AND },
-            { name: 'filter_inclusion_mode_or', value: FilterInclusionMode.OR },
-        ],
-        defaultValue: 0 // default value
-    },
-    excludeArtistsMode: {
-        name: 'filter_exclude_artists_mode',
-        key: 'excludeArtistsMode',
-        displayActive: false,
-        type: FilterType.SELECT,
-        values: [
-            { name: 'filter_inclusion_mode_and', value: FilterInclusionMode.AND },
-            { name: 'filter_inclusion_mode_or', value: FilterInclusionMode.OR },
-        ],
-        defaultValue: 1 // default value
-    },
-    includeSimilarArtists: {
-        name: 'filter_artists_include_similar',
-        key: 'includeSimilarArtists',
+    combineSimilarArtists: {
+        name: 'filter_combine_similar_artists',
+        key: 'combineSimilarArtists',
         displayActive: true,
         type: FilterType.CHECKBOX,
         defaultValue: false
@@ -269,7 +225,7 @@ export default async function RankingsPage(
         params: {
             lang: Locale
         },
-        searchParams: SongRankingsFiltersValues
+        searchParams: ArtistRankingsFiltersValues
     }
 ) {
     // import language dictionary
@@ -287,13 +243,14 @@ export default async function RankingsPage(
     return (
         <section className="flex flex-col gap-5 w-full min-h-screen">
             <h1 className="font-extrabold md:text-5xl md:text-left text-4xl text-center w-full">{langDict.rankings_page_title}</h1>
-            <RankingsList
+            <SingerRankingsList
                 href=''
                 filters={filters}
                 langDict={langDict}
                 filterValues={searchParams}
                 currentTimestamp={mostRecentTimestamp}
                 viewMode={viewMode}
+                category={ArtistCategory.VOCALIST}
             />
         </section>
     )

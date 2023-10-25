@@ -7,18 +7,18 @@ import { DummyRankingsGridItem } from "@/components/rankings/dummy-rankings-grid
 import { DummyRankingsListItem } from "@/components/rankings/dummy-rankings-list-item"
 import { RankingsGridItem } from "@/components/rankings/rankings-grid-item"
 import { RankingListItem } from "@/components/rankings/rankings-list-item"
-import { ArtistType, FilterInclusionMode, FilterOrder, SongType, SourceType } from "@/data/types"
-import { GET_SONG_RANKINGS, buildEntityNames, graphClient } from "@/lib/api"
-import { ApiArtist, ApiSongRankingsFilterResult } from "@/lib/api/types"
+import { ArtistCategory, ArtistType, FilterInclusionMode, FilterOrder, SongType, SourceType } from "@/data/types"
+import { GET_ARTIST_RANKINGS, GET_SONG_RANKINGS, buildEntityNames, graphClient } from "@/lib/api"
+import { ApiArtist, ApiArtistRankingsFilterResult, ApiSongRankingsFilterResult } from "@/lib/api/types"
 import { LanguageDictionary, getEntityName } from "@/localization"
 import { ApolloQueryResult, gql, useQuery } from "@apollo/client"
 import { useTheme } from "next-themes"
 import { useEffect, useState } from "react"
 import { TransitionGroup } from "react-transition-group"
-import { useSettings } from "../settings/settings-provider"
-import { SongRankingsActiveFilterBar } from "./song-rankings-filters"
-import { EntityNames, FilterType, InputFilter, RankingsFilters, RankingsViewMode, SongRankingsFilterBarValues, SongRankingsFiltersValues } from "./types"
-import { decodeBoolean, decodeMultiFilter, encodeBoolean, encodeMultiFilter, parseParamSelectFilterValue } from "./utils"
+import { ArtistRankingsFilterBarValues, ArtistRankingsFilters, ArtistRankingsFiltersValues, EntityNames, FilterType, InputFilter, RankingsFilters, RankingsViewMode, SongRankingsFilterBarValues, SongRankingsFiltersValues } from "../types"
+import { decodeBoolean, decodeMultiFilter, encodeBoolean, encodeMultiFilter, parseParamSelectFilterValue } from "../utils"
+import { useSettings } from "../../settings/settings-provider"
+import { SingerRankingsActiveFilterBar } from "./singer-rankings-list"
 
 const GET_ARTISTS_NAMES = gql`
 query GetArtistsNames(
@@ -38,21 +38,23 @@ query GetArtistsNames(
 }
 `
 
-export function RankingsList(
+export function SingerRankingsList(
     {
         href,
         filters,
         langDict,
         filterValues,
         currentTimestamp,
-        viewMode
+        viewMode,
+        category
     }: {
         href: string
-        filters: RankingsFilters
+        filters: ArtistRankingsFilters
         langDict: LanguageDictionary
-        filterValues: SongRankingsFiltersValues
+        filterValues: ArtistRankingsFiltersValues
         currentTimestamp: string
         viewMode: RankingsViewMode
+        category: ArtistCategory
     }
 ) {
     // import contexts
@@ -70,17 +72,15 @@ export function RankingsList(
     let [filterBarValues, setFilterValues] = useState({
         search: filterValues.search,
         timePeriod: filterValues.timePeriod,
-        publishYear: filterValues.publishYear,
-        publishMonth: filterValues.publishMonth,
-        publishDay: filterValues.publishDay,
+        releaseYear: filterValues.releaseYear,
+        releaseMonth: filterValues.releaseMonth,
+        releaseDay: filterValues.releaseDay,
         includeSourceTypes: decodeMultiFilter(filterValues.includeSourceTypes),
         excludeSourceTypes: decodeMultiFilter(filterValues.excludeSourceTypes),
         includeSongTypes: decodeMultiFilter(filterValues.includeSongTypes),
         excludeSongTypes: decodeMultiFilter(filterValues.excludeSongTypes),
         includeArtistTypes: decodeMultiFilter(filterValues.includeArtistTypes),
         excludeArtistTypes: decodeMultiFilter(filterValues.excludeArtistTypes),
-        includeArtistTypesMode: filterValues.includeArtistTypesMode,
-        excludeArtistTypesMode: filterValues.excludeArtistTypesMode,
         minViews: filterValues.minViews,
         maxViews: filterValues.maxViews,
         orderBy: filterValues.orderBy,
@@ -89,10 +89,8 @@ export function RankingsList(
         singleVideo: decodeBoolean(Number(filterValues.singleVideo)),
         includeArtists: decodeMultiFilter(filterValues.includeArtists),
         excludeArtists: decodeMultiFilter(filterValues.excludeArtists),
-        includeArtistsMode: filterValues.includeArtistsMode,
-        excludeArtistsMode: filterValues.excludeArtistsMode,
-        includeSimilarArtists: decodeBoolean(Number(filterValues.includeSimilarArtists))
-    } as SongRankingsFilterBarValues)
+        combineSimilarArtists: decodeBoolean(Number(filterValues.combineSimilarArtists))
+    } as ArtistRankingsFilterBarValues)
 
     // entity names state
     const [entityNames, setEntityNames] = useState({} as EntityNames)
@@ -108,9 +106,9 @@ export function RankingsList(
         const excludeArtistTypes = filterBarValues.excludeArtistTypes?.map(type => ArtistType[type])
 
         // build publish date
-        const yearParam = filterBarValues.publishYear
-        const monthParam = filterBarValues.publishMonth
-        const dayParam = filterBarValues.publishDay
+        const yearParam = filterBarValues.releaseYear
+        const monthParam = filterBarValues.releaseMonth
+        const dayParam = filterBarValues.releaseDay
 
         let publishDate: string | undefined = undefined
         if (yearParam || monthParam || dayParam) {
@@ -141,17 +139,13 @@ export function RankingsList(
             excludeSongTypes: excludeSongTypes && excludeSongTypes.length > 0 ? excludeSongTypes : undefined,
             includeArtistTypes: includeArtistTypes && includeArtistTypes.length > 0 ? includeArtistTypes : undefined,
             excludeArtistTypes: excludeArtistTypes && excludeArtistTypes.length > 0 ? excludeArtistTypes : undefined,
-            includeArtistTypesMode: filterBarValues.includeArtistTypesMode == undefined ? undefined : FilterInclusionMode[filterBarValues.includeArtistTypesMode],
-            excludeArtistTypesMode: filterBarValues.excludeArtistTypesMode == undefined ? undefined : FilterInclusionMode[filterBarValues.excludeArtistTypesMode],
+            artistCategory: ArtistCategory[category],
             publishDate: publishDate,
             orderBy: filterBarValues.orderBy == undefined ? undefined : FilterOrder[filterBarValues.orderBy],
             //direction: undefined,
             includeArtists: filterBarValues.includeArtists && filterBarValues.includeArtists.length > 0 ? [...filterBarValues.includeArtists] : undefined, // unpack artists into new table so that the reference is different
             excludeArtists: filterBarValues.excludeArtists && filterBarValues.excludeArtists.length > 0 ? [...filterBarValues.excludeArtists] : undefined,
-            includeArtistsMode: filterBarValues.includeArtistsMode == undefined ? undefined : FilterInclusionMode[filterBarValues.includeArtistsMode],
-            excludeArtistsMode: filterBarValues.excludeArtistsMode == undefined ? undefined : FilterInclusionMode[filterBarValues.excludeArtistsMode],
-            includeSimilarArtists: filterBarValues.includeSimilarArtists,
-            //songs: undefined,
+            combineSimilarArtists: filterBarValues.combineSimilarArtists,
             singleVideo: filterBarValues.singleVideo,
             minViews: filterBarValues.minViews ? Number(filterBarValues.minViews) : undefined,
             maxViews: filterBarValues.maxViews ? Number(filterBarValues.maxViews) : undefined,
@@ -161,10 +155,10 @@ export function RankingsList(
 
     // import graphql context
     const [queryVariables, setQueryVariables] = useState(getQueryVariables)
-    const { loading, error, data } = useQuery(GET_SONG_RANKINGS, {
+    const { loading, error, data } = useQuery(GET_ARTIST_RANKINGS, {
         variables: queryVariables
     })
-    const rankingsResult = data?.songRankings as ApiSongRankingsFilterResult
+    const rankingsResult = data?.artistRankings as ApiArtistRankingsFilterResult
 
     // function for saving filter values & updating the UI with the new values.
     function saveFilterValues(
@@ -241,7 +235,7 @@ export function RankingsList(
 
     return (
         <section className="flex flex-col gap-5 w-full">
-            <SongRankingsActiveFilterBar
+            <SingerRankingsActiveFilterBar
                 filters={filters}
                 langDict={langDict}
                 filterValues={filterBarValues}
@@ -256,31 +250,32 @@ export function RankingsList(
                 : !loading && (rankingsResult == undefined || 0 >= rankingsResult.results.length) ? <h2 className="text-3xl font-bold text-center text-on-background">{langDict.search_no_results}</h2>
                     : <ol key='list-view' className={rankingsViewMode == RankingsViewMode.LIST ? "flex flex-col gap-5 w-full" : "grid xl:grid-cols-7 lg:grid-cols-5 md:grid-cols-4 sm:grid-cols-3 grid-cols-2 gap-10 w-full mt-3"}>
                         {rankingsResult == undefined ? dummyElements : <TransitionGroup component={null}>{rankingsResult.results.map(ranking => {
-                            const song = ranking.song
-                            const names = buildEntityNames(song.names)
+                            const artist = ranking.artist
+                            const names = buildEntityNames(artist.names)
 
-                            const color = resolvedTheme == 'dark' ? song.darkColor : song.lightColor
+                            const color = resolvedTheme == 'dark' ? artist.darkColor : artist.lightColor
 
                             return rankingsViewMode == RankingsViewMode.LIST ? (
                                 <RankingListItem
-                                    key={song.id.toString()}
-                                    href={`song/${song.id}`}
+                                    key={artist.id.toString()}
+                                    href={`../artist/${artist.id}`}
                                     titleContent={<EntityName names={names} preferred={settingTitleLanguage} />}
                                     placement={ranking.placement}
-                                    icon={song.thumbnail}
+                                    icon={artist.thumbnails.small || artist.thumbnails.medium || artist.thumbnails.original}
+                                    iconPosition="center top"
                                     iconAlt={getEntityName(names, settingTitleLanguage)}
                                     trailingTitleContent={<NumberFormatter number={ranking.views} />}
                                     trailingSupporting={langDict.rankings_views}
-                                    supportingContent={<SongArtistsLabel artists={song.artists} categories={song.artistsCategories} preferredNameType={settingTitleLanguage} theme={resolvedTheme} />}
                                     color={color}
                                 />
                             ) : (
                                 <RankingsGridItem
-                                    key={song.id.toString()}
-                                    href={`song/${song.id}`}
+                                    key={artist.id.toString()}
+                                    href={`../artist/${artist.id}`}
                                     titleContent={<EntityName names={names} preferred={settingTitleLanguage} />}
                                     placement={ranking.placement}
-                                    icon={song.thumbnail}
+                                    icon={artist.thumbnails.medium || artist.thumbnails.original}
+                                    iconPosition="center top"
                                     iconAlt={getEntityName(names, settingTitleLanguage)}
                                     trailingTitleContent={<NumberFormatter number={ranking.views} />}
                                     trailingSupporting={langDict.rankings_views}

@@ -104,3 +104,17 @@ export interface ApiSongRankingsFilterResult {
     timestamp: string
     results: ApiSongRankingsFilterResultItem[]
 }
+
+export interface ApiArtistRankingsFilterResultItem {
+    placement: number
+    change?: string
+    previousPlacement?: number
+    views: number
+    artist: ApiArtist
+}
+
+export interface ApiArtistRankingsFilterResult {
+    totalCount: number
+    timestamp: string
+    results: ApiArtistRankingsFilterResultItem[]
+}
