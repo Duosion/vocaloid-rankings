@@ -1,7 +1,6 @@
 'use client'
 import { ActiveFilter } from "@/components/filter/active-filter"
 import { ArtistSearchFilter } from "@/components/filter/artist-search-filter"
-import { BinaryToggleFilterElement } from "@/components/filter/binary-toggle-filter"
 import { DateFilterElement } from "@/components/filter/date-filter"
 import { InputFilterElement } from "@/components/filter/input-filter"
 import { NumberInputFilterElement } from "@/components/filter/number-input-filter"

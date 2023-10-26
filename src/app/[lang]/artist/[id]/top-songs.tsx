@@ -53,46 +53,42 @@ export function TopSongs(
         }
     }
 
-    return (
-        <EntitySection
-            title={langDict.artist_top_songs}
-            titleSupporting={
-                rankingsResult != undefined && rankingsResult.totalCount > maxEntries ? <>
-                    <FilledButton className="sm:flex hidden" text={langDict.artist_view_all} icon={'open_in_full'} href={`../rankings?includeArtists=${artistId}`} />
-                    <FilledIconButton className="sm:hidden flex" icon={'open_in_full'} href={`../rankings?includeArtists=${artistId}`} />
-                </> : undefined
+    return rankingsResult != undefined && rankingsResult.totalCount === 0 ? undefined  : <EntitySection
+        title={langDict.artist_top_songs}
+        titleSupporting={
+            rankingsResult != undefined && rankingsResult.totalCount > maxEntries ? <>
+                <FilledButton className="sm:flex hidden" text={langDict.artist_view_all} icon={'open_in_full'} href={`../rankings?includeArtists=${artistId}`} />
+                <FilledIconButton className="sm:hidden flex" icon={'open_in_full'} href={`../rankings?includeArtists=${artistId}`} />
+            </> : undefined
+        }
+    >
+        <ol className="grid xl:grid-cols-6 lg:grid-cols-5 md:grid-cols-4 grid-cols-3 px-5 gap-6 w-full mt-3 py-3">
+            {
+                error ? <ErrorMessage message={error.message} />
+                    : loading ? dummyElements
+                        : rankingsResult == undefined || (rankingsResult && 0 >= rankingsResult.results.length) ? <ErrorMessage message={langDict.search_no_results} />
+                            : rankingsResult.results.map(ranking => {
+                                const song = ranking.song
+                                const names = buildEntityNames(song.names)
+
+                                const color = resolvedTheme == 'dark' ? song.darkColor : song.lightColor
+
+                                return (
+                                    <RankingsGridItem
+                                        key={song.id.toString()}
+                                        href={`../song/${song.id}`}
+                                        titleContent={<EntityName names={names} preferred={settingTitleLanguage} />}
+                                        placement={ranking.placement}
+                                        icon={song.thumbnail}
+                                        iconAlt={getEntityName(names, settingTitleLanguage)}
+                                        trailingTitleContent={<NumberFormatter number={ranking.views} compact />}
+                                        trailingSupporting={langDict.rankings_views}
+                                        color={color}
+                                        in
+                                    />
+                                )
+                            })
             }
-        >
-            <ol className="grid xl:grid-cols-6 lg:grid-cols-5 md:grid-cols-4 grid-cols-3 px-5 gap-6 w-full mt-3 py-3">
-                {
-                    error ? <ErrorMessage message={error.message} />
-                        : loading ? dummyElements
-                            : rankingsResult == undefined || (rankingsResult && 0 >= rankingsResult.results.length) ? <ErrorMessage message={langDict.search_no_results} />
-                                : rankingsResult.results.map(ranking => {
-                                    const song = ranking.song
-                                    const names = buildEntityNames(song.names)
-
-                                    const color = resolvedTheme == 'dark' ? song.darkColor : song.lightColor
-
-                                    return (
-                                        <RankingsGridItem
-                                            key={song.id.toString()}
-                                            href={`../song/${song.id}`}
-                                            titleContent={<EntityName names={names} preferred={settingTitleLanguage} />}
-                                            placement={ranking.placement}
-                                            icon={song.thumbnail}
-                                            iconAlt={getEntityName(names, settingTitleLanguage)}
-                                            trailingTitleContent={<NumberFormatter number={ranking.views} compact />}
-                                            trailingSupporting={langDict.rankings_views}
-                                            color={color}
-                                            in
-                                        />
-                                    )
-                                })
-                }
-            </ol>
-        </EntitySection>
-
-    )
-
+        </ol>
+    </EntitySection>
 }

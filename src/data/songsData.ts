@@ -4,7 +4,7 @@ import { Databases } from ".";
 import { Artist, ArtistCategory, ArtistPlacement, ArtistThumbnailType, ArtistType, HistoricalViews, HistoricalViewsResult, Id, NameType, Names, PlacementChange, SongRankingsFilterParams, SongRankingsFilterResult, SongRankingsFilterResultItem, RawArtistData, RawArtistName, RawArtistThumbnail, RawSongRankingsResult, RawSongArtist, RawSongData, RawSongName, RawSongVideoId, RawViewBreakdown, Song, SongPlacement, SongType, SongVideoIds, SourceType, SqlRankingsFilterParams, Views, ViewsBreakdown, ArtistRankingsFilterParams, ArtistRankingsFilterResult, ArtistRankingsFilterResultItem, RawArtistRankingResult, SqlSearchArtistsFilterParams, FilterInclusionMode, FilterOrder, FilterDirection, SongArtistsCategories, SqlRankingsFilterInVariables, SqlRankingsFilterStatements } from "./types";
 import type { Statement } from "better-sqlite3";
 import { getPaletteFromURL } from "color-thief-node";
-import { getMostVibrantColor } from "@/lib/material";
+//import { getMostVibrantColor } from "@/lib/material/material";
 import { generateTimestamp } from "@/lib/utils";
 
 // import database
@@ -1682,7 +1682,7 @@ export function mapArtistTypeToCategory(
 }
 
 // update all songs' colors
-const convertDatabase = async (
+/*const convertDatabase = async (
     maximumConcurrent: number = 20
 ) => {
     const convertSongAverageColor = async (song: RawSongData) => {
@@ -1783,6 +1783,6 @@ const convertDatabase = async (
         console.log('Databases converted.')
 
     }
-}
+}*/
 
 //convertDatabase()

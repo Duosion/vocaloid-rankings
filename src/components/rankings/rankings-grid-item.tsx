@@ -1,8 +1,9 @@
-import Link from "next/link"
-import SongThumbnail from "../song-thumbnail"
-import { Transition, TransitionStatus } from "react-transition-group"
-import { CSSProperties, useEffect, useRef, useState } from "react"
 import Image from '@/components/image'
+import Link from "next/link"
+import { CSSProperties, useRef } from "react"
+import { Transition, TransitionStatus } from "react-transition-group"
+import { imageDisplayModeStyles } from '@/lib/material/material'
+import { ImageDisplayMode } from '@/lib/material/types'
 
 const transitionStyles: { [key in TransitionStatus]: CSSProperties } = {
     entering: {
@@ -29,8 +30,8 @@ export function RankingsGridItem(
         titleContent,
         placement,
         icon,
-        iconPosition,
         iconAlt,
+        imageDisplayMode = ImageDisplayMode.SONG,
         trailingTitleContent,
         trailingSupporting,
         in: inProp = false,
@@ -42,17 +43,17 @@ export function RankingsGridItem(
         titleContent: React.ReactNode
         placement: number
         icon: string
-        iconPosition?: string,
         iconAlt: string
-        trailingTitleContent: React.ReactNode,
-        trailingSupporting?: string,
+        imageDisplayMode?: ImageDisplayMode
+        trailingTitleContent: React.ReactNode
+        trailingSupporting?: string
         in?: boolean
-        className?: string,
+        className?: string
         color?: string
     }
 ) {
     const nodeRef = useRef<HTMLLIElement>(null)
-
+    
     return (
         <Transition
             mountOnEnter
@@ -73,10 +74,10 @@ export function RankingsGridItem(
                             fill
                             src={icon}
                             alt={iconAlt}
-                            className="scale-150 object-cover text-on-surface"
+                            className="object-cover flex items-center justify-center font-bold text-on-primary text-center"
                             style={{
                                 backgroundColor: color,
-                                objectPosition: iconPosition
+                                ...imageDisplayModeStyles[imageDisplayMode]
                             }}
                         />
                     </Link>

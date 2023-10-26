@@ -5,3 +5,9 @@ export enum Elevation {
     HIGH,
     HIGHEST
 }
+
+export enum ImageDisplayMode {
+    SONG,
+    VOCALIST,
+    PRODUCER
+}

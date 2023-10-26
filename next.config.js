@@ -24,7 +24,7 @@ const nextConfig = {
     },
     webpack: (config) => {
       config.externals.push({
-        sharp: "commonjs sharp",
+        sharp: "commonjs sharp"
       });
   
       return config;

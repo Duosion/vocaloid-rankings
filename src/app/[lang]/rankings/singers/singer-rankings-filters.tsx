@@ -1,24 +1,24 @@
 'use client'
 import { EntityName } from "@/components/formatters/entity-name"
 import { NumberFormatter } from "@/components/formatters/number-formatter"
-import { SongArtistsLabel } from "@/components/formatters/song-artists-label"
 import { Divider } from "@/components/material/divider"
 import { DummyRankingsGridItem } from "@/components/rankings/dummy-rankings-grid-item"
 import { DummyRankingsListItem } from "@/components/rankings/dummy-rankings-list-item"
 import { RankingsGridItem } from "@/components/rankings/rankings-grid-item"
 import { RankingListItem } from "@/components/rankings/rankings-list-item"
-import { ArtistCategory, ArtistType, FilterInclusionMode, FilterOrder, SongType, SourceType } from "@/data/types"
-import { GET_ARTIST_RANKINGS, GET_SONG_RANKINGS, buildEntityNames, graphClient } from "@/lib/api"
-import { ApiArtist, ApiArtistRankingsFilterResult, ApiSongRankingsFilterResult } from "@/lib/api/types"
+import { ArtistCategory, ArtistType, FilterOrder, SongType, SourceType } from "@/data/types"
+import { GET_ARTIST_RANKINGS, buildEntityNames, graphClient } from "@/lib/api"
+import { ApiArtist, ApiArtistRankingsFilterResult } from "@/lib/api/types"
 import { LanguageDictionary, getEntityName } from "@/localization"
 import { ApolloQueryResult, gql, useQuery } from "@apollo/client"
 import { useTheme } from "next-themes"
 import { useEffect, useState } from "react"
 import { TransitionGroup } from "react-transition-group"
-import { ArtistRankingsFilterBarValues, ArtistRankingsFilters, ArtistRankingsFiltersValues, EntityNames, FilterType, InputFilter, RankingsFilters, RankingsViewMode, SongRankingsFilterBarValues, SongRankingsFiltersValues } from "../types"
-import { decodeBoolean, decodeMultiFilter, encodeBoolean, encodeMultiFilter, parseParamSelectFilterValue } from "../utils"
 import { useSettings } from "../../settings/settings-provider"
+import { ArtistRankingsFilterBarValues, ArtistRankingsFilters, ArtistRankingsFiltersValues, EntityNames, FilterType, InputFilter, RankingsViewMode, SongRankingsFilterBarValues } from "../types"
+import { decodeBoolean, decodeMultiFilter, encodeBoolean, encodeMultiFilter, parseParamSelectFilterValue } from "../utils"
 import { SingerRankingsActiveFilterBar } from "./singer-rankings-list"
+import { ImageDisplayMode } from "@/lib/material/types"
 
 const GET_ARTISTS_NAMES = gql`
 query GetArtistsNames(
@@ -262,8 +262,8 @@ export function SingerRankingsList(
                                     titleContent={<EntityName names={names} preferred={settingTitleLanguage} />}
                                     placement={ranking.placement}
                                     icon={artist.thumbnails.small || artist.thumbnails.medium || artist.thumbnails.original}
-                                    iconPosition="center top"
                                     iconAlt={getEntityName(names, settingTitleLanguage)}
+                                    imageDisplayMode={ImageDisplayMode.VOCALIST}
                                     trailingTitleContent={<NumberFormatter number={ranking.views} />}
                                     trailingSupporting={langDict.rankings_views}
                                     color={color}
@@ -275,8 +275,8 @@ export function SingerRankingsList(
                                     titleContent={<EntityName names={names} preferred={settingTitleLanguage} />}
                                     placement={ranking.placement}
                                     icon={artist.thumbnails.medium || artist.thumbnails.original}
-                                    iconPosition="center top"
                                     iconAlt={getEntityName(names, settingTitleLanguage)}
+                                    imageDisplayMode={ImageDisplayMode.VOCALIST}
                                     trailingTitleContent={<NumberFormatter number={ranking.views} />}
                                     trailingSupporting={langDict.rankings_views}
                                     color={color}

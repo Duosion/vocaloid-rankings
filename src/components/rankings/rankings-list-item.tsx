@@ -2,6 +2,7 @@ import Link from "next/link"
 import SongThumbnail from "../song-thumbnail"
 import { Transition, TransitionStatus } from "react-transition-group"
 import { CSSProperties, useEffect, useRef, useState } from "react"
+import { ImageDisplayMode } from "@/lib/material/types"
 
 const transitionStyles: { [key in TransitionStatus]: CSSProperties } = {
     entering: {
@@ -28,8 +29,8 @@ export function RankingListItem(
         titleContent,
         placement,
         icon,
-        iconPosition,
         iconAlt,
+        imageDisplayMode = ImageDisplayMode.SONG,
         trailingTitleContent,
         supportingContent,
         trailingSupporting,
@@ -42,8 +43,8 @@ export function RankingListItem(
         titleContent: React.ReactNode
         placement: number
         icon: string
-        iconPosition?: string,
         iconAlt: string
+        imageDisplayMode?: ImageDisplayMode
         trailingTitleContent: React.ReactNode,
         supportingContent?: React.ReactNode
         trailingSupporting?: string,

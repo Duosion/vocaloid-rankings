@@ -4,7 +4,7 @@ import { NumberFormatter } from "@/components/formatters/number-formatter"
 import Image from '@/components/image'
 import { getSong, getSongHistoricalViews } from "@/data/songsData"
 import { ArtistCategory, ArtistThumbnailType, Id, NameType, SourceType } from "@/data/types"
-import { getCustomThemeStylesheet } from "@/lib/material"
+import { getCustomThemeStylesheet } from "@/lib/material/material"
 import { SourceTypesDisplayData } from "@/lib/sourceType"
 import { Locale, getDictionary, getEntityName } from "@/localization"
 import { ArtistTypeLocaleTokens, NameTypeLocaleTokens, SongTypeLocaleTokens, SourceTypeLocaleTokens } from "@/localization/DictionaryTokenMaps"

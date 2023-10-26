@@ -1,7 +1,7 @@
-import { Elevation } from "@/material/types"
+import { Elevation } from "@/lib/material/types"
 import { Icon } from "../material/icon"
 import { FilterElement } from "./filter"
-import { elevationToClass } from "@/material"
+import { elevationToClass } from "@/lib/material/material"
 import { MinimalIconButton } from "../material/minimal-icon-button"
 
 export function InputFilterElement(
