@@ -1,19 +1,19 @@
+import { DateFormatter } from "@/components/formatters/date-formatter"
+import { EntityName } from "@/components/formatters/entity-name"
+import { NumberFormatter } from "@/components/formatters/number-formatter"
+import Image from '@/components/image'
 import { getSong, getSongHistoricalViews } from "@/data/songsData"
+import { ArtistCategory, ArtistThumbnailType, Id, NameType, SourceType } from "@/data/types"
+import { getCustomThemeStylesheet } from "@/lib/material"
+import { SourceTypesDisplayData } from "@/lib/sourceType"
 import { Locale, getDictionary, getEntityName } from "@/localization"
+import { ArtistTypeLocaleTokens, NameTypeLocaleTokens, SongTypeLocaleTokens, SourceTypeLocaleTokens } from "@/localization/DictionaryTokenMaps"
+import { Hct, SchemeVibrant, argbFromHex } from "@material/material-color-utilities"
+import { cookies } from "next/dist/client/components/headers"
+import Link from "next/link"
 import { notFound } from "next/navigation"
 import { Settings } from "../../settings"
-import { cookies } from "next/dist/client/components/headers"
-import { SchemeVibrant, Hct, argbFromRgb, argbFromHex, rgbaFromArgb } from "@material/material-color-utilities"
-import Image from '@/components/image'
-import { ArtistTypeLocaleTokens, NameTypeLocaleTokens, SongTypeLocaleTokens, SourceTypeLocaleTokens } from "@/localization/DictionaryTokenMaps"
-import Link from "next/link"
-import { ArtistCategory, ArtistThumbnailType, Id, NameType, SourceType } from "@/data/types"
-import { EntityName } from "@/components/formatters/entity-name"
-import { DateFormatter } from "@/components/formatters/date-formatter"
-import { NumberFormatter } from "@/components/formatters/number-formatter"
-import { getCustomThemeStylesheet, getMostVibrantColor } from "@/lib/material"
-import { SourceTypesDisplayData } from "@/lib/sourceType"
-import { Palette, getPaletteFromURL } from "color-thief-node"
+import { EntitySection } from "@/components/entity/entity-section"
 
 // interfaces
 interface ViewsBreakdown {
@@ -236,20 +236,20 @@ export default async function SongPage(
 
                 <div className="flex gap-5 flex-col">
                     <div className={`grid gap-5 grid-cols-1 lg:${largestArtistColumnCount == 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
-                        <Section title={singers.length == 1 ? langDict.song_singers_singular : langDict.song_singers}>
+                        <EntitySection title={singers.length == 1 ? langDict.song_singers_singular : langDict.song_singers}>
                             <div className={`grid gap-5 grid-cols-1 ${artistColumnSize}`}>
                                 {singers}
                             </div>
-                        </Section>
-                        <Section title={producers.length == 1 ? langDict.song_producers_singular : langDict.song_producers}>
+                        </EntitySection>
+                        <EntitySection title={producers.length == 1 ? langDict.song_producers_singular : langDict.song_producers}>
                             <div className={`grid gap-5 grid-cols-1 ${artistColumnSize}`}>
                                 {producers}
                             </div>
-                        </Section>
+                        </EntitySection>
                     </div>
                     {/* Breakdown */}
                     <div className="grid gap-5 lg:grid-cols-2 grid-cols-1">
-                        <Section title={langDict.song_views_breakdown}>
+                        <EntitySection title={langDict.song_views_breakdown}>
                             <div className="bg-surface-container rounded-2xl p-5 flex flex-col gap-3 box-border">
                                 <div className="h-28 flex sm:gap-5 gap-2 justify-start items-center overflow-x-auto overflow-y-clip max-w-full m-auto w-fit">
                                     {viewsBreakdowns.map(breakdown => {
@@ -272,10 +272,10 @@ export default async function SongPage(
                                     })}
                                 </div>
                             </div>
-                        </Section>
+                        </EntitySection>
 
                         {/* Daily Views */}
-                        {song.isDormant ? undefined : <Section title={langDict.song_daily_views}>
+                        {song.isDormant ? undefined : <EntitySection title={langDict.song_daily_views}>
                             <div className="bg-surface-container rounded-2xl p-5 flex justify-between md:gap-4 gap-1 overflow-x-auto overflow-y-clip">
                                 {historicalViewsResult.views.map(historicalViews => {
                                     const views = historicalViews.views as number
@@ -286,47 +286,31 @@ export default async function SongPage(
                                     </section>
                                 })}
                             </div>
-                        </Section>}
+                        </EntitySection>}
                     </div>
 
                     {mostViewedSources[SourceType.YOUTUBE] ? <div className="grid gap-5 lg:grid-cols-2 grid-cols-1">
-                        <Section title={langDict.song_video}>
+                        <EntitySection title={langDict.song_video}>
                             <figure>
                                 <iframe className="rounded-2xl w-full border border-outline-variant" id="youtube-player" title="YouTube video player"
                                     allow="clipboard-write; encrypted-media; picture-in-picture; web-share"
                                     src={`https://www.youtube-nocookie.com/embed/${mostViewedSources[SourceType.YOUTUBE].id}`} height="230" frameBorder="0"></iframe>
                             </figure>
-                        </Section>
+                        </EntitySection>
                     </div> : null}
 
                     <div className="md:hidden">
-                        <Section title={langDict.song_listen}>
+                        <EntitySection title={langDict.song_listen}>
                             <ul className="flex-col gap-5 flex">
                                 {videoLinks}
                                 {vocadbLink}
                             </ul>
-                        </Section>
+                        </EntitySection>
                     </div>
                 </div>
             </div>
         </article>
     )
-}
-
-function Section(
-    {
-        children,
-        title
-    }: {
-        children: React.ReactNode,
-        title: string,
-        className?: string
-    }
-) {
-    return <section>
-        <h3 className='text-xl font-bold mb-2'>{title}</h3>
-        {children}
-    </section>
 }
 
 function SidebarLink(

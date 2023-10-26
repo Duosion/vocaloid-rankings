@@ -19,6 +19,7 @@ import { IconButton } from "@/components/material/icon-button"
 import { FilledIconButton } from "@/components/material/filled-icon-button"
 import { FilledButton } from "@/components/material/filled-button"
 import { Divider } from "@/components/material/divider"
+import { EntitySection } from "@/components/entity/entity-section"
 
 // interfaces
 interface ViewsBreakdown {
@@ -184,21 +185,11 @@ export default async function SongPage(
                 </aside>
                 <div className="flex gap-5 flex-col">
                     {/* Top Songs */}
-                    <Section
-                        title={langDict.artist_top_songs}
-                        titleSupporting={
-                            <>
-                                <FilledButton className="sm:flex hidden" text={langDict.artist_view_all} icon={'open_in_full'} href={`../rankings?includeArtists=${artistId}`} />
-                                <FilledIconButton className="sm:hidden flex" icon={'open_in_full'} href={`../rankings?includeArtists=${artistId}`}/>
-                            </>
-                        }
-                    >
-                        <TopSongs artistId={artistId} langDict={langDict} />
-                    </Section>
-
+                    <TopSongs artistId={artistId} langDict={langDict} maxEntries={6} />
+                    
                     {/* Breakdown */}
                     <div className="grid gap-5 lg:grid-cols-2 grid-cols-1">
-                        <Section title={langDict.song_views_breakdown}>
+                        <EntitySection title={langDict.song_views_breakdown}>
                             <div className="bg-surface-container rounded-2xl p-5 flex flex-col gap-3 box-border">
                                 <div className="h-28 flex sm:gap-5 gap-2 justify-start items-center overflow-x-auto overflow-y-clip max-w-full m-auto w-fit">
                                     {viewsBreakdowns.map(breakdown => {
@@ -221,10 +212,10 @@ export default async function SongPage(
                                     })}
                                 </div>
                             </div>
-                        </Section>
+                        </EntitySection>
 
                         {/* Daily Views */}
-                        <Section title={langDict.song_daily_views}>
+                        <EntitySection title={langDict.song_daily_views}>
                             <div className="bg-surface-container rounded-2xl p-5 flex justify-between md:gap-4 gap-1 overflow-x-auto overflow-y-clip">
                                 {historicalViewsResult.views.map(historicalViews => {
                                     const views = historicalViews.views as number
@@ -235,33 +226,12 @@ export default async function SongPage(
                                     </section>
                                 })}
                             </div>
-                        </Section>
+                        </EntitySection>
                     </div>
                 </div>
             </div>
         </article>
     )
-}
-
-function Section(
-    {
-        children,
-        title,
-        titleSupporting
-    }: {
-        children: React.ReactNode,
-        title: string,
-        className?: string,
-        titleSupporting?: React.ReactNode
-    }
-) {
-    return <section>
-        <section className="flex gap-5 items-center mb-2">
-            <h3 className='text-xl font-bold'>{title}</h3>
-            <div className="flex gap-5 flex-1 justify-end">{titleSupporting}</div>
-        </section>
-        {children}
-    </section>
 }
 
 function SidebarLink(
