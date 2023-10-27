@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Image from '@/components/image'
 import Link from 'next/link'
 import { Locale, getDictionary } from '@/localization'
-import SongThumbnail from '@/components/song-thumbnail'
+import EntityThumbnail from '@/components/entity-thumbnail'
 import { FilledButton } from '@/components/material/filled-button'
 
 export async function generateMetadata(
@@ -79,7 +79,7 @@ export default async function Home(
         <LargeCard title={langDict.home_trending} text='Explore songs that have been trending within the past day, week, or month. ' href={`/${locale}/rankings/trending`} className='md:flex-1 w-full'>
           <div className='h-[192px] w-fit m-auto flex gap-6 items-end justify-center'>
             <div className='flex flex-col gap-3 justify-start items-center h-1/2'>
-              <SongThumbnail
+              <EntityThumbnail
                 src='https://img.youtube.com/vi/2b1IexhKPz4/hqdefault.jpg'
                 alt='Ranking Image'
                 height={35}
@@ -88,7 +88,7 @@ export default async function Home(
               <div className='w-[15px] rounded-full bg-surface-2 flex-1'></div>
             </div>
             <div className='flex flex-col gap-3 justify-start items-center h-3/4'>
-              <SongThumbnail
+              <EntityThumbnail
                 src='https://img.youtube.com/vi/JW3N-HvU0MA/hqdefault.jpg'
                 alt='Ranking Image'
                 height={35}
@@ -97,7 +97,7 @@ export default async function Home(
               <div className='w-[15px] rounded-full bg-surface-2 flex-1'></div>
             </div>
             <div className='flex flex-col gap-3 justify-start items-center h-full'>
-              <SongThumbnail
+              <EntityThumbnail
                 src='https://img.youtube.com/vi/FkO8ub83wss/hqdefault.jpg'
                 alt='Ranking Image'
                 height={35}
@@ -196,7 +196,7 @@ function DummyRanking(
   return (
     <div className='w-full box-border bg-surface-2 text-on-surface flex gap-[10px] px-[10px] py-[8px] items-center rounded-xl'>
       <div className='h-[30px] w-[30px] flex items-center justify-center text-xl'>{rank}</div>
-      <SongThumbnail
+      <EntityThumbnail
         src={image}
         alt='Ranking Image'
         height={35}

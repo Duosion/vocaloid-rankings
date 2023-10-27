@@ -195,7 +195,7 @@ export function ArtistSearchFilter(
                 {value.map(id => {
                     const name = entityNames[id]
                     return name ? (
-                        <ActiveFilter name={name} icon='close' onClick={() => removeArtist(id)}/>
+                        <ActiveFilter key={id} name={name} icon='close' onClick={() => removeArtist(id)}/>
                     ) : undefined
                 })}
             </ul>

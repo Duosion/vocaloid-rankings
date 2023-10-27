@@ -75,7 +75,7 @@ export const elevationToClass: {[key in Elevation]: string} = {
 
 export const imageDisplayModeStyles: { [key in ImageDisplayMode]: CSSProperties } = {
     [ImageDisplayMode.SONG]: {
-        transform: 'scaleX(1.5) scaleY(1.5)',
+        transform: 'scaleX(1.45) scaleY(1.45)',
         objectPosition: 'center center'
     },
     [ImageDisplayMode.VOCALIST]: {

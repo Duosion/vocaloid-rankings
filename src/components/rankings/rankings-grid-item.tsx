@@ -4,6 +4,7 @@ import { CSSProperties, useRef } from "react"
 import { Transition, TransitionStatus } from "react-transition-group"
 import { imageDisplayModeStyles } from '@/lib/material/material'
 import { ImageDisplayMode } from '@/lib/material/types'
+import EntityThumbnail from '../entity-thumbnail'
 
 const transitionStyles: { [key in TransitionStatus]: CSSProperties } = {
     entering: {
@@ -70,16 +71,13 @@ export function RankingsGridItem(
                 }}>
                     <div className="text-xl bg-inverse-surface text-inverse-on-surface rounded-xl absolute -left-5 -top-4 p-2 z-[5] font-black border border-outline-variant box-border">#{placement}</div>
                     <Link href={href} className="aspect-square w-full h-auto overflow-hidden relative rounded-3xl flex justify-center items-center border border-outline-variant box-border">
-                        <Image
+                        <EntityThumbnail
                             fill
                             src={icon}
                             alt={iconAlt}
-                            className="object-cover flex items-center justify-center font-bold text-on-primary text-center"
-                            style={{
-                                backgroundColor: color,
-                                ...imageDisplayModeStyles[imageDisplayMode]
-                            }}
-                        />
+                            imageDisplayMode={imageDisplayMode}
+                            fillColor={color}
+                        ></EntityThumbnail>
                     </Link>
                     <Link href={href} className="max-w-full"><h3 className="overflow-clip text-ellipsis text-on-surface transition-colors hover:text-inherit text-center font-semibold text-2xl">{titleContent}</h3></Link>
                     <section className="text-on-surface-variant items-center justify-center text-xl inline text-center">
