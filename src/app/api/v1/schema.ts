@@ -210,6 +210,7 @@ import {
  *     includeArtistTypes: [ArtistType]
  *     excludeArtistTypes: [ArtistType]
  *     artistCategory: ArtistCategory
+ *     songPublishDate: String
  *     publishDate: String
  *     orderBy: FilterOrder
  *     direction: FilterDirection
@@ -1098,6 +1099,7 @@ const artistRankingsFilterResultType = new GraphQLObjectType({
 *     includeArtistTypes: [ArtistType]
 *     excludeArtistTypes: [ArtistType]
 *     artistCategory: ArtistCategory
+*     songPublishDate: String
 *     publishDate: String
 *     orderBy: FilterOrder
 *     direction: FilterDirection
@@ -1383,9 +1385,13 @@ const queryType = new GraphQLObjectType({
                     type: artistCategoryEnum,
                     description: 'If provided, only counts songs where artists are of the specified category.'
                 },
+                songPublishDate: {
+                    type: GraphQLString,
+                    description: 'Only count songs with the provided publish date.'
+                },
                 publishDate: {
                     type: GraphQLString,
-                    description: 'Only include songs with the provided publish date.'
+                    description: 'Only include artists with the provided publish date.'
                 },
                 orderBy: {
                     type: filterOrderEnum,
@@ -1454,6 +1460,7 @@ const queryType = new GraphQLObjectType({
                     includeArtistTypes,
                     excludeArtistTypes,
                     artistCategory,
+                    songPublishDate,
                     publishDate,
                     orderBy,
                     direction,
@@ -1480,6 +1487,7 @@ const queryType = new GraphQLObjectType({
                     includeArtistTypes?: number[]
                     excludeArtistTypes?: number[]
                     artistCategory?: number
+                    songPublishDate?: string
                     publishDate?: string
                     orderBy?: number
                     direction?: number
@@ -1509,6 +1517,7 @@ const queryType = new GraphQLObjectType({
                 filterParams.includeArtistTypes = includeArtistTypes
                 filterParams.excludeArtistTypes = excludeArtistTypes
                 filterParams.artistCategory = artistCategory
+                filterParams.songPublishDate = songPublishDate
                 filterParams.publishDate = publishDate
                 filterParams.orderBy = orderBy === undefined ? filterParams.orderBy : orderBy
                 filterParams.direction = direction === undefined ? filterParams.direction : direction

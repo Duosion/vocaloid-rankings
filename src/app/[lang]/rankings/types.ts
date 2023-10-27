@@ -222,6 +222,9 @@ export interface SongRankingsFilterBarValues {
 export interface ArtistRankingsFilters {
     search: InputFilter
     timePeriod: SelectFilter<number>
+    songPublishYear: InputFilter
+    songPublishMonth: InputFilter
+    songPublishDay: InputFilter
     releaseYear: InputFilter
     releaseMonth: InputFilter
     releaseDay: InputFilter
@@ -246,6 +249,9 @@ export interface ArtistRankingsFilters {
 export interface ArtistRankingsFiltersValues {
     search?: string
     timePeriod?: number
+    songPublishYear?: string
+    songPublishMonth?: string
+    songPublishDay?: string
     releaseYear?: string
     releaseMonth?: string
     releaseDay?: string
@@ -269,6 +275,9 @@ export interface ArtistRankingsFiltersValues {
 export interface ArtistRankingsFilterBarValues {
     search?: string
     timePeriod?: number
+    songPublishYear?: string
+    songPublishMonth?: string
+    songPublishDay?: string
     releaseYear?: string
     releaseMonth?: string
     releaseDay?: string

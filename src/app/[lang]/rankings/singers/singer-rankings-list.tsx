@@ -164,47 +164,46 @@ export function SingerRankingsActiveFilterBar(
                 <Divider />
 
                 <FilterGroup>
-                    {/* Release Year */}
+                    {/* Song Publish Year */}
                     <NumberSelectFilterElement
                         reverse
-                        name={langDict[filters.releaseYear.name]}
-                        placeholder={langDict[filters.releaseYear.placeholder]}
-                        value={Number(filterValues.releaseYear)}
+                        name={langDict[filters.songPublishYear.name]}
+                        placeholder={langDict[filters.songPublishYear.placeholder]}
+                        value={Number(filterValues.songPublishYear)}
                         defaultValue={0}
                         start={2007}
                         end={new Date().getFullYear() + 1}
                         onValueChanged={newValue => {
-                            filterValues.releaseYear = newValue == undefined ? undefined : String(newValue)
+                            filterValues.songPublishYear = newValue == undefined ? undefined : String(newValue)
                             setFilterValues(filterValues)
                         }}
                     />
-                    {/* Release Month */}
+                    {/* Song Publish Month */}
                     <NumberSelectFilterElement
-                        name={langDict[filters.releaseMonth.name]}
-                        placeholder={langDict[filters.releaseMonth.placeholder]}
-                        value={Number(filterValues.releaseMonth)}
+                        name={langDict[filters.songPublishMonth.name]}
+                        placeholder={langDict[filters.songPublishMonth.placeholder]}
+                        value={Number(filterValues.songPublishMonth)}
                         defaultValue={0}
                         start={1}
                         end={13}
                         onValueChanged={newValue => {
-                            filterValues.releaseMonth = newValue == undefined ? undefined : String(newValue)
+                            filterValues.songPublishMonth = newValue == undefined ? undefined : String(newValue)
                             setFilterValues(filterValues)
                         }}
                     />
-                    {/* Release Day */}
+                    {/* Song Publish Day */}
                     <NumberSelectFilterElement
-                        name={langDict[filters.releaseDay.name]}
-                        placeholder={langDict[filters.releaseDay.placeholder]}
-                        value={Number(filterValues.releaseDay)}
+                        name={langDict[filters.songPublishDay.name]}
+                        placeholder={langDict[filters.songPublishDay.placeholder]}
+                        value={Number(filterValues.songPublishDay)}
                         defaultValue={0}
                         start={1}
                         end={32}
                         onValueChanged={newValue => {
-                            filterValues.releaseDay = newValue == undefined ? undefined : String(newValue)
+                            filterValues.songPublishDay = newValue == undefined ? undefined : String(newValue)
                             setFilterValues(filterValues)
                         }}
                     />
-
                 </FilterGroup>
                 <FilterGroup>
                     {/* Time Period */}
@@ -260,7 +259,48 @@ export function SingerRankingsActiveFilterBar(
                 </FilterGroup>
 
                 <Divider />
-
+                <FilterGroup>
+                    {/* Release Year */}
+                    <NumberSelectFilterElement
+                        reverse
+                        name={langDict[filters.releaseYear.name]}
+                        placeholder={langDict[filters.releaseYear.placeholder]}
+                        value={Number(filterValues.releaseYear)}
+                        defaultValue={0}
+                        start={2007}
+                        end={new Date().getFullYear() + 1}
+                        onValueChanged={newValue => {
+                            filterValues.releaseYear = newValue == undefined ? undefined : String(newValue)
+                            setFilterValues(filterValues)
+                        }}
+                    />
+                    {/* Release Month */}
+                    <NumberSelectFilterElement
+                        name={langDict[filters.releaseMonth.name]}
+                        placeholder={langDict[filters.releaseMonth.placeholder]}
+                        value={Number(filterValues.releaseMonth)}
+                        defaultValue={0}
+                        start={1}
+                        end={13}
+                        onValueChanged={newValue => {
+                            filterValues.releaseMonth = newValue == undefined ? undefined : String(newValue)
+                            setFilterValues(filterValues)
+                        }}
+                    />
+                    {/* Release Day */}
+                    <NumberSelectFilterElement
+                        name={langDict[filters.releaseDay.name]}
+                        placeholder={langDict[filters.releaseDay.placeholder]}
+                        value={Number(filterValues.releaseDay)}
+                        defaultValue={0}
+                        start={1}
+                        end={32}
+                        onValueChanged={newValue => {
+                            filterValues.releaseDay = newValue == undefined ? undefined : String(newValue)
+                            setFilterValues(filterValues)
+                        }}
+                    />
+                </FilterGroup>
                 <FilterGroup>
                     {/* Include Artists */}
                     <ArtistSearchFilter

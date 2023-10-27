@@ -19,6 +19,7 @@ import { useSettings } from "../settings/settings-provider"
 import { SongRankingsActiveFilterBar } from "./song-rankings-filters"
 import { EntityNames, FilterType, InputFilter, RankingsFilters, RankingsViewMode, SongRankingsFilterBarValues, SongRankingsFiltersValues } from "./types"
 import { decodeBoolean, decodeMultiFilter, encodeBoolean, encodeMultiFilter, parseParamSelectFilterValue } from "./utils"
+import { buildFuzzyDate } from "@/lib/utils"
 
 const GET_ARTISTS_NAMES = gql`
 query GetArtistsNames(
@@ -108,17 +109,11 @@ export function RankingsList(
         const excludeArtistTypes = filterBarValues.excludeArtistTypes?.map(type => ArtistType[type])
 
         // build publish date
-        const yearParam = filterBarValues.publishYear
-        const monthParam = filterBarValues.publishMonth
-        const dayParam = filterBarValues.publishDay
+        const publishYear = filterBarValues.publishYear
+        const publishMonth = filterBarValues.publishMonth
+        const publishDay = filterBarValues.publishDay
 
-        let publishDate: string | undefined = undefined
-        if (yearParam || monthParam || dayParam) {
-            const year = !yearParam || isNaN(Number(yearParam)) ? '%' : yearParam
-            const month = !monthParam || isNaN(Number(monthParam)) ? '%' : monthParam.padStart(2, '0')
-            const day = !dayParam || isNaN(Number(dayParam)) ? '%' : dayParam.padStart(2, '0')
-            publishDate = `${year}-${month}-${day}%`
-        }
+        const publishDate = (publishYear || publishMonth || publishDay) ? buildFuzzyDate(publishYear, publishMonth, publishDay) : undefined
 
         // get custom time period offset
         const to = filterBarValues.timestamp || currentTimestampDate

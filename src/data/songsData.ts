@@ -582,6 +582,7 @@ function getArtistRankingsFilterQueryParams(
         timePeriodOffset: filterParams.timePeriodOffset,
         daysOffset: daysOffset == null ? filterParams.daysOffset : daysOffset + (filterParams.daysOffset || 0),
         artistCategory: filterParams.artistCategory,
+        songPublishDate: filterParams.songPublishDate || null, 
         publishDate: filterParams.publishDate || null,
         orderBy: filterParams.orderBy,
         direction: filterParams.direction,
@@ -751,16 +752,12 @@ function filterArtistRankingsRawSync(
     const filterExcludeSongsStatement = statements.excludeSongs || ''
     const filterIncludeSourceTypesStatement = statements.includeSourceTypes || ''
     const filterExcludeSourceTypesStatement = statements.excludeSourceTypes || ''
-    const filterOffsetIncludeSourceTypesStatement = statements.offsetIncludeSourceTypes || ''
-    const filterOffsetExcludeSourceTypesStatement = statements.offsetExcludeSourceTypes || ''
     const filterOffsetSubIncludeSourceTypesStatement = statements.subOffsetIncludeSourceTypes || ''
     const filterOffsetSubExcludeSourceTypesStatement = statements.subOffsetExcludeSourceTypes || ''
     const filterIncludeSongTypesStatement = statements.includeSongTypes || ''
     const filterExcludeSongTypesStatement = statements.excludeSongTypes || ''
     const filterIncludeArtistTypesStatement = statements.includeArtistTypes || ''
     const filterExcludeArtistTypesStatement = statements.excludeArtistTypes || ''
-    const filterAncestorIncludeArtistTypesStatement = statements.ancestorIncludeArtistTypes || ''
-    const filterAncestorExcludeArtistTypesStatement = statements.ancestorExcludeArtistTypes || ''
 
     return db.prepare(`
     WITH RECURSIVE artist_hierarchy AS (
@@ -790,7 +787,8 @@ function filterArtistRankingsRawSync(
             THEN :timestamp
             ELSE DATE(:timestamp, '-' || :daysOffset || ' day')
         END)
-        AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
+        AND (:songPublishDate IS NULL OR songs.publish_date LIKE :songPublishDate)
+        AND (:publishDate IS NULL OR artists.publish_date LIKE :publishDate)
         AND (songs_artists.artist_category = :artistCategory OR :artistCategory IS NULL)
         AND (:search IS NULL OR EXISTS (
             SELECT artists_names.artist_id 
@@ -811,7 +809,8 @@ function filterArtistRankingsRawSync(
                 WHERE (sub_vb.view_type = views_breakdowns.view_type)
                     AND (sub_vb.timestamp = views_breakdowns.timestamp)
                     AND (sub_vb.song_id = views_breakdowns.song_id)
-                    AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
+                    AND (:songPublishDate IS NULL OR songs.publish_date LIKE :songPublishDate)
+                    AND (:publishDate IS NULL OR artists.publish_date LIKE :publishDate)
                     AND (songs_artists.artist_category = :artistCategory OR :artistCategory IS NULL)
                     AND (artists_names.name LIKE :search OR :search IS NULL)${filterOffsetSubIncludeSourceTypesStatement}${filterOffsetSubExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterIncludeArtistsStatement}${filterExcludeArtistsStatement}${filterIncludeSongsStatement}${filterExcludeSongsStatement}
                 GROUP BY sub_vb.song_id)
@@ -837,7 +836,8 @@ function filterArtistRankingsRawSync(
             THEN DATE(:timestamp, '-' || :timePeriodOffset || ' day')
             ELSE DATE(DATE(:timestamp, '-' || :daysOffset || ' day'), '-' || :timePeriodOffset || ' day')
         END)
-        AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
+        AND (:songPublishDate IS NULL OR songs.publish_date LIKE :songPublishDate)
+        AND (:publishDate IS NULL OR artists.publish_date LIKE :publishDate)
         AND (songs_artists.artist_category = :artistCategory OR :artistCategory IS NULL)
         AND (:search IS NULL OR EXISTS (
             SELECT artists_names.artist_id 
@@ -858,7 +858,8 @@ function filterArtistRankingsRawSync(
                 WHERE (sub_vb.view_type = views_breakdowns.view_type)
                     AND (sub_vb.timestamp = views_breakdowns.timestamp)
                     AND (sub_vb.song_id = views_breakdowns.song_id)
-                    AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
+                    AND (:songPublishDate IS NULL OR songs.publish_date LIKE :songPublishDate)
+                    AND (:publishDate IS NULL OR artists.publish_date LIKE :publishDate)
                     AND (songs_artists.artist_category = :artistCategory OR :artistCategory IS NULL)
                     AND (artists_names.name LIKE :search OR :search IS NULL)${filterOffsetSubIncludeSourceTypesStatement}${filterOffsetSubExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterIncludeArtistsStatement}${filterExcludeArtistsStatement}${filterIncludeSongsStatement}${filterExcludeSongsStatement}
                 GROUP BY sub_vb.song_id)

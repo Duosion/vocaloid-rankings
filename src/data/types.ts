@@ -199,6 +199,7 @@ export class ArtistRankingsFilterParams {
     includeArtistTypes?: ArtistType[]
     excludeArtistTypes?: ArtistType[]
     artistCategory?: ArtistCategory
+    songPublishDate?: string
     publishDate?: string
     orderBy: FilterOrder = FilterOrder.VIEWS
     direction: FilterDirection = FilterDirection.DESCENDING
@@ -228,6 +229,7 @@ export class ArtistRankingsFilterParams {
         includeArtistTypes?: ArtistType[],
         excludeArtistTypes?: ArtistType[],
         artistCategory?: ArtistCategory,
+        songPublishDate?: string,
         publishDate?: string,
         orderBy?: FilterOrder,
         direction?: FilterDirection,
@@ -256,6 +258,7 @@ export class ArtistRankingsFilterParams {
         this.includeArtistTypes = includeArtistTypes
         this.excludeArtistTypes = excludeArtistTypes
         this.artistCategory = artistCategory
+        this.songPublishDate = songPublishDate
         this.publishDate = publishDate
         this.orderBy = orderBy || this.orderBy
         this.direction = direction || this.direction

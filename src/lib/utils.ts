@@ -34,3 +34,14 @@ export const generateTimestamp = (
 ): string => {
     return date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, '0') + "-" + String(date.getDate()).padStart(2, '0')
 }
+
+export const buildFuzzyDate = (
+    year?: string,
+    month?: string,
+    day?: string
+): string => {
+    const fuzzyYear = !year || isNaN(Number(year)) ? '%' : year
+    const fuzzyMonth = !month || isNaN(Number(month)) ? '%' : month.padStart(2, '0')
+    const fuzzyDay = !day || isNaN(Number(day)) ? '%' : day.padStart(2, '0')
+    return `${fuzzyYear}-${fuzzyMonth}-${fuzzyDay}%`
+}

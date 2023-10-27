@@ -30,6 +30,30 @@ const filters: ArtistRankingsFilters = {
         ],
         defaultValue: 0
     },
+    songPublishYear: {
+        name: 'artist_filter_song_year',
+        key: 'songPublishYear',
+        displayActive: true,
+        type: FilterType.INPUT,
+        placeholder: 'filter_year_any',
+        defaultValue: ''
+    },
+    songPublishMonth: {
+        name: 'artist_filter_song_month',
+        key: 'songPublishMonth',
+        displayActive: true,
+        type: FilterType.INPUT,
+        placeholder: 'filter_year_any',
+        defaultValue: ''
+    },
+    songPublishDay: {
+        name: 'artist_filter_song_day',
+        key: 'songPublishDay',
+        displayActive: true,
+        type: FilterType.INPUT,
+        placeholder: 'filter_year_any',
+        defaultValue: ''
+    },
     releaseYear: {
         name: 'artist_filter_year',
         key: 'releaseYear',
@@ -107,14 +131,8 @@ const filters: ArtistRankingsFilters = {
             { name: 'filter_artist_type_vocaloid', value: ArtistType.VOCALOID },
             { name: 'filter_artist_type_cevio', value: ArtistType.CEVIO },
             { name: 'filter_artist_type_synth_v', value: ArtistType.SYNTHESIZER_V },
-            { name: 'filter_artist_type_illustrator', value: ArtistType.ILLUSTRATOR },
-            { name: 'filter_artist_type_cover_artist', value: ArtistType.COVER_ARTIST },
-            { name: 'filter_artist_type_animator', value: ArtistType.ANIMATOR },
-            { name: 'filter_artist_type_producer', value: ArtistType.PRODUCER },
             { name: 'filter_artist_type_other_vocalist', value: ArtistType.OTHER_VOCALIST },
             { name: 'filter_artist_type_other_voice_synth', value: ArtistType.OTHER_VOICE_SYNTHESIZER },
-            { name: 'filter_artist_type_other_individual', value: ArtistType.OTHER_INDIVIDUAL },
-            { name: 'filter_artist_type_other_group', value: ArtistType.OTHER_GROUP },
             { name: 'filter_artist_type_utau', value: ArtistType.UTAU },
         ]
     },
@@ -127,14 +145,8 @@ const filters: ArtistRankingsFilters = {
             { name: 'filter_artist_type_vocaloid', value: ArtistType.VOCALOID },
             { name: 'filter_artist_type_cevio', value: ArtistType.CEVIO },
             { name: 'filter_artist_type_synth_v', value: ArtistType.SYNTHESIZER_V },
-            { name: 'filter_artist_type_illustrator', value: ArtistType.ILLUSTRATOR },
-            { name: 'filter_artist_type_cover_artist', value: ArtistType.COVER_ARTIST },
-            { name: 'filter_artist_type_animator', value: ArtistType.ANIMATOR },
-            { name: 'filter_artist_type_producer', value: ArtistType.PRODUCER },
             { name: 'filter_artist_type_other_vocalist', value: ArtistType.OTHER_VOCALIST },
             { name: 'filter_artist_type_other_voice_synth', value: ArtistType.OTHER_VOICE_SYNTHESIZER },
-            { name: 'filter_artist_type_other_individual', value: ArtistType.OTHER_INDIVIDUAL },
-            { name: 'filter_artist_type_other_group', value: ArtistType.OTHER_GROUP },
             { name: 'filter_artist_type_utau', value: ArtistType.UTAU },
         ]
     },

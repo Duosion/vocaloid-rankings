@@ -19,6 +19,7 @@ import { ArtistRankingsFilterBarValues, ArtistRankingsFilters, ArtistRankingsFil
 import { decodeBoolean, decodeMultiFilter, encodeBoolean, encodeMultiFilter, parseParamSelectFilterValue } from "../utils"
 import { SingerRankingsActiveFilterBar } from "./singer-rankings-list"
 import { ImageDisplayMode } from "@/lib/material/types"
+import { buildFuzzyDate } from "@/lib/utils"
 
 const GET_ARTISTS_NAMES = gql`
 query GetArtistsNames(
@@ -37,6 +38,15 @@ query GetArtistsNames(
     }
 }
 `
+
+const defaultIncludeArtistTypes = [
+    ArtistType[ArtistType.VOCALOID],
+    ArtistType[ArtistType.CEVIO],
+    ArtistType[ArtistType.SYNTHESIZER_V],
+    ArtistType[ArtistType.OTHER_VOCALIST],
+    ArtistType[ArtistType.OTHER_VOICE_SYNTHESIZER],
+    ArtistType[ArtistType.UTAU],
+]
 
 export function SingerRankingsList(
     {
@@ -72,6 +82,9 @@ export function SingerRankingsList(
     let [filterBarValues, setFilterValues] = useState({
         search: filterValues.search,
         timePeriod: filterValues.timePeriod,
+        songPublishYear: filterValues.songPublishYear,
+        songPublishMonth: filterValues.songPublishMonth,
+        songPublishDay: filterValues.songPublishDay,
         releaseYear: filterValues.releaseYear,
         releaseMonth: filterValues.releaseMonth,
         releaseDay: filterValues.releaseDay,
@@ -106,17 +119,13 @@ export function SingerRankingsList(
         const excludeArtistTypes = filterBarValues.excludeArtistTypes?.map(type => ArtistType[type])
 
         // build publish date
-        const yearParam = filterBarValues.releaseYear
-        const monthParam = filterBarValues.releaseMonth
-        const dayParam = filterBarValues.releaseDay
+        const releaseYear = filterBarValues.releaseYear
+        const releaseMonth = filterBarValues.releaseMonth
+        const releaseDay = filterBarValues.releaseDay
 
-        let publishDate: string | undefined = undefined
-        if (yearParam || monthParam || dayParam) {
-            const year = !yearParam || isNaN(Number(yearParam)) ? '%' : yearParam
-            const month = !monthParam || isNaN(Number(monthParam)) ? '%' : monthParam.padStart(2, '0')
-            const day = !dayParam || isNaN(Number(dayParam)) ? '%' : dayParam.padStart(2, '0')
-            publishDate = `${year}-${month}-${day}%`
-        }
+        const songPublishYear = filterBarValues.songPublishYear
+        const songPublishMonth = filterBarValues.songPublishMonth
+        const songPublishDay = filterBarValues.songPublishDay
 
         // get custom time period offset
         const to = filterBarValues.timestamp || currentTimestampDate
@@ -137,10 +146,11 @@ export function SingerRankingsList(
             excludeSourceTypes: excludeSourceTypes && excludeSourceTypes.length > 0 ? excludeSourceTypes : undefined,
             includeSongTypes: includeSongTypes && includeSongTypes.length > 0 ? includeSongTypes : undefined,
             excludeSongTypes: excludeSongTypes && excludeSongTypes.length > 0 ? excludeSongTypes : undefined,
-            includeArtistTypes: includeArtistTypes && includeArtistTypes.length > 0 ? includeArtistTypes : undefined,
+            includeArtistTypes: includeArtistTypes && includeArtistTypes.length > 0 ? includeArtistTypes : defaultIncludeArtistTypes,
             excludeArtistTypes: excludeArtistTypes && excludeArtistTypes.length > 0 ? excludeArtistTypes : undefined,
             artistCategory: ArtistCategory[category],
-            publishDate: publishDate,
+            songPublishDate: (songPublishYear || songPublishMonth || songPublishDay) ? buildFuzzyDate(songPublishYear, songPublishMonth, songPublishDay) : undefined,
+            publishDate: (releaseYear || releaseMonth || releaseDay) ? buildFuzzyDate(releaseYear, releaseMonth, releaseDay) : undefined,
             orderBy: filterBarValues.orderBy == undefined ? undefined : FilterOrder[filterBarValues.orderBy],
             //direction: undefined,
             includeArtists: filterBarValues.includeArtists && filterBarValues.includeArtists.length > 0 ? [...filterBarValues.includeArtists] : undefined, // unpack artists into new table so that the reference is different
