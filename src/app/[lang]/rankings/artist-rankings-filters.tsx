@@ -14,10 +14,10 @@ import { ApolloQueryResult, gql, useQuery } from "@apollo/client"
 import { useTheme } from "next-themes"
 import { useEffect, useState } from "react"
 import { TransitionGroup } from "react-transition-group"
-import { useSettings } from "../../settings/settings-provider"
-import { ArtistRankingsFilterBarValues, ArtistRankingsFilters, ArtistRankingsFiltersValues, EntityNames, FilterType, InputFilter, RankingsViewMode, SongRankingsFilterBarValues } from "../types"
-import { decodeBoolean, decodeMultiFilter, encodeBoolean, encodeMultiFilter, parseParamSelectFilterValue } from "../utils"
-import { SingerRankingsActiveFilterBar } from "./singer-rankings-list"
+import { useSettings } from "../settings/settings-provider"
+import { ArtistRankingsFilterBarValues, ArtistRankingsFilters, ArtistRankingsFiltersValues, EntityNames, FilterType, InputFilter, RankingsViewMode, SongRankingsFilterBarValues } from "./types"
+import { decodeBoolean, decodeMultiFilter, encodeBoolean, encodeMultiFilter, parseParamSelectFilterValue } from "./utils"
+import { SingerRankingsActiveFilterBar } from "./singers/singer-rankings-list"
 import { ImageDisplayMode } from "@/lib/material/types"
 import { buildFuzzyDate } from "@/lib/utils"
 
@@ -39,16 +39,7 @@ query GetArtistsNames(
 }
 `
 
-const defaultIncludeArtistTypes = [
-    ArtistType[ArtistType.VOCALOID],
-    ArtistType[ArtistType.CEVIO],
-    ArtistType[ArtistType.SYNTHESIZER_V],
-    ArtistType[ArtistType.OTHER_VOCALIST],
-    ArtistType[ArtistType.OTHER_VOICE_SYNTHESIZER],
-    ArtistType[ArtistType.UTAU],
-]
-
-export function SingerRankingsList(
+export function ArtistRankingsList(
     {
         href,
         filters,
@@ -146,7 +137,7 @@ export function SingerRankingsList(
             excludeSourceTypes: excludeSourceTypes && excludeSourceTypes.length > 0 ? excludeSourceTypes : undefined,
             includeSongTypes: includeSongTypes && includeSongTypes.length > 0 ? includeSongTypes : undefined,
             excludeSongTypes: excludeSongTypes && excludeSongTypes.length > 0 ? excludeSongTypes : undefined,
-            includeArtistTypes: includeArtistTypes && includeArtistTypes.length > 0 ? includeArtistTypes : defaultIncludeArtistTypes,
+            includeArtistTypes: includeArtistTypes && includeArtistTypes.length > 0 ? includeArtistTypes : filters.includeArtistTypes.defaultValue,
             excludeArtistTypes: excludeArtistTypes && excludeArtistTypes.length > 0 ? excludeArtistTypes : undefined,
             artistCategory: ArtistCategory[category],
             songPublishDate: (songPublishYear || songPublishMonth || songPublishDay) ? buildFuzzyDate(songPublishYear, songPublishMonth, songPublishDay) : undefined,

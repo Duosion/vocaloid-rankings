@@ -4,7 +4,7 @@ import { generateTimestamp } from "@/lib/utils"
 import { Locale, getDictionary } from "@/localization"
 import { cookies } from "next/dist/client/components/headers"
 import { Settings } from "../../settings"
-import { ArtistRankingsFilters, ArtistRankingsFiltersValues, FilterType, SongRankingsFiltersValues } from "../types"
+import { ArtistRankingsFilters, ArtistRankingsFiltersValues, FilterType } from "../types"
 import { ArtistRankingsList } from "../artist-rankings-filters"
 
 const filters: ArtistRankingsFilters = {
@@ -128,20 +128,20 @@ const filters: ArtistRankingsFilters = {
         displayActive: true,
         type: FilterType.MULTI,
         values: [
-            { name: 'filter_artist_type_vocaloid', value: ArtistType.VOCALOID },
-            { name: 'filter_artist_type_cevio', value: ArtistType.CEVIO },
-            { name: 'filter_artist_type_synth_v', value: ArtistType.SYNTHESIZER_V },
-            { name: 'filter_artist_type_other_vocalist', value: ArtistType.OTHER_VOCALIST },
-            { name: 'filter_artist_type_other_voice_synth', value: ArtistType.OTHER_VOICE_SYNTHESIZER },
-            { name: 'filter_artist_type_utau', value: ArtistType.UTAU },
+            { name: 'filter_artist_type_illustrator', value: ArtistType.ILLUSTRATOR },
+            { name: 'filter_artist_type_cover_artist', value: ArtistType.COVER_ARTIST },
+            { name: 'filter_artist_type_animator', value: ArtistType.ANIMATOR },
+            { name: 'filter_artist_type_producer', value: ArtistType.PRODUCER },
+            { name: 'filter_artist_type_other_individual', value: ArtistType.OTHER_INDIVIDUAL },
+            { name: 'filter_artist_type_other_group', value: ArtistType.OTHER_GROUP },
         ],
         defaultValue: [
-            ArtistType[ArtistType.VOCALOID],
-            ArtistType[ArtistType.CEVIO],
-            ArtistType[ArtistType.SYNTHESIZER_V],
-            ArtistType[ArtistType.OTHER_VOCALIST],
-            ArtistType[ArtistType.OTHER_VOICE_SYNTHESIZER],
-            ArtistType[ArtistType.UTAU],
+            ArtistType[ArtistType.ILLUSTRATOR],
+            ArtistType[ArtistType.COVER_ARTIST],
+            ArtistType[ArtistType.ANIMATOR],
+            ArtistType[ArtistType.PRODUCER],
+            ArtistType[ArtistType.OTHER_INDIVIDUAL],
+            ArtistType[ArtistType.OTHER_GROUP]
         ]
     },
     excludeArtistTypes: {
@@ -150,12 +150,12 @@ const filters: ArtistRankingsFilters = {
         displayActive: true,
         type: FilterType.MULTI,
         values: [
-            { name: 'filter_artist_type_vocaloid', value: ArtistType.VOCALOID },
-            { name: 'filter_artist_type_cevio', value: ArtistType.CEVIO },
-            { name: 'filter_artist_type_synth_v', value: ArtistType.SYNTHESIZER_V },
-            { name: 'filter_artist_type_other_vocalist', value: ArtistType.OTHER_VOCALIST },
-            { name: 'filter_artist_type_other_voice_synth', value: ArtistType.OTHER_VOICE_SYNTHESIZER },
-            { name: 'filter_artist_type_utau', value: ArtistType.UTAU },
+            { name: 'filter_artist_type_illustrator', value: ArtistType.ILLUSTRATOR },
+            { name: 'filter_artist_type_cover_artist', value: ArtistType.COVER_ARTIST },
+            { name: 'filter_artist_type_animator', value: ArtistType.ANIMATOR },
+            { name: 'filter_artist_type_producer', value: ArtistType.PRODUCER },
+            { name: 'filter_artist_type_other_individual', value: ArtistType.OTHER_INDIVIDUAL },
+            { name: 'filter_artist_type_other_group', value: ArtistType.OTHER_GROUP },
         ]
     },
     minViews: {
@@ -262,7 +262,7 @@ export default async function RankingsPage(
 
     return (
         <section className="flex flex-col gap-5 w-full min-h-screen">
-            <h1 className="font-extrabold md:text-5xl md:text-left text-4xl text-center w-full">{langDict.singer_rankings_page_title}</h1>
+            <h1 className="font-extrabold md:text-5xl md:text-left text-4xl text-center w-full">{langDict.producer_rankings_page_title}</h1>
             <ArtistRankingsList
                 href=''
                 filters={filters}
@@ -270,7 +270,7 @@ export default async function RankingsPage(
                 filterValues={searchParams}
                 currentTimestamp={mostRecentTimestamp}
                 viewMode={viewMode}
-                category={ArtistCategory.VOCALIST}
+                category={ArtistCategory.PRODUCER}
             />
         </section>
     )

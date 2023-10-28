@@ -24,6 +24,7 @@ export default function EntityThumbnail(
     return (
         <div className={`overflow-hidden relative rounded-xl flex justify-center items-center`} style={{ height: fill ? '100%' : height, width: fill ? '100%' : width, minWidth: width, minHeight: height }}>
             <Image
+            className='text-on-primary text-center flex items-center justify-center'
                 fill
                 src={src}
                 alt={alt}

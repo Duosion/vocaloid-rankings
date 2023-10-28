@@ -81,15 +81,18 @@ export class InputFilter extends Filter {
 
 export class MultiFilter<Enum> extends Filter {
     values: SelectFilterValue<Enum>[]
+    defaultValue?: string[]
 
     constructor(
         name: LanguageDictionaryKey,
         key: string,
         displayActive: boolean = true,
-        values: SelectFilterValue<Enum>[]
+        values: SelectFilterValue<Enum>[],
+        defaultValue?: string[]
     ) {
         super(name, key, displayActive, FilterType.MULTI)
         this.values = values
+        this.defaultValue = defaultValue
     }
 }
 
