@@ -122,6 +122,7 @@ query ArtistRankings(
     $includeArtistTypes: [ArtistType]
     $excludeArtistTypes: [ArtistType]
     $artistCategory: ArtistCategory
+    $songPublishDate: String
     $publishDate: String
     $orderBy: FilterOrder
     $direction: FilterDirection
@@ -149,6 +150,7 @@ query ArtistRankings(
         includeArtistTypes: $includeArtistTypes
         excludeArtistTypes: $excludeArtistTypes
         artistCategory: $artistCategory
+        songPublishDate: $songPublishDate
         publishDate: $publishDate
         orderBy: $orderBy
         direction: $direction
