@@ -1,4 +1,4 @@
-export function DummyRankingsGridItem(
+export function RankingsSkeletonGridItem(
     {
         keyValue
     }: {

@@ -1,30 +1,32 @@
 'use client'
+import { EntitySection } from "@/components/entity/entity-section"
 import { EntityName } from "@/components/formatters/entity-name"
-import { RankingListItem } from "@/components/rankings/rankings-list-item"
+import { NumberFormatter } from "@/components/formatters/number-formatter"
+import { FilledButton } from "@/components/material/filled-button"
+import { FilledIconButton } from "@/components/material/filled-icon-button"
+import { RankingsGrid } from "@/components/rankings/rankings-grid"
+import { RankingsGridItem } from "@/components/rankings/rankings-grid-item"
+import { RankingsSkeleton } from "@/components/rankings/rankings-skeleton"
 import { GET_SONG_RANKINGS, buildEntityNames } from "@/lib/api"
 import { ApiSongRankingsFilterResult } from "@/lib/api/types"
 import { LanguageDictionary, getEntityName } from "@/localization"
 import { useQuery } from "@apollo/client"
-import { useSettings } from "../../settings/settings-provider"
-import { DummyRankingsListItem } from "@/components/rankings/dummy-rankings-list-item"
-import { NumberFormatter } from "@/components/formatters/number-formatter"
-import { SongArtistsLabel } from "@/components/formatters/song-artists-label"
-import { DummyRankingsGridItem } from "@/components/rankings/dummy-rankings-grid-item"
-import { RankingsGridItem } from "@/components/rankings/rankings-grid-item"
 import { useTheme } from "next-themes"
-import { EntitySection } from "@/components/entity/entity-section"
-import { FilledButton } from "@/components/material/filled-button"
-import { FilledIconButton } from "@/components/material/filled-icon-button"
+import { RankingsViewMode } from "../../rankings/types"
+import { useSettings } from "../../settings/settings-provider"
+import { RankingsGridColumns } from "@/lib/material/types"
 
 export function TopSongs(
     {
         artistId,
         langDict,
-        maxEntries
+        maxEntries,
+        columns
     }: {
         artistId: number
         langDict: LanguageDictionary
         maxEntries: number
+        columns?: RankingsGridColumns
     }
 ) {
     // import contexts
@@ -45,15 +47,7 @@ export function TopSongs(
 
     const ErrorMessage = ({ message }: { message: string }) => <h2 className="text-3xl font-bold text-center text-on-background">{message}</h2>
 
-    // generate dummy rankings
-    const dummyElements: JSX.Element[] = []
-    if (loading) {
-        for (let i = 0; i < maxEntries; i++) {
-            dummyElements.push(<DummyRankingsGridItem keyValue={i} />)
-        }
-    }
-
-    return rankingsResult != undefined && rankingsResult.totalCount === 0 ? undefined  : <EntitySection
+    return rankingsResult != undefined && rankingsResult.totalCount === 0 ? undefined : <EntitySection
         title={langDict.artist_top_songs}
         titleSupporting={
             rankingsResult != undefined && rankingsResult.totalCount > maxEntries ? <>
@@ -62,12 +56,12 @@ export function TopSongs(
             </> : undefined
         }
     >
-        <ol className="grid xl:grid-cols-6 lg:grid-cols-5 md:grid-cols-4 grid-cols-3 px-5 gap-6 w-full mt-3 py-3">
+        <article className="mx-2 mt-3">
             {
                 error ? <ErrorMessage message={error.message} />
-                    : loading ? dummyElements
+                    : loading ? <RankingsSkeleton elementCount={maxEntries} viewMode={RankingsViewMode.GRID} columns={columns} />
                         : rankingsResult == undefined || (rankingsResult && 0 >= rankingsResult.results.length) ? <ErrorMessage message={langDict.search_no_results} />
-                            : rankingsResult.results.map(ranking => {
+                            : <RankingsGrid columns={columns}>{rankingsResult.results.map(ranking => {
                                 const song = ranking.song
                                 const names = buildEntityNames(song.names)
 
@@ -87,8 +81,8 @@ export function TopSongs(
                                         in
                                     />
                                 )
-                            })
+                            })}</RankingsGrid>
             }
-        </ol>
+        </article>
     </EntitySection>
 }

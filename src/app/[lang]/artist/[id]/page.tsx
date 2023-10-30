@@ -14,12 +14,11 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { Settings } from "../../settings"
 import { TopSongs } from "./top-songs"
-import { BaseIconButton } from "@/components/material/base-icon-button"
-import { IconButton } from "@/components/material/icon-button"
-import { FilledIconButton } from "@/components/material/filled-icon-button"
-import { FilledButton } from "@/components/material/filled-button"
-import { Divider } from "@/components/material/divider"
 import { EntitySection } from "@/components/entity/entity-section"
+import { ArtistCard } from "@/components/entity/artist-card"
+import { Suspense } from "react"
+import { RankingsSkeleton } from "@/components/rankings/rankings-skeleton"
+import { RankingsViewMode } from "../../rankings/types"
 
 // interfaces
 interface ViewsBreakdown {
@@ -134,6 +133,9 @@ export default async function SongPage(
         />
     )
 
+    // get base artist
+    const baseArtist = artist.baseArtist
+
     return (
         <article className='max-w-screen-xl m-auto w-full min-h-[100vh] flex flex-col gap-5 justify-start items-start'>
             <style>{`
@@ -169,6 +171,18 @@ export default async function SongPage(
 
             <div className="mt-3 w-full grid md:grid-cols-sidebar grid-cols-1 gap-5">
                 <aside className="flex flex-col gap-5">
+                    
+                    {baseArtist ? <StatRow title={langDict.artist_based_on}>
+                        <ArtistCard
+                            src={baseArtist.thumbnails[ArtistThumbnailType.SMALL] || baseArtist.thumbnails[ArtistThumbnailType.ORIGINAL]}
+                            alt={getEntityName(baseArtist.names, settingTitleLanguage)}
+                            bgColor={baseArtist.averageColor}
+                            href={`/${lang}/artist/${baseArtist.id}`}
+                            title={<EntityName names={baseArtist.names} preferred={settingTitleLanguage} />}
+                            text={langDict[ArtistTypeLocaleTokens[baseArtist.type]]}
+                            isSinger={true}
+                        />
+                    </StatRow> : undefined}
                     <ul className="bg-surface-container rounded-2xl p-5 box-border flex md:flex-col flex-row gap-5 overflow-x-auto overflow-y-clip md:overflow-x-clip">
                         <StatRow title={langDict.filter_publish_date}>
                             <DateFormatter date={new Date(artist.publishDate)} />
@@ -185,7 +199,7 @@ export default async function SongPage(
                 </aside>
                 <div className="flex gap-5 flex-col">
                     {/* Top Songs */}
-                    <TopSongs artistId={artistId} langDict={langDict} maxEntries={6} />
+                    <TopSongs artistId={artistId} langDict={langDict} maxEntries={6} columns={{extraLarge: 6, large: 5, medium: 3, small: 3, default: 2}}/>
                     
                     {/* Breakdown */}
                     <div className="grid gap-5 lg:grid-cols-2 grid-cols-1">

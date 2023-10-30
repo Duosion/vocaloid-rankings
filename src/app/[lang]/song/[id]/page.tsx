@@ -14,6 +14,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { Settings } from "../../settings"
 import { EntitySection } from "@/components/entity/entity-section"
+import { ArtistCard } from "@/components/entity/artist-card"
 
 // interfaces
 interface ViewsBreakdown {
@@ -350,43 +351,4 @@ function StatRow(
         <h4 className="text-lg text-on-surface font-semibold w-full md:whitespace-break-spaces">{title}</h4>
         <span className="text-lg text-on-surface-variant w-full md:whitespace-break-spaces">{text || children}</span>
     </li>
-}
-
-function ArtistCard(
-    {
-        src,
-        alt,
-        bgColor,
-        href,
-        title,
-        text,
-        isSinger = false,
-        className
-    }: {
-        src: string
-        alt: string
-        bgColor: string
-        href: string
-        title: React.ReactNode
-        text: string
-        isSinger?: boolean
-        className?: string
-    }
-) {
-    return (
-        <Link className={`bg-surface-container text-on-surface rounded-2xl relative flex gap-3 items-center overflow-clip before:absolute before:w-full before:h-full before:left-0 before:top-0 before:rounded-2xl before:bg-primary before:opacity-0 hover:before:opacity-[0.03] hover:text-primary before:transition-opacity ${className}`} href={href}>
-            <figure className="relative aspect-square overflow-clip h-14 w-14 flex justify-start items-center m-2 rounded-2xl border border-outline-variant" style={{ backgroundColor: bgColor }}>
-                <Image
-                    fill
-                    src={src}
-                    alt={alt}
-                    style={{ objectFit: "cover", objectPosition: isSinger ? 'top' : 'center' }}
-                />
-            </figure>
-            <section className="flex flex-col py-1 overflow-hidden mr-2">
-                <h4 className="text-xl font-semibold w-full whitespace-nowrap overflow-clip text-ellipsis text-inherit transition-colors">{title}</h4>
-                <span className="text-md text-on-surface-variant w-full">{text}</span>
-            </section>
-        </Link>
-    )
 }

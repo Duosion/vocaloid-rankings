@@ -3,8 +3,8 @@ import { EntityName } from "@/components/formatters/entity-name"
 import { NumberFormatter } from "@/components/formatters/number-formatter"
 import { SongArtistsLabel } from "@/components/formatters/song-artists-label"
 import { Divider } from "@/components/material/divider"
-import { DummyRankingsGridItem } from "@/components/rankings/dummy-rankings-grid-item"
-import { DummyRankingsListItem } from "@/components/rankings/dummy-rankings-list-item"
+import { RankingsSkeletonGridItem } from "@/components/rankings/rankings-grid-skeleton-item"
+import { RankingsSkeletonListItem } from "@/components/rankings/rankings-list-skeleton-item"
 import { RankingsGridItem } from "@/components/rankings/rankings-grid-item"
 import { RankingListItem } from "@/components/rankings/rankings-list-item"
 import { ArtistType, FilterInclusionMode, FilterOrder, SongType, SourceType } from "@/data/types"
@@ -20,6 +20,8 @@ import { SongRankingsActiveFilterBar } from "./song-rankings-filters"
 import { EntityNames, FilterType, InputFilter, RankingsFilters, RankingsViewMode, SongRankingsFilterBarValues, SongRankingsFiltersValues } from "./types"
 import { decodeBoolean, decodeMultiFilter, encodeBoolean, encodeMultiFilter, parseParamSelectFilterValue } from "./utils"
 import { buildFuzzyDate } from "@/lib/utils"
+import { RankingsSkeleton } from "@/components/rankings/rankings-skeleton"
+import { RankingsContainer } from "@/components/rankings/rankings-container"
 
 const GET_ARTISTS_NAMES = gql`
 query GetArtistsNames(
@@ -226,14 +228,6 @@ export function RankingsList(
         setViewMode(settings.rankingsViewMode)
     }, [settings.rankingsViewMode])
 
-    // generate dummy rankings
-    const dummyElements: JSX.Element[] = []
-    if (loading) {
-        for (let i = 0; i < 50; i++) {
-            dummyElements.push(rankingsViewMode == RankingsViewMode.LIST ? <DummyRankingsListItem keyValue={i} /> : <DummyRankingsGridItem keyValue={i}/>)
-        }
-    }
-
     return (
         <section className="flex flex-col gap-5 w-full">
             <SongRankingsActiveFilterBar
@@ -249,8 +243,9 @@ export function RankingsList(
             <Divider />
             {error ? <h2 className="text-3xl font-bold text-center text-on-background">{error.message}</h2>
                 : !loading && (rankingsResult == undefined || 0 >= rankingsResult.results.length) ? <h2 className="text-3xl font-bold text-center text-on-background">{langDict.search_no_results}</h2>
-                    : <ol key='list-view' className={rankingsViewMode == RankingsViewMode.LIST ? "flex flex-col gap-5 w-full" : "grid xl:grid-cols-7 lg:grid-cols-5 md:grid-cols-4 sm:grid-cols-3 grid-cols-2 gap-10 w-full mt-3"}>
-                        {rankingsResult == undefined ? dummyElements : <TransitionGroup component={null}>{rankingsResult.results.map(ranking => {
+                    : rankingsResult == undefined ? <RankingsSkeleton elementCount={50} viewMode={rankingsViewMode} />
+                    : <RankingsContainer viewMode={rankingsViewMode}>
+                        <TransitionGroup component={null}>{rankingsResult.results.map(ranking => {
                             const song = ranking.song
                             const names = buildEntityNames(song.names)
 
@@ -282,8 +277,8 @@ export function RankingsList(
                                     color={color}
                                 />
                             )
-                        })}</TransitionGroup>}
-                    </ol>
+                        })}</TransitionGroup>
+                    </RankingsContainer>
             }
         </section>
     )

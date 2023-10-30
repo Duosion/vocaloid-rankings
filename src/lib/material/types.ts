@@ -11,3 +11,11 @@ export enum ImageDisplayMode {
     VOCALIST,
     PRODUCER
 }
+
+export interface RankingsGridColumns {
+    extraLarge: number
+    large: number
+    medium: number
+    small: number
+    default: number
+}

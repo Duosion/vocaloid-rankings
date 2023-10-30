@@ -1,4 +1,4 @@
-export function DummyRankingsListItem(
+export function RankingsSkeletonListItem(
     {
         keyValue
     }: {

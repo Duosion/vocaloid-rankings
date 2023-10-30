@@ -5,7 +5,7 @@ import { Locale, getDictionary } from "@/localization"
 import { cookies } from "next/dist/client/components/headers"
 import { Settings } from "../../settings"
 import { ArtistRankingsFilters, ArtistRankingsFiltersValues, FilterType, SongRankingsFiltersValues } from "../types"
-import { ArtistRankingsList } from "../artist-rankings-filters"
+import { ArtistRankingsList } from "../artist-rankings-list"
 
 const filters: ArtistRankingsFilters = {
     search: {
