@@ -801,8 +801,7 @@ function filterArtistRankingsSync(
     const queryParams = getArtistRankingsFilterQueryParams(filterParams)
 
     const primaryResult = filterArtistRankingsRawSync(queryParams)
-    console.log(primaryResult)
-
+    
     // handle change offset
     const changeOffset = filterParams.changeOffset
     const changeOffsetMap: { [key: string]: number } = {}
