@@ -413,5 +413,6 @@ export interface RawSongRankingsResult {
 
 export interface RawArtistRankingResult {
     artist_id: Id,
-    total_views: number
+    total_views: number,
+    total_count: number
 }
