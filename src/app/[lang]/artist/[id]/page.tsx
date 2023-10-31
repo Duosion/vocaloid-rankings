@@ -199,7 +199,7 @@ export default async function SongPage(
                 </aside>
                 <div className="flex gap-5 flex-col">
                     {/* Top Songs */}
-                    <TopSongs artistId={artistId} langDict={langDict} maxEntries={6} columns={{extraLarge: 6, large: 5, medium: 3, small: 3, default: 2}}/>
+                    <TopSongs artistId={artistId} langDict={langDict} maxEntries={6} columnsClassName='xl:grid-cols-6 lg:grid-cols-5 md:grid-cols-3 sm:grid-cols-3 grid-cols-2'/>
                     
                     {/* Breakdown */}
                     <div className="grid gap-5 lg:grid-cols-2 grid-cols-1">

@@ -14,19 +14,18 @@ import { useQuery } from "@apollo/client"
 import { useTheme } from "next-themes"
 import { RankingsViewMode } from "../../rankings/types"
 import { useSettings } from "../../settings/settings-provider"
-import { RankingsGridColumns } from "@/lib/material/types"
 
 export function TopSongs(
     {
         artistId,
         langDict,
         maxEntries,
-        columns
+        columnsClassName
     }: {
         artistId: number
         langDict: LanguageDictionary
         maxEntries: number
-        columns?: RankingsGridColumns
+        columnsClassName?: string
     }
 ) {
     // import contexts
@@ -59,9 +58,9 @@ export function TopSongs(
         <article className="mx-2 mt-3">
             {
                 error ? <ErrorMessage message={error.message} />
-                    : loading ? <RankingsSkeleton elementCount={maxEntries} viewMode={RankingsViewMode.GRID} columns={columns} />
+                    : loading ? <RankingsSkeleton elementCount={maxEntries} viewMode={RankingsViewMode.GRID} columnsClassName={columnsClassName} />
                         : rankingsResult == undefined || (rankingsResult && 0 >= rankingsResult.results.length) ? <ErrorMessage message={langDict.search_no_results} />
-                            : <RankingsGrid columns={columns}>{rankingsResult.results.map(ranking => {
+                            : <RankingsGrid columnsClassName={columnsClassName}>{rankingsResult.results.map(ranking => {
                                 const song = ranking.song
                                 const names = buildEntityNames(song.names)
 

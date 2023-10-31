@@ -1,19 +1,11 @@
-import { RankingsGridColumns } from "@/lib/material/types"
-
 export function RankingsGrid (
     {
-        columns = {
-            extraLarge: 7,
-            large: 5,
-            medium: 4,
-            small: 3,
-            default: 2
-        },
+        columnsClassName = 'xl:grid-cols-7 lg:grid-cols-5 md:grid-cols-4 sm:grid-cols-3 grid-cols-2',
         children
     }: {
-        columns?: RankingsGridColumns
+        columnsClassName?: string,
         children: JSX.Element[] | JSX.Element
     }
 ) {
-    return <ol className={`grid xl:grid-cols-${columns.extraLarge} lg:grid-cols-${columns.large} md:grid-cols-${columns.medium} sm:grid-cols-${columns.small} grid-cols-${columns.default} gap-10 w-full mt-3`}>{children}</ol>
+    return <ol className={`grid gap-10 w-full mt-3 ${columnsClassName}`}>{children}</ol>
 }

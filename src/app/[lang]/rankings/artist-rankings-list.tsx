@@ -2,8 +2,6 @@
 import { EntityName } from "@/components/formatters/entity-name"
 import { NumberFormatter } from "@/components/formatters/number-formatter"
 import { Divider } from "@/components/material/divider"
-import { RankingsSkeletonGridItem } from "@/components/rankings/rankings-grid-skeleton-item"
-import { RankingsSkeletonListItem } from "@/components/rankings/rankings-list-skeleton-item"
 import { RankingsGridItem } from "@/components/rankings/rankings-grid-item"
 import { RankingListItem } from "@/components/rankings/rankings-list-item"
 import { ArtistCategory, ArtistType, FilterOrder, SongType, SourceType } from "@/data/types"
