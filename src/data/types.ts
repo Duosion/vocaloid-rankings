@@ -407,12 +407,13 @@ export interface RawViewBreakdown {
 }
 
 export interface RawSongRankingsResult {
-    song_id: Id,
+    song_id: Id
     total_views: number
+    total_count: number
 }
 
 export interface RawArtistRankingResult {
-    artist_id: Id,
-    total_views: number,
+    artist_id: Id
+    total_views: number
     total_count: number
 }

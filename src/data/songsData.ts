@@ -194,62 +194,6 @@ function getSongRankingsFilterQueryParams(
     }
 }
 
-function filterSongRankingsCountSync(
-    queryParams: SqlRankingsFilterParams
-): number {
-    const statements = queryParams.statements
-    // load statements into memory
-    const filterIncludeArtistsStatement = statements.includeArtists || ''
-    const filterExcludeArtistsStatement = statements.excludeArtists || ''
-    const filterIncludeSongsStatement = statements.includeSongs || ''
-    const filterExcludeSongsStatement = statements.excludeSongs || ''
-    const filterIncludeSourceTypesStatement = statements.includeSourceTypes || ''
-    const filterExcludeSourceTypesStatement = statements.excludeSourceTypes || ''
-    const filterOffsetIncludeSourceTypesStatement = statements.offsetIncludeSourceTypes || ''
-    const filterOffsetExcludeSourceTypesStatement = statements.offsetExcludeSourceTypes || ''
-    const filterIncludeSongTypesStatement = statements.includeSongTypes || ''
-    const filterExcludeSongTypesStatement = statements.excludeSongTypes || ''
-    const filterIncludeArtistTypesStatement = statements.includeArtistTypes || ''
-    const filterExcludeArtistTypesStatement = statements.excludeArtistTypes || ''
-
-    return db.prepare(`
-    SELECT views_breakdowns.song_id
-    FROM views_breakdowns
-    INNER JOIN songs ON views_breakdowns.song_id = songs.id
-    INNER JOIN songs_artists ON songs_artists.song_id = views_breakdowns.song_id
-    INNER JOIN songs_names ON songs_names.song_id = views_breakdowns.song_id
-    INNER JOIN artists ON artists.id = songs_artists.artist_id
-    WHERE (views_breakdowns.timestamp = CASE WHEN :daysOffset IS NULL
-            THEN :timestamp
-            ELSE DATE(:timestamp, '-' || :daysOffset || ' day')
-            END)
-        AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
-        AND (songs_names.name LIKE :search OR :search IS NULL)
-        AND (views_breakdowns.views = CASE WHEN :singleVideo IS NULL
-            THEN views_breakdowns.views
-            ELSE
-                (SELECT MAX(offset_breakdowns.views)
-                FROM views_breakdowns AS offset_breakdowns 
-                INNER JOIN songs ON songs.id = offset_breakdowns.song_id
-                INNER JOIN songs_artists ON songs_artists.song_id = offset_breakdowns.song_id
-                INNER JOIN songs_names ON songs_names.song_id = views_breakdowns.song_id
-                INNER JOIN artists ON artists.id = songs_artists.artist_id
-                WHERE (offset_breakdowns.timestamp = views_breakdowns.timestamp)
-                    AND (offset_breakdowns.song_id = views_breakdowns.song_id)
-                    AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
-                    AND (songs_names.name LIKE :search OR :search IS NULL)${filterOffsetIncludeSourceTypesStatement}${filterOffsetExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterIncludeArtistsStatement}${filterExcludeArtistsStatement}${filterIncludeSongsStatement}${filterExcludeSongsStatement}
-                GROUP BY offset_breakdowns.song_id)
-            END)${filterIncludeSourceTypesStatement}${filterExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterIncludeArtistsStatement}${filterExcludeArtistsStatement}${filterIncludeSongsStatement}${filterExcludeSongsStatement}
-    GROUP BY views_breakdowns.song_id
-    HAVING (CASE WHEN :minViews IS NULL
-        THEN 1
-        ELSE SUM(DISTINCT views_breakdowns.views) >= :minViews END)
-        AND (CASE WHEN :maxViews IS NULL
-            THEN 1
-            ELSE SUM(DISTINCT views_breakdowns.views) <= :maxViews END)
-    `).all(queryParams.params)?.length || 0
-}
-
 function filterSongRankingsRawSync(
     queryParams: SqlRankingsFilterParams
 ): RawSongRankingsResult[] {
@@ -393,7 +337,8 @@ function filterSongRankingsRawSync(
                         GROUP BY offset_breakdowns.song_id
                         ) END)
                 END 
-            END AS total_views
+            END AS total_views,
+            COUNT(*) OVER() as total_count
         FROM views_breakdowns
         INNER JOIN songs ON views_breakdowns.song_id = songs.id
         INNER JOIN songs_artists ON songs_artists.song_id = views_breakdowns.song_id
@@ -490,11 +435,8 @@ function filterSongRankingsSync(
         } catch (error) { }
     }
 
-    // get entry count
-    const entryCount = filterSongRankingsCountSync(queryParams)
-
     return {
-        totalCount: entryCount,
+        totalCount: primaryResult[0]?.total_count,
         timestamp: queryParams.params['timestamp'] as string,
         results: returnEntries
     }
@@ -1393,8 +1335,9 @@ function getSongPlacementSync(
         // get placement
         const allTimePlacementFilterParams = new SongRankingsFilterParams()
         allTimePlacementFilterParams.minViews = Number(songViews.total)
+        allTimePlacementFilterParams.maxEntries = 1
 
-        allTimePlacement = filterSongRankingsCountSync(getSongRankingsFilterQueryParams(allTimePlacementFilterParams))
+        allTimePlacement = filterSongRankingsSync(allTimePlacementFilterParams).totalCount
     }
 
     // get release year placement
@@ -1405,8 +1348,9 @@ function getSongPlacementSync(
         const releaseYearPlacementFilterParams = new SongRankingsFilterParams()
         releaseYearPlacementFilterParams.minViews = Number(songViews.total)
         releaseYearPlacementFilterParams.publishDate = releaseYear
+        releaseYearPlacementFilterParams.maxEntries = 1
 
-        releaseYearPlacement = filterSongRankingsCountSync(getSongRankingsFilterQueryParams(releaseYearPlacementFilterParams))
+        releaseYearPlacement = filterSongRankingsSync(releaseYearPlacementFilterParams).totalCount
     }
 
     return buildSongPlacement(
