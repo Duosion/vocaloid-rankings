@@ -228,6 +228,13 @@ const filters: ArtistRankingsFilters = {
         type: FilterType.MULTI_ENTITY,
         placeholder: 'filter_artists_placeholder',
     },
+    includeCoArtistsOf: {
+        name: 'filter_artists_include_co_artists',
+        key: 'includeCoArtistsOf',
+        displayActive: true,
+        type: FilterType.MULTI_ENTITY,
+        placeholder: 'filter_artists_placeholder',
+    },
     combineSimilarArtists: {
         name: 'filter_combine_similar_artists',
         key: 'combineSimilarArtists',

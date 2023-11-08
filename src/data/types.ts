@@ -216,6 +216,7 @@ export class ArtistRankingsFilterParams {
     minViews?: number
     maxViews?: number
     search?: string
+    includeCoArtistsOf?: Id[]
 
     constructor(
         timestamp?: string,
@@ -246,6 +247,7 @@ export class ArtistRankingsFilterParams {
         minViews?: number,
         maxViews?: number,
         search?: string,
+        includeCoArtistsOf?: Id[]
     ) {
         this.timestamp = timestamp
         this.timePeriodOffset = timePeriodOffset || this.timePeriodOffset
@@ -269,12 +271,13 @@ export class ArtistRankingsFilterParams {
         this.includeSongsMode = includeSongsMode == undefined ? this.includeSongsMode : includeSongsMode
         this.excludeSongsMode = excludeSongsMode == undefined ? this.excludeSongsMode : excludeSongsMode
         this.singleVideo = singleVideo || this.singleVideo
-        this.combineSimilarArtists = combineSimilarArtists || this.combineSimilarArtists
+        this.combineSimilarArtists = combineSimilarArtists == undefined ? this.combineSimilarArtists : combineSimilarArtists
         this.maxEntries = maxEntries || this.maxEntries
         this.startAt = startAt || this.startAt
         this.minViews = minViews
         this.maxViews = maxViews
         this.search = search
+        this.includeCoArtistsOf = includeCoArtistsOf == undefined ? this.includeCoArtistsOf : includeCoArtistsOf
     }
 }
 
@@ -317,6 +320,7 @@ export interface SqlRankingsFilterInVariables {
     excludeSongTypes?: string[]
     includeArtistTypes?: string[]
     excludeArtistTypes?: string[]
+    includeCoArtistsOf?: string[]
 }
 
 export interface SqlRankingsFilterStatements {
@@ -336,6 +340,7 @@ export interface SqlRankingsFilterStatements {
     excludeArtistTypes?: string
     ancestorIncludeArtistTypes?: string
     ancestorExcludeArtistTypes?: string
+    includeCoArtistsOf?: string
 }
 
 export interface SqlRankingsFilterParams {

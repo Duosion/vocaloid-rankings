@@ -70,7 +70,7 @@ const buildSongRankingsFilterStatements = (
 
     // build include/exclude songs statements
     statements.includeSongs = includeSongsVariables ? ` AND (songs.id IN (${includeSongsVariables.join(', ')}))` : ''
-    statements.excludeSongs = excludeSongsVariables ? ` AND (songs.id IN (${excludeSongsVariables.join(', ')}))` : ''
+    statements.excludeSongs = excludeSongsVariables ? ` AND (songs.id NOT IN (${excludeSongsVariables.join(', ')}))` : ''
 
     // build include/exclude source types statements
     {
@@ -472,6 +472,7 @@ const buildArtistRankingsFilterStatements = (
     const excludeSongTypesVariables = variables.excludeSongTypes
     const includeArtistTypesVariables = variables.includeArtistTypes
     const excludeArtistTypesVariables = variables.excludeArtistTypes
+    const includeCoArtistsOfVariables = variables.includeCoArtistsOf
 
     // build include/exclude artists statements
     statements.includeArtists = includeArtistsVariables ? `AND (songs_artists.artist_id IN (${includeArtistsVariables.join(',')}))` : ''
@@ -510,6 +511,12 @@ const buildArtistRankingsFilterStatements = (
         statements.ancestorExcludeArtistTypes = excludeArtistTypesVariablesJoined ? `${statements.ancestorIncludeArtistTypes ? ' AND' : ' WHERE'} artists.artist_type NOT IN (${excludeArtistTypesVariablesJoined})` : ''
     }
 
+    // build include coArtistsOf statements
+    {
+        const joined = includeCoArtistsOfVariables && includeCoArtistsOfVariables.join(',')
+        statements.includeCoArtistsOf = joined ? `AND (base_songs_artists.artist_id IN (${joined})) AND artists.id NOT IN (${joined})` : ''
+    }
+
 
     return statements
 }
@@ -534,7 +541,8 @@ function getArtistRankingsFilterQueryParams(
         startAt: filterParams.startAt,
         minViews: filterParams.minViews,
         maxViews: filterParams.maxViews,
-        search: filterParams.search?.toLowerCase()
+        search: filterParams.search?.toLowerCase(),
+        includeCoArtistsOf: filterParams.includeCoArtistsOf ? 1 : null
     }
 
     const buildInStatement = (values: Id[], prefix = '') => {
@@ -569,6 +577,9 @@ function getArtistRankingsFilterQueryParams(
     const filterParamsIncludeArtistTypes = filterParams.includeArtistTypes
     const filterParamsExcludeArtistTypes = filterParams.excludeArtistTypes
 
+    // include co artists of
+    const filterParamsIncludeCoArtistsOf = filterParams.includeCoArtistsOf
+
     return {
         statements: buildArtistRankingsFilterStatements(filterParams, {
             includeArtists: filterParamsIncludeArtists && buildInStatement(filterParamsIncludeArtists, 'includeArtist'),
@@ -581,6 +592,7 @@ function getArtistRankingsFilterQueryParams(
             excludeSongTypes: filterParamsExcludeSongTypes && buildInStatement(filterParamsExcludeSongTypes, 'excludeSongTypes'),
             includeArtistTypes: filterParamsIncludeArtistTypes && buildInStatement(filterParamsIncludeArtistTypes, 'includeArtistTypes'),
             excludeArtistTypes: filterParamsExcludeArtistTypes && buildInStatement(filterParamsExcludeArtistTypes, 'excludeArtistTypes'),
+            includeCoArtistsOf: filterParamsIncludeCoArtistsOf && buildInStatement(filterParamsIncludeCoArtistsOf, 'includeCoArtistsOf')
         }),
         params: queryParams
     }
@@ -603,6 +615,7 @@ function filterArtistRankingsRawSync(
     const filterExcludeSongTypesStatement = statements.excludeSongTypes || ''
     const filterIncludeArtistTypesStatement = statements.includeArtistTypes || ''
     const filterExcludeArtistTypesStatement = statements.excludeArtistTypes || ''
+    const filterIncludeCoArtistsOfStatement = statements.includeCoArtistsOf || ''
 
     return db.prepare(`
     WITH RECURSIVE artist_hierarchy AS (
@@ -619,10 +632,10 @@ function filterArtistRankingsRawSync(
     no_period_offset AS (
         SELECT 
             (CASE WHEN :combineSimilarArtists IS NULL THEN artists.id
-                WHEN artists.base_artist_id IS NULL then artists.id
+                WHEN artists.base_artist_id IS NULL THEN artists.id
                 ELSE artist_hierarchy.root_artist_id
             END) AS artist_id,
-            SUM(views_breakdowns.views) AS views
+            SUM(views_breakdowns.views) AS views 
         FROM views_breakdowns
         INNER JOIN songs_artists ON songs_artists.song_id = views_breakdowns.song_id
         INNER JOIN songs ON songs.id = songs_artists.song_id
@@ -660,6 +673,56 @@ function filterArtistRankingsRawSync(
                     AND (artists_names.name LIKE :search OR :search IS NULL)${filterOffsetSubIncludeSourceTypesStatement}${filterOffsetSubExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterIncludeArtistsStatement}${filterExcludeArtistsStatement}${filterIncludeSongsStatement}${filterExcludeSongsStatement}
                 GROUP BY sub_vb.song_id)
             END)${filterIncludeSourceTypesStatement}${filterExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterIncludeArtistsStatement}${filterExcludeArtistsStatement}${filterIncludeSongsStatement}${filterExcludeSongsStatement}
+        GROUP BY (CASE WHEN :combineSimilarArtists IS NULL THEN artists.id
+                WHEN artists.base_artist_id IS NULL then artists.id
+                ELSE artist_hierarchy.root_artist_id
+            END)
+    ),
+    no_period_offset_co_artists AS (
+        SELECT 
+            (CASE WHEN :combineSimilarArtists IS NULL THEN artists.id
+                WHEN artists.base_artist_id IS NULL THEN artists.id
+                ELSE artist_hierarchy.root_artist_id
+            END) AS artist_id,
+            SUM(views_breakdowns.views) AS views 
+        FROM views_breakdowns
+        INNER JOIN songs_artists AS base_songs_artists ON songs_artists.song_id = views_breakdowns.song_id
+        INNER JOIN songs ON songs.id = songs_artists.song_id
+        INNER JOIN songs_artists ON base_songs_artists.song_id = songs.id
+        INNER JOIN artists ON artists.id = songs_artists.artist_id
+        INNER JOIN artist_hierarchy ON songs_artists.artist_id = artist_hierarchy.id
+        WHERE (views_breakdowns.timestamp = CASE WHEN :daysOffset IS NULL
+            THEN :timestamp
+            ELSE DATE(:timestamp, '-' || :daysOffset || ' day')
+        END)
+        AND (:songPublishDate IS NULL OR songs.publish_date LIKE :songPublishDate)
+        AND (:publishDate IS NULL OR artists.publish_date LIKE :publishDate)
+        AND (songs_artists.artist_category = :artistCategory OR :artistCategory IS NULL)
+        AND (:search IS NULL OR EXISTS (
+            SELECT artists_names.artist_id 
+            FROM artists_names 
+            WHERE (artists_names.artist_id = songs_artists.artist_id) 
+                AND (artists_names.name LIKE :search)
+            LIMIT 1
+            ))
+        AND (views_breakdowns.views = CASE WHEN :singleVideo IS NULL
+            THEN views_breakdowns.views
+            ELSE
+                (SELECT MAX(sub_vb.views)
+                FROM views_breakdowns AS sub_vb 
+                INNER JOIN songs ON songs.id = sub_vb.song_id
+                INNER JOIN songs_artists ON songs_artists.song_id = sub_vb.song_id
+                INNER JOIN artists ON artists.id = songs_artists.artist_id
+                INNER JOIN artists_names ON artists_names.artist_id = artists.id
+                WHERE (sub_vb.view_type = views_breakdowns.view_type)
+                    AND (sub_vb.timestamp = views_breakdowns.timestamp)
+                    AND (sub_vb.song_id = views_breakdowns.song_id)
+                    AND (:songPublishDate IS NULL OR songs.publish_date LIKE :songPublishDate)
+                    AND (:publishDate IS NULL OR artists.publish_date LIKE :publishDate)
+                    AND (songs_artists.artist_category = :artistCategory OR :artistCategory IS NULL)
+                    AND (artists_names.name LIKE :search OR :search IS NULL)${filterOffsetSubIncludeSourceTypesStatement}${filterOffsetSubExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterIncludeArtistsStatement}${filterExcludeArtistsStatement}${filterIncludeSongsStatement}${filterExcludeSongsStatement}${filterIncludeCoArtistsOfStatement}
+                GROUP BY sub_vb.song_id)
+            END)${filterIncludeSourceTypesStatement}${filterExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterIncludeArtistsStatement}${filterExcludeArtistsStatement}${filterIncludeSongsStatement}${filterExcludeSongsStatement}${filterIncludeCoArtistsOfStatement}
         GROUP BY (CASE WHEN :combineSimilarArtists IS NULL THEN artists.id
                 WHEN artists.base_artist_id IS NULL then artists.id
                 ELSE artist_hierarchy.root_artist_id
@@ -713,17 +776,69 @@ function filterArtistRankingsRawSync(
                 WHEN artists.base_artist_id IS NULL then artists.id
                 ELSE artist_hierarchy.root_artist_id
             END)
+    ),
+    period_offset_co_artists AS (
+        SELECT 
+            (CASE WHEN :combineSimilarArtists IS NULL THEN artists.id
+                WHEN artists.base_artist_id IS NULL THEN artists.id
+                ELSE artist_hierarchy.root_artist_id
+            END) AS artist_id,
+            SUM(views_breakdowns.views) AS views 
+        FROM views_breakdowns
+        INNER JOIN songs_artists AS base_songs_artists ON songs_artists.song_id = views_breakdowns.song_id
+        INNER JOIN songs ON songs.id = songs_artists.song_id
+        INNER JOIN songs_artists ON base_songs_artists.song_id = songs.id
+        INNER JOIN artists ON artists.id = songs_artists.artist_id
+        INNER JOIN artist_hierarchy ON songs_artists.artist_id = artist_hierarchy.id
+        WHERE (views_breakdowns.timestamp = CASE WHEN :daysOffset IS NULL
+            THEN DATE(:timestamp, '-' || :timePeriodOffset || ' day')
+            ELSE DATE(DATE(:timestamp, '-' || :daysOffset || ' day'), '-' || :timePeriodOffset || ' day')
+        END)
+        AND (:songPublishDate IS NULL OR songs.publish_date LIKE :songPublishDate)
+        AND (:publishDate IS NULL OR artists.publish_date LIKE :publishDate)
+        AND (songs_artists.artist_category = :artistCategory OR :artistCategory IS NULL)
+        AND (:search IS NULL OR EXISTS (
+            SELECT artists_names.artist_id 
+            FROM artists_names 
+            WHERE (artists_names.artist_id = songs_artists.artist_id) 
+                AND (artists_names.name LIKE :search)
+            LIMIT 1
+            ))
+        AND (views_breakdowns.views = CASE WHEN :singleVideo IS NULL
+            THEN views_breakdowns.views
+            ELSE
+                (SELECT MAX(sub_vb.views)
+                FROM views_breakdowns AS sub_vb 
+                INNER JOIN songs ON songs.id = sub_vb.song_id
+                INNER JOIN songs_artists ON songs_artists.song_id = sub_vb.song_id
+                INNER JOIN artists ON artists.id = songs_artists.artist_id
+                INNER JOIN artists_names ON artists_names.artist_id = artists.id
+                WHERE (sub_vb.view_type = views_breakdowns.view_type)
+                    AND (sub_vb.timestamp = views_breakdowns.timestamp)
+                    AND (sub_vb.song_id = views_breakdowns.song_id)
+                    AND (:songPublishDate IS NULL OR songs.publish_date LIKE :songPublishDate)
+                    AND (:publishDate IS NULL OR artists.publish_date LIKE :publishDate)
+                    AND (songs_artists.artist_category = :artistCategory OR :artistCategory IS NULL)
+                    AND (artists_names.name LIKE :search OR :search IS NULL)${filterOffsetSubIncludeSourceTypesStatement}${filterOffsetSubExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterIncludeArtistsStatement}${filterExcludeArtistsStatement}${filterIncludeSongsStatement}${filterExcludeSongsStatement}${filterIncludeCoArtistsOfStatement}
+                GROUP BY sub_vb.song_id)
+            END)${filterIncludeSourceTypesStatement}${filterExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterIncludeArtistsStatement}${filterExcludeArtistsStatement}${filterIncludeSongsStatement}${filterExcludeSongsStatement}${filterIncludeCoArtistsOfStatement}
+        GROUP BY (CASE WHEN :combineSimilarArtists IS NULL THEN artists.id
+                WHEN artists.base_artist_id IS NULL then artists.id
+                ELSE artist_hierarchy.root_artist_id
+            END)
     )
     SELECT no_period_offset.artist_id,
-        (SUM(no_period_offset.views) - (CASE WHEN :timePeriodOffset IS NULL
-            THEN 0
-            ELSE IFNULL(SUM(period_offset.views), 0)
+        (SUM(CASE WHEN :includeCoArtistsOf IS NULL THEN no_period_offset.views ELSE no_period_offset_co_artists.views END) - (CASE WHEN :timePeriodOffset IS NULL
+                THEN 0
+                ELSE IFNULL( (CASE WHEN :includeCoArtistsOf IS NULL THEN period_offset.views ELSE period_offset_co_artists.views END), 0)
             END)
         ) AS total_views,
         COUNT(*) OVER() as total_count
     FROM no_period_offset
     LEFT JOIN artists ON artists.id = no_period_offset.artist_id
     LEFT JOIN period_offset ON (:timePeriodOffset IS NOT NULL) AND (period_offset.artist_id = no_period_offset.artist_id)
+    LEFT JOIN no_period_offset_co_artists ON (:includeCoArtistsOf IS NOT NULL) AND (no_period_offset_co_artists.artist_id = no_period_offset.artist_id)
+    LEFT JOIN period_offset_co_artists ON (:timePeriodOffset IS NOT NULL) AND (:includeCoArtistsOf IS NOT NULL) AND (period_offset_co_artists.artist_id = no_period_offset_co_artists.artist_id)
     GROUP BY no_period_offset.artist_id
     HAVING (CASE WHEN :minViews IS NULL
         THEN 1
@@ -743,7 +858,7 @@ function filterArtistRankingsSync(
     const queryParams = getArtistRankingsFilterQueryParams(filterParams)
 
     const primaryResult = filterArtistRankingsRawSync(queryParams)
-    
+
     // handle change offset
     const changeOffset = filterParams.changeOffset
     const changeOffsetMap: { [key: string]: number } = {}

@@ -246,6 +246,7 @@ export interface ArtistRankingsFilters {
     singleVideo: CheckboxFilter
     includeArtists: MultiEntityFilter
     excludeArtists: MultiEntityFilter
+    includeCoArtistsOf: MultiEntityFilter
     combineSimilarArtists: CheckboxFilter
 }
 
@@ -272,6 +273,7 @@ export interface ArtistRankingsFiltersValues {
     singleVideo?: number
     includeArtists?: string
     excludeArtists?: string
+    includeCoArtistsOf?: string
     combineSimilarArtists?: number
 }
 
@@ -298,6 +300,7 @@ export interface ArtistRankingsFilterBarValues {
     singleVideo?: boolean
     includeArtists?: number[]
     excludeArtists?: number[]
+    includeCoArtistsOf?: number[]
     combineSimilarArtists?: boolean
 }
 

@@ -93,6 +93,7 @@ export function ArtistRankingsList(
         singleVideo: decodeBoolean(Number(filterValues.singleVideo)),
         includeArtists: decodeMultiFilter(filterValues.includeArtists),
         excludeArtists: decodeMultiFilter(filterValues.excludeArtists),
+        includeCoArtistsOf: decodeMultiFilter(filterValues.includeCoArtistsOf),
         combineSimilarArtists: decodeBoolean(Number(filterValues.combineSimilarArtists))
     } as ArtistRankingsFilterBarValues)
 
@@ -102,12 +103,12 @@ export function ArtistRankingsList(
     // returns a table of query variables for querying GraphQL with.
     const getQueryVariables = () => {
         // build & set query variables
-        const includeSourceTypes = filterBarValues.includeSourceTypes?.map(type => SourceType[type])
-        const excludeSourceTypes = filterBarValues.excludeSourceTypes?.map(type => SourceType[type])
-        const includeSongTypes = filterBarValues.includeSongTypes?.map(type => SongType[type])
-        const excludeSongTypes = filterBarValues.excludeSongTypes?.map(type => SongType[type])
-        const includeArtistTypes = filterBarValues.includeArtistTypes?.map(type => ArtistType[type])
-        const excludeArtistTypes = filterBarValues.excludeArtistTypes?.map(type => ArtistType[type])
+        const includeSourceTypes = filterBarValues.includeSourceTypes?.map(type => SourceType[filters.includeSourceTypes.values[type].value || 0])
+        const excludeSourceTypes = filterBarValues.excludeSourceTypes?.map(type => SourceType[filters.excludeSourceTypes.values[type].value || 0])
+        const includeSongTypes = filterBarValues.includeSongTypes?.map(type => SongType[filters.includeSongTypes.values[type].value || 0])
+        const excludeSongTypes = filterBarValues.excludeSongTypes?.map(type => SongType[filters.excludeSongTypes.values[type].value || 0])
+        const includeArtistTypes = filterBarValues.includeArtistTypes?.map(type => ArtistType[filters.includeArtistTypes.values[type].value || 0])
+        const excludeArtistTypes = filterBarValues.excludeArtistTypes?.map(type => ArtistType[filters.excludeArtistTypes.values[type].value || 0])
 
         // build publish date
         const releaseYear = filterBarValues.releaseYear
@@ -146,6 +147,7 @@ export function ArtistRankingsList(
             //direction: undefined,
             includeArtists: filterBarValues.includeArtists && filterBarValues.includeArtists.length > 0 ? [...filterBarValues.includeArtists] : undefined, // unpack artists into new table so that the reference is different
             excludeArtists: filterBarValues.excludeArtists && filterBarValues.excludeArtists.length > 0 ? [...filterBarValues.excludeArtists] : undefined,
+            includeCoArtistsOf: filterBarValues.includeCoArtistsOf && filterBarValues.includeCoArtistsOf.length > 0 ? [...filterBarValues.includeCoArtistsOf] : undefined,
             combineSimilarArtists: filterBarValues.combineSimilarArtists,
             singleVideo: filterBarValues.singleVideo,
             minViews: filterBarValues.minViews ? Number(filterBarValues.minViews) : undefined,
@@ -202,7 +204,7 @@ export function ArtistRankingsList(
 
     // load entity names map
     useEffect(() => {
-        const artists = [...(filterBarValues.includeArtists || []), ...(filterBarValues.excludeArtists || [])]
+        const artists = [...(filterBarValues.includeArtists || []), ...(filterBarValues.excludeArtists || []), ...(filterBarValues.includeCoArtistsOf || [])]
         if (artists && artists.length > 0) {
             graphClient.query({
                 query: GET_ARTISTS_NAMES,

@@ -302,14 +302,14 @@ export function SingerRankingsActiveFilterBar(
                     />
                 </FilterGroup>
                 <FilterGroup>
-                    {/* Include Artists */}
+                    {/* Include Co Artists */}
                     <ArtistSearchFilter
-                        name={langDict[filters.includeArtists.name]}
-                        value={filterValues.includeArtists || []}
-                        placeholder={langDict[filters.includeArtists.placeholder]}
+                        name={langDict[filters.includeCoArtistsOf.name]}
+                        value={filterValues.includeCoArtistsOf || []}
+                        placeholder={langDict[filters.includeCoArtistsOf.placeholder]}
                         entityNames={entityNames}
                         onValueChanged={newValue => {
-                            filterValues.includeArtists = newValue
+                            filterValues.includeCoArtistsOf = newValue
                             setFilterValues(filterValues)
                         }}
                         onEntityNamesChanged={onEntityNamesChanged}

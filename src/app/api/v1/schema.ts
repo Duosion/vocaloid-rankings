@@ -225,6 +225,7 @@ import {
  *     minViews: Long
  *     maxViews: Long
  *     search: String
+ *     includeCoArtistsOf: [Int]
  *   ): ArtistRankingsFilterResult
  *   
  *   searchArtists(
@@ -1444,6 +1445,10 @@ const queryType = new GraphQLObjectType({
                 search: {
                     type: GraphQLString,
                     description: 'Only includes songs who have names that match the search query.'
+                },
+                includeCoArtistsOf: {
+                    type: new GraphQLList(GraphQLInt),
+                    description: 'A list of artist IDs that will have their co artists included in the results.'
                 }
             },
             resolve: (
@@ -1474,7 +1479,8 @@ const queryType = new GraphQLObjectType({
                     startAt,
                     minViews,
                     maxViews,
-                    search
+                    search,
+                    includeCoArtistsOf
                 }: {
                     timestamp?: string
                     timePeriodOffset?: number
@@ -1502,6 +1508,7 @@ const queryType = new GraphQLObjectType({
                     minViews?: number
                     maxViews?: number
                     search?: string
+                    includeCoArtistsOf?: number[]
                 }
             ) => {
                 // build params
@@ -1532,6 +1539,7 @@ const queryType = new GraphQLObjectType({
                 filterParams.minViews = minViews
                 filterParams.maxViews = maxViews
                 filterParams.search = search != undefined ? `%${search.trim()}%` : undefined
+                filterParams.includeCoArtistsOf = includeCoArtistsOf
                 return filterArtistRankings(filterParams)
             }
         },

@@ -103,12 +103,12 @@ export function RankingsList(
     // returns a table of query variables for querying GraphQL with.
     const getQueryVariables = () => {
         // build & set query variables
-        const includeSourceTypes = filterBarValues.includeSourceTypes?.map(type => SourceType[type])
-        const excludeSourceTypes = filterBarValues.excludeSourceTypes?.map(type => SourceType[type])
-        const includeSongTypes = filterBarValues.includeSongTypes?.map(type => SongType[type])
-        const excludeSongTypes = filterBarValues.excludeSongTypes?.map(type => SongType[type])
-        const includeArtistTypes = filterBarValues.includeArtistTypes?.map(type => ArtistType[type])
-        const excludeArtistTypes = filterBarValues.excludeArtistTypes?.map(type => ArtistType[type])
+        const includeSourceTypes = filterBarValues.includeSourceTypes?.map(type => SourceType[filters.includeSourceTypes.values[type].value || 0])
+        const excludeSourceTypes = filterBarValues.excludeSourceTypes?.map(type => SourceType[filters.excludeSourceTypes.values[type].value || 0])
+        const includeSongTypes = filterBarValues.includeSongTypes?.map(type => SongType[filters.includeSongTypes.values[type].value || 0])
+        const excludeSongTypes = filterBarValues.excludeSongTypes?.map(type => SongType[filters.excludeSongTypes.values[type].value || 0])
+        const includeArtistTypes = filterBarValues.includeArtistTypes?.map(type => ArtistType[filters.includeArtistTypes.values[type].value || 0])
+        const excludeArtistTypes = filterBarValues.excludeArtistTypes?.map(type => ArtistType[filters.excludeArtistTypes.values[type].value || 0])
 
         // build publish date
         const publishYear = filterBarValues.publishYear
