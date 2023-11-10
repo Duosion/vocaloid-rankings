@@ -7,7 +7,7 @@ import { FilledIconButton } from "@/components/material/filled-icon-button"
 import { RankingsGrid } from "@/components/rankings/rankings-grid"
 import { RankingsGridItem } from "@/components/rankings/rankings-grid-item"
 import { RankingsSkeleton } from "@/components/rankings/rankings-skeleton"
-import { GET_ARTIST_RANKINGS, artistCategoryToApiArtistTypes, buildEntityNames } from "@/lib/api"
+import { GET_ARTIST_RANKINGS, artistCategoryToApiArtistTypes, buildEntityNames, mapArtistType } from "@/lib/api"
 import { ApiArtistRankingsFilterResult, ApiSongRankingsFilterResult } from "@/lib/api/types"
 import { LanguageDictionary, LanguageDictionaryKey, getEntityName } from "@/localization"
 import { useQuery } from "@apollo/client"
@@ -19,6 +19,7 @@ import { ArtistCard } from "@/components/entity/artist-card"
 import { ArtistTypeLocaleTokens } from "@/localization/DictionaryTokenMaps"
 import { ArtistsSkeleton } from "@/components/entity/artists-skeleton"
 import ArtistsGrid from "@/components/entity/artists-grid"
+import { mapArtistTypeToCategory } from "@/data/songsData"
 
 export function CoArtists(
     {
@@ -60,7 +61,7 @@ export function CoArtists(
         title={langDict[artistIsVocalist ? 'artist_co_artists_vocalist' : 'artist_co_artists_producer']}
         titleSupporting={
             rankingsResult != undefined && rankingsResult.totalCount > maxEntries ? <>
-                <FilledButton className="sm:flex hidden" text={langDict.artist_view_all} icon={'open_in_full'} href={`../rankings/${artistIsVocalist ? 'producers' : 'singers'}?includeCoArtistsOf=${artistId}`} />
+                <FilledButton className="sm:flex hidden" text={langDict.artist_view_all} icon={'open_in_full'} href={`../rankings/${artistIsVocalist ? 'producers' : 'singers'}?includeCoArtistsOf=${artistId}&minViews=1`} />
                 <FilledIconButton className="sm:hidden flex" icon={'open_in_full'} href={`../rankings?includeArtists=${artistId}`} />
             </> : undefined
         }
@@ -84,8 +85,8 @@ export function CoArtists(
                                         bgColor={color}
                                         href={`../artist/${artist.id}`}
                                         title={<EntityName names={names} preferred={settingTitleLanguage} />}
-                                        text=''
-                                        isSinger={categoryInversed == ArtistCategory.VOCALIST}
+                                        text={!artistIsVocalist ? langDict[ArtistTypeLocaleTokens[mapArtistType(artist.type)]] : ''}
+                                        isSinger={!artistIsVocalist}
                                     />
                                 )
                             })}</ArtistsGrid>

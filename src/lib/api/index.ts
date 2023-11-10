@@ -175,6 +175,7 @@ query ArtistRankings(
             views
             artist {
                 id
+                type
                 names {
                     original
                     japanese
@@ -238,6 +239,27 @@ export function mapSourceType(
             return SourceType.BILIBILI
         default:
             return SourceType.YOUTUBE
+    }
+}
+
+// enum ArtistType { VOCALOID, CEVIO, SYNTHESIZER_V, ILLUSTRATOR, COVER_ARTIST, ANIMATOR, PRODUCER, OTHER_VOCALIST, OTHER_VOICE_SYNTHESIZER, OTHER_INDIVIDUAL, OTHER_GROUP, UTAU }
+export function mapArtistType(
+    apiValue: string
+): ArtistType {
+    switch(apiValue) {
+        case 'VOCALOID': return ArtistType.VOCALOID;
+        case 'CEVIO': return ArtistType.CEVIO;
+        case 'SYNTHESIZER_V': return ArtistType.SYNTHESIZER_V;
+        case 'ILLUSTRATOR': return ArtistType.ILLUSTRATOR;
+        case 'COVER_ARTIST': return ArtistType.COVER_ARTIST;
+        case 'ANIMATOR': return ArtistType.ANIMATOR;
+        case 'PRODUCER': return ArtistType.PRODUCER;
+        case 'OTHER_VOCALIST': return ArtistType.OTHER_VOCALIST;
+        case 'OTHER_VOICE_SYNTHESIZER': return ArtistType.OTHER_VOICE_SYNTHESIZER;
+        case 'OTHER_INDIVIDUAL': return ArtistType.OTHER_INDIVIDUAL;
+        case 'OTHER_GROUP': return ArtistType.OTHER_GROUP;
+        case 'UTAU': return ArtistType.UTAU;
+        default: return ArtistType.VOCALOID
     }
 }
 
