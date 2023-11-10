@@ -19,6 +19,7 @@ import { ArtistCard } from "@/components/entity/artist-card"
 import { Suspense } from "react"
 import { RankingsSkeleton } from "@/components/rankings/rankings-skeleton"
 import { RankingsViewMode } from "../../rankings/types"
+import { CoArtists } from "./co-artists"
 
 // interfaces
 interface ViewsBreakdown {
@@ -242,6 +243,9 @@ export default async function SongPage(
                             </div>
                         </EntitySection>
                     </div>
+
+                    {/* co artists */}
+                    <CoArtists artistId={artistId} category={artistCategory} langDict={langDict} maxEntries={4} />
                 </div>
             </div>
         </article>

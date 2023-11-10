@@ -11,7 +11,7 @@ export function ArtistCard(
         title,
         text,
         isSinger = false,
-        className
+        className = ''
     }: {
         src: string
         alt: string

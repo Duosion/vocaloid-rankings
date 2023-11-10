@@ -1,4 +1,4 @@
-import { NameType, Names, PlacementChange, SongType, SourceType } from "@/data/types";
+import { ArtistCategory, ArtistType, NameType, Names, PlacementChange, SongType, SourceType } from "@/data/types";
 import { ApiNames } from "./types";
 import { ApolloClient, InMemoryCache, gql } from "@apollo/client";
 
@@ -251,4 +251,24 @@ export function buildEntityNames(
         [NameType.ENGLISH]: apiData.english,
         [NameType.ROMAJI]: apiData.romaji
     }
+}
+
+// maps
+export const artistCategoryToApiArtistTypes: { [key in ArtistCategory]: string[] } = {
+    [ArtistCategory.VOCALIST]: [
+        ArtistType[ArtistType.VOCALOID],
+        ArtistType[ArtistType.CEVIO],
+        ArtistType[ArtistType.SYNTHESIZER_V],
+        ArtistType[ArtistType.OTHER_VOCALIST],
+        ArtistType[ArtistType.OTHER_VOICE_SYNTHESIZER],
+        ArtistType[ArtistType.UTAU],
+    ],
+    [ArtistCategory.PRODUCER]: [
+        ArtistType[ArtistType.ILLUSTRATOR],
+        ArtistType[ArtistType.COVER_ARTIST],
+        ArtistType[ArtistType.ANIMATOR],
+        ArtistType[ArtistType.PRODUCER],
+        ArtistType[ArtistType.OTHER_INDIVIDUAL],
+        ArtistType[ArtistType.OTHER_GROUP]
+    ]
 }

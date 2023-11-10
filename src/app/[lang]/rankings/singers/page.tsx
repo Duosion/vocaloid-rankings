@@ -6,6 +6,7 @@ import { cookies } from "next/dist/client/components/headers"
 import { Settings } from "../../settings"
 import { ArtistRankingsFilters, ArtistRankingsFiltersValues, FilterType, SongRankingsFiltersValues } from "../types"
 import { ArtistRankingsList } from "../artist-rankings-list"
+import { artistCategoryToApiArtistTypes } from "@/lib/api"
 
 const filters: ArtistRankingsFilters = {
     search: {
@@ -135,14 +136,7 @@ const filters: ArtistRankingsFilters = {
             { name: 'filter_artist_type_other_voice_synth', value: ArtistType.OTHER_VOICE_SYNTHESIZER },
             { name: 'filter_artist_type_utau', value: ArtistType.UTAU },
         ],
-        defaultValue: [
-            ArtistType[ArtistType.VOCALOID],
-            ArtistType[ArtistType.CEVIO],
-            ArtistType[ArtistType.SYNTHESIZER_V],
-            ArtistType[ArtistType.OTHER_VOCALIST],
-            ArtistType[ArtistType.OTHER_VOICE_SYNTHESIZER],
-            ArtistType[ArtistType.UTAU],
-        ]
+        defaultValue: artistCategoryToApiArtistTypes[ArtistCategory.VOCALIST]
     },
     excludeArtistTypes: {
         name: 'filter_artist_type_exclude', // name

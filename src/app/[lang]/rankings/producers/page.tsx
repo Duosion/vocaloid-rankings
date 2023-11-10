@@ -6,6 +6,7 @@ import { cookies } from "next/dist/client/components/headers"
 import { Settings } from "../../settings"
 import { ArtistRankingsFilters, ArtistRankingsFiltersValues, FilterType } from "../types"
 import { ArtistRankingsList } from "../artist-rankings-list"
+import { artistCategoryToApiArtistTypes } from "@/lib/api"
 
 const filters: ArtistRankingsFilters = {
     search: {
@@ -135,14 +136,7 @@ const filters: ArtistRankingsFilters = {
             { name: 'filter_artist_type_other_individual', value: ArtistType.OTHER_INDIVIDUAL },
             { name: 'filter_artist_type_other_group', value: ArtistType.OTHER_GROUP },
         ],
-        defaultValue: [
-            ArtistType[ArtistType.ILLUSTRATOR],
-            ArtistType[ArtistType.COVER_ARTIST],
-            ArtistType[ArtistType.ANIMATOR],
-            ArtistType[ArtistType.PRODUCER],
-            ArtistType[ArtistType.OTHER_INDIVIDUAL],
-            ArtistType[ArtistType.OTHER_GROUP]
-        ]
+        defaultValue: artistCategoryToApiArtistTypes[ArtistCategory.PRODUCER]
     },
     excludeArtistTypes: {
         name: 'filter_artist_type_exclude', // name
