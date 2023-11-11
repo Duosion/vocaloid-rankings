@@ -480,7 +480,7 @@ const buildArtistRankingsFilterStatements = (
 
     // build include/exclude songs statements
     statements.includeSongs = includeSongsVariables ? ` AND (songs.id IN (${includeSongsVariables.join(', ')}))` : ''
-    statements.excludeSongs = excludeSongsVariables ? ` AND (songs.id IN (${excludeSongsVariables.join(', ')}))` : ''
+    statements.excludeSongs = excludeSongsVariables ? ` AND (songs.id NOT IN (${excludeSongsVariables.join(', ')}))` : ''
 
     // build include/exclude source types statements
     {
@@ -488,7 +488,7 @@ const buildArtistRankingsFilterStatements = (
         const excludeSourceTypesVariablesJoined = excludeSourceTypesVariables ? excludeSourceTypesVariables.join(', ') : null
 
         statements.includeSourceTypes = includeSourceTypesVariablesJoined ? ` AND (views_breakdowns.view_type IN (${includeSourceTypesVariablesJoined}))` : ''
-        statements.excludeSourceTypes = excludeSourceTypesVariablesJoined ? ` AND (views_breakdowns.view_type IN (${excludeSourceTypesVariablesJoined}))` : ''
+        statements.excludeSourceTypes = excludeSourceTypesVariablesJoined ? ` AND (views_breakdowns.view_type NOT IN (${excludeSourceTypesVariablesJoined}))` : ''
         statements.offsetIncludeSourceTypes = includeSourceTypesVariablesJoined ? ` AND (offset_breakdowns.view_type IN (${includeSourceTypesVariablesJoined}))` : ''
         statements.offsetExcludeSourceTypes = excludeSourceTypesVariablesJoined ? ` AND (offset_breakdowns.view_type NOT IN (${excludeSourceTypesVariablesJoined}))` : ''
         statements.subOffsetIncludeSourceTypes = includeSourceTypesVariablesJoined ? ` AND (sub_vb.view_type IN (${includeSourceTypesVariablesJoined}))` : ''
@@ -497,7 +497,7 @@ const buildArtistRankingsFilterStatements = (
 
     // build include/exclude song types statements
     statements.includeSongTypes = includeSongTypesVariables ? ` AND (songs.song_type IN (${includeSongTypesVariables.join(', ')}))` : ''
-    statements.excludeSongTypes = excludeSongTypesVariables ? ` AND (songs.song_type IN (${excludeSongTypesVariables.join(', ')}))` : ''
+    statements.excludeSongTypes = excludeSongTypesVariables ? ` AND (songs.song_type NOT IN (${excludeSongTypesVariables.join(', ')}))` : ''
 
     // build include/exclude artist types statements
     {
@@ -617,6 +617,8 @@ function filterArtistRankingsRawSync(
     const filterExcludeArtistTypesStatement = statements.excludeArtistTypes || ''
     const filterIncludeCoArtistsOfStatement = statements.includeCoArtistsOf || ''
 
+    console.log(`${filterIncludeSourceTypesStatement}${filterExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterIncludeArtistsStatement}${filterExcludeArtistsStatement}${filterIncludeSongsStatement}${filterExcludeSongsStatement}`)
+
     return db.prepare(`
     WITH RECURSIVE artist_hierarchy AS (
         SELECT id, base_artist_id, id AS root_artist_id
@@ -635,7 +637,7 @@ function filterArtistRankingsRawSync(
                 WHEN artists.base_artist_id IS NULL THEN artists.id
                 ELSE artist_hierarchy.root_artist_id
             END) AS artist_id,
-            SUM(views_breakdowns.views) AS views 
+            (CASE WHEN :orderBy = 4 THEN COUNT(DISTINCT songs.id) ELSE SUM(views_breakdowns.views) END) AS views 
         FROM views_breakdowns
         INNER JOIN songs_artists ON songs_artists.song_id = views_breakdowns.song_id
         INNER JOIN songs ON songs.id = songs_artists.song_id
@@ -684,7 +686,7 @@ function filterArtistRankingsRawSync(
                 WHEN artists.base_artist_id IS NULL THEN artists.id
                 ELSE artist_hierarchy.root_artist_id
             END) AS artist_id,
-            SUM(views_breakdowns.views) AS views 
+            (CASE WHEN :orderBy = 4 THEN COUNT(DISTINCT songs.id) ELSE SUM(views_breakdowns.views) END) AS views 
         FROM views_breakdowns
         INNER JOIN songs_artists AS base_songs_artists ON songs_artists.song_id = views_breakdowns.song_id
         INNER JOIN songs ON songs.id = songs_artists.song_id
@@ -734,7 +736,7 @@ function filterArtistRankingsRawSync(
                 WHEN artists.base_artist_id IS NULL then artists.id
                 ELSE artist_hierarchy.root_artist_id
             END) AS artist_id,
-            SUM(views_breakdowns.views) AS views
+            (CASE WHEN :orderBy = 4 THEN COUNT(DISTINCT songs.id) ELSE SUM(views_breakdowns.views) END) AS views 
         FROM views_breakdowns
         INNER JOIN songs_artists ON songs_artists.song_id = views_breakdowns.song_id
         INNER JOIN songs ON songs.id = songs_artists.song_id
@@ -783,7 +785,7 @@ function filterArtistRankingsRawSync(
                 WHEN artists.base_artist_id IS NULL THEN artists.id
                 ELSE artist_hierarchy.root_artist_id
             END) AS artist_id,
-            SUM(views_breakdowns.views) AS views 
+            (CASE WHEN :orderBy = 4 THEN COUNT(DISTINCT songs.id) ELSE SUM(views_breakdowns.views) END) AS views  
         FROM views_breakdowns
         INNER JOIN songs_artists AS base_songs_artists ON songs_artists.song_id = views_breakdowns.song_id
         INNER JOIN songs ON songs.id = songs_artists.song_id
@@ -847,7 +849,27 @@ function filterArtistRankingsRawSync(
             THEN 1
             ELSE total_views <= :maxViews 
             END)
-    ORDER BY total_views DESC
+    ORDER BY
+        CASE WHEN :direction = 0 THEN 1
+        ELSE
+            CASE :orderBy
+                WHEN 1 
+                    THEN DATE(artists.publish_date)
+                WHEN 2 
+                    THEN DATE(artists.addition_date)
+                ELSE total_views
+            END
+        END ASC,
+        CASE WHEN :direction = 1 THEN 1
+        ELSE
+            CASE :orderBy
+                WHEN 1 
+                    THEN DATE(artists.publish_date)
+                WHEN 2 
+                    THEN DATE(artists.addition_date)
+                ELSE total_views
+            END
+        END DESC
     LIMIT :maxEntries
     OFFSET :startAt`).all(queryParams.params) as RawArtistRankingResult[]
 }

@@ -28,7 +28,7 @@ import {
  * 
  * enum PlacementChange { UP, SAME, DOWN }
  * 
- * enum FilterOrder { VIEWS, PUBLISH_DATE, ADDITION_DATE, POPULARITY }
+ * enum FilterOrder { VIEWS, PUBLISH_DATE, ADDITION_DATE, POPULARITY, SONG_COUNT }
  * 
  * enum FilterDirection { DESCENDING, ASCENDING }
  * 
@@ -396,7 +396,7 @@ const placementChangeEnum = new GraphQLEnumType({
 })
 
 /**
- * enum FilterOrder { VIEWS, PUBLISH_DATE, ADDITION_DATE, POPULARITY }
+ * enum FilterOrder { VIEWS, PUBLISH_DATE, ADDITION_DATE, POPULARITY, SONG_COUNT }
  */
 const filterOrderEnum = new GraphQLEnumType({
     name: 'FilterOrder',
@@ -417,6 +417,10 @@ const filterOrderEnum = new GraphQLEnumType({
         POPULARITY: {
             value: 3,
             description: `Order entities by their popularity.`
+        },
+        SONG_COUNT: {
+            value: 4,
+            description: `Only applicable when filtering artists; order artists by the amount of songs they are featured in.`
         }
     }
 })
@@ -1459,7 +1463,7 @@ const queryType = new GraphQLObjectType({
                     changeOffest,
                     daysOffset,
                     includeSourceTypes,
-                    excludeSourceType,
+                    excludeSourceTypes,
                     includeSongTypes,
                     excludeSongTypes,
                     includeArtistTypes,
@@ -1487,7 +1491,7 @@ const queryType = new GraphQLObjectType({
                     changeOffest?: number
                     daysOffset?: number
                     includeSourceTypes?: number[]
-                    excludeSourceType?: number[]
+                    excludeSourceTypes?: number[]
                     includeSongTypes?: number[]
                     excludeSongTypes?: number[]
                     includeArtistTypes?: number[]
@@ -1518,7 +1522,7 @@ const queryType = new GraphQLObjectType({
                 filterParams.changeOffset = changeOffest
                 filterParams.daysOffset = daysOffset
                 filterParams.includeSourceTypes = includeSourceTypes
-                filterParams.excludeSourceTypes = excludeSourceType
+                filterParams.excludeSourceTypes = excludeSourceTypes
                 filterParams.includeSongTypes = includeSongTypes
                 filterParams.excludeSongTypes = excludeSongTypes
                 filterParams.includeArtistTypes = includeArtistTypes

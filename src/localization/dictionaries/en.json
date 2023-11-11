@@ -73,6 +73,7 @@
     "filter_order_by_views": "Views",
     "filter_order_by_publish": "Publish Date",
     "filter_order_by_addition": "Addition Date",
+    "filter_order_by_song_count": "Song Count",
     "filter_single_video": "Views Aggregation Mode",
     "filter_single_video_description": "If \"Single Video\" is selected; calculates a song's total views using only the most viewed video per source.",
     "filter_single_video_all": "All Videos",

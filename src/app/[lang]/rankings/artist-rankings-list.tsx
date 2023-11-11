@@ -143,7 +143,7 @@ export function ArtistRankingsList(
             artistCategory: ArtistCategory[category],
             songPublishDate: (songPublishYear || songPublishMonth || songPublishDay) ? buildFuzzyDate(songPublishYear, songPublishMonth, songPublishDay) : undefined,
             publishDate: (releaseYear || releaseMonth || releaseDay) ? buildFuzzyDate(releaseYear, releaseMonth, releaseDay) : undefined,
-            orderBy: filterBarValues.orderBy == undefined ? undefined : FilterOrder[filterBarValues.orderBy],
+            orderBy: filterBarValues.orderBy == undefined ? undefined : FilterOrder[filters.orderBy.values[filterBarValues.orderBy].value || FilterOrder.VIEWS],
             //direction: undefined,
             includeArtists: filterBarValues.includeArtists && filterBarValues.includeArtists.length > 0 ? [...filterBarValues.includeArtists] : undefined, // unpack artists into new table so that the reference is different
             excludeArtists: filterBarValues.excludeArtists && filterBarValues.excludeArtists.length > 0 ? [...filterBarValues.excludeArtists] : undefined,

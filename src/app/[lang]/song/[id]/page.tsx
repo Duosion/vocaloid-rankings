@@ -15,6 +15,7 @@ import { notFound } from "next/navigation"
 import { Settings } from "../../settings"
 import { EntitySection } from "@/components/entity/entity-section"
 import { ArtistCard } from "@/components/entity/artist-card"
+import ArtistsGrid from "@/components/entity/artists-grid"
 
 // interfaces
 interface ViewsBreakdown {
@@ -238,14 +239,10 @@ export default async function SongPage(
                 <div className="flex gap-5 flex-col">
                     <div className={`grid gap-5 grid-cols-1 lg:${largestArtistColumnCount == 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
                         <EntitySection title={singers.length == 1 ? langDict.song_singers_singular : langDict.song_singers}>
-                            <div className={`grid gap-5 grid-cols-1 ${artistColumnSize}`}>
-                                {singers}
-                            </div>
+                            <ArtistsGrid className={artistColumnSize}>{singers}</ArtistsGrid>
                         </EntitySection>
                         <EntitySection title={producers.length == 1 ? langDict.song_producers_singular : langDict.song_producers}>
-                            <div className={`grid gap-5 grid-cols-1 ${artistColumnSize}`}>
-                                {producers}
-                            </div>
+                            <ArtistsGrid className={artistColumnSize}>{producers}</ArtistsGrid>
                         </EntitySection>
                     </div>
                     {/* Breakdown */}

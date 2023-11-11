@@ -1,25 +1,19 @@
 'use client'
+import { ArtistCard } from "@/components/entity/artist-card"
+import ArtistsGrid from "@/components/entity/artists-grid"
+import { ArtistsSkeleton } from "@/components/entity/artists-skeleton"
 import { EntitySection } from "@/components/entity/entity-section"
 import { EntityName } from "@/components/formatters/entity-name"
-import { NumberFormatter } from "@/components/formatters/number-formatter"
 import { FilledButton } from "@/components/material/filled-button"
 import { FilledIconButton } from "@/components/material/filled-icon-button"
-import { RankingsGrid } from "@/components/rankings/rankings-grid"
-import { RankingsGridItem } from "@/components/rankings/rankings-grid-item"
-import { RankingsSkeleton } from "@/components/rankings/rankings-skeleton"
+import { ArtistCategory } from "@/data/types"
 import { GET_ARTIST_RANKINGS, artistCategoryToApiArtistTypes, buildEntityNames, mapArtistType } from "@/lib/api"
-import { ApiArtistRankingsFilterResult, ApiSongRankingsFilterResult } from "@/lib/api/types"
-import { LanguageDictionary, LanguageDictionaryKey, getEntityName } from "@/localization"
+import { ApiArtistRankingsFilterResult } from "@/lib/api/types"
+import { LanguageDictionary, getEntityName } from "@/localization"
+import { ArtistTypeLocaleTokens } from "@/localization/DictionaryTokenMaps"
 import { useQuery } from "@apollo/client"
 import { useTheme } from "next-themes"
-import { RankingsViewMode } from "../../rankings/types"
 import { useSettings } from "../../settings/settings-provider"
-import { ArtistCategory } from "@/data/types"
-import { ArtistCard } from "@/components/entity/artist-card"
-import { ArtistTypeLocaleTokens } from "@/localization/DictionaryTokenMaps"
-import { ArtistsSkeleton } from "@/components/entity/artists-skeleton"
-import ArtistsGrid from "@/components/entity/artists-grid"
-import { mapArtistTypeToCategory } from "@/data/songsData"
 
 export function CoArtists(
     {
@@ -51,6 +45,7 @@ export function CoArtists(
             includeArtistTypes: artistCategoryToApiArtistTypes[categoryInversed],
             minViews: 1,
             maxEntries: maxEntries,
+            orderBy: "SONG_COUNT"
         }
     })
     const rankingsResult = data?.artistRankings as ApiArtistRankingsFilterResult
@@ -61,7 +56,7 @@ export function CoArtists(
         title={langDict[artistIsVocalist ? 'artist_co_artists_vocalist' : 'artist_co_artists_producer']}
         titleSupporting={
             rankingsResult != undefined && rankingsResult.totalCount > maxEntries ? <>
-                <FilledButton className="sm:flex hidden" text={langDict.artist_view_all} icon={'open_in_full'} href={`../rankings/${artistIsVocalist ? 'producers' : 'singers'}?includeCoArtistsOf=${artistId}&minViews=1`} />
+                <FilledButton className="sm:flex hidden" text={langDict.artist_view_all} icon={'open_in_full'} href={`../rankings/${artistIsVocalist ? 'producers' : 'singers'}?includeCoArtistsOf=${artistId}&minViews=1&orderBy=3`} />
                 <FilledIconButton className="sm:hidden flex" icon={'open_in_full'} href={`../rankings?includeArtists=${artistId}`} />
             </> : undefined
         }

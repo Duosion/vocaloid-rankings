@@ -176,7 +176,8 @@ const filters: ArtistRankingsFilters = {
         values: [
             { name: 'filter_order_by_views', value: FilterOrder.VIEWS },
             { name: 'filter_order_by_publish', value: FilterOrder.PUBLISH_DATE },
-            { name: 'filter_order_by_addition', value: FilterOrder.ADDITION_DATE }
+            { name: 'filter_order_by_addition', value: FilterOrder.ADDITION_DATE },
+            { name: 'filter_order_by_song_count', value: FilterOrder.SONG_COUNT }
         ],
         defaultValue: 0 // default value
     },

@@ -1,3 +1,5 @@
+import { ArtistCard } from "@/components/entity/artist-card"
+import { EntitySection } from "@/components/entity/entity-section"
 import { DateFormatter } from "@/components/formatters/date-formatter"
 import { EntityName } from "@/components/formatters/entity-name"
 import { NumberFormatter } from "@/components/formatters/number-formatter"
@@ -13,13 +15,8 @@ import { cookies } from "next/dist/client/components/headers"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { Settings } from "../../settings"
-import { TopSongs } from "./top-songs"
-import { EntitySection } from "@/components/entity/entity-section"
-import { ArtistCard } from "@/components/entity/artist-card"
-import { Suspense } from "react"
-import { RankingsSkeleton } from "@/components/rankings/rankings-skeleton"
-import { RankingsViewMode } from "../../rankings/types"
 import { CoArtists } from "./co-artists"
+import { TopSongs } from "./top-songs"
 
 // interfaces
 interface ViewsBreakdown {

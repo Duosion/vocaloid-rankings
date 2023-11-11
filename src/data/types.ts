@@ -54,7 +54,8 @@ export enum FilterOrder {
     VIEWS,
     PUBLISH_DATE,
     ADDITION_DATE,
-    POPULARITY
+    POPULARITY,
+    SONG_COUNT
 }
 
 export enum FilterDirection {
