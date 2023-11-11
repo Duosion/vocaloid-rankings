@@ -1,7 +1,6 @@
-import { Elevation } from "@/lib/material/types"
 import { FilterElement } from "./filter"
-import { elevationToClass } from "@/lib/material/material"
 import { generateTimestamp, localISOTimestampToDate } from "@/lib/utils"
+import { Elevation, elevationToClass } from ".."
 
 export function DateFilterElement(
     {

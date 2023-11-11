@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from "react"
-import { Icon } from "../material/icon"
 import { FilterElement } from "./filter"
 import { FadeInOut } from "../transitions/fade-in-out"
-import { Elevation } from "@/lib/material/types"
-import { elevationToClass } from "@/lib/material/material"
+import { Elevation, elevationToClass } from ".."
 import { MinimalIconButton } from "../material/minimal-icon-button"
 
 export function SelectFilterElement(

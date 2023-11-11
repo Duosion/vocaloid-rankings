@@ -1,4 +1,4 @@
-import { Elevation } from "@/lib/material/types"
+import { Elevation } from ".."
 import { SelectFilterElement } from "./select-filter"
 
 export function NumberSelectFilterElement(

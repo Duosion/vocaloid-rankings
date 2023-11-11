@@ -1,7 +1,5 @@
 import { DynamicColor, DynamicScheme, MaterialDynamicColors, hexFromArgb } from "@material/material-color-utilities";
-//import { Palette, getPaletteFromURL } from "color-thief-node";
-import { Elevation, ImageDisplayMode } from "./types";
-import { CSSProperties } from "react";
+import { Palette, getPaletteFromURL } from "color-thief-node";
 
 // theme generation helper functions
 export const getCustomThemeStylesheet = (
@@ -21,7 +19,7 @@ export const getCustomThemeStylesheet = (
 }
 
 // Function to calculate the Euclidean distance between two colors
-/*const colorDistance = (
+const colorDistance = (
     color1: Palette,
     color2: Palette
 ) => {
@@ -63,25 +61,4 @@ export const getImageMostVibrantColor = (
             })
             .catch(error => reject(error))
     })
-}*/
-
-export const elevationToClass: {[key in Elevation]: string} = {
-    [Elevation.LOWEST]: 'surface-container-lowest',
-    [Elevation.LOW]: 'surface-container-low',
-    [Elevation.NORMAL]: 'surface-container',
-    [Elevation.HIGH]: 'surface-container-high',
-    [Elevation.HIGHEST]: 'surface-container-highest'
-}
-
-export const imageDisplayModeStyles: { [key in ImageDisplayMode]: CSSProperties } = {
-    [ImageDisplayMode.SONG]: {
-        transform: 'scaleX(1.45) scaleY(1.45)',
-        objectPosition: 'center center'
-    },
-    [ImageDisplayMode.VOCALIST]: {
-        objectPosition: 'center top'
-    },
-    [ImageDisplayMode.PRODUCER] : {
-        objectPosition: 'center center'
-    }
 }

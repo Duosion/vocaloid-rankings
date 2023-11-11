@@ -16,10 +16,10 @@ import { useSettings } from "../settings/settings-provider"
 import { ArtistRankingsFilterBarValues, ArtistRankingsFilters, ArtistRankingsFiltersValues, EntityNames, FilterType, InputFilter, RankingsViewMode, SongRankingsFilterBarValues } from "./types"
 import { decodeBoolean, decodeMultiFilter, encodeBoolean, encodeMultiFilter, parseParamSelectFilterValue } from "./utils"
 import { SingerRankingsActiveFilterBar } from "./singers/singer-rankings-filter-bar"
-import { ImageDisplayMode } from "@/lib/material/types"
 import { buildFuzzyDate } from "@/lib/utils"
 import { RankingsSkeleton } from "@/components/rankings/rankings-skeleton"
 import { RankingsContainer } from "@/components/rankings/rankings-container"
+import { ImageDisplayMode } from "@/components"
 
 const GET_ARTISTS_NAMES = gql`
 query GetArtistsNames(

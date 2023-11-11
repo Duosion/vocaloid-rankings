@@ -4,8 +4,8 @@ import { Databases } from ".";
 import { Artist, ArtistCategory, ArtistPlacement, ArtistThumbnailType, ArtistType, HistoricalViews, HistoricalViewsResult, Id, NameType, Names, PlacementChange, SongRankingsFilterParams, SongRankingsFilterResult, SongRankingsFilterResultItem, RawArtistData, RawArtistName, RawArtistThumbnail, RawSongRankingsResult, RawSongArtist, RawSongData, RawSongName, RawSongVideoId, RawViewBreakdown, Song, SongPlacement, SongType, SongVideoIds, SourceType, SqlRankingsFilterParams, Views, ViewsBreakdown, ArtistRankingsFilterParams, ArtistRankingsFilterResult, ArtistRankingsFilterResultItem, RawArtistRankingResult, SqlSearchArtistsFilterParams, FilterInclusionMode, FilterOrder, FilterDirection, SongArtistsCategories, SqlRankingsFilterInVariables, SqlRankingsFilterStatements } from "./types";
 import type { Statement } from "better-sqlite3";
 import { getPaletteFromURL } from "color-thief-node";
-//import { getMostVibrantColor } from "@/lib/material/material";
 import { generateTimestamp } from "@/lib/utils";
+import { getMostVibrantColor } from "@/lib/material/material";
 
 // import database
 const db = getDatabase(Databases.SONGS_DATA)
@@ -616,8 +616,6 @@ function filterArtistRankingsRawSync(
     const filterIncludeArtistTypesStatement = statements.includeArtistTypes || ''
     const filterExcludeArtistTypesStatement = statements.excludeArtistTypes || ''
     const filterIncludeCoArtistsOfStatement = statements.includeCoArtistsOf || ''
-
-    console.log(`${filterIncludeSourceTypesStatement}${filterExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterIncludeArtistsStatement}${filterExcludeArtistsStatement}${filterIncludeSongsStatement}${filterExcludeSongsStatement}`)
 
     return db.prepare(`
     WITH RECURSIVE artist_hierarchy AS (
@@ -1665,7 +1663,7 @@ export function mapArtistTypeToCategory(
 }
 
 // update all songs' colors
-/*const convertDatabase = async (
+const convertDatabase = async (
     maximumConcurrent: number = 20
 ) => {
     const convertSongAverageColor = async (song: RawSongData) => {
@@ -1766,6 +1764,6 @@ export function mapArtistTypeToCategory(
         console.log('Databases converted.')
 
     }
-}*/
+}
 
 //convertDatabase()

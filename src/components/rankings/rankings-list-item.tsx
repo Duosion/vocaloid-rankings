@@ -1,8 +1,8 @@
 import Link from "next/link"
 import EntityThumbnail from "../entity-thumbnail"
 import { Transition, TransitionStatus } from "react-transition-group"
-import { CSSProperties, useEffect, useRef, useState } from "react"
-import { ImageDisplayMode } from "@/lib/material/types"
+import { CSSProperties, useRef } from "react"
+import { ImageDisplayMode } from "@/components"
 
 const transitionStyles: { [key in TransitionStatus]: CSSProperties } = {
     entering: {

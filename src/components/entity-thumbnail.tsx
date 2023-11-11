@@ -1,6 +1,5 @@
 import Image from '@/components/image';
-import { imageDisplayModeStyles } from '@/lib/material/material';
-import { ImageDisplayMode } from '@/lib/material/types';
+import { ImageDisplayMode, imageDisplayModeStyles } from '.';
 
 export default function EntityThumbnail(
     {

@@ -1,6 +1,6 @@
 import Link from "next/link"
 import EntityThumbnail from "../entity-thumbnail"
-import { ImageDisplayMode } from "@/lib/material/types"
+import { ImageDisplayMode } from "@/components"
 
 export function ArtistCard(
     {
