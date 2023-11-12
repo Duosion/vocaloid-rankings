@@ -138,6 +138,7 @@ query ArtistRankings(
     $maxViews: Long
     $search: String
     $includeCoArtistsOf: [Int]
+    $parentArtistId: Int
 ) {
     artistRankings(
         timestamp: $timestamp
@@ -167,6 +168,7 @@ query ArtistRankings(
         maxViews: $maxViews
         search: $search
         includeCoArtistsOf: $includeCoArtistsOf
+        parentArtistId: $parentArtistId
     ) {
         totalCount
         timestamp

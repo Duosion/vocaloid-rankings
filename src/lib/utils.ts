@@ -1,3 +1,4 @@
+import { ArtistCategory, ArtistType } from "@/data/types"
 import { MutableRefObject } from "react"
 
 export function timeoutDebounce(
@@ -44,4 +45,20 @@ export const buildFuzzyDate = (
     const fuzzyMonth = !month || isNaN(Number(month)) ? '%' : month.padStart(2, '0')
     const fuzzyDay = !day || isNaN(Number(day)) ? '%' : day.padStart(2, '0')
     return `${fuzzyYear}-${fuzzyMonth}-${fuzzyDay}%`
+}
+
+export function mapArtistTypeToCategory(
+    type: ArtistType
+): ArtistCategory {
+    switch (type) {
+        case ArtistType.VOCALOID:
+        case ArtistType.CEVIO:
+        case ArtistType.SYNTHESIZER_V:
+        case ArtistType.OTHER_VOCALIST:
+        case ArtistType.OTHER_VOICE_SYNTHESIZER:
+        case ArtistType.UTAU:
+            return ArtistCategory.VOCALIST
+        default:
+            return ArtistCategory.PRODUCER
+    }
 }

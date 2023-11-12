@@ -1,11 +1,10 @@
+import { getMostVibrantColor } from "@/lib/material/material";
+import { generateTimestamp } from "@/lib/utils";
 import { Hct, MaterialDynamicColors, SchemeVibrant, argbFromHex, argbFromRgb, hexFromArgb, rgbaFromArgb } from "@material/material-color-utilities";
-import getDatabase from ".";
-import { Databases } from ".";
-import { Artist, ArtistCategory, ArtistPlacement, ArtistThumbnailType, ArtistType, HistoricalViews, HistoricalViewsResult, Id, NameType, Names, PlacementChange, SongRankingsFilterParams, SongRankingsFilterResult, SongRankingsFilterResultItem, RawArtistData, RawArtistName, RawArtistThumbnail, RawSongRankingsResult, RawSongArtist, RawSongData, RawSongName, RawSongVideoId, RawViewBreakdown, Song, SongPlacement, SongType, SongVideoIds, SourceType, SqlRankingsFilterParams, Views, ViewsBreakdown, ArtistRankingsFilterParams, ArtistRankingsFilterResult, ArtistRankingsFilterResultItem, RawArtistRankingResult, SqlSearchArtistsFilterParams, FilterInclusionMode, FilterOrder, FilterDirection, SongArtistsCategories, SqlRankingsFilterInVariables, SqlRankingsFilterStatements } from "./types";
 import type { Statement } from "better-sqlite3";
 import { getPaletteFromURL } from "color-thief-node";
-import { generateTimestamp } from "@/lib/utils";
-import { getMostVibrantColor } from "@/lib/material/material";
+import getDatabase, { Databases } from ".";
+import { Artist, ArtistCategory, ArtistPlacement, ArtistRankingsFilterParams, ArtistRankingsFilterResult, ArtistRankingsFilterResultItem, ArtistThumbnailType, ArtistType, FilterInclusionMode, HistoricalViews, HistoricalViewsResult, Id, NameType, Names, PlacementChange, RawArtistData, RawArtistName, RawArtistRankingResult, RawArtistThumbnail, RawSongArtist, RawSongData, RawSongName, RawSongRankingsResult, RawSongVideoId, RawViewBreakdown, Song, SongArtistsCategories, SongPlacement, SongRankingsFilterParams, SongRankingsFilterResult, SongRankingsFilterResultItem, SongType, SongVideoIds, SourceType, SqlRankingsFilterInVariables, SqlRankingsFilterParams, SqlRankingsFilterStatements, SqlSearchArtistsFilterParams, Views, ViewsBreakdown } from "./types";
 
 // import database
 const db = getDatabase(Databases.SONGS_DATA)
@@ -542,7 +541,8 @@ function getArtistRankingsFilterQueryParams(
         minViews: filterParams.minViews,
         maxViews: filterParams.maxViews,
         search: filterParams.search?.toLowerCase(),
-        includeCoArtistsOf: filterParams.includeCoArtistsOf ? 1 : null
+        includeCoArtistsOf: filterParams.includeCoArtistsOf ? 1 : null,
+        parentArtistId: filterParams.parentArtistId || null
     }
 
     const buildInStatement = (values: Id[], prefix = '') => {
@@ -648,6 +648,7 @@ function filterArtistRankingsRawSync(
         AND (:songPublishDate IS NULL OR songs.publish_date LIKE :songPublishDate)
         AND (:publishDate IS NULL OR artists.publish_date LIKE :publishDate)
         AND (songs_artists.artist_category = :artistCategory OR :artistCategory IS NULL)
+        AND (:parentArtistId IS NULL or artists.base_artist_id = :parentArtistId)
         AND (:search IS NULL OR EXISTS (
             SELECT artists_names.artist_id 
             FROM artists_names 
@@ -669,6 +670,7 @@ function filterArtistRankingsRawSync(
                     AND (sub_vb.song_id = views_breakdowns.song_id)
                     AND (:songPublishDate IS NULL OR songs.publish_date LIKE :songPublishDate)
                     AND (:publishDate IS NULL OR artists.publish_date LIKE :publishDate)
+                    AND (:parentArtistId IS NULL or artists.base_artist_id = :parentArtistId)
                     AND (songs_artists.artist_category = :artistCategory OR :artistCategory IS NULL)
                     AND (artists_names.name LIKE :search OR :search IS NULL)${filterOffsetSubIncludeSourceTypesStatement}${filterOffsetSubExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterIncludeArtistsStatement}${filterExcludeArtistsStatement}${filterIncludeSongsStatement}${filterExcludeSongsStatement}
                 GROUP BY sub_vb.song_id)
@@ -698,6 +700,7 @@ function filterArtistRankingsRawSync(
         AND (:songPublishDate IS NULL OR songs.publish_date LIKE :songPublishDate)
         AND (:publishDate IS NULL OR artists.publish_date LIKE :publishDate)
         AND (songs_artists.artist_category = :artistCategory OR :artistCategory IS NULL)
+        AND (:parentArtistId IS NULL or artists.base_artist_id = :parentArtistId)
         AND (:search IS NULL OR EXISTS (
             SELECT artists_names.artist_id 
             FROM artists_names 
@@ -720,6 +723,7 @@ function filterArtistRankingsRawSync(
                     AND (:songPublishDate IS NULL OR songs.publish_date LIKE :songPublishDate)
                     AND (:publishDate IS NULL OR artists.publish_date LIKE :publishDate)
                     AND (songs_artists.artist_category = :artistCategory OR :artistCategory IS NULL)
+                    AND (:parentArtistId IS NULL or artists.base_artist_id = :parentArtistId)
                     AND (artists_names.name LIKE :search OR :search IS NULL)${filterOffsetSubIncludeSourceTypesStatement}${filterOffsetSubExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterIncludeArtistsStatement}${filterExcludeArtistsStatement}${filterIncludeSongsStatement}${filterExcludeSongsStatement}${filterIncludeCoArtistsOfStatement}
                 GROUP BY sub_vb.song_id)
             END)${filterIncludeSourceTypesStatement}${filterExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterIncludeArtistsStatement}${filterExcludeArtistsStatement}${filterIncludeSongsStatement}${filterExcludeSongsStatement}${filterIncludeCoArtistsOfStatement}
@@ -747,6 +751,7 @@ function filterArtistRankingsRawSync(
         AND (:songPublishDate IS NULL OR songs.publish_date LIKE :songPublishDate)
         AND (:publishDate IS NULL OR artists.publish_date LIKE :publishDate)
         AND (songs_artists.artist_category = :artistCategory OR :artistCategory IS NULL)
+        AND (:parentArtistId IS NULL or artists.base_artist_id = :parentArtistId)
         AND (:search IS NULL OR EXISTS (
             SELECT artists_names.artist_id 
             FROM artists_names 
@@ -769,6 +774,7 @@ function filterArtistRankingsRawSync(
                     AND (:songPublishDate IS NULL OR songs.publish_date LIKE :songPublishDate)
                     AND (:publishDate IS NULL OR artists.publish_date LIKE :publishDate)
                     AND (songs_artists.artist_category = :artistCategory OR :artistCategory IS NULL)
+                    AND (:parentArtistId IS NULL or artists.base_artist_id = :parentArtistId)
                     AND (artists_names.name LIKE :search OR :search IS NULL)${filterOffsetSubIncludeSourceTypesStatement}${filterOffsetSubExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterIncludeArtistsStatement}${filterExcludeArtistsStatement}${filterIncludeSongsStatement}${filterExcludeSongsStatement}
                 GROUP BY sub_vb.song_id)
             END)${filterIncludeSourceTypesStatement}${filterExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterIncludeArtistsStatement}${filterExcludeArtistsStatement}${filterIncludeSongsStatement}${filterExcludeSongsStatement}
@@ -797,6 +803,7 @@ function filterArtistRankingsRawSync(
         AND (:songPublishDate IS NULL OR songs.publish_date LIKE :songPublishDate)
         AND (:publishDate IS NULL OR artists.publish_date LIKE :publishDate)
         AND (songs_artists.artist_category = :artistCategory OR :artistCategory IS NULL)
+        AND (:parentArtistId IS NULL or artists.base_artist_id = :parentArtistId)
         AND (:search IS NULL OR EXISTS (
             SELECT artists_names.artist_id 
             FROM artists_names 
@@ -819,6 +826,7 @@ function filterArtistRankingsRawSync(
                     AND (:songPublishDate IS NULL OR songs.publish_date LIKE :songPublishDate)
                     AND (:publishDate IS NULL OR artists.publish_date LIKE :publishDate)
                     AND (songs_artists.artist_category = :artistCategory OR :artistCategory IS NULL)
+                    AND (:parentArtistId IS NULL or artists.base_artist_id = :parentArtistId)
                     AND (artists_names.name LIKE :search OR :search IS NULL)${filterOffsetSubIncludeSourceTypesStatement}${filterOffsetSubExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterIncludeArtistsStatement}${filterExcludeArtistsStatement}${filterIncludeSongsStatement}${filterExcludeSongsStatement}${filterIncludeCoArtistsOfStatement}
                 GROUP BY sub_vb.song_id)
             END)${filterIncludeSourceTypesStatement}${filterExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterIncludeArtistsStatement}${filterExcludeArtistsStatement}${filterIncludeSongsStatement}${filterExcludeSongsStatement}${filterIncludeCoArtistsOfStatement}
@@ -1644,22 +1652,6 @@ export function getSongHistoricalViews(
             reject(error)
         }
     })
-}
-
-export function mapArtistTypeToCategory(
-    type: ArtistType
-): ArtistCategory {
-    switch (type) {
-        case ArtistType.VOCALOID:
-        case ArtistType.CEVIO:
-        case ArtistType.SYNTHESIZER_V:
-        case ArtistType.OTHER_VOCALIST:
-        case ArtistType.OTHER_VOICE_SYNTHESIZER:
-        case ArtistType.UTAU:
-            return ArtistCategory.VOCALIST
-        default:
-            return ArtistCategory.PRODUCER
-    }
 }
 
 // update all songs' colors

@@ -4,7 +4,7 @@ import { DateFormatter } from "@/components/formatters/date-formatter"
 import { EntityName } from "@/components/formatters/entity-name"
 import { NumberFormatter } from "@/components/formatters/number-formatter"
 import Image from '@/components/image'
-import { getArtist, getArtistHistoricalViews, mapArtistTypeToCategory } from "@/data/songsData"
+import { getArtist, getArtistHistoricalViews } from "@/data/songsData"
 import { ArtistCategory, ArtistThumbnailType, NameType, SourceType } from "@/data/types"
 import { getCustomThemeStylesheet } from "@/lib/material/material"
 import { SourceTypesDisplayData } from "@/lib/sourceType"
@@ -17,6 +17,8 @@ import { notFound } from "next/navigation"
 import { Settings } from "../../settings"
 import { CoArtists } from "./co-artists"
 import { TopSongs } from "./top-songs"
+import { mapArtistTypeToCategory } from "@/lib/utils"
+import { RelatedArtists } from "./related-artists"
 
 // interfaces
 interface ViewsBreakdown {
@@ -169,18 +171,6 @@ export default async function SongPage(
 
             <div className="mt-3 w-full grid md:grid-cols-sidebar grid-cols-1 gap-5">
                 <aside className="flex flex-col gap-5">
-                    
-                    {baseArtist ? <StatRow title={langDict.artist_based_on}>
-                        <ArtistCard
-                            src={baseArtist.thumbnails[ArtistThumbnailType.SMALL] || baseArtist.thumbnails[ArtistThumbnailType.ORIGINAL]}
-                            alt={getEntityName(baseArtist.names, settingTitleLanguage)}
-                            bgColor={baseArtist.averageColor}
-                            href={`/${lang}/artist/${baseArtist.id}`}
-                            title={<EntityName names={baseArtist.names} preferred={settingTitleLanguage} />}
-                            text={langDict[ArtistTypeLocaleTokens[baseArtist.type]]}
-                            isSinger={true}
-                        />
-                    </StatRow> : undefined}
                     <ul className="bg-surface-container rounded-2xl p-5 box-border flex md:flex-col flex-row gap-5 overflow-x-auto overflow-y-clip md:overflow-x-clip">
                         <StatRow title={langDict.filter_publish_date}>
                             <DateFormatter date={new Date(artist.publishDate)} />
@@ -197,8 +187,8 @@ export default async function SongPage(
                 </aside>
                 <div className="flex gap-5 flex-col">
                     {/* Top Songs */}
-                    <TopSongs artistId={artistId} langDict={langDict} maxEntries={6} columnsClassName='xl:grid-cols-6 lg:grid-cols-5 md:grid-cols-3 sm:grid-cols-3 grid-cols-2'/>
-                    
+                    <TopSongs artistId={artistId} langDict={langDict} maxEntries={6} columnsClassName='xl:grid-cols-6 lg:grid-cols-5 md:grid-cols-3 sm:grid-cols-3 grid-cols-2' />
+
                     {/* Breakdown */}
                     <div className="grid gap-5 lg:grid-cols-2 grid-cols-1">
                         <EntitySection title={langDict.song_views_breakdown}>
@@ -243,6 +233,19 @@ export default async function SongPage(
 
                     {/* co artists */}
                     <CoArtists artistId={artistId} category={artistCategory} langDict={langDict} maxEntries={4} />
+
+                    {/* Related Artists */}
+                    <RelatedArtists artistId={artistId} langDict={langDict} maxEntries={10}>
+                        {baseArtist ? <ArtistCard
+                            src={baseArtist.thumbnails[ArtistThumbnailType.SMALL] || baseArtist.thumbnails[ArtistThumbnailType.ORIGINAL]}
+                            alt={getEntityName(baseArtist.names, settingTitleLanguage)}
+                            bgColor={baseArtist.averageColor}
+                            href={`/${lang}/artist/${baseArtist.id}`}
+                            title={<EntityName names={baseArtist.names} preferred={settingTitleLanguage} />}
+                            text={langDict[ArtistTypeLocaleTokens[baseArtist.type]]}
+                            isSinger={true}
+                        /> : undefined}
+                    </RelatedArtists>
                 </div>
             </div>
         </article>

@@ -218,6 +218,7 @@ export class ArtistRankingsFilterParams {
     maxViews?: number
     search?: string
     includeCoArtistsOf?: Id[]
+    parentArtistId?: Id
 
     constructor(
         timestamp?: string,
@@ -248,7 +249,8 @@ export class ArtistRankingsFilterParams {
         minViews?: number,
         maxViews?: number,
         search?: string,
-        includeCoArtistsOf?: Id[]
+        includeCoArtistsOf?: Id[],
+        parentArtistId?: Id
     ) {
         this.timestamp = timestamp
         this.timePeriodOffset = timePeriodOffset || this.timePeriodOffset
@@ -279,6 +281,7 @@ export class ArtistRankingsFilterParams {
         this.maxViews = maxViews
         this.search = search
         this.includeCoArtistsOf = includeCoArtistsOf == undefined ? this.includeCoArtistsOf : includeCoArtistsOf
+        this.parentArtistId = parentArtistId
     }
 }
 
