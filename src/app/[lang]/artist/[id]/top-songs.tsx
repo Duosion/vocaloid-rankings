@@ -55,7 +55,7 @@ export function TopSongs(
             </> : undefined
         }
     >
-        <article className="mx-2 mt-3">
+        <article className="mx-3">
             {
                 error ? <ErrorMessage message={error.message} />
                     : loading ? <RankingsSkeleton elementCount={maxEntries} viewMode={RankingsViewMode.GRID} columnsClassName={columnsClassName} />

@@ -61,7 +61,7 @@ export function CoArtists(
             </> : undefined
         }
     >
-        <article className="mt-2">
+        <article>
             {
                 error ? <ErrorMessage message={error.message} />
                     : loading ? <ArtistsSkeleton elementCount={maxEntries} className="xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2"/>

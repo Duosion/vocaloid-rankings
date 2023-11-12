@@ -44,12 +44,10 @@ export function RelatedArtists(
 
     const ErrorMessage = ({ message }: { message: string }) => <h2 className="text-3xl font-bold text-center text-on-background">{message}</h2>
 
-    const subTitle = langDict['artist_related_artist_child']
-
     return rankingsResult != undefined && rankingsResult.totalCount === 0 ? undefined : <EntitySection
         title={langDict['artist_related_artists']}
     >
-        <article className="mt-2">
+        <article>
             {
                 error ? <ErrorMessage message={error.message} />
                     : loading ? <ArtistsSkeleton elementCount={maxEntries} className="xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2" />
@@ -69,7 +67,6 @@ export function RelatedArtists(
                                             bgColor={color}
                                             href={`../artist/${artist.id}`}
                                             title={<EntityName names={names} preferred={settingTitleLanguage} />}
-                                            text={''}
                                             isSinger={mapArtistTypeToCategory(mapArtistType(artist.type)) == ArtistCategory.VOCALIST}
                                         />
                                     )

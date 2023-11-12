@@ -19,6 +19,7 @@ import { CoArtists } from "./co-artists"
 import { TopSongs } from "./top-songs"
 import { mapArtistTypeToCategory } from "@/lib/utils"
 import { RelatedArtists } from "./related-artists"
+import { Divider } from "@/components/material/divider"
 
 // interfaces
 interface ViewsBreakdown {
@@ -185,9 +186,11 @@ export default async function SongPage(
                         {vocadbLink}
                     </ul>
                 </aside>
-                <div className="flex gap-5 flex-col">
+                <div className="flex gap-6 flex-col">
                     {/* Top Songs */}
                     <TopSongs artistId={artistId} langDict={langDict} maxEntries={6} columnsClassName='xl:grid-cols-6 lg:grid-cols-5 md:grid-cols-3 sm:grid-cols-3 grid-cols-2' />
+
+                    <Divider/>
 
                     {/* Breakdown */}
                     <div className="grid gap-5 lg:grid-cols-2 grid-cols-1">
