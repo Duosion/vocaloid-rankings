@@ -1201,14 +1201,14 @@ function getArtistSync(
     const placement = views ? getArtistPlacementSync(artistData, views) : null
 
     const baseArtistId = artistData.base_artist_id
-
+    
     return buildArtist(
         artistData,
         artistNames,
         artistThumbnails,
         views,
         placement,
-        baseArtistId != undefined && getBaseArtist ? getArtistSync(baseArtistId, getViews, false) : null
+        (baseArtistId !== undefined) && getBaseArtist ? getArtistSync(baseArtistId, getViews, false) : null
     )
 }
 

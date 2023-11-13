@@ -28,7 +28,7 @@ interface ViewsBreakdown {
     source: SourceType
 }
 
-export default async function SongPage(
+export default async function ArtistPage(
     {
         params
     }: {
@@ -245,7 +245,7 @@ export default async function SongPage(
                             bgColor={baseArtist.averageColor}
                             href={`/${lang}/artist/${baseArtist.id}`}
                             title={<EntityName names={baseArtist.names} preferred={settingTitleLanguage} />}
-                            text={langDict[ArtistTypeLocaleTokens[baseArtist.type]]}
+                            text={langDict['artist_related_artist_parent']}
                             isSinger={true}
                         /> : undefined}
                     </RelatedArtists>

@@ -149,6 +149,7 @@
     "artist_view_all": "View All",
     "artist_co_artists_producer": "Mostly Features",
     "artist_co_artists_vocalist": "Mostly Featured By",
+    "artist_co_artists_featured_song_count": "{song_count} song(s)",
     "artist_related_artists": "Related Artists",
     "artist_related_artist_parent": "Based On",
     "artist_related_artist_child": "Similar",

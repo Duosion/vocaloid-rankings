@@ -4,7 +4,7 @@ export function RankingsGrid (
         children
     }: {
         columnsClassName?: string,
-        children: JSX.Element[] | JSX.Element
+        children: React.ReactNode
     }
 ) {
     return <ol className={`grid gap-10 w-full mt-3 ${columnsClassName}`}>{children}</ol>

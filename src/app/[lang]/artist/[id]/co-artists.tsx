@@ -80,7 +80,7 @@ export function CoArtists(
                                         bgColor={color}
                                         href={`../artist/${artist.id}`}
                                         title={<EntityName names={names} preferred={settingTitleLanguage} />}
-                                        text={!artistIsVocalist ? langDict[ArtistTypeLocaleTokens[mapArtistType(artist.type)]] : ''}
+                                        text={langDict['artist_co_artists_featured_song_count'].replace('{song_count}', ranking.views.toString())}//{!artistIsVocalist ? langDict[ArtistTypeLocaleTokens[mapArtistType(artist.type)]] : ''}
                                         isSinger={!artistIsVocalist}
                                     />
                                 )

@@ -10,7 +10,7 @@ export function RankingsContainer(
     }: {
         viewMode: RankingsViewMode
         columnsClassName?: string
-        children: JSX.Element[] | JSX.Element
+        children: React.ReactNode
     }
 ) {
     return viewMode == RankingsViewMode.LIST ? <RankingsList>{children}</RankingsList> : <RankingsGrid columnsClassName={columnsClassName}>{children}</RankingsGrid>
