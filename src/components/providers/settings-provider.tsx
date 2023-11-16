@@ -1,9 +1,9 @@
 'use client'
 import React, { Fragment, createContext, useCallback, useContext, useMemo, useState } from "react";
-import { RawSettings, UseSettingsProps, SettingsProviderProps } from "./types";
+import { RawSettings, UseSettingsProps, SettingsProviderProps } from "../../app/[lang]/settings/types";
 import { NameType } from "@/data/types";
 import { setCookie, getCookie } from 'cookies-next'
-import { RankingsViewMode, SongRankingsFiltersValues } from "../rankings/types";
+import { RankingsViewMode, SongRankingsFiltersValues } from "../../app/[lang]/rankings/types";
 import { cookies } from "next/dist/client/components/headers";
 
 const settingsContext = createContext<UseSettingsProps | undefined>(undefined)

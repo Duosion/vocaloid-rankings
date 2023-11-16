@@ -4,14 +4,14 @@ import ArtistsGrid from "@/components/entity/artists-grid"
 import { ArtistsSkeleton } from "@/components/entity/artists-skeleton"
 import { EntitySection } from "@/components/entity/entity-section"
 import { EntityName } from "@/components/formatters/entity-name"
-import { Artist, ArtistCategory, ArtistThumbnailType } from "@/data/types"
+import { ArtistCategory } from "@/data/types"
 import { GET_ARTIST_RANKINGS, buildEntityNames, mapArtistType } from "@/lib/api"
 import { ApiArtistRankingsFilterResult } from "@/lib/api/types"
 import { mapArtistTypeToCategory } from "@/lib/utils"
 import { LanguageDictionary, getEntityName } from "@/localization"
-import { useQuery } from "@apollo/client"
+import { useQuery } from "graphql-hooks"
 import { useTheme } from "next-themes"
-import { useSettings } from "../../settings/settings-provider"
+import { useSettings } from "../../../../components/providers/settings-provider"
 
 export function RelatedArtists(
     {
@@ -49,7 +49,7 @@ export function RelatedArtists(
     >
         <article>
             {
-                error ? <ErrorMessage message={error.message} />
+                error ? <ErrorMessage message={''} />
                     : loading ? <ArtistsSkeleton elementCount={maxEntries} className="xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2" />
                         : <ArtistsGrid className="xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2">
                             {children}

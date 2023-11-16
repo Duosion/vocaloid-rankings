@@ -1,13 +1,14 @@
-import { ArtistCard } from "@/components/entity/artist-card"
 import { EntitySection } from "@/components/entity/entity-section"
 import { DateFormatter } from "@/components/formatters/date-formatter"
 import { EntityName } from "@/components/formatters/entity-name"
 import { NumberFormatter } from "@/components/formatters/number-formatter"
 import Image from '@/components/image'
+import { Divider } from "@/components/material/divider"
 import { getArtist, getArtistHistoricalViews } from "@/data/songsData"
 import { ArtistCategory, ArtistThumbnailType, NameType, SourceType } from "@/data/types"
 import { getCustomThemeStylesheet } from "@/lib/material/material"
 import { SourceTypesDisplayData } from "@/lib/sourceType"
+import { mapArtistTypeToCategory } from "@/lib/utils"
 import { Locale, getDictionary, getEntityName } from "@/localization"
 import { ArtistTypeLocaleTokens, NameTypeLocaleTokens, SourceTypeLocaleTokens } from "@/localization/DictionaryTokenMaps"
 import { Hct, SchemeVibrant, argbFromHex } from "@material/material-color-utilities"
@@ -15,11 +16,7 @@ import { cookies } from "next/dist/client/components/headers"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { Settings } from "../../settings"
-import { CoArtists } from "./co-artists"
 import { TopSongs } from "./top-songs"
-import { mapArtistTypeToCategory } from "@/lib/utils"
-import { RelatedArtists } from "./related-artists"
-import { Divider } from "@/components/material/divider"
 
 // interfaces
 interface ViewsBreakdown {
@@ -233,22 +230,6 @@ export default async function ArtistPage(
                             </div>
                         </EntitySection>
                     </div>
-
-                    {/* co artists */}
-                    <CoArtists artistId={artistId} category={artistCategory} langDict={langDict} maxEntries={4} />
-
-                    {/* Related Artists */}
-                    <RelatedArtists artistId={artistId} langDict={langDict} maxEntries={10}>
-                        {baseArtist ? <ArtistCard
-                            src={baseArtist.thumbnails[ArtistThumbnailType.SMALL] || baseArtist.thumbnails[ArtistThumbnailType.ORIGINAL]}
-                            alt={getEntityName(baseArtist.names, settingTitleLanguage)}
-                            bgColor={baseArtist.averageColor}
-                            href={`/${lang}/artist/${baseArtist.id}`}
-                            title={<EntityName names={baseArtist.names} preferred={settingTitleLanguage} />}
-                            text={langDict['artist_related_artist_parent']}
-                            isSinger={true}
-                        /> : undefined}
-                    </RelatedArtists>
                 </div>
             </div>
         </article>

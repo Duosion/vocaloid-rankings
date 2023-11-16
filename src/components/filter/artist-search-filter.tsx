@@ -1,17 +1,17 @@
 import { EntityNames } from "@/app/[lang]/rankings/types"
-import { useSettings } from "@/app/[lang]/settings/settings-provider"
+import { useSettings } from "@/components/providers/settings-provider"
 import { buildEntityNames, graphClient } from "@/lib/api"
 import { ApiArtist } from "@/lib/api/types"
 import { timeoutDebounce } from "@/lib/utils"
 import { getEntityName } from "@/localization"
-import { ApolloError, ApolloQueryResult, gql } from "@apollo/client"
+import { Result, APIError, GraphQLResponseError } from "graphql-hooks"
 import { useEffect, useRef, useState } from "react"
 import { FadeInOut } from "../transitions/fade-in-out"
 import { ActiveFilter } from "./active-filter"
 import { FilterElement } from "./filter"
 import { Elevation, elevationToClass } from ".."
 
-const ARTISTS_SEARCH = gql`
+const ARTISTS_SEARCH = `
 query ArtistSearch(
     $query: String!
     $excludeArtists: [Int]
@@ -64,7 +64,7 @@ export function ArtistSearchFilter(
 
     // graphql context
     const [loading, setLoading] = useState(false)
-    const [apiError, setApiError] = useState(null as ApolloError | null)
+    const [apiError, setApiError] = useState(null as APIError<GraphQLResponseError> | null)
     const [apiData, setApiData] = useState(null as any)
 
     const searchResult = apiData?.searchArtist as ApiArtist[]
@@ -97,13 +97,13 @@ export function ArtistSearchFilter(
             setLoading(true)
             setApiError(null)
             
-            graphClient.query({
+            graphClient.request({
                 query: ARTISTS_SEARCH,
                 variables: {
                     query: input,
                     excludeArtists: value
                 }
-            }).then((result: ApolloQueryResult<any>) => { 
+            }).then((result: Result<any, any>) => { 
                 const error = result.error
                 if (error) {
                     setApiError(error)
@@ -157,7 +157,7 @@ export function ArtistSearchFilter(
                     <ul ref={modalRef} className="absolute top-2 min-w-[160px] w-full right-0 rounded-xl shadow-md p-2 max-h-72 overflow-y-scroll overflow-x-clip"
                         style={{ backgroundColor: `var(--md-sys-color-${elevationToClass[modalElevation]})` }}
                     >
-                        {apiError || !searchResult ? <h3 className="text-base text-center">{apiError?.message}</h3>
+                        {apiError || !searchResult ? <h3 className="text-base text-center">{''}</h3>
                             : loading ? <h3 className="text-base text-center">Loading...</h3>
                                 : searchResult.map(result => {
                                     const name = getEntityName(buildEntityNames(result.names), settingTitleLanguage)

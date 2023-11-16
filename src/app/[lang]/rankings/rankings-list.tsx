@@ -11,11 +11,11 @@ import { ArtistType, FilterInclusionMode, FilterOrder, SongType, SourceType } fr
 import { GET_SONG_RANKINGS, buildEntityNames, graphClient } from "@/lib/api"
 import { ApiArtist, ApiSongRankingsFilterResult } from "@/lib/api/types"
 import { LanguageDictionary, getEntityName } from "@/localization"
-import { ApolloQueryResult, gql, useQuery } from "@apollo/client"
+import { useQuery, Result } from "graphql-hooks"
 import { useTheme } from "next-themes"
 import { useEffect, useState } from "react"
 import { TransitionGroup } from "react-transition-group"
-import { useSettings } from "../settings/settings-provider"
+import { useSettings } from "../../../components/providers/settings-provider"
 import { SongRankingsActiveFilterBar } from "./song-rankings-filters"
 import { EntityNames, FilterType, InputFilter, RankingsFilters, RankingsViewMode, SongRankingsFilterBarValues, SongRankingsFiltersValues } from "./types"
 import { decodeBoolean, decodeMultiFilter, encodeBoolean, encodeMultiFilter, parseParamSelectFilterValue } from "./utils"
@@ -23,7 +23,7 @@ import { buildFuzzyDate } from "@/lib/utils"
 import { RankingsSkeleton } from "@/components/rankings/rankings-skeleton"
 import { RankingsContainer } from "@/components/rankings/rankings-container"
 
-const GET_ARTISTS_NAMES = gql`
+const GET_ARTISTS_NAMES = `
 query GetArtistsNames(
     $ids: [Int]!
 ) {
@@ -206,12 +206,12 @@ export function RankingsList(
     useEffect(() => {
         const artists = [...(filterBarValues.includeArtists || []), ...(filterBarValues.excludeArtists || [])]
         if (artists && artists.length > 0) {
-            graphClient.query({
+            graphClient.request({
                 query: GET_ARTISTS_NAMES,
                 variables: {
                     ids: artists
                 }
-            }).then((result: ApolloQueryResult<any>) => {
+            }).then((result: Result<any, any>) => {
                 if (!result.error) {
                     const nameMap: EntityNames = {}
                     for (const artist of result.data.artists as ApiArtist[]) {
@@ -241,7 +241,7 @@ export function RankingsList(
                 onEntityNamesChanged={newNames => setEntityNames({ ...newNames })}
             />
             <Divider />
-            {error ? <h2 className="text-3xl font-bold text-center text-on-background">{error.message}</h2>
+            {error ? <h2 className="text-3xl font-bold text-center text-on-background">{''}</h2>
                 : !loading && (rankingsResult == undefined || 0 >= rankingsResult.results.length) ? <h2 className="text-3xl font-bold text-center text-on-background">{langDict.search_no_results}</h2>
                     : rankingsResult == undefined ? <RankingsSkeleton elementCount={50} viewMode={rankingsViewMode} />
                     : <RankingsContainer viewMode={rankingsViewMode}>

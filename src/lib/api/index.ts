@@ -1,17 +1,18 @@
-import { ArtistCategory, ArtistType, NameType, Names, PlacementChange, SongType, SourceType } from "@/data/types";
+import { ArtistType, NameType, Names, PlacementChange, SongType, SourceType } from "@/data/types";
+import { GraphQLClient } from "graphql-hooks";
 import { ApiNames } from "./types";
-import { ApolloClient, InMemoryCache, gql } from "@apollo/client";
+import MemCacheFunction from "graphql-hooks-memcache";
 
 const apiEndpoint = '/api/v1'
 
 // general-purpose functions
-export const graphClient = new ApolloClient({
-    uri: apiEndpoint,
-    cache: new InMemoryCache()
+export const graphClient = new GraphQLClient({
+    url: apiEndpoint,
+    cache: MemCacheFunction()
 })
 
 // queries
-export const GET_SONG_RANKINGS = gql`
+export const GET_SONG_RANKINGS = `
 query SongRankings(
     $timestamp: String
     $timePeriodOffset: Int
@@ -109,7 +110,7 @@ query SongRankings(
 }
 `
 
-export const GET_ARTIST_RANKINGS = gql`
+export const GET_ARTIST_RANKINGS = `
 query ArtistRankings(
     $timestamp: String
     $timePeriodOffset: Int
@@ -275,24 +276,4 @@ export function buildEntityNames(
         [NameType.ENGLISH]: apiData.english,
         [NameType.ROMAJI]: apiData.romaji
     }
-}
-
-// maps
-export const artistCategoryToApiArtistTypes: { [key in ArtistCategory]: string[] } = {
-    [ArtistCategory.VOCALIST]: [
-        ArtistType[ArtistType.VOCALOID],
-        ArtistType[ArtistType.CEVIO],
-        ArtistType[ArtistType.SYNTHESIZER_V],
-        ArtistType[ArtistType.OTHER_VOCALIST],
-        ArtistType[ArtistType.OTHER_VOICE_SYNTHESIZER],
-        ArtistType[ArtistType.UTAU],
-    ],
-    [ArtistCategory.PRODUCER]: [
-        ArtistType[ArtistType.ILLUSTRATOR],
-        ArtistType[ArtistType.COVER_ARTIST],
-        ArtistType[ArtistType.ANIMATOR],
-        ArtistType[ArtistType.PRODUCER],
-        ArtistType[ArtistType.OTHER_INDIVIDUAL],
-        ArtistType[ArtistType.OTHER_GROUP]
-    ]
 }

@@ -3,7 +3,7 @@ import { NameType } from '@/data/types'
 import { useEffect, useState } from 'react'
 import { useTheme } from 'next-themes'
 import { LanguageDictionary, Locale, getDictionary } from '@/localization'
-import { useSettings } from './settings-provider'
+import { useSettings } from '../../../components/providers/settings-provider'
 import { NameTypeLocaleTokens } from '@/localization/DictionaryTokenMaps'
 import { RankingsViewMode } from '../rankings/types'
 

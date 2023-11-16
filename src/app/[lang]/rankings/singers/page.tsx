@@ -1,12 +1,11 @@
 import { getMostRecentViewsTimestamp } from "@/data/songsData"
 import { ArtistCategory, ArtistType, FilterOrder, SongType, SourceType } from "@/data/types"
-import { generateTimestamp } from "@/lib/utils"
+import { generateTimestamp, artistCategoryToApiArtistTypes } from "@/lib/utils"
 import { Locale, getDictionary } from "@/localization"
 import { cookies } from "next/dist/client/components/headers"
 import { Settings } from "../../settings"
 import { ArtistRankingsFilters, ArtistRankingsFiltersValues, FilterType, SongRankingsFiltersValues } from "../types"
 import { ArtistRankingsList } from "../artist-rankings-list"
-import { artistCategoryToApiArtistTypes } from "@/lib/api"
 
 const filters: ArtistRankingsFilters = {
     search: {

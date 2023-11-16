@@ -7,13 +7,13 @@ import { EntityName } from "@/components/formatters/entity-name"
 import { FilledButton } from "@/components/material/filled-button"
 import { FilledIconButton } from "@/components/material/filled-icon-button"
 import { ArtistCategory } from "@/data/types"
-import { GET_ARTIST_RANKINGS, artistCategoryToApiArtistTypes, buildEntityNames, mapArtistType } from "@/lib/api"
+import { GET_ARTIST_RANKINGS, buildEntityNames, mapArtistType } from "@/lib/api"
 import { ApiArtistRankingsFilterResult } from "@/lib/api/types"
 import { LanguageDictionary, getEntityName } from "@/localization"
-import { ArtistTypeLocaleTokens } from "@/localization/DictionaryTokenMaps"
-import { useQuery } from "@apollo/client"
+import { useQuery } from "graphql-hooks"
 import { useTheme } from "next-themes"
-import { useSettings } from "../../settings/settings-provider"
+import { useSettings } from "../../../../components/providers/settings-provider"
+import { artistCategoryToApiArtistTypes } from "@/lib/utils"
 
 export function CoArtists(
     {
@@ -63,7 +63,7 @@ export function CoArtists(
     >
         <article>
             {
-                error ? <ErrorMessage message={error.message} />
+                error ? <ErrorMessage message={''} />
                     : loading ? <ArtistsSkeleton elementCount={maxEntries} className="xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2"/>
                         : rankingsResult == undefined || (rankingsResult && 0 >= rankingsResult.results.length) ? <ErrorMessage message={langDict.search_no_results} />
                             : <ArtistsGrid className="xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2">{rankingsResult.results.map(ranking => {

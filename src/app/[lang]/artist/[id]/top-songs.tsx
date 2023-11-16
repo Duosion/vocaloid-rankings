@@ -10,10 +10,10 @@ import { RankingsSkeleton } from "@/components/rankings/rankings-skeleton"
 import { GET_SONG_RANKINGS, buildEntityNames } from "@/lib/api"
 import { ApiSongRankingsFilterResult } from "@/lib/api/types"
 import { LanguageDictionary, getEntityName } from "@/localization"
-import { useQuery } from "@apollo/client"
+import { useQuery } from "graphql-hooks"
 import { useTheme } from "next-themes"
 import { RankingsViewMode } from "../../rankings/types"
-import { useSettings } from "../../settings/settings-provider"
+import { useSettings } from "../../../../components/providers/settings-provider"
 
 export function TopSongs(
     {
@@ -57,7 +57,7 @@ export function TopSongs(
     >
         <article className="mx-3">
             {
-                error ? <ErrorMessage message={error.message} />
+                error ? <ErrorMessage message={''} />
                     : loading ? <RankingsSkeleton elementCount={maxEntries} viewMode={RankingsViewMode.GRID} columnsClassName={columnsClassName} />
                         : rankingsResult == undefined || (rankingsResult && 0 >= rankingsResult.results.length) ? <ErrorMessage message={langDict.search_no_results} />
                             : <RankingsGrid columnsClassName={columnsClassName}>{rankingsResult.results.map(ranking => {

@@ -62,3 +62,22 @@ export function mapArtistTypeToCategory(
             return ArtistCategory.PRODUCER
     }
 }
+
+export const artistCategoryToApiArtistTypes: { [key in ArtistCategory]: string[] } = {
+    [ArtistCategory.VOCALIST]: [
+        ArtistType[ArtistType.VOCALOID],
+        ArtistType[ArtistType.CEVIO],
+        ArtistType[ArtistType.SYNTHESIZER_V],
+        ArtistType[ArtistType.OTHER_VOCALIST],
+        ArtistType[ArtistType.OTHER_VOICE_SYNTHESIZER],
+        ArtistType[ArtistType.UTAU],
+    ],
+    [ArtistCategory.PRODUCER]: [
+        ArtistType[ArtistType.ILLUSTRATOR],
+        ArtistType[ArtistType.COVER_ARTIST],
+        ArtistType[ArtistType.ANIMATOR],
+        ArtistType[ArtistType.PRODUCER],
+        ArtistType[ArtistType.OTHER_INDIVIDUAL],
+        ArtistType[ArtistType.OTHER_GROUP]
+    ]
+}

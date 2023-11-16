@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import Navbar from '@/components/navbar'
 import { Noto_Sans_JP, Inter } from 'next/font/google'
 import localFont from "next/font/local"
-import { Providers } from '@/components/providers'
+import { Providers } from '@/components/providers/providers'
 import { Locale } from '@/localization/'
 import Footer from '@/components/footer'
 
