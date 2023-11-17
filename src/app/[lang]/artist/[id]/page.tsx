@@ -1,3 +1,4 @@
+import { ArtistCard } from "@/components/entity/artist-card"
 import { EntitySection } from "@/components/entity/entity-section"
 import { DateFormatter } from "@/components/formatters/date-formatter"
 import { EntityName } from "@/components/formatters/entity-name"
@@ -16,6 +17,8 @@ import { cookies } from "next/dist/client/components/headers"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { Settings } from "../../settings"
+import { CoArtists } from "./co-artists"
+import { RelatedArtists } from "./related-artists"
 import { TopSongs } from "./top-songs"
 
 // interfaces
@@ -187,7 +190,7 @@ export default async function ArtistPage(
                     {/* Top Songs */}
                     <TopSongs artistId={artistId} langDict={langDict} maxEntries={6} columnsClassName='xl:grid-cols-6 lg:grid-cols-5 md:grid-cols-3 sm:grid-cols-3 grid-cols-2' />
 
-                    <Divider/>
+                    <Divider />
 
                     {/* Breakdown */}
                     <div className="grid gap-5 lg:grid-cols-2 grid-cols-1">
@@ -230,6 +233,22 @@ export default async function ArtistPage(
                             </div>
                         </EntitySection>
                     </div>
+
+                    {/* co artists */}
+                    <CoArtists artistId={artistId} category={artistCategory} langDict={langDict} maxEntries={4} />
+
+                    {/* Related Artists */}
+                    <RelatedArtists artistId={artistId} langDict={langDict} maxEntries={10}>
+                        {baseArtist ? <ArtistCard
+                            src={baseArtist.thumbnails[ArtistThumbnailType.SMALL] || baseArtist.thumbnails[ArtistThumbnailType.ORIGINAL]}
+                            alt={getEntityName(baseArtist.names, settingTitleLanguage)}
+                            bgColor={baseArtist.averageColor}
+                            href={`/${lang}/artist/${baseArtist.id}`}
+                            title={<EntityName names={baseArtist.names} preferred={settingTitleLanguage} />}
+                            text={langDict['artist_related_artist_parent']}
+                            isSinger={true}
+                        /> : undefined}
+                    </RelatedArtists>
                 </div>
             </div>
         </article>

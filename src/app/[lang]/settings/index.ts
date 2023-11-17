@@ -1,8 +1,14 @@
 import { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
-import { RawSettings, SettingsProxy } from "./types";
+import { RawSettings, SettingsProxy, Theme } from "./types";
 import { NameType } from "@/data/types";
 import { RequestCookies } from "next/dist/compiled/@edge-runtime/cookies";
 import { RankingsViewMode, SongRankingsFiltersValues } from "../rankings/types";
+
+export const rawSettingsDefault: RawSettings = {
+    titleLanguage: NameType.ENGLISH,
+    rankingsViewMode: RankingsViewMode.LIST,
+    theme: Theme.SYSTEM
+}
 
 export class Settings implements SettingsProxy {
     private cookies: RequestCookies | ReadonlyRequestCookies
@@ -12,10 +18,7 @@ export class Settings implements SettingsProxy {
     constructor(
         cookies: RequestCookies | ReadonlyRequestCookies,
         cookieName: string = 'settings',
-        defaultSettings: RawSettings = {
-            titleLanguage: NameType.ENGLISH,
-            rankingsViewMode: RankingsViewMode.LIST
-        }
+        defaultSettings: RawSettings = rawSettingsDefault
     ) {
         this.cookies = cookies
         this.cookieName = cookieName
@@ -61,5 +64,10 @@ export class Settings implements SettingsProxy {
     set rankingsViewMode(newMode: RankingsViewMode) {
         this.settings.rankingsViewMode = newMode
         this.saveSettings()
+    }
+
+    // theme
+    get theme() {
+        return this.settings.theme
     }
 }

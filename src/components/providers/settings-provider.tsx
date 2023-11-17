@@ -1,22 +1,27 @@
 'use client'
-import React, { Fragment, createContext, useCallback, useContext, useMemo, useState } from "react";
-import { RawSettings, UseSettingsProps, SettingsProviderProps } from "../../app/[lang]/settings/types";
 import { NameType } from "@/data/types";
-import { setCookie, getCookie } from 'cookies-next'
-import { RankingsViewMode, SongRankingsFiltersValues } from "../../app/[lang]/rankings/types";
-import { cookies } from "next/dist/client/components/headers";
+import { getCookie, setCookie } from 'cookies-next';
+import React, { Fragment, createContext, useCallback, useContext, useMemo, useState } from "react";
+import { RankingsViewMode } from "../../app/[lang]/rankings/types";
+import { RawSettings, SettingsProviderProps, Theme, UseSettingsProps } from "../../app/[lang]/settings/types";
+import { rawSettingsDefault } from "@/app/[lang]/settings";
+import { useTheme } from "next-themes";
 
 const settingsContext = createContext<UseSettingsProps | undefined>(undefined)
-const defaultContext: UseSettingsProps = {
+const defaultSettingsContext: UseSettingsProps = {
     setTitleLanguage: () => { },
     setRankingsViewMode: () => { },
-    settings: {
-        titleLanguage: NameType.ENGLISH,
-        rankingsViewMode: RankingsViewMode.LIST
-    }
+    setTheme: () => {},
+    settings: rawSettingsDefault
 }
 
-export const useSettings = () => useContext(settingsContext) ?? defaultContext
+const mapThemeToString: { [key in Theme]: string} = {
+    [Theme.SYSTEM]: 'system',
+    [Theme.LIGHT]: 'light',
+    [Theme.DARK]: 'dark'
+}
+
+export const useSettings = () => useContext(settingsContext) ?? defaultSettingsContext
 
 export const SettingsProvider: React.FC<SettingsProviderProps> = props => {
     const context = useContext(settingsContext)
@@ -28,10 +33,11 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = props => {
 const SettingsElement: React.FC<SettingsProviderProps> = ({
     cookieName = 'settings',
     cookieExpires = new Date('2037/12/31'),
-    defaultSettings = defaultContext.settings,
+    defaultSettings = rawSettingsDefault,
     children
 }) => {
     const [settings, setSettingsState] = useState(() => getSettings(cookieName, defaultSettings))
+    const { setTheme } = useTheme()
 
     const saveSettings = useCallback(
         (settings: RawSettings) => {
@@ -66,11 +72,23 @@ const SettingsElement: React.FC<SettingsProviderProps> = ({
         [saveSettings, settings]
     )
 
+    const setThemeSetting = useCallback(
+        (newTheme: Theme) => {
+            setTheme(mapThemeToString[newTheme])
+            saveSettings({
+                ...settings,
+                theme: newTheme
+            })
+        },
+        [saveSettings, settings, setTheme]
+    )
+
     const providerValue = useMemo(() => ({
         settings,
         setTitleLanguage,
-        setRankingsViewMode
-    }), [settings, setTitleLanguage, setRankingsViewMode])
+        setRankingsViewMode,
+        setTheme: setThemeSetting
+    }), [settings, setTitleLanguage, setRankingsViewMode, setThemeSetting])
 
     return (
         <settingsContext.Provider

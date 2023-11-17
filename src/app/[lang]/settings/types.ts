@@ -1,15 +1,24 @@
 import { NameType } from "@/data/types";
-import { RankingsViewMode, SongRankingsFiltersValues } from "../rankings/types";
+import { RankingsViewMode } from "../rankings/types";
+
+export enum Theme {
+    SYSTEM,
+    LIGHT,
+    DARK
+}
 
 export interface RawSettings {
     titleLanguage: NameType
     rankingsViewMode: RankingsViewMode
+    theme: Theme
 }
 
 export interface SettingsProxy {
     get titleLanguage(): NameType
 
     get rankingsViewMode(): RankingsViewMode
+
+    get theme(): Theme
 
     set titleLanguage(newTitleLanguage: NameType)
 
@@ -22,6 +31,7 @@ export interface UseSettingsProps {
 
     setTitleLanguage: (newTitleLanguage: NameType) => void
     setRankingsViewMode: (newViewMode: RankingsViewMode) => void
+    setTheme: (newTheme: Theme) => void
 }
 
 export interface SettingsProviderProps {
