@@ -7,13 +7,13 @@ import { EntityName } from "@/components/formatters/entity-name"
 import { FilledButton } from "@/components/material/filled-button"
 import { FilledIconButton } from "@/components/material/filled-icon-button"
 import { ArtistCategory } from "@/data/types"
-import { GET_ARTIST_RANKINGS, buildEntityNames, mapArtistType } from "@/lib/api"
+import { GET_ARTIST_RANKINGS, buildEntityNames } from "@/lib/api"
 import { ApiArtistRankingsFilterResult } from "@/lib/api/types"
+import { artistCategoryToApiArtistTypes } from "@/lib/utils"
 import { LanguageDictionary, getEntityName } from "@/localization"
 import { useQuery } from "graphql-hooks"
 import { useTheme } from "next-themes"
 import { useSettings } from "../../../../components/providers/settings-provider"
-import { artistCategoryToApiArtistTypes } from "@/lib/utils"
 
 export function CoArtists(
     {

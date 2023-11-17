@@ -1,8 +1,8 @@
-import { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
-import { RawSettings, SettingsProxy, Theme } from "./types";
 import { NameType } from "@/data/types";
 import { RequestCookies } from "next/dist/compiled/@edge-runtime/cookies";
-import { RankingsViewMode, SongRankingsFiltersValues } from "../rankings/types";
+import { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
+import { RankingsViewMode } from "../rankings/types";
+import { RawSettings, SettingsProxy, Theme } from "./types";
 
 export const rawSettingsDefault: RawSettings = {
     titleLanguage: NameType.ENGLISH,

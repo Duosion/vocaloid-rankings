@@ -2,7 +2,7 @@
 import { EntityName } from "@/components/formatters/entity-name"
 import { NumberFormatter } from "@/components/formatters/number-formatter"
 import { Divider } from "@/components/material/divider"
-import { RankingsGridItem } from "@/components/rankings/rankings-grid-item"
+import { TransitioningRankingsGridItem } from "@/components/rankings/transitioning-rankings-grid-item"
 import { RankingListItem } from "@/components/rankings/rankings-list-item"
 import { ArtistCategory, ArtistType, FilterOrder, SongType, SourceType } from "@/data/types"
 import { GET_ARTIST_RANKINGS, buildEntityNames, graphClient } from "@/lib/api"
@@ -265,7 +265,7 @@ export function ArtistRankingsList(
                                     color={color}
                                 />
                             ) : (
-                                <RankingsGridItem
+                                <TransitioningRankingsGridItem
                                     key={artist.id.toString()}
                                     href={`../artist/${artist.id}`}
                                     titleContent={<EntityName names={names} preferred={settingTitleLanguage} />}

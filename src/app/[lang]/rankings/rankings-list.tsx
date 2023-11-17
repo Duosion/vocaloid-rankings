@@ -3,15 +3,16 @@ import { EntityName } from "@/components/formatters/entity-name"
 import { NumberFormatter } from "@/components/formatters/number-formatter"
 import { SongArtistsLabel } from "@/components/formatters/song-artists-label"
 import { Divider } from "@/components/material/divider"
-import { RankingsSkeletonGridItem } from "@/components/rankings/rankings-grid-skeleton-item"
-import { RankingsSkeletonListItem } from "@/components/rankings/rankings-list-skeleton-item"
-import { RankingsGridItem } from "@/components/rankings/rankings-grid-item"
+import { RankingsContainer } from "@/components/rankings/rankings-container"
 import { RankingListItem } from "@/components/rankings/rankings-list-item"
+import { RankingsSkeleton } from "@/components/rankings/rankings-skeleton"
+import { TransitioningRankingsGridItem } from "@/components/rankings/transitioning-rankings-grid-item"
 import { ArtistType, FilterInclusionMode, FilterOrder, SongType, SourceType } from "@/data/types"
 import { GET_SONG_RANKINGS, buildEntityNames, graphClient } from "@/lib/api"
 import { ApiArtist, ApiSongRankingsFilterResult } from "@/lib/api/types"
+import { buildFuzzyDate } from "@/lib/utils"
 import { LanguageDictionary, getEntityName } from "@/localization"
-import { useQuery, Result } from "graphql-hooks"
+import { Result, useQuery } from "graphql-hooks"
 import { useTheme } from "next-themes"
 import { useEffect, useState } from "react"
 import { TransitionGroup } from "react-transition-group"
@@ -19,9 +20,6 @@ import { useSettings } from "../../../components/providers/settings-provider"
 import { SongRankingsActiveFilterBar } from "./song-rankings-filters"
 import { EntityNames, FilterType, InputFilter, RankingsFilters, RankingsViewMode, SongRankingsFilterBarValues, SongRankingsFiltersValues } from "./types"
 import { decodeBoolean, decodeMultiFilter, encodeBoolean, encodeMultiFilter, parseParamSelectFilterValue } from "./utils"
-import { buildFuzzyDate } from "@/lib/utils"
-import { RankingsSkeleton } from "@/components/rankings/rankings-skeleton"
-import { RankingsContainer } from "@/components/rankings/rankings-container"
 
 const GET_ARTISTS_NAMES = `
 query GetArtistsNames(
@@ -265,7 +263,7 @@ export function RankingsList(
                                     color={color}
                                 />
                             ) : (
-                                <RankingsGridItem
+                                <TransitioningRankingsGridItem
                                     key={song.id.toString()}
                                     href={`song/${song.id}`}
                                     titleContent={<EntityName names={names} preferred={settingTitleLanguage} />}

@@ -5,8 +5,8 @@ import { EntityName } from "@/components/formatters/entity-name"
 import { NumberFormatter } from "@/components/formatters/number-formatter"
 import Image from '@/components/image'
 import { Divider } from "@/components/material/divider"
-import { getArtist, getArtistHistoricalViews } from "@/data/songsData"
-import { ArtistCategory, ArtistThumbnailType, NameType, SourceType } from "@/data/types"
+import { filterSongRankings, getArtist, getArtistHistoricalViews } from "@/data/songsData"
+import { ArtistCategory, ArtistThumbnailType, FilterOrder, NameType, SongRankingsFilterParams, SourceType } from "@/data/types"
 import { getCustomThemeStylesheet } from "@/lib/material/material"
 import { SourceTypesDisplayData } from "@/lib/sourceType"
 import { mapArtistTypeToCategory } from "@/lib/utils"
@@ -20,6 +20,7 @@ import { Settings } from "../../settings"
 import { CoArtists } from "./co-artists"
 import { RelatedArtists } from "./related-artists"
 import { TopSongs } from "./top-songs"
+import { ArtistSongs } from "./artist-songs"
 
 // interfaces
 interface ViewsBreakdown {
@@ -43,6 +44,18 @@ export default async function ArtistPage(
     const artistId = Number(params.id)
     const artist = !isNaN(artistId) ? await getArtist(artistId, true, true) : null
     if (!artist) { notFound() }
+
+    // get the artist's top songs
+    const artistTopSongsRankingsFilterParams = new SongRankingsFilterParams()
+    artistTopSongsRankingsFilterParams.includeArtists = [artistId]
+    artistTopSongsRankingsFilterParams.maxEntries = 6
+    const artistTopSongsRankingsFilterResults = await filterSongRankings(artistTopSongsRankingsFilterParams)
+    const artistTopSongsRankingsResultsCount = artistTopSongsRankingsFilterResults.totalCount
+
+    // get the artist's most recent songs
+    artistTopSongsRankingsFilterParams.orderBy = FilterOrder.PUBLISH_DATE
+    // if the amount of results from the previous filter is > 12, get the artist's most recent songs
+    const artistRecentSongsRankingsFilterResults = artistTopSongsRankingsResultsCount >= artistTopSongsRankingsFilterParams.maxEntries * 2 ? await filterSongRankings(artistTopSongsRankingsFilterParams) : undefined
 
     // get settings
     const settings = new Settings(cookies())
@@ -188,7 +201,14 @@ export default async function ArtistPage(
                 </aside>
                 <div className="flex gap-6 flex-col">
                     {/* Top Songs */}
-                    <TopSongs artistId={artistId} langDict={langDict} maxEntries={6} columnsClassName='xl:grid-cols-6 lg:grid-cols-5 md:grid-cols-3 sm:grid-cols-3 grid-cols-2' />
+                    <ArtistSongs
+                        title={langDict.artist_top_songs}
+                        titleLanguage={settingTitleLanguage}
+                        langDict={langDict}
+                        songRankingsResult={artistTopSongsRankingsFilterResults}
+                        columnsClassName='xl:grid-cols-6 lg:grid-cols-5 md:grid-cols-3 sm:grid-cols-3 grid-cols-2'
+                        href={artistTopSongsRankingsResultsCount > artistTopSongsRankingsFilterParams.maxEntries ? `../rankings?includeArtists=${artistId}` : undefined}
+                    />
 
                     <Divider />
 
@@ -249,6 +269,19 @@ export default async function ArtistPage(
                             isSinger={true}
                         /> : undefined}
                     </RelatedArtists>
+
+                    <Divider/>
+
+                    {/* Most Recent Songs */}
+                    {artistRecentSongsRankingsFilterResults ? <ArtistSongs
+                        minimal
+                        title={langDict.artist_top_songs}
+                        titleLanguage={settingTitleLanguage}
+                        langDict={langDict}
+                        songRankingsResult={artistRecentSongsRankingsFilterResults}
+                        columnsClassName='xl:grid-cols-6 lg:grid-cols-5 md:grid-cols-3 sm:grid-cols-3 grid-cols-2'
+                        href={artistTopSongsRankingsResultsCount > artistTopSongsRankingsFilterParams.maxEntries ? `../rankings?includeArtists=${artistId}&orderBy=${FilterOrder.PUBLISH_DATE}` : undefined}
+                    /> : undefined}
                 </div>
             </div>
         </article>
