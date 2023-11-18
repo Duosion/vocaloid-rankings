@@ -22,7 +22,7 @@ import {
  * 
  * enum SourceType { YOUTUBE, NICONICO, BILIBILI }
  * 
- * enum ArtistType { VOCALOID, CEVIO, SYNTHESIZER_V, ILLUSTRATOR, COVER_ARTIST, ANIMATOR, PRODUCER, OTHER_VOCALIST, OTHER_VOICE_SYNTHESIZER, OTHER_INDIVIDUAL, OTHER_GROUP, UTAU }
+ * enum ArtistType { VOCALOID, CEVIO, SYNTHESIZER_V, ILLUSTRATOR, COVER_ARTIST, ANIMATOR, PRODUCER, OTHER_VOCALIST, OTHER_VOICE_SYNTHESIZER, OTHER_INDIVIDUAL, OTHER_GROUP, UTAU, PROJECT_SEKAI }
  * 
  * enum ArtistCategory { VOCALIST, PRODUCER }
  * 
@@ -354,6 +354,10 @@ const artistTypeEnum = new GraphQLEnumType({
         UTAU: {
             value: 11,
             description: 'A voicebank created with the UTAU program.'
+        },
+        PROJECT_SEKAI: {
+            value: 12,
+            description: 'A singer from the mobile rythm game Project: Sekai Colorful Stage'
         }
     }
 })

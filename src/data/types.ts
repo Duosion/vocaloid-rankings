@@ -41,7 +41,8 @@ export enum ArtistType {
     OTHER_VOICE_SYNTHESIZER,
     OTHER_INDIVIDUAL,
     OTHER_GROUP,
-    UTAU
+    UTAU,
+    PROJECT_SEKAI
 }
 
 export enum PlacementChange {

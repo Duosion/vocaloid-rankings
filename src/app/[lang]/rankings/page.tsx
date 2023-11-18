@@ -116,6 +116,7 @@ const filters: RankingsFilters = {
             { name: 'filter_artist_type_other_individual', value: ArtistType.OTHER_INDIVIDUAL },
             { name: 'filter_artist_type_other_group', value: ArtistType.OTHER_GROUP },
             { name: 'filter_artist_type_utau', value: ArtistType.UTAU },
+            { name: 'filter_artist_type_project_sekai', value: ArtistType.PROJECT_SEKAI },
         ]
     },
     excludeArtistTypes: {
@@ -136,6 +137,7 @@ const filters: RankingsFilters = {
             { name: 'filter_artist_type_other_individual', value: ArtistType.OTHER_INDIVIDUAL },
             { name: 'filter_artist_type_other_group', value: ArtistType.OTHER_GROUP },
             { name: 'filter_artist_type_utau', value: ArtistType.UTAU },
+            { name: 'filter_artist_type_project_sekai', value: ArtistType.PROJECT_SEKAI },
         ]
     },
     includeArtistTypesMode: {

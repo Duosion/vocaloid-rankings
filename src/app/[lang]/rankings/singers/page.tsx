@@ -1,6 +1,7 @@
 import { getMostRecentViewsTimestamp } from "@/data/songsData"
 import { ArtistCategory, ArtistType, FilterOrder, SongType, SourceType } from "@/data/types"
-import { generateTimestamp, artistCategoryToApiArtistTypes } from "@/lib/utils"
+import { generateTimestamp } from "@/lib/utils"
+import { artistCategoryToApiArtistTypes } from "@/lib/utils"
 import { Locale, getDictionary } from "@/localization"
 import { cookies } from "next/dist/client/components/headers"
 import { Settings } from "../../settings"
@@ -134,6 +135,7 @@ const filters: ArtistRankingsFilters = {
             { name: 'filter_artist_type_other_vocalist', value: ArtistType.OTHER_VOCALIST },
             { name: 'filter_artist_type_other_voice_synth', value: ArtistType.OTHER_VOICE_SYNTHESIZER },
             { name: 'filter_artist_type_utau', value: ArtistType.UTAU },
+            { name: 'filter_artist_type_project_sekai', value: ArtistType.PROJECT_SEKAI },
         ],
         defaultValue: artistCategoryToApiArtistTypes[ArtistCategory.VOCALIST]
     },
@@ -149,6 +151,7 @@ const filters: ArtistRankingsFilters = {
             { name: 'filter_artist_type_other_vocalist', value: ArtistType.OTHER_VOCALIST },
             { name: 'filter_artist_type_other_voice_synth', value: ArtistType.OTHER_VOICE_SYNTHESIZER },
             { name: 'filter_artist_type_utau', value: ArtistType.UTAU },
+            { name: 'filter_artist_type_project_sekai', value: ArtistType.PROJECT_SEKAI },
         ]
     },
     minViews: {

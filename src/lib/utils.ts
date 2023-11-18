@@ -57,6 +57,7 @@ export function mapArtistTypeToCategory(
         case ArtistType.OTHER_VOCALIST:
         case ArtistType.OTHER_VOICE_SYNTHESIZER:
         case ArtistType.UTAU:
+        case ArtistType.PROJECT_SEKAI:
             return ArtistCategory.VOCALIST
         default:
             return ArtistCategory.PRODUCER
@@ -73,8 +74,9 @@ export function substituteStringVariables(
     }
     return toSub
 }
-
-export const artistCategoryToApiArtistTypes: { [key in ArtistCategory]: string[] } = {
+export const artistCategoryToApiArtistTypes: {
+    [key in ArtistCategory]: string[];
+} = {
     [ArtistCategory.VOCALIST]: [
         ArtistType[ArtistType.VOCALOID],
         ArtistType[ArtistType.CEVIO],
@@ -82,6 +84,7 @@ export const artistCategoryToApiArtistTypes: { [key in ArtistCategory]: string[]
         ArtistType[ArtistType.OTHER_VOCALIST],
         ArtistType[ArtistType.OTHER_VOICE_SYNTHESIZER],
         ArtistType[ArtistType.UTAU],
+        ArtistType[ArtistType.PROJECT_SEKAI]
     ],
     [ArtistCategory.PRODUCER]: [
         ArtistType[ArtistType.ILLUSTRATOR],
@@ -91,4 +94,4 @@ export const artistCategoryToApiArtistTypes: { [key in ArtistCategory]: string[]
         ArtistType[ArtistType.OTHER_INDIVIDUAL],
         ArtistType[ArtistType.OTHER_GROUP]
     ]
-}
+};

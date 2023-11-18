@@ -20,7 +20,8 @@ export const ArtistTypeLocaleTokens: {[key in ArtistType]: LanguageDictionaryKey
     [ArtistType.OTHER_VOICE_SYNTHESIZER]: 'filter_artist_type_other_voice_synth',
     [ArtistType.OTHER_INDIVIDUAL]: 'filter_artist_type_other_individual',
     [ArtistType.OTHER_GROUP]: 'filter_artist_type_other_group',
-    [ArtistType.UTAU]: 'filter_artist_type_utau'
+    [ArtistType.UTAU]: 'filter_artist_type_utau',
+    [ArtistType.PROJECT_SEKAI]: 'filter_artist_type_project_sekai'
 }
 
 export const SongTypeLocaleTokens: {[key in SongType]: LanguageDictionaryKey} = {

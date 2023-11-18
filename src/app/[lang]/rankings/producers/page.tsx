@@ -1,6 +1,7 @@
 import { getMostRecentViewsTimestamp } from "@/data/songsData"
 import { ArtistCategory, ArtistType, FilterOrder, SongType, SourceType } from "@/data/types"
-import { generateTimestamp, artistCategoryToApiArtistTypes } from "@/lib/utils"
+import { generateTimestamp } from "@/lib/utils"
+import { artistCategoryToApiArtistTypes } from "@/lib/utils"
 import { Locale, getDictionary } from "@/localization"
 import { cookies } from "next/dist/client/components/headers"
 import { Settings } from "../../settings"

@@ -1758,4 +1758,13 @@ const convertDatabase = async (
     }
 }
 
+/*
+Convert PJ Sekai artists to their proper artist types
+
+UPDATE artists
+SET artist_type = 12
+WHERE id IN (83653, 83863, 83862, 83864, 86693, 86697, 86696, 86695, 84506, 84508, 83062, 84507, 84509, 83924, 83927, 83925, 83926, 84783, 84785, 84784)
+
+*/
+
 //convertDatabase()
