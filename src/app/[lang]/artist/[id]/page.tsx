@@ -193,6 +193,9 @@ export default async function ArtistPage(
                             <DateFormatter date={new Date(artist.additionDate)} />
                         </StatRow>
                         <StatRow title={langDict.filter_artist_type} text={langDict[ArtistTypeLocaleTokens[artistType]]} />
+                        <StatRow title={langDict.artist_featured_in}>
+                            <NumberFormatter number={artistTopSongsRankingsResultsCount}/>{langDict.rankings_song_count}
+                        </StatRow>
                         {nameElements}
                     </ul>
                     <ul className="flex-col gap-5 md:flex hidden">

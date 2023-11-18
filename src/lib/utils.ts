@@ -63,6 +63,17 @@ export function mapArtistTypeToCategory(
     }
 }
 
+export function substituteStringVariables(
+    toSub: string,
+    variableMap: { [variableName: string]: any }
+): string {
+    for (const variable in variableMap) {
+        const replaceWith = variableMap[variable]
+        toSub = toSub.replaceAll(`:${variable}`, replaceWith)
+    }
+    return toSub
+}
+
 export const artistCategoryToApiArtistTypes: { [key in ArtistCategory]: string[] } = {
     [ArtistCategory.VOCALIST]: [
         ArtistType[ArtistType.VOCALOID],

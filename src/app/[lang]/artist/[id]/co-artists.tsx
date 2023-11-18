@@ -9,7 +9,7 @@ import { FilledIconButton } from "@/components/material/filled-icon-button"
 import { ArtistCategory } from "@/data/types"
 import { GET_ARTIST_RANKINGS, buildEntityNames } from "@/lib/api"
 import { ApiArtistRankingsFilterResult } from "@/lib/api/types"
-import { artistCategoryToApiArtistTypes } from "@/lib/utils"
+import { artistCategoryToApiArtistTypes, substituteStringVariables } from "@/lib/utils"
 import { LanguageDictionary, getEntityName } from "@/localization"
 import { useQuery } from "graphql-hooks"
 import { useTheme } from "next-themes"
@@ -80,7 +80,7 @@ export function CoArtists(
                                         bgColor={color}
                                         href={`../artist/${artist.id}`}
                                         title={<EntityName names={names} preferred={settingTitleLanguage} />}
-                                        text={langDict['artist_co_artists_featured_song_count'].replace('{song_count}', ranking.views.toString())}//{!artistIsVocalist ? langDict[ArtistTypeLocaleTokens[mapArtistType(artist.type)]] : ''}
+                                        text={substituteStringVariables(langDict['artist_co_artists_featured_song_count'], {count: ranking.views.toString()})}
                                         isSinger={!artistIsVocalist}
                                     />
                                 )

@@ -19,7 +19,8 @@ import { TransitionGroup } from "react-transition-group"
 import { useSettings } from "../../../components/providers/settings-provider"
 import { SongRankingsActiveFilterBar } from "./song-rankings-filters"
 import { EntityNames, FilterType, InputFilter, RankingsFilters, RankingsViewMode, SongRankingsFilterBarValues, SongRankingsFiltersValues } from "./types"
-import { decodeBoolean, decodeMultiFilter, encodeBoolean, encodeMultiFilter, parseParamSelectFilterValue } from "./utils"
+import { decodeBoolean, decodeMultiFilter, encodeBoolean, encodeMultiFilter, getRankingsItemTrailingSupportingText, parseParamSelectFilterValue } from "./utils"
+import { RankingsItemTrailing } from "@/components/rankings/rankings-item-trailing"
 
 const GET_ARTISTS_NAMES = `
 query GetArtistsNames(
@@ -226,6 +227,9 @@ export function RankingsList(
         setViewMode(settings.rankingsViewMode)
     }, [settings.rankingsViewMode])
 
+    // calculate the filter mode
+    const filterMode = filters.orderBy.values[filterBarValues.orderBy || filters.orderBy.defaultValue].value || FilterOrder.VIEWS
+
     return (
         <section className="flex flex-col gap-5 w-full">
             <SongRankingsActiveFilterBar
@@ -242,41 +246,50 @@ export function RankingsList(
             {error ? <h2 className="text-3xl font-bold text-center text-on-background">{''}</h2>
                 : !loading && (rankingsResult == undefined || 0 >= rankingsResult.results.length) ? <h2 className="text-3xl font-bold text-center text-on-background">{langDict.search_no_results}</h2>
                     : rankingsResult == undefined ? <RankingsSkeleton elementCount={50} viewMode={rankingsViewMode} />
-                    : <RankingsContainer viewMode={rankingsViewMode}>
-                        <TransitionGroup component={null}>{rankingsResult.results.map(ranking => {
-                            const song = ranking.song
-                            const names = buildEntityNames(song.names)
+                        : <RankingsContainer viewMode={rankingsViewMode}>
+                            <TransitionGroup component={null}>{rankingsResult.results.map(ranking => {
+                                const song = ranking.song
+                                const names = buildEntityNames(song.names)
 
-                            const color = resolvedTheme == 'dark' ? song.darkColor : song.lightColor
+                                const color = resolvedTheme == 'dark' ? song.darkColor : song.lightColor
 
-                            return rankingsViewMode == RankingsViewMode.LIST ? (
-                                <RankingListItem
-                                    key={song.id.toString()}
-                                    href={`song/${song.id}`}
-                                    titleContent={<EntityName names={names} preferred={settingTitleLanguage} />}
-                                    placement={ranking.placement}
-                                    icon={song.thumbnail}
-                                    iconAlt={getEntityName(names, settingTitleLanguage)}
-                                    trailingTitleContent={<NumberFormatter number={ranking.views} />}
-                                    trailingSupporting={langDict.rankings_views}
-                                    supportingContent={<SongArtistsLabel artists={song.artists} categories={song.artistsCategories} preferredNameType={settingTitleLanguage} theme={resolvedTheme} />}
-                                    color={color}
+                                const trailing = <RankingsItemTrailing
+                                    mode={filterMode}
+                                    value={ranking.views}
+                                    publishDate={song.publishDate}
+                                    additionDate={song.additionDate}
                                 />
-                            ) : (
-                                <TransitioningRankingsGridItem
-                                    key={song.id.toString()}
-                                    href={`song/${song.id}`}
-                                    titleContent={<EntityName names={names} preferred={settingTitleLanguage} />}
-                                    placement={ranking.placement}
-                                    icon={song.thumbnail}
-                                    iconAlt={getEntityName(names, settingTitleLanguage)}
-                                    trailingTitleContent={<NumberFormatter number={ranking.views} />}
-                                    trailingSupporting={langDict.rankings_views}
-                                    color={color}
-                                />
-                            )
-                        })}</TransitionGroup>
-                    </RankingsContainer>
+
+                                const trailingSupporting = getRankingsItemTrailingSupportingText(filterMode, langDict.rankings_views, undefined, langDict.rankings_publish_date, langDict.rankings_addition_date)
+
+                                return rankingsViewMode == RankingsViewMode.LIST ? (
+                                    <RankingListItem
+                                        key={song.id.toString()}
+                                        href={`song/${song.id}`}
+                                        titleContent={<EntityName names={names} preferred={settingTitleLanguage} />}
+                                        placement={ranking.placement}
+                                        icon={song.thumbnail}
+                                        iconAlt={getEntityName(names, settingTitleLanguage)}
+                                        trailingTitleContent={trailing}
+                                        trailingSupporting={trailingSupporting}
+                                        supportingContent={<SongArtistsLabel artists={song.artists} categories={song.artistsCategories} preferredNameType={settingTitleLanguage} theme={resolvedTheme} />}
+                                        color={color}
+                                    />
+                                ) : (
+                                    <TransitioningRankingsGridItem
+                                        key={song.id.toString()}
+                                        href={`song/${song.id}`}
+                                        titleContent={<EntityName names={names} preferred={settingTitleLanguage} />}
+                                        placement={ranking.placement}
+                                        icon={song.thumbnail}
+                                        iconAlt={getEntityName(names, settingTitleLanguage)}
+                                        trailingTitleContent={trailing}
+                                        trailingSupporting={trailingSupporting}
+                                        color={color}
+                                    />
+                                )
+                            })}</TransitionGroup>
+                        </RankingsContainer>
             }
         </section>
     )

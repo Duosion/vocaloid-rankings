@@ -53,7 +53,7 @@ export function ArtistSongs(
                             iconAlt={getEntityName(names, titleLanguage)}
                             trailingTitleContent={minimal ? undefined : <NumberFormatter number={ranking.views} compact />}
                             trailingSupporting={langDict.rankings_views}
-                            color={'var(--md-sys-color-primary)'}
+                            color='var(--md-sys-color-primary)'
                             in
                         />
                     )

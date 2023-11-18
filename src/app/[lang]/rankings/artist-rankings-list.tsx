@@ -14,12 +14,13 @@ import { useEffect, useState } from "react"
 import { TransitionGroup } from "react-transition-group"
 import { useSettings } from "../../../components/providers/settings-provider"
 import { ArtistRankingsFilterBarValues, ArtistRankingsFilters, ArtistRankingsFiltersValues, EntityNames, FilterType, InputFilter, RankingsViewMode, SongRankingsFilterBarValues } from "./types"
-import { decodeBoolean, decodeMultiFilter, encodeBoolean, encodeMultiFilter, parseParamSelectFilterValue } from "./utils"
+import { decodeBoolean, decodeMultiFilter, encodeBoolean, encodeMultiFilter, getRankingsItemTrailingSupportingText, parseParamSelectFilterValue } from "./utils"
 import { SingerRankingsActiveFilterBar } from "./singers/singer-rankings-filter-bar"
 import { buildFuzzyDate } from "@/lib/utils"
 import { RankingsSkeleton } from "@/components/rankings/rankings-skeleton"
 import { RankingsContainer } from "@/components/rankings/rankings-container"
 import { ImageDisplayMode } from "@/components"
+import { RankingsItemTrailing } from "@/components/rankings/rankings-item-trailing"
 
 const GET_ARTISTS_NAMES = `
 query GetArtistsNames(
@@ -228,6 +229,8 @@ export function ArtistRankingsList(
         setViewMode(settings.rankingsViewMode)
     }, [settings.rankingsViewMode])
 
+    const filterMode = filters.orderBy.values[filterBarValues.orderBy || filters.orderBy.defaultValue].value || FilterOrder.VIEWS
+
     return (
         <section className="flex flex-col gap-5 w-full">
             <SingerRankingsActiveFilterBar
@@ -244,42 +247,51 @@ export function ArtistRankingsList(
             {error ? <h2 className="text-3xl font-bold text-center text-on-background">{''}</h2>
                 : !loading && (rankingsResult == undefined || 0 >= rankingsResult.results.length) ? <h2 className="text-3xl font-bold text-center text-on-background">{langDict.search_no_results}</h2>
                     : rankingsResult == undefined ? <RankingsSkeleton elementCount={50} viewMode={rankingsViewMode} />
-                    : <RankingsContainer viewMode={rankingsViewMode}>
-                        <TransitionGroup component={null}>{rankingsResult.results.map(ranking => {
-                            const artist = ranking.artist
-                            const names = buildEntityNames(artist.names)
+                        : <RankingsContainer viewMode={rankingsViewMode}>
+                            <TransitionGroup component={null}>{rankingsResult.results.map(ranking => {
+                                const artist = ranking.artist
+                                const names = buildEntityNames(artist.names)
 
-                            const color = resolvedTheme == 'dark' ? artist.darkColor : artist.lightColor
+                                const color = resolvedTheme == 'dark' ? artist.darkColor : artist.lightColor
 
-                            return rankingsViewMode == RankingsViewMode.LIST ? (
-                                <RankingListItem
-                                    key={artist.id.toString()}
-                                    href={`../artist/${artist.id}`}
-                                    titleContent={<EntityName names={names} preferred={settingTitleLanguage} />}
-                                    placement={ranking.placement}
-                                    icon={artist.thumbnails.small || artist.thumbnails.medium || artist.thumbnails.original}
-                                    iconAlt={getEntityName(names, settingTitleLanguage)}
-                                    imageDisplayMode={ImageDisplayMode.VOCALIST}
-                                    trailingTitleContent={<NumberFormatter number={ranking.views} />}
-                                    trailingSupporting={langDict.rankings_views}
-                                    color={color}
+                                const trailing = <RankingsItemTrailing
+                                    mode={filterMode}
+                                    value={ranking.views}
+                                    publishDate={artist.publishDate}
+                                    additionDate={artist.additionDate}
                                 />
-                            ) : (
-                                <TransitioningRankingsGridItem
-                                    key={artist.id.toString()}
-                                    href={`../artist/${artist.id}`}
-                                    titleContent={<EntityName names={names} preferred={settingTitleLanguage} />}
-                                    placement={ranking.placement}
-                                    icon={artist.thumbnails.medium || artist.thumbnails.original}
-                                    iconAlt={getEntityName(names, settingTitleLanguage)}
-                                    imageDisplayMode={ImageDisplayMode.VOCALIST}
-                                    trailingTitleContent={<NumberFormatter number={ranking.views} />}
-                                    trailingSupporting={langDict.rankings_views}
-                                    color={color}
-                                />
-                            )
-                        })}</TransitionGroup>
-                    </RankingsContainer>
+
+                                const trailingSupporting = getRankingsItemTrailingSupportingText(filterMode, langDict.rankings_views, langDict.rankings_song_count, langDict.rankings_publish_date, langDict.rankings_addition_date)
+
+                                return rankingsViewMode == RankingsViewMode.LIST ? (
+                                    <RankingListItem
+                                        key={artist.id.toString()}
+                                        href={`../artist/${artist.id}`}
+                                        titleContent={<EntityName names={names} preferred={settingTitleLanguage} />}
+                                        placement={ranking.placement}
+                                        icon={artist.thumbnails.small || artist.thumbnails.medium || artist.thumbnails.original}
+                                        iconAlt={getEntityName(names, settingTitleLanguage)}
+                                        imageDisplayMode={ImageDisplayMode.VOCALIST}
+                                        trailingTitleContent={trailing}
+                                        trailingSupporting={trailingSupporting}
+                                        color={color}
+                                    />
+                                ) : (
+                                    <TransitioningRankingsGridItem
+                                        key={artist.id.toString()}
+                                        href={`../artist/${artist.id}`}
+                                        titleContent={<EntityName names={names} preferred={settingTitleLanguage} />}
+                                        placement={ranking.placement}
+                                        icon={artist.thumbnails.medium || artist.thumbnails.original}
+                                        iconAlt={getEntityName(names, settingTitleLanguage)}
+                                        imageDisplayMode={ImageDisplayMode.VOCALIST}
+                                        trailingTitleContent={trailing}
+                                        trailingSupporting={trailingSupporting}
+                                        color={color}
+                                    />
+                                )
+                            })}</TransitionGroup>
+                        </RankingsContainer>
             }
         </section>
     )

@@ -81,6 +81,8 @@ query SongRankings(
             song {
                 id
                 thumbnail
+                publishDate
+                additionDate
                 darkColor
                 lightColor
                 artistsCategories {
@@ -179,6 +181,8 @@ query ArtistRankings(
             artist {
                 id
                 type
+                publishDate
+                additionDate
                 names {
                     original
                     japanese

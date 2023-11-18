@@ -1,3 +1,4 @@
+import { FilterOrder } from "@/data/types"
 import { SelectFilterValue } from "./types"
 
 export function encodeBoolean(
@@ -47,4 +48,25 @@ export function parseParamSelectFilterValue(
     // get the filterValue and return it
     const valueNumber = (paramValue == undefined || isNaN(paramValue)) ? (defaultValue == undefined || isNaN(defaultValue)) ? null : defaultValue : paramValue
     return valueNumber != null ? (values[valueNumber]).value : null
+}
+
+export function getRankingsItemTrailingSupportingText(
+    mode: FilterOrder,
+    views?: string,
+    songCount?: string,
+    publishDate?: string,
+    additionDate?: string
+): string | undefined {
+    switch (mode) {
+        case FilterOrder.VIEWS:
+            return views
+        case FilterOrder.SONG_COUNT:
+            return songCount;
+        case FilterOrder.PUBLISH_DATE:
+            return publishDate;
+        case FilterOrder.ADDITION_DATE:
+            return additionDate
+        default:
+            return undefined
+    }
 }
