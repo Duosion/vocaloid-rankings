@@ -7,6 +7,7 @@ import { IconButton } from "./material/icon-button"
 import { useLocale } from './providers/language-dictionary-provider'
 import { SearchBar } from "./search-bar"
 import { ModalDrawer } from './transitions/modal-drawer'
+import { usePathname } from 'next/navigation'
 
 export default function Navbar(
     {
@@ -17,7 +18,8 @@ export default function Navbar(
 ) {
     const [drawerOpen, setDrawerOpen] = useState(false)
     const langDict = useLocale()
-
+    const pathName = usePathname()
+    
     const closeDrawer = () => setDrawerOpen(false)
 
     const navLinks: { icon: string, href: string, text: string }[] = [
@@ -60,7 +62,7 @@ export default function Navbar(
                             icon={linkData.icon}
                             href={linkData.href}
                             text={linkData.text}
-                            active={window.location.pathname === linkData.href}
+                            active={pathName === linkData.href}
                             onClick={closeDrawer}
                         />)
                     }

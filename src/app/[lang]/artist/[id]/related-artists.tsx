@@ -4,15 +4,15 @@ import ArtistsGrid from "@/components/entity/artists-grid"
 import { ArtistsSkeleton } from "@/components/entity/artists-skeleton"
 import { EntitySection } from "@/components/entity/entity-section"
 import { EntityName } from "@/components/formatters/entity-name"
+import { useLocale } from "@/components/providers/language-dictionary-provider"
 import { ArtistCategory } from "@/data/types"
 import { GET_ARTIST_RANKINGS, buildEntityNames, mapArtistType } from "@/lib/api"
 import { ApiArtistRankingsFilterResult } from "@/lib/api/types"
 import { mapArtistTypeToCategory } from "@/lib/utils"
-import { LanguageDictionary, getEntityName } from "@/localization"
+import { getEntityName } from "@/localization"
 import { useQuery } from "graphql-hooks"
 import { useTheme } from "next-themes"
 import { useSettings } from "../../../../components/providers/settings-provider"
-import { useLocale } from "@/components/providers/language-dictionary-provider"
 
 export function RelatedArtists(
     {
