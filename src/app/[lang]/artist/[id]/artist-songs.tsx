@@ -5,30 +5,34 @@ import { FilledButton } from "@/components/material/filled-button"
 import { FilledIconButton } from "@/components/material/filled-icon-button"
 import { RankingsGrid } from "@/components/rankings/rankings-grid"
 import { RankingsGridItem } from "@/components/rankings/rankings-grid-item"
-import { NameType, SongRankingsFilterResult } from "@/data/types"
+import { RankingsItemTrailing } from "@/components/rankings/rankings-item-trailing"
+import { FilterOrder, NameType, SongRankingsFilterResult } from "@/data/types"
 import { LanguageDictionary, getEntityName } from "@/localization"
+import { getRankingsItemTrailingSupportingText } from "../../rankings/utils"
 
 export function ArtistSongs(
     {
         title,
         langDict,
         titleLanguage,
+        mode,
         songRankingsResult,
         columnsClassName,
         href,
-        minimal
+        compact = false
     }: {
         title: string,
         langDict: LanguageDictionary
         titleLanguage: NameType
+        mode: FilterOrder
         songRankingsResult?: SongRankingsFilterResult
         columnsClassName?: string
         href?: string
-        minimal?: boolean
+        compact?: boolean
     }
 ) {
 
-    return songRankingsResult == undefined || songRankingsResult.totalCount === 0 ? undefined : <EntitySection
+    return songRankingsResult == undefined ? undefined : <EntitySection
         title={title}
         titleSupporting={
             songRankingsResult != undefined && href != undefined ? <>
@@ -37,7 +41,7 @@ export function ArtistSongs(
             </> : undefined
         }
     >
-        <article className={minimal ? undefined : "mx-3"}>
+        <article className="mx-3">
             {
                 <RankingsGrid columnsClassName={columnsClassName}>{songRankingsResult.results.map(ranking => {
                     const song = ranking.song
@@ -48,13 +52,20 @@ export function ArtistSongs(
                             key={song.id.toString()}
                             href={`../song/${song.id}`}
                             titleContent={<EntityName names={names} preferred={titleLanguage} />}
-                            placement={minimal ? undefined : ranking.placement}
+                            placement={ranking.placement}
                             icon={song.thumbnail}
                             iconAlt={getEntityName(names, titleLanguage)}
-                            trailingTitleContent={minimal ? undefined : <NumberFormatter number={ranking.views} compact />}
-                            trailingSupporting={langDict.rankings_views}
+                            trailingTitleContent={
+                                <RankingsItemTrailing
+                                    compact={compact}
+                                    mode={mode}
+                                    value={ranking.views}
+                                    publishDate={song.publishDate}
+                                    additionDate={song.additionDate}
+                                />
+                            }
+                            trailingSupporting={getRankingsItemTrailingSupportingText(mode, langDict.rankings_views, undefined, langDict.rankings_publish_date, undefined)}
                             color='var(--md-sys-color-primary)'
-                            in
                         />
                     )
                 })}</RankingsGrid>

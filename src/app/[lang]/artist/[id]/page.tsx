@@ -194,7 +194,7 @@ export default async function ArtistPage(
                         </StatRow>
                         <StatRow title={langDict.filter_artist_type} text={langDict[ArtistTypeLocaleTokens[artistType]]} />
                         <StatRow title={langDict.artist_featured_in}>
-                            <NumberFormatter number={artistTopSongsRankingsResultsCount}/>{langDict.rankings_song_count}
+                            <NumberFormatter number={artistTopSongsRankingsResultsCount} />{langDict.rankings_song_count}
                         </StatRow>
                         {nameElements}
                     </ul>
@@ -204,16 +204,20 @@ export default async function ArtistPage(
                 </aside>
                 <div className="flex gap-6 flex-col">
                     {/* Top Songs */}
-                    <ArtistSongs
-                        title={langDict.artist_top_songs}
-                        titleLanguage={settingTitleLanguage}
-                        langDict={langDict}
-                        songRankingsResult={artistTopSongsRankingsFilterResults}
-                        columnsClassName='xl:grid-cols-6 lg:grid-cols-5 md:grid-cols-3 sm:grid-cols-3 grid-cols-2'
-                        href={artistTopSongsRankingsResultsCount > artistTopSongsRankingsFilterParams.maxEntries ? `../rankings?includeArtists=${artistId}` : undefined}
-                    />
+                    {artistTopSongsRankingsResultsCount > 0 ? <>
+                        <ArtistSongs
+                            compact
+                            mode={FilterOrder.VIEWS}
+                            title={langDict.artist_top_songs}
+                            titleLanguage={settingTitleLanguage}
+                            langDict={langDict}
+                            songRankingsResult={artistTopSongsRankingsFilterResults}
+                            columnsClassName='xl:grid-cols-6 lg:grid-cols-5 md:grid-cols-3 sm:grid-cols-3 grid-cols-2'
+                            href={artistTopSongsRankingsResultsCount > artistTopSongsRankingsFilterParams.maxEntries ? `../rankings?includeArtists=${artistId}` : undefined}
+                        />
 
-                    <Divider />
+                        <Divider />
+                    </> : undefined}
 
                     {/* Breakdown */}
                     <div className="grid gap-5 lg:grid-cols-2 grid-cols-1">
@@ -273,18 +277,19 @@ export default async function ArtistPage(
                         /> : undefined}
                     </RelatedArtists>
 
-                    <Divider/>
-
                     {/* Most Recent Songs */}
-                    {artistRecentSongsRankingsFilterResults ? <ArtistSongs
-                        minimal
-                        title={langDict.artist_top_songs}
-                        titleLanguage={settingTitleLanguage}
-                        langDict={langDict}
-                        songRankingsResult={artistRecentSongsRankingsFilterResults}
-                        columnsClassName='xl:grid-cols-6 lg:grid-cols-5 md:grid-cols-3 sm:grid-cols-3 grid-cols-2'
-                        href={artistTopSongsRankingsResultsCount > artistTopSongsRankingsFilterParams.maxEntries ? `../rankings?includeArtists=${artistId}&orderBy=${FilterOrder.PUBLISH_DATE}` : undefined}
-                    /> : undefined}
+                    {artistRecentSongsRankingsFilterResults ? <>
+                        <Divider />
+                        <ArtistSongs
+                            mode={FilterOrder.PUBLISH_DATE}
+                            title={langDict.artist_recent_songs}
+                            titleLanguage={settingTitleLanguage}
+                            langDict={langDict}
+                            songRankingsResult={artistRecentSongsRankingsFilterResults}
+                            columnsClassName='xl:grid-cols-6 lg:grid-cols-5 md:grid-cols-3 sm:grid-cols-3 grid-cols-2'
+                            href={artistTopSongsRankingsResultsCount > artistTopSongsRankingsFilterParams.maxEntries ? `../rankings?includeArtists=${artistId}&orderBy=${FilterOrder.PUBLISH_DATE}` : undefined}
+                        />
+                    </> : undefined}
                 </div>
             </div>
         </article>

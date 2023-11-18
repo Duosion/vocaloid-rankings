@@ -149,6 +149,7 @@
     "artist_delete": "Delete Artist",
     "artist_placement_all_time": "#:placement Most Viewed :category All Time",
     "artist_top_songs": "Most Viewed Songs",
+    "artist_recent_songs": "Recent Songs",
     "artist_view_all": "View All",
     "artist_co_artists_producer": "Mostly Features",
     "artist_co_artists_vocalist": "Mostly Featured By",

@@ -1,7 +1,7 @@
 'use client'
 const dateFormatter = new Intl.DateTimeFormat()
 const shortenedDateFormatter = new Intl.DateTimeFormat(undefined, {
-    month: '2-digit',
+    month: 'numeric',
     day: '2-digit',
 })
 

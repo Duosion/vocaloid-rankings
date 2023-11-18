@@ -27,10 +27,8 @@ export function RankingsGridItem(
         trailingTitleContent?: React.ReactNode
         imageDisplayMode?: ImageDisplayMode
         trailingSupporting?: string
-        in?: boolean
         className?: string
         color?: string
-        timeout?: number
         style?: CSSProperties
     }
 ) {
