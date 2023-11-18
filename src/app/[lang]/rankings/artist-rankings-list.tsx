@@ -261,7 +261,7 @@ export function ArtistRankingsList(
                                     additionDate={artist.additionDate}
                                 />
 
-                                const trailingSupporting = getRankingsItemTrailingSupportingText(filterMode, langDict.rankings_views, langDict.rankings_song_count, langDict.rankings_publish_date, langDict.rankings_addition_date)
+                                const trailingSupporting = getRankingsItemTrailingSupportingText(filterMode, langDict.rankings_views, langDict.rankings_song_count,  langDict.rankings_publish_date, langDict.rankings_addition_date)
 
                                 return rankingsViewMode == RankingsViewMode.LIST ? (
                                     <RankingListItem

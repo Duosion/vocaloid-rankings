@@ -186,7 +186,7 @@ export default async function ArtistPage(
             <div className="mt-3 w-full grid md:grid-cols-sidebar grid-cols-1 gap-5">
                 <aside className="flex flex-col gap-5">
                     <ul className="bg-surface-container rounded-2xl p-5 box-border flex md:flex-col flex-row gap-5 overflow-x-auto overflow-y-clip md:overflow-x-clip">
-                        <StatRow title={langDict.filter_publish_date}>
+                        <StatRow title={langDict.artist_publish_date}>
                             <DateFormatter date={new Date(artist.publishDate)} />
                         </StatRow>
                         <StatRow title={langDict.filter_order_by_addition}>
