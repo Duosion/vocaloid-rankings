@@ -20,6 +20,29 @@ export default function Navbar(
 
     const closeDrawer = () => setDrawerOpen(false)
 
+    const navLinks: { icon: string, href: string, text: string }[] = [
+        {
+            icon: 'menu',
+            href: `/${lang}/rankings`,
+            text: langDict.nav_rankings
+        },
+        {
+            icon: 'trending_up',
+            href: `/${lang}/rankings/trending`,
+            text: langDict.nav_trending
+        },
+        {
+            icon: 'mic',
+            href: `/${lang}/rankings/singers`,
+            text: langDict.nav_singers
+        },
+        {
+            icon: 'music_note',
+            href: `/${lang}/rankings/producers`,
+            text: langDict.nav_producers
+        },
+    ]
+
     return (
         <header className="z-50 w-full h-15 px-7 py-2 box-border sticky top-0 backdrop-blur backdrop-saturate-200 before:w-full before:h-full before:absolute bg-[linear-gradient(var(--md-sys-color-background),transparent)] before:bg-background before:opacity-80 before:z-40 before:top-0 before:left-0">
             {/* nav drawer */}
@@ -31,10 +54,16 @@ export default function Navbar(
                     <IconButton key='nav-drawer-settings' icon='settings' href={`/${lang}/settings`} onClick={closeDrawer} />
                 </ul>
                 <ul className='flex flex-col w-full'>
-                    <NavDrawerLink icon='menu' href={`/${lang}/rankings`} text={langDict.nav_rankings} onClick={closeDrawer} />
-                    <NavDrawerLink icon='trending_up' href={`/${lang}/rankings/trending`} text={langDict.nav_trending} onClick={closeDrawer} />
-                    <NavDrawerLink icon='mic' href={`/${lang}/rankings/singers`} text={langDict.nav_singers} onClick={closeDrawer} />
-                    <NavDrawerLink icon='music_note' href={`/${lang}/rankings/producers`} text={langDict.nav_producers} onClick={closeDrawer} />
+                    {
+                        navLinks.map(linkData => <NavDrawerLink
+                            key={linkData.href}
+                            icon={linkData.icon}
+                            href={linkData.href}
+                            text={linkData.text}
+                            active={window.location.pathname === linkData.href}
+                            onClick={closeDrawer}
+                        />)
+                    }
                 </ul>
             </ModalDrawer>
 
@@ -56,10 +85,13 @@ export default function Navbar(
                     {/* nav links */}
                     <div key='nav-links'>
                         <ul className='sm:flex hidden gap-5'>
-                            <NavLink href={`/${lang}/rankings`} text={langDict.nav_rankings} />
-                            <NavLink href={`/${lang}/rankings/trending`} text={langDict.nav_trending} />
-                            <NavLink href={`/${lang}/rankings/singers`} text={langDict.nav_singers} />
-                            <NavLink href={`/${lang}/rankings/producers`} text={langDict.nav_producers} />
+                            {
+                                navLinks.map(linkData => <NavLink
+                                    key={linkData.href}
+                                    href={linkData.href}
+                                    text={linkData.text}
+                                />)
+                            }
                         </ul>
                     </div>
 
@@ -93,17 +125,19 @@ function NavDrawerLink(
         href,
         text,
         icon,
+        active,
         onClick
     }: {
         href: string,
         text: string,
         icon: string,
+        active?: boolean,
         onClick?: MouseEventHandler
     }
 ) {
     return (
         <li key={text}>
-            <Link href={href} onClick={onClick} className='flex items-center justify-start gap-5 text-on-surface-variant w-full h-14 rounded-full px-4 hover:text-green-50 transition-colors'>
+            <Link href={href} onClick={onClick} className={`flex items-center justify-start gap-5 w-full h-14 rounded-full px-4 transition-colors ${active ? 'text-on-surface-container bg-surface-container' : 'text-on-surface-variant hover:text-on-surface'}`}>
                 <Icon icon={icon} />
                 <div className='text-lg text-inherit'>{text}</div>
             </Link>
