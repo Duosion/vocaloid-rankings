@@ -41,7 +41,7 @@ export function ArtistSongs(
             </> : undefined
         }
     >
-        <article className="mx-3">
+        <article>
             {
                 <RankingsGrid columnsClassName={columnsClassName}>{songRankingsResult.results.map(ranking => {
                     const song = ranking.song

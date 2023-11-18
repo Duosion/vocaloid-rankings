@@ -12,16 +12,15 @@ import { LanguageDictionary, getEntityName } from "@/localization"
 import { useQuery } from "graphql-hooks"
 import { useTheme } from "next-themes"
 import { useSettings } from "../../../../components/providers/settings-provider"
+import { useLocale } from "@/components/providers/language-dictionary-provider"
 
 export function RelatedArtists(
     {
         artistId,
-        langDict,
         maxEntries,
         children
     }: {
         artistId: number
-        langDict: LanguageDictionary
         maxEntries: number
         children?: React.ReactNode
     }
@@ -29,6 +28,7 @@ export function RelatedArtists(
     // import contexts
     const { settings } = useSettings()
     const { resolvedTheme } = useTheme()
+    const langDict = useLocale()
 
     // import settings
     const settingTitleLanguage = settings.titleLanguage

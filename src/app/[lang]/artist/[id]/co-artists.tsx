@@ -15,23 +15,23 @@ import { LanguageDictionary, getEntityName } from "@/localization"
 import { useQuery } from "graphql-hooks"
 import { useTheme } from "next-themes"
 import { useSettings } from "../../../../components/providers/settings-provider"
+import { useLocale } from "@/components/providers/language-dictionary-provider"
 
 export function CoArtists(
     {
         artistId,
         category,
-        langDict,
         maxEntries
     }: {
         artistId: number
         category: ArtistCategory
-        langDict: LanguageDictionary
         maxEntries: number
     }
 ) {
     // import contexts
     const { settings } = useSettings()
     const { resolvedTheme } = useTheme()
+    const langDict = useLocale()
 
     // import settings
     const settingTitleLanguage = settings.titleLanguage

@@ -292,7 +292,6 @@ export default async function RankingsPage(
             <RankingsList
                 href=''
                 filters={filters}
-                langDict={langDict}
                 filterValues={searchParams}
                 currentTimestamp={mostRecentTimestamp}
                 viewMode={viewMode}

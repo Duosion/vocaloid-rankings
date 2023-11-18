@@ -270,7 +270,6 @@ export default async function RankingsPage(
             <ArtistRankingsList
                 href=''
                 filters={filters}
-                langDict={langDict}
                 filterValues={searchParams}
                 currentTimestamp={mostRecentTimestamp}
                 viewMode={viewMode}

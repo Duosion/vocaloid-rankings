@@ -4,7 +4,7 @@ import Navbar from '@/components/navbar'
 import { Noto_Sans_JP, Inter } from 'next/font/google'
 import localFont from "next/font/local"
 import { Providers } from '@/components/providers/providers'
-import { Locale } from '@/localization/'
+import { Locale, getDictionary } from '@/localization/'
 import Footer from '@/components/footer'
 
 const inter = Inter({
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   description: 'A site that ranks vocaloid songs based on their view counts.',
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
   params
 }: {
@@ -39,11 +39,12 @@ export default function RootLayout({
   }
 }) {
   const locale = params.lang
+  const langDict = await getDictionary(locale)
   return (
     <html lang={locale} className={`${inter.variable} ${notoSansJP.variable} ${materialSymbols.variable}`}>
       <body className='bg-background'>
-        <Providers>
-          <Navbar lang={locale} />
+        <Providers dictionary={langDict}>
+          <Navbar lang={locale}/>
           <main className='max-w-screen-2xl min-h-screen m-auto flex flex-col justify-center items-start px-5 py-6'>
             {children}
           </main>

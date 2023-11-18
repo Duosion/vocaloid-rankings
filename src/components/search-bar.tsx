@@ -7,8 +7,10 @@ import { Icon } from "./material/icon"
 export const SearchBar = (
     {
         placeholder = "Search",
+        className = ''
     }: {
         placeholder?: string
+        className?: string
     }
 ) => {
     const router = useRouter()
@@ -23,7 +25,7 @@ export const SearchBar = (
     }
 
     return (
-        <form action='/search' method='GET' className='bg-surface-container min-w-[360px] max-w-[420px] w-full h-[40px] flex items-center justify-start px-[16px] gap-[16px] rounded-full' onSubmit={handleSubmit}>
+        <form action='/search' method='GET' className={`bg-surface-container w-full h-10 flex items-center justify-start px-4 gap-4 rounded-full ${className}`} onSubmit={handleSubmit}>
             <Icon icon='search' className='text-on-surface'/>
             <input
                 required

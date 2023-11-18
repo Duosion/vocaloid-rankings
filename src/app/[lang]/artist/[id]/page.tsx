@@ -17,10 +17,9 @@ import { cookies } from "next/dist/client/components/headers"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { Settings } from "../../settings"
+import { ArtistSongs } from "./artist-songs"
 import { CoArtists } from "./co-artists"
 import { RelatedArtists } from "./related-artists"
-import { TopSongs } from "./top-songs"
-import { ArtistSongs } from "./artist-songs"
 
 // interfaces
 interface ViewsBreakdown {
@@ -262,10 +261,10 @@ export default async function ArtistPage(
                     </div>
 
                     {/* co artists */}
-                    <CoArtists artistId={artistId} category={artistCategory} langDict={langDict} maxEntries={4} />
+                    <CoArtists artistId={artistId} category={artistCategory} maxEntries={4} />
 
                     {/* Related Artists */}
-                    <RelatedArtists artistId={artistId} langDict={langDict} maxEntries={10}>
+                    <RelatedArtists artistId={artistId} maxEntries={10}>
                         {baseArtist ? <ArtistCard
                             src={baseArtist.thumbnails[ArtistThumbnailType.SMALL] || baseArtist.thumbnails[ArtistThumbnailType.ORIGINAL]}
                             alt={getEntityName(baseArtist.names, settingTitleLanguage)}

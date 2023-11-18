@@ -21,6 +21,7 @@ import { RankingsSkeleton } from "@/components/rankings/rankings-skeleton"
 import { RankingsContainer } from "@/components/rankings/rankings-container"
 import { ImageDisplayMode } from "@/components"
 import { RankingsItemTrailing } from "@/components/rankings/rankings-item-trailing"
+import { useLocale } from "@/components/providers/language-dictionary-provider"
 
 const GET_ARTISTS_NAMES = `
 query GetArtistsNames(
@@ -44,7 +45,6 @@ export function ArtistRankingsList(
     {
         href,
         filters,
-        langDict,
         filterValues,
         currentTimestamp,
         viewMode,
@@ -52,7 +52,6 @@ export function ArtistRankingsList(
     }: {
         href: string
         filters: ArtistRankingsFilters
-        langDict: LanguageDictionary
         filterValues: ArtistRankingsFiltersValues
         currentTimestamp: string
         viewMode: RankingsViewMode
@@ -62,6 +61,7 @@ export function ArtistRankingsList(
     // import contexts
     const { settings, setRankingsViewMode } = useSettings()
     const { resolvedTheme } = useTheme()
+    const langDict = useLocale()
 
     // import settings
     const settingTitleLanguage = settings.titleLanguage
@@ -235,7 +235,6 @@ export function ArtistRankingsList(
         <section className="flex flex-col gap-5 w-full">
             <SingerRankingsActiveFilterBar
                 filters={filters}
-                langDict={langDict}
                 filterValues={filterBarValues}
                 currentTimestamp={currentTimestampDate}
                 setFilterValues={saveFilterValues}

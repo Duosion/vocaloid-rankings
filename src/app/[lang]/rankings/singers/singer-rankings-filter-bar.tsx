@@ -13,16 +13,15 @@ import { FilledButton } from "@/components/material/filled-button"
 import { FloatingActionButton } from "@/components/material/floating-action-button"
 import { IconButton } from "@/components/material/icon-button"
 import { VerticalDivider } from "@/components/material/vertical-divider"
+import { useLocale } from "@/components/providers/language-dictionary-provider"
 import { Modal } from "@/components/transitions/modal"
 import { generateTimestamp, timeoutDebounce } from "@/lib/utils"
-import { LanguageDictionary } from "@/localization"
 import { useRef, useState } from "react"
 import { ArtistRankingsFilterBarValues, ArtistRankingsFilters, CheckboxFilter, EntityNames, Filter, FilterType, InputFilter, MultiFilter, RankingsViewMode, SelectFilter } from "../types"
 
 export function SingerRankingsActiveFilterBar(
     {
         filters,
-        langDict,
         filterValues,
         currentTimestamp,
         setFilterValues,
@@ -31,7 +30,6 @@ export function SingerRankingsActiveFilterBar(
         onEntityNamesChanged
     }: {
         filters: ArtistRankingsFilters
-        langDict: LanguageDictionary
         filterValues: ArtistRankingsFilterBarValues
         currentTimestamp: Date
         setFilterValues: (newValues: ArtistRankingsFilterBarValues, route?: boolean, merge?: boolean) => void,
@@ -41,6 +39,7 @@ export function SingerRankingsActiveFilterBar(
     }
 ) {
     const [filterModalOpen, setFilterModalOpen] = useState(false)
+    const langDict = useLocale()
 
     // timeouts
     const searchTimeout = useRef<NodeJS.Timeout>()
@@ -373,10 +372,10 @@ export function SingerRankingsActiveFilterBar(
                 }} />
             </Modal>
 
-            <ul className="flex justify-end items-center gap-3 w-full">
+            <ul className="flex justify-end items-center gap-3 w-full sm:flex-row flex-col-reverse">
                 {/* Active Filters */}
                 {activeFilterCount > 0 ?
-                    <li key='activeFilters' className="flex-1 overflow-x-auto overflow-y-clip"><ul className="flex gap-3">
+                    <li key='activeFilters' className="flex-1 overflow-x-auto overflow-y-clip sm:w-fit w-full"><ul className="flex gap-3">
                         {activeFilterCount > 1 ?
                             <ActiveFilter name={langDict.filter_clear_all} iconAlwaysVisible filled
                                 onClick={() => {
@@ -388,24 +387,28 @@ export function SingerRankingsActiveFilterBar(
                     </ul></li>
                     : undefined}
 
+                <div key='actions' className="sm:w-fit w-full">
+                    <ul className="flex justify-end items-center gap-3 w-full">
+                        {/* Order By */}
+                        <SelectFilterElement
+                            minimal
+                            icon='sort'
+                            clearIcon="sort"
+                            name={langDict[filters.orderBy.name]}
+                            value={Number(filterValues.orderBy)}
+                            defaultValue={filters.orderBy.defaultValue}
+                            options={filters.orderBy.values.map(value => langDict[value.name])}
+                            onValueChanged={(newValue) => { filterValues.orderBy = newValue; setFilterValues(filterValues) }}
+                        />
 
-                {/* Order By */}
-                <SelectFilterElement
-                    minimal
-                    icon='sort'
-                    clearIcon="sort"
-                    name={langDict[filters.orderBy.name]}
-                    value={Number(filterValues.orderBy)}
-                    defaultValue={filters.orderBy.defaultValue}
-                    options={filters.orderBy.values.map(value => langDict[value.name])}
-                    onValueChanged={(newValue) => { filterValues.orderBy = newValue; setFilterValues(filterValues) }}
-                />
+                        <VerticalDivider className="h-5" />
+                        <IconButton icon='view_agenda' onClick={_ => setRankingsViewMode(RankingsViewMode.LIST)} />
+                        <IconButton icon='view_cozy' onClick={_ => setRankingsViewMode(RankingsViewMode.GRID)} />
 
-                <VerticalDivider className=" h-5" />
-                <IconButton icon='view_agenda' onClick={_ => setRankingsViewMode(RankingsViewMode.LIST)} />
-                <IconButton icon='view_cozy' onClick={_ => setRankingsViewMode(RankingsViewMode.GRID)} />
+                        <li key='filter-button' className="sm:block hidden"><FilledButton icon='filter_alt' text={langDict.rankings_filter} onClick={_ => setFilterModalOpen(true)} /></li>
+                    </ul>
+                </div>
 
-                <li key='filter-button' className="sm:block hidden"><FilledButton icon='filter_alt' text={langDict.rankings_filter} onClick={_ => setFilterModalOpen(true)} /></li>
             </ul>
 
             {/* floating action button */}

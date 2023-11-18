@@ -5,27 +5,27 @@ import { Scrim } from "./scrim"
 const transitionStyles: { [key in TransitionStatus]: CSSProperties } = {
     entering: {
         opacity: 1,
-        transform: 'translateY(0px)'
+        transform: 'translateX(0px)'
     },
     entered: {
         opacity: 1,
-        transform: 'translateY(0px)'
+        transform: 'translateX(0px)'
     },
     exiting: {
         opacity: 0,
-        transform: 'translateY(-20px)'
+        transform: 'translateX(-360px)'
     },
     exited: {
         opacity: 0,
-        transform: 'translateY(20px)'
+        transform: 'translateX(-360px)'
     },
     unmounted: {
         opacity: 0,
-        transform: 'translateY(20px)'
+        transform: 'translateX(-360px)'
     }
 }
 
-export function Modal(
+export function ModalDrawer(
     {
         visible,
         duration = 150,
@@ -65,13 +65,13 @@ export function Modal(
         >
             {/* modal container */}
             {state => (
-                <div ref={modalContainerRef} className='fixed w-full h-full top-0 left-0 flex items-start justify-center p-5 md:pt-36 box-border z-50'>
+                <div ref={modalContainerRef} className='fixed w-screen h-screen top-0 left-0 lg:hidden flex items-start justify-start box-border z-50'>
                     {/* modal scrim */}
                     <Scrim duration={duration} state={state}/>
                     {/* modal */}
                     <div
                         ref={modalRef}
-                        className="transition-all w-full max-w-screen-lg p-5 max-h-full overflow-y-auto box-border bg-surface-container-lowest rounded-2xl z-50 flex flex-col gap-5"
+                        className="transition-all max-w-[70%] w-[360px] px-5 py-5 max-h-screen h-full overflow-y-auto box-border bg-surface-container-lowest rounded-r-3xl z-50 flex flex-col gap-5"
                         style={{
                             transitionDuration: `${duration}ms`,
                             ...transitionStyles[state]

@@ -21,6 +21,7 @@ import { SongRankingsActiveFilterBar } from "./song-rankings-filters"
 import { EntityNames, FilterType, InputFilter, RankingsFilters, RankingsViewMode, SongRankingsFilterBarValues, SongRankingsFiltersValues } from "./types"
 import { decodeBoolean, decodeMultiFilter, encodeBoolean, encodeMultiFilter, getRankingsItemTrailingSupportingText, parseParamSelectFilterValue } from "./utils"
 import { RankingsItemTrailing } from "@/components/rankings/rankings-item-trailing"
+import { useLocale } from "@/components/providers/language-dictionary-provider"
 
 const GET_ARTISTS_NAMES = `
 query GetArtistsNames(
@@ -44,14 +45,12 @@ export function RankingsList(
     {
         href,
         filters,
-        langDict,
         filterValues,
         currentTimestamp,
         viewMode
     }: {
         href: string
         filters: RankingsFilters
-        langDict: LanguageDictionary
         filterValues: SongRankingsFiltersValues
         currentTimestamp: string
         viewMode: RankingsViewMode
@@ -60,6 +59,7 @@ export function RankingsList(
     // import contexts
     const { settings, setRankingsViewMode } = useSettings()
     const { resolvedTheme } = useTheme()
+    const langDict = useLocale()
 
     // import settings
     const settingTitleLanguage = settings.titleLanguage
@@ -234,7 +234,6 @@ export function RankingsList(
         <section className="flex flex-col gap-5 w-full">
             <SongRankingsActiveFilterBar
                 filters={filters}
-                langDict={langDict}
                 filterValues={filterBarValues}
                 currentTimestamp={currentTimestampDate}
                 setFilterValues={saveFilterValues}
