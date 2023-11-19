@@ -71,7 +71,7 @@ export function Modal(
                     {/* modal */}
                     <div
                         ref={modalRef}
-                        className="transition-all w-full max-w-screen-lg p-5 max-h-full overflow-y-auto box-border bg-surface-container-lowest rounded-2xl z-50 flex flex-col gap-5"
+                        className="transition-all w-full max-w-screen-lg p-5 max-h-full overflow-y-auto box-border bg-surface-container-lowest rounded-3xl z-50 flex flex-col gap-5"
                         style={{
                             transitionDuration: `${duration}ms`,
                             ...transitionStyles[state]

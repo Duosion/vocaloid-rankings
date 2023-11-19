@@ -45,7 +45,7 @@ export default async function RootLayout({
       <body className='bg-background'>
         <Providers dictionary={langDict}>
           <Navbar lang={locale}/>
-          <main className='max-w-screen-2xl min-h-screen m-auto flex flex-col justify-center items-start px-5 py-6'>
+          <main className='max-w-screen-2xl min-h-screen m-auto flex flex-col justify-start items-center px-5 py-6'>
             {children}
           </main>
           <Footer lang={locale} />

@@ -49,7 +49,7 @@ export function RankingsPageSelector(
                 <Icon icon='more_horiz' />
                 <PageSelectorItem text={totalPages.toString()} onClick={() => setPage(totalPages - 1)} />
             </> : undefined}
-            {totalPages > currentPage ? <IconButton icon='arrow_forward' onClick={() => setPage(currentPage + 1)}/> : undefined}
+            {totalPages > currentPage && totalPages > 1 ? <IconButton icon='arrow_forward' onClick={() => setPage(currentPage + 1)}/> : undefined}
         </ul>
     )
 
