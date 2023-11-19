@@ -392,7 +392,7 @@ export function SingerRankingsActiveFilterBar(
                     setFilterValues(filterValues, true, false)
                 }}
                 onFilterDirectionToggle={() => {
-                    filterValues.direction = filterValues.direction === 0 ? 1 : 0;
+                    filterValues.direction = filterValues.direction === 1 ? 0 : 1; 
                     setFilterValues(filterValues)
                 }}
                 onViewModeChanged={(newViewMode) => setRankingsViewMode(newViewMode)}
