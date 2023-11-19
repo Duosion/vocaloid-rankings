@@ -28,7 +28,7 @@ export function NumberInputFilterElement(
 
     return (
         <FilterElement key={name} name={name}>
-            <div className="w-full py-2 px-4 rounded-xl bg-surface-container-low text-on-surface flex gap-3 text-base font-normal" onClick={e => e.preventDefault()}
+            <div className="w-full py-2 px-4 rounded-full bg-surface-container-low text-on-surface flex gap-3 text-base font-normal" onClick={e => e.preventDefault()}
                 style={{backgroundColor: `var(--md-sys-color-${elevationToClass[elevation]})`}}
             >
                 <input type='search' placeholder={placeholder} onChange={event => setValue(event.currentTarget.value)} value={value} className='flex-1 cursor-text bg-transparent w-32 outline-none text-left' />

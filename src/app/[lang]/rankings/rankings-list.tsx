@@ -7,7 +7,7 @@ import { RankingsContainer } from "@/components/rankings/rankings-container"
 import { RankingListItem } from "@/components/rankings/rankings-list-item"
 import { RankingsSkeleton } from "@/components/rankings/rankings-skeleton"
 import { TransitioningRankingsGridItem } from "@/components/rankings/transitioning-rankings-grid-item"
-import { ArtistType, FilterInclusionMode, FilterOrder, SongType, SourceType } from "@/data/types"
+import { ArtistType, FilterDirection, FilterInclusionMode, FilterOrder, SongType, SourceType } from "@/data/types"
 import { GET_SONG_RANKINGS, buildEntityNames, graphClient } from "@/lib/api"
 import { ApiArtist, ApiSongRankingsFilterResult } from "@/lib/api/types"
 import { buildFuzzyDate } from "@/lib/utils"
@@ -94,7 +94,8 @@ export function RankingsList(
         excludeArtists: decodeMultiFilter(filterValues.excludeArtists),
         includeArtistsMode: filterValues.includeArtistsMode,
         excludeArtistsMode: filterValues.excludeArtistsMode,
-        includeSimilarArtists: decodeBoolean(Number(filterValues.includeSimilarArtists))
+        includeSimilarArtists: decodeBoolean(Number(filterValues.includeSimilarArtists)),
+        direction: filterValues.direction
     } as SongRankingsFilterBarValues)
 
     // entity names state
@@ -152,7 +153,8 @@ export function RankingsList(
             singleVideo: filterBarValues.singleVideo,
             minViews: filterBarValues.minViews ? Number(filterBarValues.minViews) : undefined,
             maxViews: filterBarValues.maxViews ? Number(filterBarValues.maxViews) : undefined,
-            search: filterBarValues.search == '' ? undefined : filterBarValues.search
+            search: filterBarValues.search == '' ? undefined : filterBarValues.search,
+            direction: filterBarValues.direction === undefined ? undefined : FilterDirection[filterBarValues.direction]
         }
     }
 

@@ -4,7 +4,7 @@ import { NumberFormatter } from "@/components/formatters/number-formatter"
 import { Divider } from "@/components/material/divider"
 import { TransitioningRankingsGridItem } from "@/components/rankings/transitioning-rankings-grid-item"
 import { RankingListItem } from "@/components/rankings/rankings-list-item"
-import { ArtistCategory, ArtistType, FilterOrder, SongType, SourceType } from "@/data/types"
+import { ArtistCategory, ArtistType, FilterDirection, FilterOrder, SongType, SourceType } from "@/data/types"
 import { GET_ARTIST_RANKINGS, buildEntityNames, graphClient } from "@/lib/api"
 import { ApiArtist, ApiArtistRankingsFilterResult } from "@/lib/api/types"
 import { LanguageDictionary, getEntityName } from "@/localization"
@@ -96,7 +96,8 @@ export function ArtistRankingsList(
         includeArtists: decodeMultiFilter(filterValues.includeArtists),
         excludeArtists: decodeMultiFilter(filterValues.excludeArtists),
         includeCoArtistsOf: decodeMultiFilter(filterValues.includeCoArtistsOf),
-        combineSimilarArtists: decodeBoolean(Number(filterValues.combineSimilarArtists))
+        combineSimilarArtists: decodeBoolean(Number(filterValues.combineSimilarArtists)),
+        direction: filterValues.direction
     } as ArtistRankingsFilterBarValues)
 
     // entity names state
@@ -154,7 +155,8 @@ export function ArtistRankingsList(
             singleVideo: filterBarValues.singleVideo,
             minViews: filterBarValues.minViews ? Number(filterBarValues.minViews) : undefined,
             maxViews: filterBarValues.maxViews ? Number(filterBarValues.maxViews) : undefined,
-            search: filterBarValues.search == '' ? undefined : filterBarValues.search
+            search: filterBarValues.search == '' ? undefined : filterBarValues.search,
+            direction: filterBarValues.direction === undefined ? undefined : FilterDirection[filterBarValues.direction]
         }
     }
 

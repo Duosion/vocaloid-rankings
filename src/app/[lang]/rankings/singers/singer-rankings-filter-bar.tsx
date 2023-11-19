@@ -18,6 +18,7 @@ import { Modal } from "@/components/transitions/modal"
 import { generateTimestamp, timeoutDebounce } from "@/lib/utils"
 import { useRef, useState } from "react"
 import { ArtistRankingsFilterBarValues, ArtistRankingsFilters, CheckboxFilter, EntityNames, Filter, FilterType, InputFilter, MultiFilter, RankingsViewMode, SelectFilter } from "../types"
+import { RankingsActionBar } from "../rankings-action-bar"
 
 export function SingerRankingsActiveFilterBar(
     {
@@ -372,47 +373,31 @@ export function SingerRankingsActiveFilterBar(
                 }} />
             </Modal>
 
-            <ul className="flex justify-end items-center gap-3 w-full sm:flex-row flex-col-reverse">
-                {/* Active Filters */}
-                {activeFilterCount > 0 ?
-                    <li key='activeFilters' className="flex-1 overflow-x-auto overflow-y-clip sm:w-fit w-full"><ul className="flex gap-3">
-                        {activeFilterCount > 1 ?
-                            <ActiveFilter name={langDict.filter_clear_all} iconAlwaysVisible filled
-                                onClick={() => {
-                                    filterValues = {}
-                                    setFilterValues(filterValues, true, false)
-                                }} />
-                            : undefined}
-                        {activeFilters}
-                    </ul></li>
-                    : undefined}
-
-                <div key='actions' className="sm:w-fit w-full">
-                    <ul className="flex justify-end items-center gap-3 w-full">
-                        {/* Order By */}
-                        <SelectFilterElement
-                            minimal
-                            icon='sort'
-                            clearIcon="sort"
-                            name={langDict[filters.orderBy.name]}
-                            value={Number(filterValues.orderBy)}
-                            defaultValue={filters.orderBy.defaultValue}
-                            options={filters.orderBy.values.map(value => langDict[value.name])}
-                            onValueChanged={(newValue) => { filterValues.orderBy = newValue; setFilterValues(filterValues) }}
-                        />
-
-                        <VerticalDivider className="h-5" />
-                        <IconButton icon='view_agenda' onClick={_ => setRankingsViewMode(RankingsViewMode.LIST)} />
-                        <IconButton icon='view_cozy' onClick={_ => setRankingsViewMode(RankingsViewMode.GRID)} />
-
-                        <li key='filter-button' className="sm:block hidden"><FilledButton icon='filter_alt' text={langDict.rankings_filter} onClick={_ => setFilterModalOpen(true)} /></li>
-                    </ul>
-                </div>
-
-            </ul>
-
-            {/* floating action button */}
-            <FloatingActionButton icon='filter_alt' className="sm:hidden fixed" onClick={_ => setFilterModalOpen(true)} />
+            <RankingsActionBar
+                activeFilters={activeFilters}
+                orderBy={
+                    <SelectFilterElement
+                        minimal
+                        icon='sort'
+                        clearIcon="sort"
+                        name={langDict[filters.orderBy.name]}
+                        value={Number(filterValues.orderBy)}
+                        defaultValue={filters.orderBy.defaultValue}
+                        options={filters.orderBy.values.map(value => langDict[value.name])}
+                        onValueChanged={(newValue) => { filterValues.orderBy = newValue; setFilterValues(filterValues) }}
+                    />
+                }
+                onClearAllFilters={() => {
+                    filterValues = {}
+                    setFilterValues(filterValues, true, false)
+                }}
+                onFilterDirectionToggle={() => {
+                    filterValues.direction = filterValues.direction === 0 ? 1 : 0;
+                    setFilterValues(filterValues)
+                }}
+                onViewModeChanged={(newViewMode) => setRankingsViewMode(newViewMode)}
+                onOpenFilters={_ => setFilterModalOpen(true)}
+            />
         </>
 
     )

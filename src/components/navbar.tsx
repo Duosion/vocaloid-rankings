@@ -139,7 +139,7 @@ function NavDrawerLink(
 ) {
     return (
         <li key={text}>
-            <Link href={href} onClick={onClick} className={`flex items-center justify-start gap-5 w-full h-14 rounded-full px-4 transition-colors ${active ? 'text-on-surface-container bg-surface-container' : 'text-on-surface-variant hover:text-on-surface'}`}>
+            <Link href={href} onClick={onClick} className={`flex items-center justify-start gap-5 w-full h-14 rounded-full px-4 transition-colors ${active ? 'text-on-secondary-container bg-secondary-container' : 'text-on-surface-variant hover:text-on-surface'}`}>
                 <Icon icon={icon} />
                 <div className='text-lg text-inherit'>{text}</div>
             </Link>

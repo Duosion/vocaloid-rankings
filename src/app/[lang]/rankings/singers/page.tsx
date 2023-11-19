@@ -1,5 +1,5 @@
 import { getMostRecentViewsTimestamp } from "@/data/songsData"
-import { ArtistCategory, ArtistType, FilterOrder, SongType, SourceType } from "@/data/types"
+import { ArtistCategory, ArtistType, FilterDirection, FilterOrder, SongType, SourceType } from "@/data/types"
 import { generateTimestamp } from "@/lib/utils"
 import { artistCategoryToApiArtistTypes } from "@/lib/utils"
 import { Locale, getDictionary } from "@/localization"
@@ -238,6 +238,17 @@ const filters: ArtistRankingsFilters = {
         displayActive: true,
         type: FilterType.CHECKBOX,
         defaultValue: false
+    },
+    direction: {
+        name: 'filter_direction',
+        key: 'direction',
+        displayActive: false,
+        type: FilterType.SELECT,
+        values: [
+            { name: 'filter_direction_descending', value: FilterDirection.DESCENDING },
+            { name: 'filter_direction_ascending', value: FilterDirection.ASCENDING }
+        ],
+        defaultValue: 0 // default value
     },
 }
 

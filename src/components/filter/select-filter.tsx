@@ -67,7 +67,7 @@ export function SelectFilterElement(
 
     return (
         <FilterElement key={name} name={name} minimal={minimal}>
-            <div ref={filterRef} className={minimal ? 'text-on-background py-1 w-fit flex justify-end items-center text-lg font-normal' : `py-2 px-4 rounded-xl text-on-surface flex text-base font-normal`}
+            <div ref={filterRef} className={minimal ? 'text-on-background py-1 w-fit flex justify-end items-center text-lg font-normal' : `py-2 px-4 rounded-full text-on-surface flex text-base font-normal`}
                 style={{ backgroundColor: minimal ? undefined : `var(--md-sys-color-${elevationToClass[elevation]})` }}
             >
                 {searchable
@@ -95,13 +95,13 @@ export function SelectFilterElement(
             </div>
             <FadeInOut visible={modalOpen} className="z-10">
                 <div className="relative min-w-fit w-full h-0">
-                    <ul ref={modalRef} className="absolute top-2 min-w-[160px] w-full right-0 rounded-xl shadow-md p-2 max-h-72 overflow-y-scroll overflow-x-clip"
+                    <ul ref={modalRef} className="absolute top-2 min-w-[160px] w-full right-0 rounded-3xl shadow-md p-2 max-h-72 overflow-y-scroll overflow-x-clip"
                         style={{ backgroundColor: `var(--md-sys-color-${elevationToClass[modalElevation]})` }}
                     >
                         {options.map((value, index) => {
                             return searchable && value.toLowerCase().match(searchQuery) || !searchable ? (
                                 <li key={index}>
-                                    <button key={index} onClick={(e) => { e.preventDefault(); setValue(index); }} className="w-full font-normal h-auto overflow-clip text-ellipsis p-2 rounded-xl relative transition-colors hover:bg-surface-container-highest">{value}</button>
+                                    <button key={index} onClick={(e) => { e.preventDefault(); setValue(index); }} className="w-full font-normal h-auto overflow-clip text-ellipsis p-2 rounded-full relative transition-colors hover:bg-surface-container-highest">{value}</button>
                                 </li>
                             ) : null
                         })}

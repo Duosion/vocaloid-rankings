@@ -130,12 +130,9 @@ export function ArtistSearchFilter(
         }
     }, [modalOpen])
 
-
-    const [switched, setSwitched] = useState(false)
-
     return (
         <FilterElement key={name} name={name}>
-            <div className='py-2 px-4 rounded-xl text-on-surface flex text-base font-normal'
+            <div className='py-2 px-4 rounded-full text-on-surface flex text-base font-normal'
                 style={{ backgroundColor: `var(--md-sys-color-${elevationToClass[elevation]})` }}
             >
                 <input
@@ -154,7 +151,7 @@ export function ArtistSearchFilter(
             {/* pop-up search box */}
             <FadeInOut visible={modalOpen} className="z-10">
                 <div className="relative min-w-fit w-full h-0">
-                    <ul ref={modalRef} className="absolute top-2 min-w-[160px] w-full right-0 rounded-xl shadow-md p-2 max-h-72 overflow-y-scroll overflow-x-clip"
+                    <ul ref={modalRef} className="absolute top-2 min-w-[160px] w-full right-0 rounded-3xl shadow-md p-2 max-h-72 overflow-y-scroll overflow-x-clip"
                         style={{ backgroundColor: `var(--md-sys-color-${elevationToClass[modalElevation]})` }}
                     >
                         {apiError || !searchResult ? <h3 className="text-base text-center">{''}</h3>
@@ -174,7 +171,7 @@ export function ArtistSearchFilter(
                                                 // close modal
                                                 setModalOpen(false)
                                             }}
-                                            className="w-full font-normal h-auto overflow-clip text-ellipsis p-2 rounded-xl relative transition-colors hover:bg-surface-container-highest"
+                                            className="w-full font-normal h-auto overflow-clip text-ellipsis p-2 rounded-full relative transition-colors hover:bg-surface-container-highest"
                                         >
                                             {name}
                                         </button>

@@ -1,4 +1,4 @@
-import { ArtistType, FilterInclusionMode, FilterOrder, Names, SongType, SourceType } from "@/data/types"
+import { ArtistType, FilterDirection, FilterInclusionMode, FilterOrder, Names, SongType, SourceType } from "@/data/types"
 import { LanguageDictionaryKey } from "@/localization"
 
 export enum FilterType {
@@ -165,6 +165,7 @@ export interface RankingsFilters {
     includeArtistsMode: SelectFilter<FilterInclusionMode>
     excludeArtistsMode: SelectFilter<FilterInclusionMode>
     includeSimilarArtists: CheckboxFilter
+    direction: SelectFilter<FilterDirection>
 }
 
 export interface SongRankingsFiltersValues {
@@ -192,6 +193,7 @@ export interface SongRankingsFiltersValues {
     includeArtistsMode?: number
     excludeArtistsMode?: number
     includeSimilarArtists?: number
+    direction?: number
 }
 
 export interface SongRankingsFilterBarValues {
@@ -219,6 +221,7 @@ export interface SongRankingsFilterBarValues {
     includeArtistsMode?: number
     excludeArtistsMode?: number
     includeSimilarArtists?: boolean
+    direction?: number
 }
 
 // artists rankings filters
@@ -248,6 +251,7 @@ export interface ArtistRankingsFilters {
     excludeArtists: MultiEntityFilter
     includeCoArtistsOf: MultiEntityFilter
     combineSimilarArtists: CheckboxFilter
+    direction: SelectFilter<FilterDirection>
 }
 
 export interface ArtistRankingsFiltersValues {
@@ -275,6 +279,7 @@ export interface ArtistRankingsFiltersValues {
     excludeArtists?: string
     includeCoArtistsOf?: string
     combineSimilarArtists?: number
+    direction?: number
 }
 
 export interface ArtistRankingsFilterBarValues {
@@ -302,6 +307,7 @@ export interface ArtistRankingsFilterBarValues {
     excludeArtists?: number[]
     includeCoArtistsOf?: number[]
     combineSimilarArtists?: boolean
+    direction?: number
 }
 
 // describes a list of entity names with their ids mapped to a Names types
