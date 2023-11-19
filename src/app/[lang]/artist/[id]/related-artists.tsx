@@ -13,6 +13,7 @@ import { getEntityName } from "@/localization"
 import { useQuery } from "graphql-hooks"
 import { useTheme } from "next-themes"
 import { useSettings } from "../../../../components/providers/settings-provider"
+import { RankingsApiError } from "@/components/rankings/rankings-api-error"
 
 export function RelatedArtists(
     {
@@ -40,16 +41,14 @@ export function RelatedArtists(
             maxEntries: maxEntries,
         }
     })
-    const rankingsResult = data?.artistRankings as ApiArtistRankingsFilterResult
+    const rankingsResult = data?.artistRankings as ApiArtistRankingsFilterResult | undefined
 
-    const ErrorMessage = ({ message }: { message: string }) => <h2 className="text-3xl font-bold text-center text-on-background">{message}</h2>
-
-    return rankingsResult != undefined && rankingsResult.totalCount === 0 && children == undefined ? undefined : <EntitySection
+    return rankingsResult === undefined || (rankingsResult != undefined && rankingsResult.totalCount === 0 && children == undefined) ? undefined : <EntitySection
         title={langDict['artist_related_artists']}
     >
         <article>
             {
-                error ? <ErrorMessage message={''} />
+                error ? <RankingsApiError error={error}/>
                     : loading ? <ArtistsSkeleton elementCount={maxEntries} className="xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2" />
                         : <ArtistsGrid className="xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2">
                             {children}

@@ -16,6 +16,7 @@ import { useQuery } from "graphql-hooks"
 import { useTheme } from "next-themes"
 import { useSettings } from "../../../../components/providers/settings-provider"
 import { useLocale } from "@/components/providers/language-dictionary-provider"
+import { RankingsApiError } from "@/components/rankings/rankings-api-error"
 
 export function CoArtists(
     {
@@ -35,7 +36,7 @@ export function CoArtists(
 
     // import settings
     const settingTitleLanguage = settings.titleLanguage
-    
+
     const artistIsVocalist = category == ArtistCategory.VOCALIST
     const categoryInversed = artistIsVocalist ? ArtistCategory.PRODUCER : ArtistCategory.VOCALIST
 
@@ -49,14 +50,12 @@ export function CoArtists(
             orderBy: "SONG_COUNT"
         }
     })
-    const rankingsResult = data?.artistRankings as ApiArtistRankingsFilterResult
+    const rankingsResult = data?.artistRankings as ApiArtistRankingsFilterResult | undefined
 
-    const ErrorMessage = ({ message }: { message: string }) => <h2 className="text-3xl font-bold text-center text-on-background">{message}</h2>
-
-    return rankingsResult != undefined && rankingsResult.totalCount === 0 ? undefined : <EntitySection
+    return rankingsResult === undefined || (rankingsResult != undefined && rankingsResult.totalCount === 0) ? undefined : <EntitySection
         title={langDict[artistIsVocalist ? 'artist_co_artists_vocalist' : 'artist_co_artists_producer']}
         titleSupporting={
-            rankingsResult != undefined && rankingsResult.totalCount > maxEntries ? <>
+            rankingsResult.totalCount > maxEntries ? <>
                 <FilledButton className="sm:flex hidden" text={langDict.artist_view_all} icon={'open_in_full'} href={`../rankings/${artistIsVocalist ? 'producers' : 'singers'}?includeCoArtistsOf=${artistId}&minViews=1&orderBy=3`} />
                 <FilledIconButton className="sm:hidden flex" icon={'open_in_full'} href={`../rankings?includeArtists=${artistId}`} />
             </> : undefined
@@ -64,10 +63,9 @@ export function CoArtists(
     >
         <article>
             {
-                error ? <ErrorMessage message={''} />
-                    : loading ? <ArtistsSkeleton elementCount={maxEntries} className="xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2"/>
-                        : rankingsResult == undefined || (rankingsResult && 0 >= rankingsResult.results.length) ? <ErrorMessage message={langDict.search_no_results} />
-                            : <ArtistsGrid className="xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2">{rankingsResult.results.map(ranking => {
+                error ? <RankingsApiError error={error} />
+                    : loading ? <ArtistsSkeleton elementCount={maxEntries} className="xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2" />
+                        : <ArtistsGrid className="xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2">{rankingsResult.results.map(ranking => {
                                 const artist = ranking.artist
                                 const names = buildEntityNames(artist.names)
 
@@ -81,7 +79,7 @@ export function CoArtists(
                                         bgColor={color}
                                         href={`../artist/${artist.id}`}
                                         title={<EntityName names={names} preferred={settingTitleLanguage} />}
-                                        text={substituteStringVariables(langDict['artist_co_artists_featured_song_count'], {count: ranking.views.toString()})}
+                                        text={substituteStringVariables(langDict['artist_co_artists_featured_song_count'], { count: ranking.views.toString() })}
                                         isSinger={!artistIsVocalist}
                                     />
                                 )

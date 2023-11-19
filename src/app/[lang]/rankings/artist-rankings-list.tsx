@@ -22,6 +22,7 @@ import { RankingsContainer } from "@/components/rankings/rankings-container"
 import { ImageDisplayMode } from "@/components"
 import { RankingsItemTrailing } from "@/components/rankings/rankings-item-trailing"
 import { useLocale } from "@/components/providers/language-dictionary-provider"
+import { RankingsApiError } from "@/components/rankings/rankings-api-error"
 
 const GET_ARTISTS_NAMES = `
 query GetArtistsNames(
@@ -162,7 +163,7 @@ export function ArtistRankingsList(
     const { loading, error, data } = useQuery(GET_ARTIST_RANKINGS, {
         variables: queryVariables
     })
-    const rankingsResult = data?.artistRankings as ApiArtistRankingsFilterResult
+    const rankingsResult = data?.artistRankings as ApiArtistRankingsFilterResult | undefined
 
     // function for saving filter values & updating the UI with the new values.
     function saveFilterValues(
@@ -243,7 +244,7 @@ export function ArtistRankingsList(
                 onEntityNamesChanged={newNames => setEntityNames({ ...newNames })}
             />
             <Divider />
-            {error ? <h2 className="text-3xl font-bold text-center text-on-background">{''}</h2>
+            {error ? <RankingsApiError error={error}/>
                 : !loading && (rankingsResult == undefined || 0 >= rankingsResult.results.length) ? <h2 className="text-3xl font-bold text-center text-on-background">{langDict.search_no_results}</h2>
                     : rankingsResult == undefined ? <RankingsSkeleton elementCount={50} viewMode={rankingsViewMode} />
                         : <RankingsContainer viewMode={rankingsViewMode}>

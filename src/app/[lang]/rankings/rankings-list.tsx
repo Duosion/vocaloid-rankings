@@ -22,6 +22,7 @@ import { EntityNames, FilterType, InputFilter, RankingsFilters, RankingsViewMode
 import { decodeBoolean, decodeMultiFilter, encodeBoolean, encodeMultiFilter, getRankingsItemTrailingSupportingText, parseParamSelectFilterValue } from "./utils"
 import { RankingsItemTrailing } from "@/components/rankings/rankings-item-trailing"
 import { useLocale } from "@/components/providers/language-dictionary-provider"
+import { RankingsApiError } from "@/components/rankings/rankings-api-error"
 
 const GET_ARTISTS_NAMES = `
 query GetArtistsNames(
@@ -160,7 +161,7 @@ export function RankingsList(
     const { loading, error, data } = useQuery(GET_SONG_RANKINGS, {
         variables: queryVariables
     })
-    const rankingsResult = data?.songRankings as ApiSongRankingsFilterResult
+    const rankingsResult = data?.songRankings as ApiSongRankingsFilterResult | undefined
 
     // function for saving filter values & updating the UI with the new values.
     function saveFilterValues(
@@ -242,7 +243,7 @@ export function RankingsList(
                 onEntityNamesChanged={newNames => setEntityNames({ ...newNames })}
             />
             <Divider />
-            {error ? <h2 className="text-3xl font-bold text-center text-on-background">{''}</h2>
+            {error ? <RankingsApiError error={error}/>
                 : !loading && (rankingsResult == undefined || 0 >= rankingsResult.results.length) ? <h2 className="text-3xl font-bold text-center text-on-background">{langDict.search_no_results}</h2>
                     : rankingsResult == undefined ? <RankingsSkeleton elementCount={50} viewMode={rankingsViewMode} />
                         : <RankingsContainer viewMode={rankingsViewMode}>
