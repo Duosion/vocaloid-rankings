@@ -23,6 +23,7 @@ import { ImageDisplayMode } from "@/components"
 import { RankingsItemTrailing } from "@/components/rankings/rankings-item-trailing"
 import { useLocale } from "@/components/providers/language-dictionary-provider"
 import { RankingsApiError } from "@/components/rankings/rankings-api-error"
+import { RankingsPageSelector } from "@/components/rankings/rankings-page-selector"
 
 const GET_ARTISTS_NAMES = `
 query GetArtistsNames(
@@ -97,7 +98,8 @@ export function ArtistRankingsList(
         excludeArtists: decodeMultiFilter(filterValues.excludeArtists),
         includeCoArtistsOf: decodeMultiFilter(filterValues.includeCoArtistsOf),
         combineSimilarArtists: decodeBoolean(Number(filterValues.combineSimilarArtists)),
-        direction: filterValues.direction
+        direction: filterValues.direction,
+        startAt: filterValues.startAt
     } as ArtistRankingsFilterBarValues)
 
     // entity names state
@@ -156,7 +158,8 @@ export function ArtistRankingsList(
             minViews: filterBarValues.minViews ? Number(filterBarValues.minViews) : undefined,
             maxViews: filterBarValues.maxViews ? Number(filterBarValues.maxViews) : undefined,
             search: filterBarValues.search == '' ? undefined : filterBarValues.search,
-            direction: filterBarValues.direction === undefined ? undefined : FilterDirection[filterBarValues.direction]
+            direction: filterBarValues.direction === undefined ? undefined : FilterDirection[filterBarValues.direction],
+            startAt: Number(filterBarValues.startAt)
         }
     }
 
@@ -202,6 +205,7 @@ export function ArtistRankingsList(
                 }
             }
             history.pushState({}, 'Song rankings filter changed.', `${href}?${queryBuilder.join('&')}`)
+            console.log(getQueryVariables())
             setQueryVariables(getQueryVariables())
         }
     }
@@ -295,6 +299,14 @@ export function ArtistRankingsList(
                             })}</TransitionGroup>
                         </RankingsContainer>
             }
+            <RankingsPageSelector
+                currentOffset={Number(filterBarValues.startAt)}
+                totalCount={rankingsResult?.totalCount}
+                onOffsetChanged={(newOffset) => {
+                    filterBarValues.startAt = newOffset.toString()
+                    saveFilterValues(filterBarValues)
+                }}
+            />
         </section>
     )
 }

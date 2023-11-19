@@ -23,6 +23,7 @@ import { decodeBoolean, decodeMultiFilter, encodeBoolean, encodeMultiFilter, get
 import { RankingsItemTrailing } from "@/components/rankings/rankings-item-trailing"
 import { useLocale } from "@/components/providers/language-dictionary-provider"
 import { RankingsApiError } from "@/components/rankings/rankings-api-error"
+import { RankingsPageSelector } from "@/components/rankings/rankings-page-selector"
 
 const GET_ARTISTS_NAMES = `
 query GetArtistsNames(
@@ -95,7 +96,8 @@ export function RankingsList(
         includeArtistsMode: filterValues.includeArtistsMode,
         excludeArtistsMode: filterValues.excludeArtistsMode,
         includeSimilarArtists: decodeBoolean(Number(filterValues.includeSimilarArtists)),
-        direction: filterValues.direction
+        direction: filterValues.direction,
+        startAt: filterValues.startAt
     } as SongRankingsFilterBarValues)
 
     // entity names state
@@ -154,7 +156,8 @@ export function RankingsList(
             minViews: filterBarValues.minViews ? Number(filterBarValues.minViews) : undefined,
             maxViews: filterBarValues.maxViews ? Number(filterBarValues.maxViews) : undefined,
             search: filterBarValues.search == '' ? undefined : filterBarValues.search,
-            direction: filterBarValues.direction === undefined ? undefined : FilterDirection[filterBarValues.direction]
+            direction: filterBarValues.direction === undefined ? undefined : FilterDirection[filterBarValues.direction],
+            startAt: Number(filterBarValues.startAt)
         }
     }
 
@@ -293,6 +296,14 @@ export function RankingsList(
                             })}</TransitionGroup>
                         </RankingsContainer>
             }
+            <RankingsPageSelector
+                currentOffset={ Number(filterBarValues.startAt)}
+                totalCount={rankingsResult?.totalCount}
+                onOffsetChanged={(newOffset) => {
+                    filterBarValues.startAt = newOffset.toString()
+                    saveFilterValues(filterBarValues)
+                }}
+            />
         </section>
     )
 }

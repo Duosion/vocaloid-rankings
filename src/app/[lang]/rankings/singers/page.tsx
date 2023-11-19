@@ -250,6 +250,14 @@ const filters: ArtistRankingsFilters = {
         ],
         defaultValue: 0 // default value
     },
+    startAt: {
+        name: 'filter_artist_type',
+        key: 'startAt',
+        displayActive: false,
+        type: FilterType.INPUT,
+        placeholder: 'filter_views_any',
+        defaultValue: ''
+    }
 }
 
 export default async function RankingsPage(
