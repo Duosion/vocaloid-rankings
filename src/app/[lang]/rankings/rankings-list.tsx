@@ -24,6 +24,7 @@ import { RankingsItemTrailing } from "@/components/rankings/rankings-item-traili
 import { useLocale } from "@/components/providers/language-dictionary-provider"
 import { RankingsApiError } from "@/components/rankings/rankings-api-error"
 import { RankingsPageSelector } from "@/components/rankings/rankings-page-selector"
+import { NewSongRankingsFilterBar } from "./song-rankings-filters-2"
 
 const GET_ARTISTS_NAMES = `
 query GetArtistsNames(
@@ -238,14 +239,14 @@ export function RankingsList(
 
     return (
         <section className="flex flex-col gap-5 w-full">
-            <SongRankingsActiveFilterBar
+            <NewSongRankingsFilterBar
                 filters={filters}
                 filterValues={filterBarValues}
                 currentTimestamp={currentTimestampDate}
                 setFilterValues={saveFilterValues}
                 setRankingsViewMode={setRankingsViewMode}
                 entityNames={entityNames}
-                onEntityNamesChanged={newNames => setEntityNames({ ...newNames })}
+                setEntityNames={newNames => setEntityNames({ ...newNames })}
             />
             <Divider />
             {error ? <RankingsApiError error={error}/>

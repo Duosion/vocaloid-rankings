@@ -17,8 +17,6 @@ import { ToggleGroupFilterElement } from "@/components/filter/toggle-group-filte
 import { ArtistSearchFilter } from "@/components/filter/artist-search-filter"
 import { Divider } from "@/components/material/divider"
 import { BinaryToggleFilterElement } from "@/components/filter/binary-toggle-filter"
-import { VerticalDivider } from "@/components/material/vertical-divider"
-import { FloatingActionButton } from "@/components/material/floating-action-button"
 import { useLocale } from "@/components/providers/language-dictionary-provider"
 import { RankingsActionBar } from "./rankings-action-bar"
 
@@ -133,7 +131,6 @@ export function SongRankingsActiveFilterBar(
             }
         }
     }
-    const activeFilterCount = activeFilters.length // the number of active filters
 
     return (
         <>
