@@ -1,4 +1,4 @@
-import { EntityNames } from "@/app/[lang]/rankings/types"
+import { EntityNames, Filter } from "@/app/[lang]/rankings/types"
 import { useSettings } from "@/components/providers/settings-provider"
 import { buildEntityNames, graphClient } from "@/lib/api"
 import { ApiArtist } from "@/lib/api/types"
@@ -10,6 +10,8 @@ import { FadeInOut } from "../transitions/fade-in-out"
 import { ActiveFilter } from "./active-filter"
 import { FilterElement } from "./filter"
 import { Elevation, elevationToClass } from ".."
+import { FilterInclusionMode } from "@/data/types"
+import { useLocale } from "../providers/language-dictionary-provider"
 
 const ARTISTS_SEARCH = `
 query ArtistSearch(
@@ -38,21 +40,34 @@ export function ArtistSearchFilter(
         value,
         placeholder,
         entityNames,
+        defaultInclusionMode,
+        inclusionMode,
         elevation = Elevation.LOW,
         modalElevation = Elevation.NORMAL,
         onValueChanged,
-        onEntityNamesChanged
+        onEntityNamesChanged,
+        onInclusionModeChanged,
     }: {
         name: string
         value: number[]
         placeholder: string
         entityNames: EntityNames
+        defaultInclusionMode: number
+        inclusionMode: number
         elevation?: Elevation
         modalElevation?: Elevation
         onValueChanged?: (newValue: number[]) => void
         onEntityNamesChanged?: (newValue: EntityNames) => void
+        onInclusionModeChanged?: (newValue?: FilterInclusionMode) => void
     }
 ) {
+    // get langDict
+    const langDict = useLocale()
+
+    // replace inclusion mode if NaN
+    inclusionMode = isNaN(inclusionMode) ? defaultInclusionMode : inclusionMode
+    const inclusionModeIsAnd = inclusionMode == FilterInclusionMode.AND
+
     // react states
     const [modalOpen, setModalOpen] = useState(false)
     const [searchQuery, setSearchQuery] = useState('')
@@ -71,6 +86,7 @@ export function ArtistSearchFilter(
 
     // settings
     const { settings } = useSettings()
+
     // import settings
     const settingTitleLanguage = settings.titleLanguage
 
@@ -93,25 +109,25 @@ export function ArtistSearchFilter(
         if (!modalOpen) {
             setModalOpen(true)
         }
-        timeoutDebounce(timeoutRef, 500, () => { 
+        timeoutDebounce(timeoutRef, 500, () => {
             setLoading(true)
             setApiError(null)
-            
+
             graphClient.request({
                 query: ARTISTS_SEARCH,
                 variables: {
                     query: input,
                     excludeArtists: value
                 }
-            }).then((result: Result<any, any>) => { 
+            }).then((result: Result<any, any>) => {
                 const error = result.error
                 if (error) {
                     setApiError(error)
                 }
                 setApiData(result.data)
             })
-            .catch(error => {})
-            .finally(() => setLoading(false))
+                .catch(error => { })
+                .finally(() => setLoading(false))
         })
     }
 
@@ -131,7 +147,20 @@ export function ArtistSearchFilter(
     }, [modalOpen])
 
     return (
-        <FilterElement key={name} name={name}>
+        <FilterElement
+            key={name}
+            name={name}
+            nameTrailing={
+                <button
+                    className={`rounded-full text-lg px-4${inclusionModeIsAnd ? ' outline outline-1 border-outline-variant text-on-surface-variant' : ' outline outline-1 border-primary bg-primary text-on-primary'}`}
+                    onClick={() => {
+                        if (onInclusionModeChanged) onInclusionModeChanged(inclusionModeIsAnd ? FilterInclusionMode.OR : FilterInclusionMode.AND)
+                    }}
+                >
+                    {inclusionModeIsAnd ? langDict['filter_inclusion_mode_and'] : langDict['filter_inclusion_mode_or']}
+                </button>
+            }
+        >
             <div className='py-2 px-4 rounded-full text-on-surface flex text-base font-normal'
                 style={{ backgroundColor: `var(--md-sys-color-${elevationToClass[elevation]})` }}
             >
@@ -155,7 +184,7 @@ export function ArtistSearchFilter(
                         style={{ backgroundColor: `var(--md-sys-color-${elevationToClass[modalElevation]})` }}
                     >
                         {apiError || !searchResult ? <h3 className="text-base text-center">{''}</h3>
-                            : loading ? <h3 className="text-base text-center">Loading...</h3>
+                            : loading ? <h3 className="text-base text-center"></h3>
                                 : searchResult.map(result => {
                                     const name = getEntityName(buildEntityNames(result.names), settingTitleLanguage)
                                     const id = result.id
@@ -184,14 +213,14 @@ export function ArtistSearchFilter(
             </FadeInOut>
 
             {/* Selected values */}
-            <ul className="flex gap-3 mt-3 font-normal">
+            {/* <ul className="flex gap-3 mt-3 font-normal">
                 {value.map(id => {
                     const name = entityNames[id]
                     return name ? (
-                        <ActiveFilter key={id} name={name} icon='close' onClick={() => removeArtist(id)}/>
+                        <ActiveFilter key={id} name={name} icon='close' onClick={() => removeArtist(id)} />
                     ) : undefined
                 })}
-            </ul>
+            </ul> */}
         </FilterElement>
     )
 }

@@ -12,7 +12,7 @@ export function SelectFilterElement(
         options,
         searchable = false,
         minimal = false,
-        icon = 'expand_more',
+        icon = 'unfold_more',
         clearIcon = 'close',
         elevation = Elevation.LOW,
         modalElevation = Elevation.NORMAL,

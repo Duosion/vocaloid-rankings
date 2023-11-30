@@ -1,22 +1,22 @@
+import { FullFilterElement } from "./full-filter"
+import { MinimalFilterElement } from "./minimal-filter"
+
 export function FilterElement(
     {
         name,
-        children,
+        nameTrailing,
         minimal = false,
-        shrink = false,
+        children,
         className = ''
     }: {
         name: string,
-        children?: React.ReactNode
+        nameTrailing?: React.ReactNode
         minimal?: boolean
+        children?: React.ReactNode
         shrink?: boolean
         className?: string
     }
 ) {
-    return (
-        <li key={name} className={`h-fit flex flex-col font-bold md:max-w-[300px] ${minimal || shrink ? 'w-fit' : 'md:flex-1 w-full'} ${className}`}>
-            {!minimal ? <h3 className="text-on-surface-variant text-lg mb-2">{name}</h3> : undefined}
-            {children}
-        </li>
-    )
+    return minimal ? <MinimalFilterElement name={name} className={className}>{children}</MinimalFilterElement>
+        : <FullFilterElement name={name} nameTrailing={nameTrailing} className={className}>{children}</FullFilterElement>
 }

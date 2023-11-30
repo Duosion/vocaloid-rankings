@@ -34,8 +34,6 @@ export function Expander(
 
     return (
         <Transition
-            mountOnEnter
-            unmountOnExit
             nodeRef={divRef}
             in={visible}
             timeout={duration}

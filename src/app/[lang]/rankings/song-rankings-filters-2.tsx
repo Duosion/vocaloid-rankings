@@ -1,25 +1,22 @@
 'use client'
 import { ActiveFilter } from "@/components/filter/active-filter"
 import { ArtistSearchFilter } from "@/components/filter/artist-search-filter"
-import { BinaryToggleFilterElement } from "@/components/filter/binary-toggle-filter"
 import { DateFilterElement } from "@/components/filter/date-filter"
 import { InputFilterElement } from "@/components/filter/input-filter"
 import { NumberInputFilterElement } from "@/components/filter/number-input-filter"
 import { NumberSelectFilterElement } from "@/components/filter/number-select-filter"
 import { SelectFilterElement } from "@/components/filter/select-filter"
 import { SwitchFilterElement } from "@/components/filter/switch-filter"
-import { ToggleGroupFilterElement } from "@/components/filter/toggle-group-filter"
 import { Divider } from "@/components/material/divider"
 import { FilledButton } from "@/components/material/filled-button"
 import { FloatingActionButton } from "@/components/material/floating-action-button"
 import { IconButton } from "@/components/material/icon-button"
 import { VerticalDivider } from "@/components/material/vertical-divider"
 import { useLocale } from "@/components/providers/language-dictionary-provider"
+import { Expander } from "@/components/transitions/expander"
 import { generateTimestamp, timeoutDebounce } from "@/lib/utils"
 import { useRef, useState } from "react"
 import { CheckboxFilter, EntityNames, Filter, FilterType, InputFilter, MultiFilter, RankingsFilters, RankingsViewMode, SelectFilter, SongRankingsFilterBarValues } from "./types"
-import { Expander } from "@/components/transitions/expander"
-import { ModalDrawer } from "@/components/transitions/modal-drawer"
 
 export function NewSongRankingsFilterBar(
     {
@@ -138,12 +135,11 @@ export function NewSongRankingsFilterBar(
 
     return <>
 
-        <ul className="flex justify-end items-end gap-3 w-full sm:flex-row flex-col-reverse">
-            
+        <ul className="flex justify-end items-end gap-3 w-full sm:flex-row flex-col-reverse mb-5">
+
             {/* Search */}
             <InputFilterElement
                 icon='search'
-                name={langDict[filters.search.name]}
                 value={filterValues.search || ''}
                 placeholder={langDict[filters.search.placeholder]}
                 defaultValue={filters.search.defaultValue}
@@ -193,25 +189,23 @@ export function NewSongRankingsFilterBar(
         </ul>
 
         {/* Active Filters */}
-        <ul className="flex justify-end items-center gap-3 w-full sm:flex-row flex-col-reverse">
-            {activeFilterCount > 0 ?
-                <li key='activeFilters' className="flex-1 overflow-x-auto overflow-y-clip sm:w-fit w-full"><ul className="flex gap-3">
-                    {activeFilterCount > 1 ?
-                        <ActiveFilter name={langDict.filter_clear_all} iconAlwaysVisible filled
-                            onClick={() => {
-                                filterValues = {}
-                                setFilterValues(filterValues, true, false)
-                            }} />
-                        : undefined}
-                    {activeFilters}
-                </ul></li>
-                : undefined}
-        </ul>
+        {activeFilterCount > 0 ? <ul className="flex justify-end items-center gap-3 w-full sm:flex-row flex-col-reverse mb-5">
+            <li key='activeFilters' className="flex-1 overflow-x-auto overflow-y-clip sm:w-fit w-full"><ul className="flex gap-3">
+                {activeFilterCount > 1 ?
+                    <ActiveFilter name={langDict.filter_clear_all} iconAlwaysVisible filled
+                        onClick={() => {
+                            filterValues = {}
+                            setFilterValues(filterValues, true, false)
+                        }} />
+                    : undefined}
+                {activeFilters}
+            </ul></li>
+        </ul> : undefined}
 
         <Expander visible={filtersExpanded} className="w-full">
             <Divider className="mb-5" />
-            <div className="h-fit w-full gap-3 grid lg:grid-cols-4 md:grid-cols-3 grid-cols-2">
-                
+            <div className="h-fit w-full gap-10 grid lg:grid-cols-5 md:grid-cols-4 sm:grid-cols-3 grid-cols-2 mb-5">
+
                 {/* Publish Year */}
                 <NumberSelectFilterElement
                     reverse
@@ -313,11 +307,17 @@ export function NewSongRankingsFilterBar(
                     value={filterValues.includeArtists || []}
                     placeholder={langDict[filters.includeArtists.placeholder]}
                     entityNames={entityNames}
+                    inclusionMode={Number(filterValues.includeArtistsMode)}
+                    defaultInclusionMode={filters.includeArtistsMode.defaultValue}
                     onValueChanged={newValue => {
                         filterValues.includeArtists = newValue
                         setFilterValues(filterValues)
                     }}
                     onEntityNamesChanged={setEntityNames}
+                    onInclusionModeChanged={newValue => {
+                        filterValues.includeArtistsMode = newValue
+                        setFilterValues(filterValues)
+                    }}
                 />
                 {/* Exclude Artists */}
                 <ArtistSearchFilter
@@ -325,35 +325,19 @@ export function NewSongRankingsFilterBar(
                     value={filterValues.excludeArtists || []}
                     placeholder={langDict[filters.excludeArtists.placeholder]}
                     entityNames={entityNames}
+                    inclusionMode={Number(filterValues.excludeArtistsMode)}
+                    defaultInclusionMode={filters.excludeArtistsMode.defaultValue}
                     onValueChanged={newValue => {
                         filterValues.excludeArtists = newValue
                         setFilterValues(filterValues)
                     }}
                     onEntityNamesChanged={setEntityNames}
-                />
-
-                {/* Artists Inclusion Mode */}
-                <BinaryToggleFilterElement
-                    name={langDict[filters.includeArtistsMode.name]}
-                    value={Number(filterValues.includeArtistsMode)}
-                    defaultValue={filters.includeArtistsMode.defaultValue}
-                    options={filters.includeArtistsMode.values.map(value => langDict[value.name])}
-                    onValueChanged={(newValue) => {
-                        filterValues.includeArtistsMode = newValue
-                        setFilterValues(filterValues)
-                    }}
-                />
-                {/* Artists Exclusion Mode */}
-                <BinaryToggleFilterElement
-                    name={langDict[filters.excludeArtistsMode.name]}
-                    value={Number(filterValues.excludeArtistsMode)}
-                    defaultValue={filters.excludeArtistsMode.defaultValue}
-                    options={filters.excludeArtistsMode.values.map(value => langDict[value.name])}
-                    onValueChanged={(newValue) => {
+                    onInclusionModeChanged={newValue => {
                         filterValues.excludeArtistsMode = newValue
                         setFilterValues(filterValues)
                     }}
                 />
+
                 {/* Include Similar Artists */}
                 <SwitchFilterElement name={langDict[filters.includeSimilarArtists.name]} value={filterValues.includeSimilarArtists || filters.includeSimilarArtists.defaultValue} onValueChanged={(newValue) => { filterValues.includeSimilarArtists = newValue; setFilterValues(filterValues) }} />
 

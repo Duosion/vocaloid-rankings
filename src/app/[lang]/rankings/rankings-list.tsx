@@ -238,7 +238,7 @@ export function RankingsList(
     const filterMode = filters.orderBy.values[filterBarValues.orderBy || filters.orderBy.defaultValue].value || FilterOrder.VIEWS
 
     return (
-        <section className="flex flex-col gap-5 w-full">
+        <section className="flex flex-col w-full">
             <NewSongRankingsFilterBar
                 filters={filters}
                 filterValues={filterBarValues}
@@ -248,7 +248,8 @@ export function RankingsList(
                 entityNames={entityNames}
                 setEntityNames={newNames => setEntityNames({ ...newNames })}
             />
-            <Divider />
+            <Divider className="mb-5"/>
+            
             {error ? <RankingsApiError error={error}/>
                 : !loading && (rankingsResult == undefined || 0 >= rankingsResult.results.length) ? <h2 className="text-3xl font-bold text-center text-on-background">{langDict.search_no_results}</h2>
                     : rankingsResult == undefined ? <RankingsSkeleton elementCount={50} viewMode={rankingsViewMode} />
