@@ -152,7 +152,7 @@ export function ArtistSearchFilter(
             name={name}
             nameTrailing={
                 <button
-                    className={`rounded-full text-lg px-4${inclusionModeIsAnd ? ' outline outline-1 border-outline-variant text-on-surface-variant' : ' outline outline-1 border-primary bg-primary text-on-primary'}`}
+                    className={`rounded-full text-base px-4${inclusionModeIsAnd ? ' outline outline-1 border-outline-variant text-on-surface-variant' : ' outline outline-1 border-primary bg-primary text-on-primary'}`}
                     onClick={() => {
                         if (onInclusionModeChanged) onInclusionModeChanged(inclusionModeIsAnd ? FilterInclusionMode.OR : FilterInclusionMode.AND)
                     }}

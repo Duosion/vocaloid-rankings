@@ -17,6 +17,7 @@ import { Expander } from "@/components/transitions/expander"
 import { generateTimestamp, timeoutDebounce } from "@/lib/utils"
 import { useRef, useState } from "react"
 import { CheckboxFilter, EntityNames, Filter, FilterType, InputFilter, MultiFilter, RankingsFilters, RankingsViewMode, SelectFilter, SongRankingsFilterBarValues } from "./types"
+import { MultiSelectFilterElement } from "@/components/filter/multi-select-filter"
 
 export function NewSongRankingsFilterBar(
     {
@@ -188,23 +189,9 @@ export function NewSongRankingsFilterBar(
             <FloatingActionButton icon='filter_alt' className="sm:hidden fixed" />
         </ul>
 
-        {/* Active Filters */}
-        {activeFilterCount > 0 ? <ul className="flex justify-end items-center gap-3 w-full sm:flex-row flex-col-reverse mb-5">
-            <li key='activeFilters' className="flex-1 overflow-x-auto overflow-y-clip sm:w-fit w-full"><ul className="flex gap-3">
-                {activeFilterCount > 1 ?
-                    <ActiveFilter name={langDict.filter_clear_all} iconAlwaysVisible filled
-                        onClick={() => {
-                            filterValues = {}
-                            setFilterValues(filterValues, true, false)
-                        }} />
-                    : undefined}
-                {activeFilters}
-            </ul></li>
-        </ul> : undefined}
-
         <Expander visible={filtersExpanded} className="w-full">
             <Divider className="mb-5" />
-            <div className="h-fit w-full gap-10 grid lg:grid-cols-5 md:grid-cols-4 sm:grid-cols-3 grid-cols-2 mb-5">
+            <div className="h-fit w-full gap-x-10 gap-y-8 grid xl:grid-cols-5 lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 grid-cols-1 mb-5">
 
                 {/* Publish Year */}
                 <NumberSelectFilterElement
@@ -356,8 +343,65 @@ export function NewSongRankingsFilterBar(
                     timeoutDebounce(maxViewsTimeout, 500, () => { setFilterValues(filterValues) })
                 }} />
 
+                {/* Source Type */}
+                <MultiSelectFilterElement
+                    name={langDict['filter_view_type']}
+                    placeholder={langDict['filter_year_any']}
+                    included={filterValues.includeSourceTypes || []}
+                    excluded={filterValues.excludeSourceTypes || []}
+                    options={sourceTypesOptions} onValueChanged={(newIncluded, newExcluded) => {
+                        filterValues.includeSourceTypes = [...newIncluded]
+                        filterValues.excludeSourceTypes = [...newExcluded]
+                        setFilterValues(filterValues)
+                    }}
+                />
+
+                {/* Song Type */}
+                <MultiSelectFilterElement
+                    name={langDict['filter_song_type']}
+                    placeholder={langDict['filter_year_any']}
+                    included={filterValues.includeSongTypes || []}
+                    excluded={filterValues.excludeSongTypes || []}
+                    options={songTypesOptions}
+                    onValueChanged={(newIncluded, newExcluded) => {
+                        filterValues.includeSongTypes = [...newIncluded]
+                        filterValues.excludeSongTypes = [...newExcluded]
+                        setFilterValues(filterValues)
+                    }}
+                />
+
+                {/* Artist Type */}
+                <MultiSelectFilterElement
+                    searchable
+                    name={langDict['filter_artist_type']}
+                    placeholder={langDict['filter_year_any']}
+                    included={filterValues.includeArtistTypes || []}
+                    excluded={filterValues.excludeArtistTypes || []}
+                    options={artistTypesOptions}
+                    onValueChanged={(newIncluded, newExcluded) => {
+                        filterValues.includeArtistTypes = [...newIncluded]
+                        filterValues.excludeArtistTypes = [...newExcluded]
+                        setFilterValues(filterValues)
+                    }}
+                />
+
             </div>
+            {activeFilterCount > 0 ? <Divider className="mb-5" /> : undefined}
         </Expander>
+
+        {/* Active Filters */}
+        {activeFilterCount > 0 ? <ul className="flex justify-end items-center gap-3 w-full sm:flex-row flex-col-reverse mb-5">
+            <li key='activeFilters' className="flex-1 overflow-x-auto overflow-y-clip sm:w-fit w-full"><ul className="flex gap-3">
+                {activeFilterCount > 1 ?
+                    <ActiveFilter name={langDict.filter_clear_all} iconAlwaysVisible filled
+                        onClick={() => {
+                            filterValues = {}
+                            setFilterValues(filterValues, true, false)
+                        }} />
+                    : undefined}
+                {activeFilters}
+            </ul></li>
+        </ul> : undefined}
 
     </>
 

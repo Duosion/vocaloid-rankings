@@ -1,10 +1,5 @@
 import { FilterChip, FilterChipState } from "../material/filter-chip"
-import { Icon } from "../material/icon"
-
-enum ToggleStatus {
-    INCLUDED,
-    EXCLUDED
-}
+import { ToggleStatus } from "./types"
 
 export function ToggleGroupFilterElement(
     {
