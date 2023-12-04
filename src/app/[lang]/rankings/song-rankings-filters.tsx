@@ -43,11 +43,12 @@ export function SongRankingsFilterBar(
 ) {
 
     const [filtersExpanded, setFiltersExpanded] = useState(false)
+    const [drawerOpen, setDrawerOpen] = useState(false)
 
     const langDict = useLocale()
 
     // functions
-    const closeDrawer = () => setFiltersExpanded(false)
+    const closeDrawer = () => setDrawerOpen(false)
 
     // timeouts
     const searchTimeout = useRef<NodeJS.Timeout>()
@@ -143,7 +144,7 @@ export function SongRankingsFilterBar(
 
     return <>
 
-        <ModalDrawer visible={filtersExpanded} onClose={closeDrawer} side={ModalDrawerSide.RIGHT} className="md:hidden">
+        <ModalDrawer visible={drawerOpen} onClose={closeDrawer} side={ModalDrawerSide.RIGHT} className="md:hidden">
             <header className="flex gap-5 items-center justify-center">
                 <h3 className="text-3xl flex-1">{langDict.rankings_filter}</h3>
                 <IconButton icon='close' onClick={closeDrawer} />
@@ -403,7 +404,7 @@ export function SongRankingsFilterBar(
             </div>
 
             {/* floating action button */}
-            <FloatingActionButton icon='filter_alt' className="md:hidden fixed" onClick={_ => setFiltersExpanded(!filtersExpanded)} />
+            <FloatingActionButton icon='filter_alt' className="md:hidden fixed" onClick={_ => setDrawerOpen(!drawerOpen)} />
         </ul>
 
         <Expander visible={filtersExpanded} className="w-full md:grid hidden">
