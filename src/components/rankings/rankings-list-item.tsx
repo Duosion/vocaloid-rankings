@@ -86,7 +86,7 @@ export function RankingListItem(
                         />
                     </Link>
                     <section className="flex flex-col gap flex-1 text-inherit">
-                        <h3 className="text-on-surface overflow-clip text-ellipsis hover:text-inherit"><Link href={href} className="font-semibold transition-colors text-inherit text-xl">{titleContent}</Link></h3>
+                        <h3 className="text-on-surface overflow-clip text-ellipsis hover:text-inherit"><Link href={href} className="font-semibold transition-colors text-inherit text-xl" title={iconAlt}>{titleContent}</Link></h3>
                         {supportingContent}
                     </section>
                     <section className="flex flex-col gap items-end mr-4">

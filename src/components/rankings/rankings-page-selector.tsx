@@ -37,7 +37,7 @@ export function RankingsPageSelector(
     }
 
     return (
-        <ul className="w-full flex items-center justify-center gap-3">
+        <ul className="w-full flex items-center justify-center gap-3 mt-5">
             {currentPage > 0 ? <IconButton icon='arrow_back' onClick={() => setPage(currentPage - 1)}/> : undefined}
             {currentPage > surroundingPageCount ? <>
                 <PageSelectorItem text='1' onClick={() => setPage(0)} />

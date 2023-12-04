@@ -243,7 +243,10 @@ export function RankingsList(
                 filters={filters}
                 filterValues={filterBarValues}
                 currentTimestamp={currentTimestampDate}
-                setFilterValues={saveFilterValues}
+                setFilterValues={(newValues, route, merge) => {
+                    filterBarValues.startAt = '0'
+                    saveFilterValues(newValues, route, merge)
+                }}
                 setRankingsViewMode={setRankingsViewMode}
                 entityNames={entityNames}
                 setEntityNames={newNames => setEntityNames({ ...newNames })}

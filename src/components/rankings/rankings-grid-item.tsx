@@ -47,7 +47,7 @@ export function RankingsGridItem(
                     fillColor={color}
                 ></EntityThumbnail>
             </Link>
-            <Link href={href} className="max-w-full"><h3 className="overflow-clip text-ellipsis text-on-surface transition-colors hover:text-inherit text-center font-semibold text-2xl">{titleContent}</h3></Link>
+            <Link href={href} className="max-w-full"><h3 className="overflow-clip text-ellipsis text-on-surface transition-colors hover:text-inherit text-center font-semibold text-2xl max-h-36" title={iconAlt}>{titleContent}</h3></Link>
             {trailingTitleContent ? <section className="text-on-surface-variant items-center justify-center text-xl inline text-center">
                 <h3 className="w-fit font-semibold inline">{trailingTitleContent}</h3>
                 <span className="w-fit inline">{trailingSupporting}</span>
