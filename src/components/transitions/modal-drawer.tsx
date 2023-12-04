@@ -2,39 +2,98 @@ import { CSSProperties, useEffect, useRef } from "react"
 import { Transition, TransitionStatus } from "react-transition-group"
 import { Scrim } from "./scrim"
 
-const transitionStyles: { [key in TransitionStatus]: CSSProperties } = {
-    entering: {
-        opacity: 1,
-        transform: 'translateX(0px)'
+export enum ModalDrawerSide {
+    LEFT,
+    RIGHT
+}
+
+type TransitionStyles = { [key in TransitionStatus]: CSSProperties }
+
+const drawerTransitionStyles: { [key in ModalDrawerSide]: TransitionStyles } = {
+    [ModalDrawerSide.LEFT]: {
+        entering: {
+            opacity: 1,
+            transform: 'translateX(0px)'
+        },
+        entered: {
+            opacity: 1,
+            transform: 'translateX(0px)'
+        },
+        exiting: {
+            opacity: 0,
+            transform: 'translateX(-360px)'
+        },
+        exited: {
+            opacity: 0,
+            transform: 'translateX(-360px)'
+        },
+        unmounted: {
+            opacity: 0,
+            transform: 'translateX(-360px)'
+        }
     },
-    entered: {
-        opacity: 1,
-        transform: 'translateX(0px)'
+    [ModalDrawerSide.RIGHT]: {
+        entering: {
+            opacity: 1,
+            transform: 'translateX(0px)'
+        },
+        entered: {
+            opacity: 1,
+            transform: 'translateX(0px)'
+        },
+        exiting: {
+            opacity: 0,
+            transform: 'translateX(360px)'
+        },
+        exited: {
+            opacity: 0,
+            transform: 'translateX(360px)'
+        },
+        unmounted: {
+            opacity: 0,
+            transform: 'translateX(360px)'
+        }
     },
-    exiting: {
-        opacity: 0,
-        transform: 'translateX(-360px)'
+}
+
+const containerStyles: { [key in ModalDrawerSide]: CSSProperties } = {
+    [ModalDrawerSide.LEFT]: {
+        top: '0px',
+        left: '0px',
+        justifyContent: 'flex-start'
     },
-    exited: {
-        opacity: 0,
-        transform: 'translateX(-360px)'
+    [ModalDrawerSide.RIGHT]: {
+        top: '0px',
+        right: '0px',
+        justifyContent: 'flex-end'
+    }
+}
+
+const modalStyles: { [key in ModalDrawerSide]: CSSProperties } = {
+    [ModalDrawerSide.LEFT]: {
+        borderTopRightRadius: '1.5rem',
+        borderBottomRightRadius: '1.5rem'
     },
-    unmounted: {
-        opacity: 0,
-        transform: 'translateX(-360px)'
+    [ModalDrawerSide.RIGHT]: {
+        borderTopLeftRadius: '1.5rem',
+        borderBottomLeftRadius: '1.5rem'
     }
 }
 
 export function ModalDrawer(
     {
+        side = ModalDrawerSide.LEFT,
         visible,
         duration = 150,
         children,
+        className = '',
         onClose
     }: {
+        side?: ModalDrawerSide
         visible?: boolean
         duration?: number
         children?: React.ReactNode
+        className?: string
         onClose?: () => void
     }
 ) {
@@ -65,16 +124,21 @@ export function ModalDrawer(
         >
             {/* modal container */}
             {state => (
-                <div ref={modalContainerRef} className='fixed w-screen h-screen top-0 left-0 lg:hidden flex items-start justify-start box-border z-50'>
+                <div 
+                ref={modalContainerRef} 
+                className={`fixed w-screen h-screen flex items-start box-border z-50 ${className}`}
+                style={containerStyles[side]}
+                >
                     {/* modal scrim */}
                     <Scrim duration={duration} state={state}/>
                     {/* modal */}
                     <div
                         ref={modalRef}
-                        className="transition-all max-w-[70%] w-[360px] px-5 py-5 max-h-screen h-full overflow-y-auto box-border bg-surface-container-lowest rounded-r-3xl z-50 flex flex-col gap-5"
+                        className="transition-all max-w-[70%] w-[360px] px-5 py-5 max-h-screen h-full overflow-y-auto box-border bg-surface-container-lowest z-50 flex flex-col gap-5"
                         style={{
                             transitionDuration: `${duration}ms`,
-                            ...transitionStyles[state]
+                            ...modalStyles[side],
+                            ...drawerTransitionStyles[side][state]
                         }}
                     >
                         {children}

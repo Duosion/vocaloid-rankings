@@ -11,6 +11,7 @@ export function InputFilterElement(
         name,
         icon,
         elevation = Elevation.LOW,
+        className = '',
         onValueChanged
     }: {
         
@@ -20,6 +21,7 @@ export function InputFilterElement(
         name?: string
         icon?: string
         elevation?: Elevation
+        className?: string
         onValueChanged?: (newValue: string) => void
     }
 ) {
@@ -30,7 +32,7 @@ export function InputFilterElement(
     }
 
     return (
-        <FilterElement key={name} name={name || ''} minimal={name == undefined}>
+        <FilterElement key={name} name={name || ''} minimal={name == undefined} className={className}>
             <search className='px-4 rounded-full text-on-surface flex gap-3 text-base font-normal py-2'
                 style={{backgroundColor: `var(--md-sys-color-${elevationToClass[elevation]})`}}
             >

@@ -86,7 +86,7 @@ export function MultiSelectFilterElement(
 
     //refs
     const modalRef = useRef<HTMLUListElement>(null)
-    const filterRef = useRef<HTMLDivElement>(null)
+    const filterRef = useRef<HTMLButtonElement>(null)
 
     const { statusMap, includingNames, excludingNames } = createStatusMap(included, excluded, options);
 
@@ -147,7 +147,7 @@ export function MultiSelectFilterElement(
                     </button>
             }
         >
-            <div
+            <button
                 ref={filterRef}
                 className={`py-2 px-4 rounded-full text-on-surface flex text-base font-normal cursor-pointer`}
                 style={{ backgroundColor: `var(--md-sys-color-${elevationToClass[elevation]})` }}
@@ -176,7 +176,7 @@ export function MultiSelectFilterElement(
                     </h3>
                 }
                 {valueIsDefault ? <Icon icon={icon} /> : <MinimalIconButton icon={clearIcon} onClick={event => { event.preventDefault(); setValue([], []) }} />}
-            </div>
+            </button>
             <FadeInOut visible={modalOpen} className="z-10">
                 <div className="relative min-w-fit w-full h-0">
                     <ul

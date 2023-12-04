@@ -48,7 +48,7 @@ export default function Navbar(
     return (
         <header className="z-50 w-full h-15 px-7 py-2 box-border sticky top-0 backdrop-blur backdrop-saturate-200 before:w-full before:h-full before:absolute bg-[linear-gradient(var(--md-sys-color-background),transparent)] before:bg-background before:opacity-80 before:z-40 before:top-0 before:left-0">
             {/* nav drawer */}
-            <ModalDrawer visible={drawerOpen} onClose={closeDrawer}>
+            <ModalDrawer visible={drawerOpen} onClose={closeDrawer} className='lg:hidden'>
                 <ul className='flex w-full gap-5'>
                     {/* search bar */}
                     <SearchBar key={'nav-drawer-search'} className='flex-1' placeholder={langDict.search_hint} />
