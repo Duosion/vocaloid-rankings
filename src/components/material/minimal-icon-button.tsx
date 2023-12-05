@@ -1,5 +1,4 @@
 import { MouseEventHandler } from "react"
-import { BaseIconButton } from "./base-icon-button"
 import { Icon } from "./icon"
 
 export function MinimalIconButton(

@@ -242,7 +242,7 @@ export function RankingsList(
                 filterValues={filterBarValues}
                 currentTimestamp={currentTimestampDate}
                 setFilterValues={(newValues, route, merge) => {
-                    filterBarValues.startAt = '0'
+                    //filterBarValues.startAt = '0'
                     saveFilterValues(newValues, route, merge)
                 }}
                 setRankingsViewMode={setRankingsViewMode}

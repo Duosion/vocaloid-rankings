@@ -37,10 +37,10 @@ export function SelectFilterElement(
     const [searchQuery, setSearchQuery] = useState('')
 
     // parse filter value
-    const filterRef = useRef<HTMLButtonElement>(null)
+    const filterRef = useRef<HTMLDivElement>(null)
     const modalRef = useRef<HTMLUListElement>(null)
 
-    const valueIsDefault = value == defaultValue
+    const valueIsDefault = value === defaultValue
     const valueName = options[value]
 
     function setValue(newValue: number) {
@@ -66,9 +66,9 @@ export function SelectFilterElement(
             name={name}
             minimal={minimal}
         >
-            <button
+            <div
                 ref={filterRef}
-                className={minimal ? 'text-on-background py-1 w-fit flex justify-end items-center text-lg font-normal' : `py-2 px-4 rounded-full text-on-surface flex text-base font-normal`}
+                className={minimal ? 'text-on-background py-1 w-fit flex justify-end items-center text-lg font-normal hover:cursor-pointer' : `py-2 px-4 rounded-full text-on-surface flex text-base font-normal hover:cursor-pointer`}
                 style={{ backgroundColor: minimal ? undefined : `var(--md-sys-color-${elevationToClass[elevation]})` }}
                 onClick={event => {
                     if (!event.defaultPrevented) setModalOpen(!modalOpen)
@@ -101,7 +101,7 @@ export function SelectFilterElement(
                     }} />
                 }
 
-            </ button>
+            </ div>
             <FadeInOut visible={modalOpen} className="z-10">
                 <div className="relative min-w-fit w-full h-0">
                     <ul ref={modalRef} className="absolute top-2 min-w-[160px] w-full right-0 rounded-3xl shadow-md p-2 max-h-72 overflow-y-scroll overflow-x-clip"
