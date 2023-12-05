@@ -20,7 +20,7 @@ import { useTheme } from "next-themes"
 import { useEffect, useState } from "react"
 import { TransitionGroup } from "react-transition-group"
 import { useSettings } from "../../../components/providers/settings-provider"
-import { SongRankingsFilterBar } from "./song-rankings-filters"
+import { SongRankingsFilterBar } from "./song-rankings-filter-bar"
 import { EntityNames, FilterType, InputFilter, RankingsFilters, RankingsViewMode, SongRankingsFilterBarValues, SongRankingsFiltersValues } from "./types"
 import { decodeBoolean, decodeMultiFilter, encodeBoolean, encodeMultiFilter, getRankingsItemTrailingSupportingText, parseParamSelectFilterValue } from "./utils"
 

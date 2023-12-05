@@ -21,6 +21,7 @@ import { generateTimestamp, timeoutDebounce } from "@/lib/utils"
 import { useRef, useState } from "react"
 import { ArtistRankingsFilterBarValues, ArtistRankingsFilters } from "./types"
 import { CheckboxFilter, EntityNames, Filter, FilterType, InputFilter, MultiFilter, RankingsViewMode, SelectFilter } from "./types"
+import { RankingsActionBar } from "./rankings-action-bar"
 
 export function ArtistRankingsActiveFilterBar(
     {
@@ -369,8 +370,28 @@ export function ArtistRankingsActiveFilterBar(
             }} />
         </ModalDrawer>
 
-        <ul className="flex justify-end items-end gap-3 w-full sm:flex-row flex-col-reverse mb-5">
-
+        <RankingsActionBar
+            orderBy={
+                <SelectFilterElement
+                    minimal
+                    icon='sort'
+                    clearIcon="sort"
+                    name={langDict[filters.orderBy.name]}
+                    value={Number(filterValues.orderBy)}
+                    defaultValue={filters.orderBy.defaultValue}
+                    options={filters.orderBy.values.map(value => langDict[value.name])}
+                    onValueChanged={(newValue) => { filterValues.orderBy = newValue; setFilterValues(filterValues) }}
+                />
+            }
+            filtersExpanded={filtersExpanded}
+            onFilterDirectionToggle={() => {
+                filterValues.direction = filterValues.direction === 1 ? 0 : 1;
+                setFilterValues(filterValues)
+            }}
+            onViewModeChanged={(newMode) => setRankingsViewMode(newMode)}
+            onExpandToggle={_ => setFiltersExpanded(!filtersExpanded)}
+            onDrawerToggle={_ => setDrawerOpen(!drawerOpen)}
+        >
             {/* Search */}
             <InputFilterElement
                 icon='search'
@@ -385,44 +406,7 @@ export function ArtistRankingsActiveFilterBar(
                     timeoutDebounce(searchTimeout, 500, () => { setFilterValues(filterValues) })
                 }}
             />
-
-            <div key='actions' className="sm:w-fit flex-1">
-                <ul className="flex justify-end items-center gap-3 w-full">
-                    {/* Direction */}
-                    <IconButton icon='swap_vert' onClick={() => {
-                        filterValues.direction = filterValues.direction === 1 ? 0 : 1;
-                        setFilterValues(filterValues)
-                    }} />
-                    <VerticalDivider className="h-5" />
-
-                    {/* Order By */}
-                    <SelectFilterElement
-                        minimal
-                        icon='sort'
-                        clearIcon="sort"
-                        name={langDict[filters.orderBy.name]}
-                        value={Number(filterValues.orderBy)}
-                        defaultValue={filters.orderBy.defaultValue}
-                        options={filters.orderBy.values.map(value => langDict[value.name])}
-                        onValueChanged={(newValue) => { filterValues.orderBy = newValue; setFilterValues(filterValues) }}
-                    />
-
-                    <VerticalDivider className="h-5" />
-
-                    <IconButton icon='view_agenda' onClick={_ => {
-                        setRankingsViewMode(RankingsViewMode.LIST)
-                    }} />
-                    <IconButton icon='grid_view' onClick={_ => {
-                        setRankingsViewMode(RankingsViewMode.GRID)
-                    }} />
-
-                    <li key='filter-button' className="md:block hidden"><FilledButton icon={filtersExpanded ? 'expand_less' : 'expand_more'} text={langDict.rankings_filter} onClick={() => setFiltersExpanded(!filtersExpanded)} /></li>
-                </ul>
-            </div>
-
-            {/* floating action button */}
-            <FloatingActionButton icon='filter_alt' className="md:hidden fixed" onClick={_ => setDrawerOpen(!drawerOpen)} />
-        </ul>
+        </RankingsActionBar>
 
         <Expander visible={filtersExpanded} className="w-full md:grid hidden">
             <Divider className="mb-5" />

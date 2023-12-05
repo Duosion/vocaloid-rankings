@@ -7,41 +7,36 @@ import { MouseEventHandler } from "react"
 import { RankingsViewMode } from "./types"
 import { FilledButton } from "@/components/material/filled-button"
 
+
 export function RankingsActionBar(
     {
-        activeFilters,
         orderBy,
-        onClearAllFilters,
+        
+        filtersExpanded,
+        children,
         onFilterDirectionToggle,
         onViewModeChanged,
-        onOpenFilters,
+        onExpandToggle,
+        onDrawerToggle
     }: {
-        activeFilters: React.ReactNode[],
-        orderBy: React.ReactNode,
-        onClearAllFilters?: () => void,
-        onFilterDirectionToggle?: MouseEventHandler,
-        onViewModeChanged?: (newViewMode: RankingsViewMode) => void,
-        onOpenFilters?: MouseEventHandler
+        orderBy: React.ReactNode
+        filtersExpanded?: boolean
+        children?: React.ReactNode
+        onFilterDirectionToggle?: MouseEventHandler
+        onViewModeChanged?: (newViewMode: RankingsViewMode) => void
+        onExpandToggle?: MouseEventHandler
+        onDrawerToggle?: MouseEventHandler
     }
 ) {
     const langDict = useLocale()
 
-    const activeFilterCount = activeFilters.length
-
     return (
-        <ul className="flex justify-end items-center gap-3 w-full sm:flex-row flex-col-reverse">
-            {/* Active Filters */}
-            {activeFilterCount > 0 ?
-                <li key='activeFilters' className="flex-1 overflow-x-auto overflow-y-clip sm:w-fit w-full"><ul className="flex gap-3">
-                    {activeFilterCount > 1 ?
-                        <ActiveFilter name={langDict.filter_clear_all} iconAlwaysVisible filled
-                            onClick={onClearAllFilters} />
-                        : undefined}
-                    {activeFilters}
-                </ul></li>
-                : undefined}
+        <ul className="flex justify-end items-end gap-3 w-full sm:flex-row flex-col-reverse mb-5">
 
-            <div key='actions' className="sm:w-fit w-full">
+            {/* Leading content */}
+            {children}
+
+            <div key='actions' className="sm:w-fit flex-1">
                 <ul className="flex justify-end items-center gap-3 w-full">
                     {/* Direction */}
                     <IconButton icon='swap_vert' onClick={onFilterDirectionToggle} />
@@ -51,19 +46,20 @@ export function RankingsActionBar(
                     {orderBy}
 
                     <VerticalDivider className="h-5" />
+
                     <IconButton icon='view_agenda' onClick={_ => {
-                        if (onViewModeChanged) onViewModeChanged(RankingsViewMode.LIST)
+                        onViewModeChanged?.(RankingsViewMode.LIST)
                     }} />
                     <IconButton icon='grid_view' onClick={_ => {
-                        if (onViewModeChanged) onViewModeChanged(RankingsViewMode.GRID)
+                        onViewModeChanged?.(RankingsViewMode.GRID)
                     }} />
 
-                    <li key='filter-button' className="sm:block hidden"><FilledButton icon='filter_alt' text={langDict.rankings_filter} onClick={onOpenFilters} /></li>
+                    <li key='filter-button' className="md:block hidden"><FilledButton icon={ filtersExpanded ? 'expand_less' : 'expand_more' } text={langDict.rankings_filter} onClick={onExpandToggle} /></li>
                 </ul>
             </div>
 
             {/* floating action button */}
-            <FloatingActionButton icon='filter_alt' className="sm:hidden fixed" onClick={onOpenFilters} />
+            <FloatingActionButton icon='filter_alt' className="md:hidden fixed" onClick={onDrawerToggle} />
         </ul>
     )
 }
