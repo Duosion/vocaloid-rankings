@@ -1,29 +1,28 @@
 'use client'
+import { ImageDisplayMode } from "@/components"
 import { EntityName } from "@/components/formatters/entity-name"
-import { NumberFormatter } from "@/components/formatters/number-formatter"
 import { Divider } from "@/components/material/divider"
-import { TransitioningRankingsGridItem } from "@/components/rankings/transitioning-rankings-grid-item"
+import { useLocale } from "@/components/providers/language-dictionary-provider"
+import { RankingsApiError } from "@/components/rankings/rankings-api-error"
+import { RankingsContainer } from "@/components/rankings/rankings-container"
+import { RankingsItemTrailing } from "@/components/rankings/rankings-item-trailing"
 import { RankingListItem } from "@/components/rankings/rankings-list-item"
+import { RankingsPageSelector } from "@/components/rankings/rankings-page-selector"
+import { RankingsSkeleton } from "@/components/rankings/rankings-skeleton"
+import { TransitioningRankingsGridItem } from "@/components/rankings/transitioning-rankings-grid-item"
 import { ArtistCategory, ArtistType, FilterDirection, FilterOrder, SongType, SourceType } from "@/data/types"
 import { GET_ARTIST_RANKINGS, buildEntityNames, graphClient } from "@/lib/api"
 import { ApiArtist, ApiArtistRankingsFilterResult } from "@/lib/api/types"
-import { LanguageDictionary, getEntityName } from "@/localization"
-import { useQuery, Result } from "graphql-hooks"
+import { buildFuzzyDate } from "@/lib/utils"
+import { getEntityName } from "@/localization"
+import { Result, useQuery } from "graphql-hooks"
 import { useTheme } from "next-themes"
 import { useEffect, useState } from "react"
 import { TransitionGroup } from "react-transition-group"
 import { useSettings } from "../../../components/providers/settings-provider"
+import { ArtistRankingsActiveFilterBar } from "./artist-rankings-filter-bar"
 import { ArtistRankingsFilterBarValues, ArtistRankingsFilters, ArtistRankingsFiltersValues, EntityNames, FilterType, InputFilter, RankingsViewMode, SongRankingsFilterBarValues } from "./types"
 import { decodeBoolean, decodeMultiFilter, encodeBoolean, encodeMultiFilter, getRankingsItemTrailingSupportingText, parseParamSelectFilterValue } from "./utils"
-import { SingerRankingsActiveFilterBar } from "./singers/singer-rankings-filter-bar"
-import { buildFuzzyDate } from "@/lib/utils"
-import { RankingsSkeleton } from "@/components/rankings/rankings-skeleton"
-import { RankingsContainer } from "@/components/rankings/rankings-container"
-import { ImageDisplayMode } from "@/components"
-import { RankingsItemTrailing } from "@/components/rankings/rankings-item-trailing"
-import { useLocale } from "@/components/providers/language-dictionary-provider"
-import { RankingsApiError } from "@/components/rankings/rankings-api-error"
-import { RankingsPageSelector } from "@/components/rankings/rankings-page-selector"
 
 const GET_ARTISTS_NAMES = `
 query GetArtistsNames(
@@ -239,17 +238,17 @@ export function ArtistRankingsList(
     const filterMode = filters.orderBy.values[filterBarValues.orderBy || filters.orderBy.defaultValue].value || FilterOrder.VIEWS
 
     return (
-        <section className="flex flex-col gap-5 w-full">
-            <SingerRankingsActiveFilterBar
+        <section className="flex flex-col w-full">
+            <ArtistRankingsActiveFilterBar
                 filters={filters}
                 filterValues={filterBarValues}
                 currentTimestamp={currentTimestampDate}
                 setFilterValues={saveFilterValues}
                 setRankingsViewMode={setRankingsViewMode}
                 entityNames={entityNames}
-                onEntityNamesChanged={newNames => setEntityNames({ ...newNames })}
+                setEntityNames={newNames => setEntityNames({ ...newNames })}
             />
-            <Divider />
+            <Divider className="mb-5" />
             {error ? <RankingsApiError error={error}/>
                 : !loading && (rankingsResult == undefined || 0 >= rankingsResult.results.length) ? <h2 className="text-3xl font-bold text-center text-on-background">{langDict.search_no_results}</h2>
                     : rankingsResult == undefined ? <RankingsSkeleton elementCount={50} viewMode={rankingsViewMode} />

@@ -285,7 +285,7 @@ export default async function RankingsPage(
 
     return (
         <section className="flex flex-col gap-5 w-full min-h-screen">
-            <h1 className="font-extrabold md:text-5xl md:text-left text-4xl text-center w-full">{langDict.singer_rankings_page_title}</h1>
+            <h1 className="font-extrabold md:text-5xl md:text-left text-4xl text-center w-full mb-5">{langDict.singer_rankings_page_title}</h1>
             <ArtistRankingsList
                 href=''
                 filters={filters}

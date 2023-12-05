@@ -52,8 +52,8 @@ export function ArtistSearchFilter(
         value: number[]
         placeholder: string
         entityNames: EntityNames
-        defaultInclusionMode: number
-        inclusionMode: number
+        defaultInclusionMode?: number
+        inclusionMode?: number
         elevation?: Elevation
         modalElevation?: Elevation
         onValueChanged?: (newValue: number[]) => void
@@ -65,7 +65,7 @@ export function ArtistSearchFilter(
     const langDict = useLocale()
 
     // replace inclusion mode if NaN
-    inclusionMode = isNaN(inclusionMode) ? defaultInclusionMode : inclusionMode
+    inclusionMode = inclusionMode == undefined || isNaN(inclusionMode) ? defaultInclusionMode : inclusionMode
     const inclusionModeIsAnd = inclusionMode == FilterInclusionMode.AND
 
     // react states
@@ -151,14 +151,15 @@ export function ArtistSearchFilter(
             key={name}
             name={name}
             nameTrailing={
-                <button
-                    className={`rounded-full text-base px-4${inclusionModeIsAnd ? ' outline outline-1 border-outline-variant text-on-surface-variant' : ' outline outline-1 border-primary bg-primary text-on-primary'}`}
-                    onClick={() => {
-                        if (onInclusionModeChanged) onInclusionModeChanged(inclusionModeIsAnd ? FilterInclusionMode.OR : FilterInclusionMode.AND)
-                    }}
-                >
-                    {inclusionModeIsAnd ? langDict['filter_inclusion_mode_and'] : langDict['filter_inclusion_mode_or']}
-                </button>
+                inclusionMode == undefined ? undefined
+                    : <button
+                        className={`rounded-full text-base px-4${inclusionModeIsAnd ? ' outline outline-1 border-outline-variant text-on-surface-variant' : ' outline outline-1 border-primary bg-primary text-on-primary'}`}
+                        onClick={() => {
+                            if (onInclusionModeChanged) onInclusionModeChanged(inclusionModeIsAnd ? FilterInclusionMode.OR : FilterInclusionMode.AND)
+                        }}
+                    >
+                        {inclusionModeIsAnd ? langDict['filter_inclusion_mode_and'] : langDict['filter_inclusion_mode_or']}
+                    </button>
             }
         >
             <div className='py-2 px-4 rounded-full text-on-surface flex text-base font-normal'
