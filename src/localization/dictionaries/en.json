@@ -114,7 +114,7 @@
     "filter_inclusion_mode_or": "OR",
     "filter_multi_include": "Including :options",
     "filter_multi_exclude": "Excluding :options",
-    "filter_multi_separator": ",",
+    "filter_multi_separator": ", ",
     "filter_multi_joiner": ":include and :exclude",
     "filter_clear_all": "Clear All",
     "quick_filter": "Quick Filters",
