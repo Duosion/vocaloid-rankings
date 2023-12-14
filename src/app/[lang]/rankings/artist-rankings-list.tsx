@@ -5,7 +5,7 @@ import { Divider } from "@/components/material/divider"
 import { useLocale } from "@/components/providers/language-dictionary-provider"
 import { RankingsApiError } from "@/components/rankings/rankings-api-error"
 import { RankingsContainer } from "@/components/rankings/rankings-container"
-import { RankingsItemTrailing } from "@/components/rankings/rankings-item-trailing"
+import { RankingsItemTrailing, RankingsItemTrailingMode } from "@/components/rankings/rankings-item-trailing"
 import { RankingListItem } from "@/components/rankings/rankings-list-item"
 import { RankingsPageSelector } from "@/components/rankings/rankings-page-selector"
 import { RankingsSkeleton } from "@/components/rankings/rankings-skeleton"
@@ -235,7 +235,7 @@ export function ArtistRankingsList(
         setViewMode(settings.rankingsViewMode)
     }, [settings.rankingsViewMode])
 
-    const filterMode = filters.orderBy.values[filterBarValues.orderBy || filters.orderBy.defaultValue].value || FilterOrder.VIEWS
+    const filterMode = filters.orderBy.values[filterBarValues.orderBy || filters.orderBy.defaultValue].value || RankingsItemTrailingMode.VIEWS
 
     return (
         <section className="flex flex-col w-full">

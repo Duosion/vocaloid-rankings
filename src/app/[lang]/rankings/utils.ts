@@ -1,5 +1,6 @@
 import { FilterOrder } from "@/data/types"
 import { SelectFilterValue } from "./types"
+import { RankingsItemTrailingMode } from "@/components/rankings/rankings-item-trailing"
 
 export function encodeBoolean(
     bool: boolean
@@ -51,20 +52,20 @@ export function parseParamSelectFilterValue(
 }
 
 export function getRankingsItemTrailingSupportingText(
-    mode: FilterOrder,
+    mode: RankingsItemTrailingMode | FilterOrder,
     views?: string,
     songCount?: string,
     publishDate?: string,
     additionDate?: string
 ): string | undefined {
     switch (mode) {
-        case FilterOrder.VIEWS:
+        case RankingsItemTrailingMode.VIEWS:
             return views
-        case FilterOrder.SONG_COUNT:
+        case RankingsItemTrailingMode.SONG_COUNT:
             return songCount;
-        case FilterOrder.PUBLISH_DATE:
+        case RankingsItemTrailingMode.PUBLISH_DATE:
             return publishDate;
-        case FilterOrder.ADDITION_DATE:
+        case RankingsItemTrailingMode.ADDITION_DATE:
             return additionDate
         default:
             return undefined

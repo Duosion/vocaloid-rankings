@@ -1,12 +1,11 @@
 import { EntitySection } from "@/components/entity/entity-section"
 import { EntityName } from "@/components/formatters/entity-name"
-import { NumberFormatter } from "@/components/formatters/number-formatter"
 import { FilledButton } from "@/components/material/filled-button"
 import { FilledIconButton } from "@/components/material/filled-icon-button"
 import { RankingsGrid } from "@/components/rankings/rankings-grid"
 import { RankingsGridItem } from "@/components/rankings/rankings-grid-item"
-import { RankingsItemTrailing } from "@/components/rankings/rankings-item-trailing"
-import { FilterOrder, NameType, SongRankingsFilterResult } from "@/data/types"
+import { RankingsItemTrailing, RankingsItemTrailingMode } from "@/components/rankings/rankings-item-trailing"
+import { NameType, SongRankingsFilterResult } from "@/data/types"
 import { LanguageDictionary, getEntityName } from "@/localization"
 import { getRankingsItemTrailingSupportingText } from "../../rankings/utils"
 
@@ -24,7 +23,7 @@ export function ArtistSongs(
         title: string,
         langDict: LanguageDictionary
         titleLanguage: NameType
-        mode: FilterOrder
+        mode: RankingsItemTrailingMode
         songRankingsResult?: SongRankingsFilterResult
         columnsClassName?: string
         href?: string

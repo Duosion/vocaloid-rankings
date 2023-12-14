@@ -1,6 +1,15 @@
-import { FilterOrder } from "@/data/types";
 import { NumberFormatter } from "../formatters/number-formatter";
 import { DateFormatter } from "../formatters/date-formatter";
+import { FilterOrder } from "@/data/types";
+import { YearsSinceFormatter } from "../formatters/years-since-formatter";
+
+export enum RankingsItemTrailingMode {
+    VIEWS,
+    SONG_COUNT,
+    PUBLISH_DATE,
+    ADDITION_DATE,
+    YEARS_SINCE_PUBLISH
+}
 
 export function RankingsItemTrailing(
     {
@@ -10,7 +19,7 @@ export function RankingsItemTrailing(
         additionDate,
         compact = false
     }: {
-        mode: FilterOrder,
+        mode: RankingsItemTrailingMode | FilterOrder,
         value: number,
         publishDate?: string,
         additionDate?: string,
@@ -18,13 +27,15 @@ export function RankingsItemTrailing(
     }
 ) {
     switch(mode) {
-        case FilterOrder.VIEWS:
-        case FilterOrder.SONG_COUNT:
+        case RankingsItemTrailingMode.VIEWS:
+        case RankingsItemTrailingMode.SONG_COUNT:
             return <NumberFormatter number={value} compact={compact}/>;
-        case FilterOrder.PUBLISH_DATE:
+        case RankingsItemTrailingMode.PUBLISH_DATE:
             return publishDate ? <DateFormatter date={new Date(publishDate)} compact={compact}/> : undefined;
-        case FilterOrder.ADDITION_DATE:
+        case RankingsItemTrailingMode.ADDITION_DATE:
             return additionDate ? <DateFormatter date={new Date(additionDate)} compact={compact}/> : undefined;
+        case RankingsItemTrailingMode.YEARS_SINCE_PUBLISH:
+            return publishDate ? <YearsSinceFormatter date={new Date(publishDate)}/> : undefined;
         default:
             return undefined
     }

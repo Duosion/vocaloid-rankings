@@ -20,6 +20,7 @@ import { Settings } from "../../settings"
 import { ArtistSongs } from "./artist-songs"
 import { CoArtists } from "./co-artists"
 import { RelatedArtists } from "./related-artists"
+import { RankingsItemTrailingMode } from "@/components/rankings/rankings-item-trailing"
 
 // interfaces
 interface ViewsBreakdown {
@@ -206,7 +207,7 @@ export default async function ArtistPage(
                     {artistTopSongsRankingsResultsCount > 0 ? <>
                         <ArtistSongs
                             compact
-                            mode={FilterOrder.VIEWS}
+                            mode={RankingsItemTrailingMode.VIEWS}
                             title={langDict.artist_top_songs}
                             titleLanguage={settingTitleLanguage}
                             langDict={langDict}
@@ -280,7 +281,7 @@ export default async function ArtistPage(
                     {artistRecentSongsRankingsFilterResults ? <>
                         <Divider />
                         <ArtistSongs
-                            mode={FilterOrder.PUBLISH_DATE}
+                            mode={RankingsItemTrailingMode.PUBLISH_DATE}
                             title={langDict.artist_recent_songs}
                             titleLanguage={settingTitleLanguage}
                             langDict={langDict}

@@ -8,6 +8,7 @@ import Link from 'next/link'
 import { ArtistSongs } from './artist/[id]/artist-songs'
 import { Settings } from './settings'
 import { cookies } from 'next/dist/client/components/headers'
+import { RankingsItemTrailingMode } from '@/components/rankings/rankings-item-trailing'
 
 export async function generateMetadata(
   {
@@ -74,10 +75,10 @@ export default async function Home(
       <div className='grid gap-5 sm:grid-cols-1 grid-cols-1 w-full max-w-6xl mt-10'>
         <section>
           <ArtistSongs
-            title={songBirthdaysParams.publishDate}
+            title={langDict.home_published_on_this_day}
             langDict={langDict}
             titleLanguage={settingTitleLanguage}
-            mode={FilterOrder.PUBLISH_DATE}
+            mode={RankingsItemTrailingMode.YEARS_SINCE_PUBLISH}
             columnsClassName='lg:grid-cols-6 md:grid-cols-4 sm:grid-cols-3 grid-cols-2'
             songRankingsResult={songBirthdays}
             href={songBirthdays.totalCount > songBirthdaysParams.maxEntries ? `${locale}/rankings?publishMonth=${currentMonth}&publishDay=${currentDay}` : undefined}
