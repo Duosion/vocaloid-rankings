@@ -316,5 +316,29 @@ export interface ArtistRankingsFilterBarValues {
     startAt?: string
 }
 
+export interface TrendingFilters {
+    timePeriod: SelectFilter<number>
+    from: TimestampFilter
+    timestamp: TimestampFilter
+    direction: SelectFilter<FilterDirection>
+    startAt: InputFilter
+}
+
+export interface TrendingFiltersValues {
+    timePeriod?: number
+    from?: string
+    timestamp?: string
+    direction?: number
+    startAt?: string
+}
+
+export interface TrendingFilterBarValues {
+    timePeriod?: number
+    from?: Date
+    timestamp?: Date
+    direction?: number
+    startAt?: string
+}
+
 // describes a list of entity names with their ids mapped to a Names types
 export type EntityNames = { [key: number]: string }
