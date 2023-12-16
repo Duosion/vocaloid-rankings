@@ -1,9 +1,9 @@
 'use client'
-import { ArtistCategory, Id, NameType, SongArtistsCategories } from "@/data/types";
-import { EntityName } from "./entity-name";
-import Link from "next/link";
-import { ApiArtist, ApiSongArtistsCategories } from "@/lib/api/types";
+import { NameType } from "@/data/types";
 import { buildEntityNames } from "@/lib/api";
+import { ApiArtist, ApiSongArtistsCategories } from "@/lib/api/types";
+import Link from "next/link";
+import { EntityName } from "./entity-name";
 
 export function SongArtistsLabel(
     {

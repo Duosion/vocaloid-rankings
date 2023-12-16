@@ -5,9 +5,10 @@ import { YearsSinceFormatter } from "../formatters/years-since-formatter";
 
 export enum RankingsItemTrailingMode {
     VIEWS,
-    SONG_COUNT,
     PUBLISH_DATE,
     ADDITION_DATE,
+    POPULARITY,
+    SONG_COUNT,
     YEARS_SINCE_PUBLISH
 }
 
