@@ -70,7 +70,7 @@ export function TrendingRankingsList(
         const from = filterBarValues.from
 
         let customTimePeriodOffset: number | undefined
-        if (filterBarValues.timePeriod == 4 && from && to) {
+        if (filterBarValues.timePeriod == 3 && from && to) {
             // get the difference in milliseconds between the two dates
             const difference = Math.abs(to.getTime() - from.getTime())
             // convert the difference, which is in milliseconds into days and set the timePeriodOffset to that value
@@ -128,7 +128,6 @@ export function TrendingRankingsList(
                 }
             }
             history.pushState({}, 'Song rankings filter changed.', `${href}?${queryBuilder.join('&')}`)
-            console.log(getQueryVariables())
             setQueryVariables(getQueryVariables())
         }
     }

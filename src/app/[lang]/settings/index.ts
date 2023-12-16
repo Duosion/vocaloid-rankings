@@ -6,7 +6,7 @@ import { RawSettings, SettingsProxy, Theme } from "./types";
 
 export const rawSettingsDefault: RawSettings = {
     titleLanguage: NameType.ENGLISH,
-    rankingsViewMode: RankingsViewMode.LIST,
+    rankingsViewMode: RankingsViewMode.GRID,
     theme: Theme.SYSTEM
 }
 

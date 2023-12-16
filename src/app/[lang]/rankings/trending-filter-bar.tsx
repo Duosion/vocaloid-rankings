@@ -59,7 +59,7 @@ export function TrendingActiveFilterBar(
                     const defaultValue = (filter as SelectFilter<number>).defaultValue
                     const options = (filter as SelectFilter<number>).values
                     const parsedValue = isNaN(valueNumber) ? defaultValue : valueNumber
-                    if (parsedValue != defaultValue && (filter == filters.timePeriod && valueNumber != 4 && !filterValues.from)) {
+                    if (parsedValue != defaultValue && (filter == filters.timePeriod && valueNumber != 3 && !filterValues.from)) {
                         const name = options[parsedValue].name
                         activeFilters.push(<ActiveFilter name={langDict[name]} onClick={() => { filterValues[key as keyof typeof filterValues] = defaultValue as any; setFilterValues(filterValues) }} />)
                     }
@@ -74,7 +74,7 @@ export function TrendingActiveFilterBar(
                 }
                 case FilterType.TIMESTAMP: {
                     if (value != undefined) {
-                        const name = filter == filters.timestamp && filterValues.timePeriod == 4 && filterValues.from ? filters.from.name : filter.name
+                        const name = filter == filters.timestamp && filterValues.timePeriod == 3 && filterValues.from ? 'filter_time_period_offset_custom_to' : filter.name
                         activeFilters.push(<ActiveFilter name={`${langDict[name]}: ${generateTimestamp(value as Date)}`} onClick={() => { filterValues[key as keyof typeof filterValues] = undefined; setFilterValues(filterValues) }} />)
                     }
                     break
@@ -106,7 +106,7 @@ export function TrendingActiveFilterBar(
             />
 
             {/* Timestamp */}
-            {filterValues.timePeriod == 4 ? (
+            {filterValues.timePeriod == 3 ? (
                 <>
                     {/* Custom Date Range Selector */}
                     {/* From Date */}
@@ -149,10 +149,10 @@ export function TrendingActiveFilterBar(
 
         </ModalDrawer>
 
-        <ul className="flex justify-end items-end gap-3 w-full sm:flex-row flex-col-reverse mb-5">
+        <ul className="flex justify-end sm:items-center items-end gap-3 w-full sm:flex-row flex-col mb-5">
 
             {/* Active Filters */}
-            {activeFilterCount > 0 ? <div key='active-filters' className="flex-1"><ul className="flex justify-end items-center gap-3 w-full sm:flex-row flex-col-reverse mb-5">
+            {activeFilterCount > 0 ? <div key='active-filters' className="flex-1 w-full"><ul className="flex justify-end items-center gap-3 w-full sm:flex-row flex-col-reverse">
                 <li key='activeFilters' className="flex-1 overflow-x-auto overflow-y-clip sm:w-fit w-full"><ul className="flex gap-3">
                     {activeFilterCount > 1 ?
                         <ActiveFilter name={langDict.filter_clear_all} iconAlwaysVisible filled
@@ -204,7 +204,7 @@ export function TrendingActiveFilterBar(
                 />
 
                 {/* Timestamp */}
-                {filterValues.timePeriod == 4 ? (
+                {filterValues.timePeriod == 3 ? (
                     <>
                         {/* Custom Date Range Selector */}
                         {/* From Date */}
@@ -244,7 +244,6 @@ export function TrendingActiveFilterBar(
                 }
 
             </div>
-            {activeFilterCount > 0 ? <Divider className="mb-5" /> : undefined}
         </Expander>
 
     </>

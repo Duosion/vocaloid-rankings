@@ -1,12 +1,11 @@
 import { getMostRecentViewsTimestamp } from "@/data/songsData"
-import { ArtistCategory, FilterDirection } from "@/data/types"
+import { FilterDirection } from "@/data/types"
 import { generateTimestamp } from "@/lib/utils"
 import { Locale, getDictionary } from "@/localization"
 import { cookies } from "next/dist/client/components/headers"
 import { Settings } from "../../settings"
-import { ArtistRankingsList } from "../artist-rankings-list"
-import { ArtistRankingsFiltersValues, FilterType, TrendingFilters } from "../types"
 import { TrendingRankingsList } from "../trending-rankings-list"
+import { ArtistRankingsFiltersValues, FilterType, TrendingFilters } from "../types"
 
 const filters: TrendingFilters = {
     timePeriod: {
@@ -18,7 +17,7 @@ const filters: TrendingFilters = {
             { name: 'filter_time_period_offset_day', value: 1 },
             { name: 'filter_time_period_offset_week', value: 7 },
             { name: 'filter_time_period_offset_month', value: 30 },
-            { name: 'filter_time_period_offset_custom', value: null }
+            { name: 'filter_time_period_offset_custom', value: 1 }
         ],
         defaultValue: 0
     },
@@ -82,7 +81,7 @@ export default async function RankingsPage(
 
     return (
         <section className="flex flex-col gap-5 w-full min-h-screen">
-            <h1 className="font-extrabold md:text-5xl md:text-left text-4xl text-center w-full mb-5">{langDict.singer_rankings_page_title}</h1>
+            <h1 className="font-extrabold md:text-5xl md:text-left text-4xl text-center w-full mb-5">{langDict.trending_page_title}</h1>
             <TrendingRankingsList
                 href=''
                 filters={filters}

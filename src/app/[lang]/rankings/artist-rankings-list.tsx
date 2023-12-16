@@ -204,7 +204,6 @@ export function ArtistRankingsList(
                 }
             }
             history.pushState({}, 'Song rankings filter changed.', `${href}?${queryBuilder.join('&')}`)
-            console.log(getQueryVariables())
             setQueryVariables(getQueryVariables())
         }
     }

@@ -21,7 +21,7 @@ export function DateFilterElement(
 ) {
     function setValue(newValue?: Date) {
         if (value != newValue && onValueChanged) {
-            onValueChanged(newValue)
+            onValueChanged((newValue instanceof Date && !isNaN(newValue as any)) ? newValue : undefined)
         }
     }
 
