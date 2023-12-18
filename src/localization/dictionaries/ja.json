@@ -55,6 +55,7 @@
     "filter_song_type_original": "オリジナル",
     "filter_song_type_remix": "リミックス",
     "filter_song_type_other": "未規定",
+    "filter_song_type_cover": "",
     "filter_artist_type": "作者のタイプ",
     "filter_artist_type_mode": "",
     "filter_artist_type_exclude": "",

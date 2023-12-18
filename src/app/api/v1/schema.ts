@@ -18,7 +18,7 @@ import {
  * SCHEMA OVERVIEW
  * 
  * ```graphql
- * enum SongType { ORIGINAL, REMIX, OTHER }
+ * enum SongType { ORIGINAL, REMIX, COVER, OTHER }
  * 
  * enum SourceType { YOUTUBE, NICONICO, BILIBILI }
  * 
@@ -278,7 +278,11 @@ const songTypeEnum = new GraphQLEnumType({
         OTHER: {
             value: 2,
             description: 'A song that does not fit in any other category.'
-        }
+        },
+        COVER: {
+            value: 3,
+            description: "A song that is a cover of another."
+        },
     }
 })
 

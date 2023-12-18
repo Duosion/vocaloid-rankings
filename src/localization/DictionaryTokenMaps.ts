@@ -27,6 +27,7 @@ export const ArtistTypeLocaleTokens: {[key in ArtistType]: LanguageDictionaryKey
 export const SongTypeLocaleTokens: {[key in SongType]: LanguageDictionaryKey} = {
     [SongType.ORIGINAL]: 'filter_song_type_original',
     [SongType.REMIX]: 'filter_song_type_remix',
+    [SongType.COVER]: 'filter_song_type_cover',
     [SongType.OTHER]: 'filter_song_type_other'
 }
 

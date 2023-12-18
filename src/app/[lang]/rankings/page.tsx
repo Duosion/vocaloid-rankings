@@ -84,6 +84,7 @@ const filters: RankingsFilters = {
         values: [
             { name: 'filter_song_type_original', value: SongType.ORIGINAL },
             { name: 'filter_song_type_remix', value: SongType.REMIX },
+            { name: 'filter_song_type_cover', value: SongType.COVER },
             { name: 'filter_song_type_other', value: SongType.OTHER },
         ]
     },
@@ -95,6 +96,7 @@ const filters: RankingsFilters = {
         values: [
             { name: 'filter_song_type_original', value: SongType.ORIGINAL },
             { name: 'filter_song_type_remix', value: SongType.REMIX },
+            { name: 'filter_song_type_cover', value: SongType.COVER },
             { name: 'filter_song_type_other', value: SongType.OTHER },
         ]
     },

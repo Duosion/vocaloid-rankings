@@ -22,6 +22,7 @@ import { useSettings } from "../../../components/providers/settings-provider"
 import { TrendingActiveFilterBar } from "./trending-filter-bar"
 import { ArtistRankingsFilterBarValues, EntityNames, FilterType, InputFilter, RankingsViewMode, TrendingFilterBarValues, TrendingFilters, TrendingFiltersValues } from "./types"
 import { encodeBoolean, encodeMultiFilter, getRankingsItemTrailingSupportingText, parseParamSelectFilterValue } from "./utils"
+import { SongArtistsLabel } from "@/components/formatters/song-artists-label"
 
 export function TrendingRankingsList(
     {
@@ -147,7 +148,7 @@ export function TrendingRankingsList(
                 setRankingsViewMode={setRankingsViewMode}
             />
             <Divider className="mb-5" />
-            {error ? <RankingsApiError error={error}/>
+            {error ? <RankingsApiError error={error} />
                 : !loading && (rankingsResult == undefined || 0 >= rankingsResult.results.length) ? <h2 className="text-3xl font-bold text-center text-on-background">{langDict.search_no_results}</h2>
                     : rankingsResult == undefined ? <RankingsSkeleton elementCount={50} viewMode={rankingsViewMode} />
                         : <RankingsContainer viewMode={rankingsViewMode}>
@@ -166,6 +167,14 @@ export function TrendingRankingsList(
                                         iconAlt={getEntityName(names, settingTitleLanguage)}
                                         imageDisplayMode={ImageDisplayMode.SONG}
                                         trailingTitleContent={<></>}
+                                        supportingContent={
+                                            <SongArtistsLabel
+                                                artists={song.artists}
+                                                categories={song.artistsCategories}
+                                                preferredNameType={settingTitleLanguage}
+                                                theme={resolvedTheme}
+                                            />
+                                        }
                                         color={color}
                                     />
                                 ) : (

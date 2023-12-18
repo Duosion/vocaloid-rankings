@@ -55,6 +55,7 @@
     "filter_song_type_original": "Original",
     "filter_song_type_remix": "Remix",
     "filter_song_type_other": "Otra",
+    "filter_song_type_cover": "",
     "filter_artist_type": "Tipo de artista",
     "filter_artist_type_mode": "",
     "filter_artist_type_exclude": "",

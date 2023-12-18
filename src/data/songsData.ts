@@ -86,7 +86,7 @@ const buildSongRankingsFilterStatements = (
 
     // build include/exclude song types statements
     statements.includeSongTypes = includeSongTypesVariables ? ` AND (songs.song_type IN (${includeSongTypesVariables.join(', ')}))` : ''
-    statements.excludeSongTypes = excludeSongTypesVariables ? ` AND (songs.song_type IN (${excludeSongTypesVariables.join(', ')}))` : ''
+    statements.excludeSongTypes = excludeSongTypesVariables ? ` AND (songs.song_type NOT IN (${excludeSongTypesVariables.join(', ')}))` : ''
 
     // build include/exclude artist types statements
     statements.includeArtistTypes = includeArtistTypesVariables ?

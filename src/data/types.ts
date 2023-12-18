@@ -8,7 +8,8 @@ export enum NameType {
 export enum SongType {
     ORIGINAL,
     REMIX,
-    OTHER
+    OTHER,
+    COVER
 }
 
 export enum SourceType {
@@ -143,7 +144,7 @@ export interface Song extends Entity {
     artistsCategories: SongArtistsCategories
     artists: Artist[]
     videoIds: SongVideoIds
-    placement: SongPlacement | null
+    placement?: SongPlacement | null
     thumbnailType: SourceType
     lastUpdated: string
     isDormant: boolean
