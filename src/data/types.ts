@@ -431,54 +431,42 @@ export interface RawArtistRankingResult {
 
 /* auth database types */
 
+export enum UserAccessLevel {
+    GUEST,
+    USER,
+    EDITOR,
+    MODERATOR,
+    ADMIN
+}
+
 export interface User {
-    id: string,
-    email: string,
-    emailVerified: Date | null,
+    id: string
+    username: string
+    password: string
+    created: Date
+    lastLogin: Date
+    accessLevel: UserAccessLevel
 }
 
 export interface RawUser {
-    id: string,
-    email: string,
-    email_verified: string | null
-}
-
-export interface Account {
-    userId: string,
-    type: string,
-    provider: string,
-    providerAccountId: string,
-    expiresAt: number
-}
-
-export interface RawAccount {
-    user_id: string,
-    type: string,
-    provider: string,
-    provider_account_id: string,
-    expires_at: number
+    id: string
+    username: string
+    password: string
+    created: string
+    last_login: string
+    access_level: number
 }
 
 export interface Session {
+    token: string,
     expires: Date,
-    sessionToken: string,
-    userId: string
+    userId: string,
+    stayLoggedIn: boolean
 }
 
 export interface RawSession {
-    expires: string,
-    session_token: string,
-    user_id: string
-}
-
-export interface VerificationToken {
-    token: string,
-    identifier: string,
-    expires: Date
-}
-
-export interface RawVerificationToken {
-    token: string,
-    identifier: string,
+    token: string
     expires: string
+    user_id: string,
+    stay_logged_in: number
 }
