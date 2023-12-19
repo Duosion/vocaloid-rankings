@@ -4,7 +4,7 @@ import { Hct, MaterialDynamicColors, SchemeVibrant, argbFromHex, argbFromRgb, he
 import type { Statement } from "better-sqlite3";
 import { getPaletteFromURL } from "color-thief-node";
 import getDatabase, { Databases } from ".";
-import { Artist, ArtistCategory, ArtistPlacement, ArtistRankingsFilterParams, ArtistRankingsFilterResult, ArtistRankingsFilterResultItem, ArtistThumbnailType, ArtistType, FilterInclusionMode, HistoricalViews, HistoricalViewsResult, Id, NameType, Names, PlacementChange, RawArtistData, RawArtistName, RawArtistRankingResult, RawArtistThumbnail, RawSongArtist, RawSongData, RawSongName, RawSongRankingsResult, RawSongVideoId, RawViewBreakdown, Song, SongArtistsCategories, SongPlacement, SongRankingsFilterParams, SongRankingsFilterResult, SongRankingsFilterResultItem, SongType, SongVideoIds, SourceType, SqlRankingsFilterInVariables, SqlRankingsFilterParams, SqlRankingsFilterStatements, SqlSearchArtistsFilterParams, Views, ViewsBreakdown } from "./types";
+import { Artist, ArtistCategory, ArtistPlacement, ArtistRankingsFilterParams, ArtistRankingsFilterResult, ArtistRankingsFilterResultItem, ArtistThumbnailType, ArtistThumbnails, ArtistType, FilterInclusionMode, HistoricalViews, HistoricalViewsResult, Id, NameType, Names, PlacementChange, RawArtistData, RawArtistName, RawArtistRankingResult, RawArtistThumbnail, RawSongArtist, RawSongData, RawSongName, RawSongRankingsResult, RawSongVideoId, RawViewBreakdown, Song, SongArtistsCategories, SongPlacement, SongRankingsFilterParams, SongRankingsFilterResult, SongRankingsFilterResultItem, SongType, SongVideoIds, SourceType, SqlRankingsFilterInVariables, SqlRankingsFilterParams, SqlRankingsFilterStatements, SqlSearchArtistsFilterParams, Views, ViewsBreakdown } from "./types";
 
 // import database
 const db = getDatabase(Databases.SONGS_DATA)
@@ -1201,7 +1201,7 @@ function getArtistSync(
     const placement = views ? getArtistPlacementSync(artistData, views) : null
 
     const baseArtistId = artistData.base_artist_id
-    
+
     return buildArtist(
         artistData,
         artistNames,
@@ -1211,6 +1211,127 @@ function getArtistSync(
         (baseArtistId !== undefined) && getBaseArtist ? getArtistSync(baseArtistId, getViews, false) : null
     )
 }
+
+function insertArtistNamesSync(
+    id: Id,
+    names: Names
+) {
+    for (const rawType in names) {
+        const type = Number(rawType) as NameType
+        const name = names[type]
+
+        if (name) db.prepare(`
+        INSERT INTO artists_names (artist_id, name, name_type)
+        VALUES (?, ?, ?)
+        `).run(id, name, type);
+    }
+}
+
+function insertArtistThumbnailsSync(
+    id: Id,
+    thumbnails: ArtistThumbnails
+) {
+    for (const rawType in thumbnails) {
+        const type = Number(rawType) as ArtistThumbnailType
+        const thumbnail = thumbnails[type]
+
+        if (thumbnail) db.prepare(`
+        INSERT INTO artists_thumbnails (thumbnail_type, url, artist_id)
+        VALUES (?, ?, ?)
+        `).run(type, thumbnail, id);
+    }
+}
+
+function insertArtistSync(
+    artist: Artist
+): Artist {
+    const id = artist.id
+
+    // insert artist
+    db.prepare(`
+    INSERT INTO artists (id, artist_type, publish_date, addition_date, base_artist_id, average_color, dark_color, light_color)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+        id,
+        artist.type,
+        artist.publishDate,
+        artist.additionDate,
+        artist.baseArtistId,
+        artist.averageColor,
+        artist.darkColor,
+        artist.lightColor
+    )
+
+    // insert names
+    insertArtistNamesSync(id, artist.names)
+
+    // insert thumbnails
+    insertArtistThumbnailsSync(id, artist.thumbnails)
+
+    return artist
+}
+
+function updateArtistSync(
+    artist: Partial<Artist> & Pick<Artist, 'id'>
+): Artist {
+    const id = artist.id
+
+    const fieldMap: Record<string, string> = {
+        type: 'artist_type',
+        publishDate: 'publish_date',
+        additionDate: 'addition_date',
+        baseArtistId: 'base_artist_id',
+        averageColor: 'average_color',
+        darkColor: 'dark_color',
+        lightColor: 'light_color'
+    }
+
+    const sets: string[] = []
+    const values: any[] = []
+    for (const key in artist) {
+        const value = artist[key as keyof typeof artist]
+        const mapped = fieldMap[key]
+        if (mapped && value !== undefined) {
+            sets.push(`${mapped} = ?`)
+            values.push(value)
+        }
+    }
+
+    // update artist
+    db.transaction(() => {
+
+        if (sets.length > 0) db.prepare(`
+        UPDATE artists
+        SET ${sets.join(', ')}
+        WHERE id = ?
+        `).run([...values, id]);
+
+        // update names
+        const names = artist.names
+        if (names) {
+            db.prepare(`
+            DELETE FROM artists_names
+            WHERE artist_id = ?`).run(id)
+
+            insertArtistNamesSync(id, names)
+        }
+
+        // update thumbnails
+        const thumbnails = artist.thumbnails
+        if (thumbnails) {
+            db.prepare(`
+            DELETE FROM artists_thumbnails
+            WHERE artist_id = ?`).run(id)
+
+            insertArtistThumbnailsSync(id, thumbnails)
+        }
+
+    })
+
+    // return the updated artist object
+    return getArtistSync(id) as Artist
+}
+
 
 function buildSearchArtistsQueryParams(
     query: string,
@@ -1567,6 +1688,46 @@ function getSongSync(
     )
 }
 
+function createSongSync(
+    song: Song
+) {
+    const id = song.id
+
+    // create song data
+    db.prepare(`
+    INSERT INTO songs (id, publish_date, addition_date, song_type, thumbnail, maxres_thumbnail, thumbnail_type, average_color, dark_color, light_color, fandom_url, last_updated, dormant)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+        id,
+        song.publishDate,
+        song.additionDate,
+        song.type,
+        song.thumbnail,
+        song.maxresThumbnail,
+        song.thumbnailType,
+        song.averageColor,
+        song.darkColor,
+        song.lightColor,
+        song.fandomUrl,
+        song.lastUpdated,
+        song.isDormant
+    )
+
+    // create names
+    for (const nameType in song.names) {
+        const type = Number.parseInt(nameType) as NameType
+        const name = song.names[type]
+
+        if (name) db.prepare(`
+        INSERT INTO song_names (song_id, name, name_type)
+        VALUES (?, ?, ?)
+        `).run(id, name, type);
+    }
+
+    // create song artists
+
+
+}
 
 export function getSongPlacement(
     id: Id,
