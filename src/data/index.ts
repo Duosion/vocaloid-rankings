@@ -1,6 +1,7 @@
 import { Database } from "better-sqlite3"
 import sqlite3 from 'better-sqlite3'
 import initSongsData from "./initializers/songsData"
+import initAuthDatabase from "./initializers/auth"
 import { existsSync, mkdirSync } from "fs"
 
 const rootDirectory = process.cwd()
@@ -10,11 +11,12 @@ if (!existsSync(dataDirectory)) {
 }
 
 const loadedDatabases: {
-    [Databases.SONGS_DATA]?: Database
+    [key in Databases]?: Database
 } = {}
 
 export const enum Databases {
-    SONGS_DATA
+    SONGS_DATA,
+    AUTH
 }
 
 const enum Pragma {
@@ -31,6 +33,12 @@ const databaseMetadata = {
         pragma: Pragma.DEFAULT,
         init: initSongsData,
         extensions: [rootDirectory + '/src/data/extensions/spellfix']
+    },
+    [Databases.AUTH]: {
+        path: 'auth.db',
+        pragma: Pragma.DEFAULT,
+        init: initAuthDatabase,
+        extensions: []
     }
 }
 

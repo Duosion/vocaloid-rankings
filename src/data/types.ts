@@ -428,3 +428,57 @@ export interface RawArtistRankingResult {
     total_views: number
     total_count: number
 }
+
+/* auth database types */
+
+export interface User {
+    id: string,
+    email: string,
+    emailVerified: Date | null,
+}
+
+export interface RawUser {
+    id: string,
+    email: string,
+    email_verified: string | null
+}
+
+export interface Account {
+    userId: string,
+    type: string,
+    provider: string,
+    providerAccountId: string,
+    expiresAt: number
+}
+
+export interface RawAccount {
+    user_id: string,
+    type: string,
+    provider: string,
+    provider_account_id: string,
+    expires_at: number
+}
+
+export interface Session {
+    expires: Date,
+    sessionToken: string,
+    userId: string
+}
+
+export interface RawSession {
+    expires: string,
+    session_token: string,
+    user_id: string
+}
+
+export interface VerificationToken {
+    token: string,
+    identifier: string,
+    expires: Date
+}
+
+export interface RawVerificationToken {
+    token: string,
+    identifier: string,
+    expires: string
+}
