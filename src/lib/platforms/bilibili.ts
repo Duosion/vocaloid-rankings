@@ -3,7 +3,7 @@ import { Platform, VideoId, VideoThumbnails } from "./types";
 const bilibiliVideoDataEndpoint = "https://api.bilibili.com/x/web-interface/view?aid="
 const bilibiliAidRegExp = /av(.+)/
 
-export default class bilibili implements Platform {
+class bilibiliPlatform implements Platform {
 
     getViews(
         videoId: VideoId
@@ -40,3 +40,6 @@ export default class bilibili implements Platform {
     }
 
 }
+
+const bilibili = new bilibiliPlatform()
+export default bilibili

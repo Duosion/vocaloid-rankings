@@ -4,7 +4,11 @@ import { Hct, MaterialDynamicColors, SchemeVibrant, argbFromHex, argbFromRgb, he
 import type { Statement } from "better-sqlite3";
 import { getPaletteFromURL } from "color-thief-node";
 import getDatabase, { Databases } from ".";
-import { Artist, ArtistCategory, ArtistPlacement, ArtistRankingsFilterParams, ArtistRankingsFilterResult, ArtistRankingsFilterResultItem, ArtistThumbnailType, ArtistThumbnails, ArtistType, FilterInclusionMode, HistoricalViews, HistoricalViewsResult, Id, NameType, Names, PlacementChange, RawArtistData, RawArtistName, RawArtistRankingResult, RawArtistThumbnail, RawSongArtist, RawSongData, RawSongName, RawSongRankingsResult, RawSongVideoId, RawViewBreakdown, Song, SongArtistsCategories, SongPlacement, SongRankingsFilterParams, SongRankingsFilterResult, SongRankingsFilterResultItem, SongType, SongVideoIds, SourceType, SqlRankingsFilterInVariables, SqlRankingsFilterParams, SqlRankingsFilterStatements, SqlSearchArtistsFilterParams, Views, ViewsBreakdown } from "./types";
+import { Artist, ArtistCategory, ArtistPlacement, ArtistRankingsFilterParams, ArtistRankingsFilterResult, ArtistRankingsFilterResultItem, ArtistThumbnailType, ArtistThumbnails, ArtistType, FilterInclusionMode, HistoricalViews, HistoricalViewsResult, Id, NameType, Names, PlacementChange, RawArtistData, RawArtistName, RawArtistRankingResult, RawArtistThumbnail, RawSongArtist, RawSongData, RawSongName, RawSongRankingsResult, RawSongVideoId, RawViewBreakdown, Song, SongArtistsCategories, SongPlacement, SongRankingsFilterParams, SongRankingsFilterResult, SongRankingsFilterResultItem, SongType, SongVideoIds, SourceType, SqlRankingsFilterInVariables, SqlRankingsFilterParams, SqlRankingsFilterStatements, SqlSearchArtistsFilterParams, VideoViews, Views, ViewsBreakdown } from "./types";
+import { Platform } from "@/lib/platforms/types";
+import YouTube from "@/lib/platforms/YouTube";
+import Niconico from "@/lib/platforms/Niconico";
+import bilibili from "@/lib/platforms/bilibili";
 
 // import database
 const db = getDatabase(Databases.SONGS_DATA)
@@ -2105,6 +2109,53 @@ export function getSongHistoricalViews(
             reject(error)
         }
     })
+}
+
+// View Manipulation
+export async function getSongMostRecentViews(
+    id: Id
+): Promise<Views | null> {
+
+    // get the song
+    const song = getSongSync(id)
+    if (!song) return null
+    
+    const platforms: { [key in SourceType]: (videoId: string) => Promise<number | null> } = {
+        [SourceType.YOUTUBE]: YouTube.getViews,
+        [SourceType.NICONICO]: Niconico.getViews,
+        [SourceType.BILIBILI]: bilibili.getViews
+    }
+
+    // get the most recent views
+    let totalViews = 0
+    const breakdown: ViewsBreakdown = {}
+
+    const allVideoIds = song.videoIds
+    for (const rawSourceType in allVideoIds) {
+        const sourceType = Number(rawSourceType) as SourceType
+        const sourceVideoIds = allVideoIds[sourceType]
+
+        if (sourceVideoIds) {
+            const bucket = []
+            const getViews = platforms[sourceType]
+
+            for (const videoId of sourceVideoIds || []) {
+                const views = await getViews(videoId) || 0
+                bucket.push({
+                    id: videoId,
+                    views: views
+                })
+                totalViews += views
+            }
+
+            breakdown[sourceType] = bucket
+        }
+    }
+
+    return {
+        total: totalViews,
+        breakdown: breakdown
+    }
 }
 
 // update all songs' colors

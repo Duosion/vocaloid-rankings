@@ -3,7 +3,7 @@ import { Platform, VideoId, VideoThumbnails } from "./types";
 
 const nicoNicoVideoDomain = "https://www.nicovideo.jp/watch/"
 
-export default class Niconico implements Platform {
+class NiconicoPlatform implements Platform {
 
     getViews(
         videoId: VideoId
@@ -47,3 +47,6 @@ export default class Niconico implements Platform {
     }
 
 }
+
+const Niconico = new NiconicoPlatform()
+export default Niconico

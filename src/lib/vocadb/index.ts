@@ -7,11 +7,6 @@ import YouTube from "../platforms/YouTube";
 import Niconico from "../platforms/Niconico";
 import bilibili from "../platforms/bilibili";
 
-// import platforms
-const youtubePlatform = new YouTube()
-const niconicoPlatform = new Niconico()
-const bilibiliPlatform = new bilibili()
-
 // numbers
 const msInDay = 24 * 60 * 60 * 1000 // one day in ms
 
@@ -74,21 +69,21 @@ const sourcePollers: { [key: string]: VocaDBSourcePoller } = {
     ["Youtube"]: {
         dataName: "YouTube",
         type: SourceType.YOUTUBE,
-        getViews: youtubePlatform.getViews,
-        getThumbnails: youtubePlatform.getThumbnails,
+        getViews: YouTube.getViews,
+        getThumbnails: YouTube.getThumbnails,
     },
     ["NicoNicoDouga"]: {
         dataName: "Niconico",
         type: SourceType.NICONICO,
-        getViews: niconicoPlatform.getViews,
-        getThumbnails: niconicoPlatform.getThumbnails,
+        getViews: Niconico.getViews,
+        getThumbnails: Niconico.getThumbnails,
     },
     ["Bilibili"]: {
         dataName: "bilibili",
         type: SourceType.BILIBILI,
         idPrefix: "av",
-        getViews: bilibiliPlatform.getViews,
-        getThumbnails: bilibiliPlatform.getThumbnails,
+        getViews: bilibili.getViews,
+        getThumbnails: bilibili.getThumbnails,
     }
 }
 

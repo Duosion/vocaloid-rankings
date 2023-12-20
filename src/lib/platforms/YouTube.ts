@@ -1,6 +1,6 @@
 import { Platform, VideoId, VideoThumbnails } from "./types";
 
-export default class YouTube implements Platform {
+class YouTubePlatform implements Platform {
 
     getViews(
         videoId: VideoId
@@ -37,3 +37,6 @@ export default class YouTube implements Platform {
     }
 
 }
+
+const YouTube = new YouTubePlatform()
+export default YouTube
