@@ -1,8 +1,11 @@
+import { ArtistCard } from "@/components/entity/artist-card"
+import ArtistsGrid from "@/components/entity/artists-grid"
+import { EntitySection } from "@/components/entity/entity-section"
 import { DateFormatter } from "@/components/formatters/date-formatter"
 import { EntityName } from "@/components/formatters/entity-name"
 import { NumberFormatter } from "@/components/formatters/number-formatter"
 import Image from '@/components/image'
-import { getSong, getSongHistoricalViews, getSongMostRecentViews, insertSong, insertSongViews } from "@/data/songsData"
+import { getSong, getSongHistoricalViews } from "@/data/songsData"
 import { ArtistCategory, ArtistThumbnailType, Id, NameType, SourceType } from "@/data/types"
 import { getCustomThemeStylesheet } from "@/lib/material/material"
 import { SourceTypesDisplayData } from "@/lib/sourceType"
@@ -13,10 +16,6 @@ import { cookies } from "next/dist/client/components/headers"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { Settings } from "../../settings"
-import { EntitySection } from "@/components/entity/entity-section"
-import { ArtistCard } from "@/components/entity/artist-card"
-import ArtistsGrid from "@/components/entity/artists-grid"
-import { getVocaDBSong } from "@/lib/vocadb"
 
 // interfaces
 interface ViewsBreakdown {
@@ -40,6 +39,21 @@ export default async function SongPage(
     const songId = Number(params.id)
     const song = !isNaN(songId) ? await getSong(songId) : null
     if (!song) return notFound()
+
+    // get authenticated user
+    /*const requestCookies = cookies()
+
+    let user = await getUserFromUsername('duosii')
+    if (!user) {
+        user = await signup('duosii', 'passw0rd', UserAccessLevel.ADMIN)
+    }
+    const authenticatedUser = await getAuthenticatedUser(requestCookies)
+    if (!authenticatedUser) {
+        // login
+        await login(requestCookies, user, 'passw0rd')
+    }
+
+    console.log(await getAuthenticatedUser(requestCookies))*/
 
     // get settings
     const settings = new Settings(cookies())

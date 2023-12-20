@@ -192,7 +192,7 @@ function insertSessionSync(
 
     db.prepare(`
     INSERT INTO sessions (token, expires, user_id, stay_logged_in)
-    VALUES (?, ?, ?)
+    VALUES (?, ?, ?, ?)
     `).run(
         token,
         expires.toISOString(),
@@ -243,7 +243,7 @@ function updateUserSync(
         password = ?,
         created = ?,
         last_login = ?,
-        access_level = ?,
+        access_level = ?
     WHERE id = ?
     `).run(
         username,

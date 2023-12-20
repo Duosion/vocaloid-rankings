@@ -25,7 +25,6 @@ export function getActiveSession(
     return new Promise(async (resolve, reject) => {
         try {
             const sessionToken = cookies.get(cookieName)
-
             if (!sessionToken) return resolve(null)
 
             const session = await getSession(sessionToken.value)

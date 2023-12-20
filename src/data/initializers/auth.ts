@@ -8,8 +8,8 @@ export default function init(
 
     // create user table
     database.prepare(`CREATE TABLE IF NOT EXISTS users (
-        id TEXT PRIMARY NOT NULL
-        username TEXT NOT NULL,
+        id TEXT PRIMARY KEY NOT NULL,
+        username TEXT NOT NULL UNIQUE,
         password TEXT NOT NULL,
         created TEXT NOT NULL,
         last_login TEXT NOT NULL,
@@ -21,7 +21,7 @@ export default function init(
         token TEXT PRIMARY KEY NOT NULL,
         expires TEXT NOT NULL,
         user_id TEXT NOT NULL,
-        stay_logged_in INTEGER NOT NULL DEFAULT 0
+        stay_logged_in INTEGER NOT NULL DEFAULT 0,
         FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
     )`).run()
 }
