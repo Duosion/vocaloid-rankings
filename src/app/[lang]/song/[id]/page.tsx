@@ -2,7 +2,7 @@ import { DateFormatter } from "@/components/formatters/date-formatter"
 import { EntityName } from "@/components/formatters/entity-name"
 import { NumberFormatter } from "@/components/formatters/number-formatter"
 import Image from '@/components/image'
-import { getSong, getSongHistoricalViews } from "@/data/songsData"
+import { getSong, getSongHistoricalViews, insertSong } from "@/data/songsData"
 import { ArtistCategory, ArtistThumbnailType, Id, NameType, SourceType } from "@/data/types"
 import { getCustomThemeStylesheet } from "@/lib/material/material"
 import { SourceTypesDisplayData } from "@/lib/sourceType"
@@ -16,6 +16,7 @@ import { Settings } from "../../settings"
 import { EntitySection } from "@/components/entity/entity-section"
 import { ArtistCard } from "@/components/entity/artist-card"
 import ArtistsGrid from "@/components/entity/artists-grid"
+import { getVocaDBSong } from "@/lib/vocadb"
 
 // interfaces
 interface ViewsBreakdown {
@@ -38,7 +39,13 @@ export default async function SongPage(
     // convert the id parameter into a number; get song data
     const songId = Number(params.id)
     const song = !isNaN(songId) ? await getSong(songId) : null
-    if (!song) { notFound() }
+    if (!song) {
+
+        const vocaDBSong = await getVocaDBSong(songId)
+        if (vocaDBSong) await insertSong(vocaDBSong)
+
+        return notFound()
+    }
 
     // get settings
     const settings = new Settings(cookies())

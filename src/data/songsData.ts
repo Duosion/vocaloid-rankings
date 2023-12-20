@@ -1247,6 +1247,7 @@ function insertArtistSync(
 ): Artist {
     const id = artist.id
 
+    console.log('insert', artist)
     // insert artist
     db.prepare(`
     INSERT INTO artists (id, artist_type, publish_date, addition_date, base_artist_id, average_color, dark_color, light_color)
@@ -1326,7 +1327,7 @@ function updateArtistSync(
             insertArtistThumbnailsSync(id, thumbnails)
         }
 
-    })
+    })()
 
     // return the updated artist object
     return getArtistSync(id) as Artist
@@ -1348,7 +1349,7 @@ function artistExistsSync(
     SELECT id
     FROM artists
     WHERE id = ?
-    `).get() ? true : false
+    `).get(id) ? true : false
 }
 
 function buildSearchArtistsQueryParams(
@@ -1832,9 +1833,8 @@ function insertSongSync(
     song: Song
 ): Song {
     const songId = song.id
-
+    
     db.transaction(() => {
-
         // create song data
         db.prepare(`
         INSERT INTO songs (id, publish_date, addition_date, song_type, thumbnail, maxres_thumbnail, thumbnail_type, average_color, dark_color, light_color, fandom_url, last_updated, dormant)
@@ -1852,7 +1852,7 @@ function insertSongSync(
             song.lightColor,
             song.fandomUrl,
             song.lastUpdated,
-            song.isDormant
+            song.isDormant ? 1 : 0
         )
 
         // create names
@@ -1872,8 +1872,7 @@ function insertSongSync(
 
         // insert views
         if (song.views) insertSongViewsSync(song.id, song.views)
-
-    })
+    })()
 
     return song
 }
@@ -1959,7 +1958,7 @@ function updateSongSync(
             // insert new
             insertSongVideoIds(songId, videoIds)
         }
-    })
+    })()
 
     return getSongSync(songId) as Song
 }

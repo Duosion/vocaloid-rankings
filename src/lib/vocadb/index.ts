@@ -141,7 +141,7 @@ const parseVocaDBArtistDataAsync = (
             resolve({
                 id: artistData.id,
                 type: artistTypeMap[artistData.artistType],
-                publishDate: artistData.releaseDate,
+                publishDate: artistData.releaseDate || artistData.createDate,
                 additionDate: new Date().toISOString(),
                 thumbnails: {
                     [ArtistThumbnailType.ORIGINAL]: mainPicture.urlOriginal,
