@@ -40,15 +40,6 @@ export default async function SongPage(
     const songId = Number(params.id)
     const song = !isNaN(songId) ? await getSong(songId) : null
     if (!song) return notFound()
-    /*if (!song) {
-        const vocaDBSong = await getVocaDBSong(songId)
-        if (vocaDBSong) await insertSong(vocaDBSong)
-
-        return notFound()
-    } else {
-        const mostRecentViews = await getSongMostRecentViews(songId)
-        if (mostRecentViews) await insertSongViews(songId, mostRecentViews)
-    }*/
 
     // get settings
     const settings = new Settings(cookies())
@@ -219,7 +210,7 @@ export default async function SongPage(
                     fill
                     src={song.maxresThumbnail}
                     alt={getEntityName(songNames, settingTitleLanguage)}
-                    className="z-10 object-cover"
+                    className="z-10 object-cover text-3xl flex items-center justify-center font-extrabold text-on-primary-container"
                 />
             </figure>
 

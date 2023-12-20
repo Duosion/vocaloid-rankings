@@ -9,6 +9,7 @@ import { Platform } from "@/lib/platforms/types";
 import YouTube from "@/lib/platforms/YouTube";
 import Niconico from "@/lib/platforms/Niconico";
 import bilibili from "@/lib/platforms/bilibili";
+import { time } from "console";
 
 // import database
 const db = getDatabase(Databases.SONGS_DATA)
@@ -974,6 +975,16 @@ function getMostRecentViewsTimestampSync(
     return result ? result.timestamp : null
 }
 
+function timestampExistsSync(
+    timestamp: string
+): boolean {
+    return db.prepare(`
+    SELECT timestamp
+    FROM views_metadata
+    WHERE timestamp = ?
+    `).get(timestamp) ? true : false
+}
+
 export function getMostRecentViewsTimestamp(
     timestamp?: string
 ): Promise<string | null> {
@@ -1635,8 +1646,7 @@ function insertSongViewsSync(
     songId: Id,
     views: Views
 ): Views {
-    const timestamp = getMostRecentViewsTimestampSync(views.timestamp)
-    if (!timestamp) return views
+    const timestamp = views.timestamp || getMostRecentViewsTimestampSync() || generateTimestamp()
 
     // iterate breakdown
     const breakdowns = views.breakdown
@@ -1837,7 +1847,7 @@ function insertSongSync(
     song: Song
 ): Song {
     const songId = song.id
-    
+
     db.transaction(() => {
         // create song data
         db.prepare(`
@@ -1908,7 +1918,7 @@ function updateSongSync(
         const field = fields[key]
         if (field && value !== undefined) {
             sets.push(`${field} = ?`)
-            switch(typeof(value)) {
+            switch (typeof (value)) {
                 case 'boolean':
                     values.push(value ? 1 : 0)
                 default:
@@ -1923,7 +1933,7 @@ function updateSongSync(
             SET ${sets.join(', ')}
             WHERE id = ?
             `).run([...values, songId])
-        
+
         // update names
         const names = song.names
         if (names) {
@@ -2113,49 +2123,111 @@ export function getSongHistoricalViews(
 
 // View Manipulation
 export async function getSongMostRecentViews(
-    id: Id
+    id: Id,
+    timestamp?: string
 ): Promise<Views | null> {
+    try {
+        const song = getSongSync(id);
+        if (!song) return null;
 
-    // get the song
-    const song = getSongSync(id)
-    if (!song) return null
-    
-    const platforms: { [key in SourceType]: (videoId: string) => Promise<number | null> } = {
-        [SourceType.YOUTUBE]: YouTube.getViews,
-        [SourceType.NICONICO]: Niconico.getViews,
-        [SourceType.BILIBILI]: bilibili.getViews
-    }
+        const platforms: { [key in SourceType]: (videoId: string) => Promise<number | null> } = {
+            [SourceType.YOUTUBE]: async () => 0,
+            [SourceType.NICONICO]: Niconico.getViews,
+            [SourceType.BILIBILI]: bilibili.getViews
+        };
 
-    // get the most recent views
-    let totalViews = 0
-    const breakdown: ViewsBreakdown = {}
+        let totalViews = 0;
+        const breakdown: ViewsBreakdown = {};
 
-    const allVideoIds = song.videoIds
-    for (const rawSourceType in allVideoIds) {
-        const sourceType = Number(rawSourceType) as SourceType
-        const sourceVideoIds = allVideoIds[sourceType]
+        for (const [rawSourceType, sourceVideoIds] of Object.entries(song.videoIds)) {
+            const sourceType = Number(rawSourceType) as SourceType;
 
-        if (sourceVideoIds) {
-            const bucket = []
-            const getViews = platforms[sourceType]
+            if (sourceVideoIds) {
+                const bucket = [];
+                const getViews = platforms[sourceType];
 
-            for (const videoId of sourceVideoIds || []) {
-                const views = await getViews(videoId) || 0
-                bucket.push({
-                    id: videoId,
-                    views: views
-                })
-                totalViews += views
+                for (const videoId of sourceVideoIds) {
+                    const views = await getViews(videoId) || 0;
+                    bucket.push({ id: videoId, views });
+                    totalViews += views;
+                }
+
+                breakdown[sourceType] = bucket;
             }
-
-            breakdown[sourceType] = bucket
         }
-    }
 
-    return {
-        total: totalViews,
-        breakdown: breakdown
+        return {
+            total: totalViews,
+            breakdown,
+            timestamp
+        };
+    } catch (error) {
+        throw error;
     }
+}
+
+let isRefreshing = false;
+
+export async function refreshAllSongsViews(
+    maxRetries: number = 5,
+    retryDelay: number = 1000,
+    maxConcurrent: number = 15
+): Promise<void> {
+    if (isRefreshing) throw new Error('All songs views are already being refreshed.');
+    
+    isRefreshing = true;
+
+    try {
+        console.log(`Updating all songs' views...`);
+
+        const timestamp = generateTimestamp();
+        if (timestampExistsSync(timestamp)) throw new Error(`Songs views were already refreshed for timestamp "${timestamp}"`);
+
+        const songIds = db.prepare(`SELECT id FROM songs`).all() as { id: Id }[];
+
+        const refreshingPromises: Promise<void>[] = [];
+
+        const throttledExecutions = async () => {
+            for (const { id } of songIds) {
+                if (refreshingPromises.length >= maxConcurrent) {
+                    await Promise.all(refreshingPromises);
+                    refreshingPromises.length = 0; // Empty the array without creating a new reference.
+                }
+                refreshingPromises.push(
+                    retractAttempt(id, timestamp, 0)
+                );
+            }
+            await Promise.all(refreshingPromises);
+        };
+
+        const retractAttempt = async (id: Id, timestamp: string, depth: number): Promise<void> => {
+            try {
+                const views = await getSongMostRecentViews(id, timestamp);
+                if (!views) throw new Error('Most recent views was null.');
+                insertSongViewsSync(id, views);
+                console.log(`Refreshed views for (${id})`);
+            } catch (error) {
+                console.log(`Error when refreshing song with id (${id}). Error: ${error}`);
+                if (maxRetries > depth) {
+                    await new Promise(resolve => setTimeout(resolve, retryDelay));
+                    await retractAttempt(id, timestamp, depth + 1);
+                }
+            }
+        };
+
+        await throttledExecutions();
+
+        db.prepare(`INSERT INTO views_metadata (timestamp, updated) VALUES (?, ?)`).run(timestamp, new Date().toISOString());
+        console.log(`All songs' views updated.`);
+    } catch (error) {
+        throw error;
+    } finally {
+        isRefreshing = false;
+    }
+}
+
+if (process.env.NODE_ENV === 'production') {
+    refreshAllSongsViews().catch(error => console.log(`Error when refreshing every songs' views: ${error}`))
 }
 
 // update all songs' colors
