@@ -10,6 +10,7 @@ import YouTube from "@/lib/platforms/YouTube";
 import Niconico from "@/lib/platforms/Niconico";
 import bilibili from "@/lib/platforms/bilibili";
 import { time } from "console";
+import { getVocaDBRecentSongs } from "@/lib/vocadb";
 
 // import database
 const db = getDatabase(Databases.SONGS_DATA)
@@ -1986,6 +1987,16 @@ function deleteSongSync(
     `).run(id)
 }
 
+function songExistsSync(
+    id: Id,
+) {
+    return db.prepare(`
+    SELECT id
+    FROM songs
+    WHERE id = ?
+    `).get(id) ? true : false
+}
+
 export function getSongPlacement(
     id: Id,
     views?: Views | null
@@ -2174,7 +2185,7 @@ export async function refreshAllSongsViews(
     maxConcurrent: number = 15
 ): Promise<void> {
     if (isRefreshing) throw new Error('All songs views are already being refreshed.');
-    
+
     isRefreshing = true;
 
     try {
@@ -2227,7 +2238,16 @@ export async function refreshAllSongsViews(
 }
 
 if (process.env.NODE_ENV === 'production') {
+    // refresh views
     refreshAllSongsViews().catch(error => console.log(`Error when refreshing every songs' views: ${error}`))
+    // get recent songs
+    getVocaDBRecentSongs()
+        .then(songs => {
+            for (const song of songs) {
+                if (!songExistsSync) insertSongSync(song)
+            }
+        })
+        .catch(error => console.log(`Error when getting recent VocaDB songs: ${error}`))
 }
 
 // update all songs' colors
@@ -2339,7 +2359,10 @@ Convert PJ Sekai artists to their proper artist types
 
 UPDATE artists
 SET artist_type = 12
-WHERE id IN (83653, 83863, 83862, 83864, 86693, 86697, 86696, 86695, 84506, 84508, 83062, 84507, 84509, 83924, 83927, 83925, 83926, 84783, 84785, 84784)
+WHERE id IN (83653, 83863, 83862, 83864, 86693, 86697, 86696, 86695, 84506, 84508, 83062, 84507, 84509, 83924, 83927, 83925, 83926, 84783, 84785, 84784);
+
+// Remove unused views_totals table
+DROP TABLE views_totals;
 
 */
 

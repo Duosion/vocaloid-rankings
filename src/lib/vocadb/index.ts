@@ -2,7 +2,7 @@ import { Artist, ArtistCategory, ArtistThumbnailType, ArtistThumbnails, ArtistTy
 import { getImageMostVibrantColor } from "../material/material";
 import { Hct, MaterialDynamicColors, SchemeVibrant, argbFromHex, argbFromRgb, hexFromArgb, themeFromSourceColor } from "@material/material-color-utilities";
 import { VocaDBArtist, VocaDBSong, VocaDBSourcePoller } from "./types";
-import { getArtist } from "@/data/songsData";
+import { getArtist, getSongMostRecentViews } from "@/data/songsData";
 import YouTube from "../platforms/YouTube";
 import Niconico from "../platforms/Niconico";
 import bilibili from "../platforms/bilibili";
@@ -224,7 +224,7 @@ const parseVocaDBSongAsync = (
             let totalViews = 0
 
             {
-                const videosThumbnails: { 
+                const videosThumbnails: {
                     [key in SourceType]?: {
                         views: number,
                         default: string,
@@ -279,7 +279,7 @@ const parseVocaDBSongAsync = (
                 }
 
                 // get the most relevant thumbnail
-                for ( const viewType of vocaDBThumbnailPriority ) {
+                for (const viewType of vocaDBThumbnailPriority) {
                     const thumbnails = videosThumbnails[viewType]
                     if (thumbnails) {
                         thumbnail = thumbnails.default
@@ -356,6 +356,75 @@ export const getVocaDBSong = (
             if (!serverResponse) { reject("No server response."); return; }
 
             resolve(parseVocaDBSongAsync(serverResponse))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+export const getVocaDBRecentSongs = (
+    timestamp?: string
+): Promise<Song[]> => {
+    return new Promise(async (resolve, reject) => {
+        try {
+
+            console.log("Getting recent songs...")
+
+            var timeNow = null;
+            var yearNow = null;
+            var monthNow = null;
+            var dayNow = null;
+            var maxAgeDate = null;
+
+            const recentSongs = [] // songs to return
+
+            var continueFetching = true
+            var offset = 0;
+            while (continueFetching) {
+                continueFetching = false
+                console.log("offset [" + offset + "]")
+
+                const apiResponse = await getRecentSongs(vocaDBDefaultMaxResults, offset)
+
+                for (const [_, entryData] of apiResponse.entries()) {
+                    try {
+                        if (timeNow == null) {
+                            timeNow = new Date(entryData.createDate)
+                            maxAgeDate = new Date()
+                            maxAgeDate.setTime(timeNow.getTime() - vocaDBRecentSongsSearchDateThreshold)
+                            yearNow = timeNow.getFullYear()
+                            monthNow = timeNow.getMonth()
+                            dayNow = timeNow.getDate()
+                        }
+
+                        if (entryData.songType != "Cover") {
+                            const song = await getVocaDBSong(entryData.id)
+                            const views = await getSongMostRecentViews(song.id, timestamp)
+
+                            if (views != null) {
+
+                                if ((views.total >= vocaDBRecentSongsViewsThreshold) && (vocaDBRecentSongsUploadDateThreshold > (timeNow.getTime() - new Date(entryData.publishDate).getTime()))) {
+                                    console.log(`${entryData.id} meets views threshold (${views.total} views)`)
+                                    recentSongs.push(song)
+                                }
+                            }
+
+                        }
+                    } catch (error) {
+                        console.log(`Error when scraping recent VocaDB song with id ${entryData.id}. Error: ${error}`)
+                    }
+                }
+
+                // repeat until the entry's date is no longer today
+                const createDate = new Date(apiResponse[apiResponse.length - 1]["createDate"])
+                continueFetching = maxAgeDate ? createDate >= maxAgeDate : false
+
+                offset += vocaDBDefaultMaxResults
+            }
+
+            console.log("Finished getting recent songs.")
+
+            resolve(recentSongs)
         } catch (error) {
             reject(error)
         }
