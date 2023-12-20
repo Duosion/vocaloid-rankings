@@ -1332,6 +1332,24 @@ function updateArtistSync(
     return getArtistSync(id) as Artist
 }
 
+function deleteArtistSync(
+    artistId: Id,
+) {
+    db.prepare(`
+    DELETE FROM artists
+    WHERE id = ?
+    `).run(artistId)
+}
+
+function artistExistsSync(
+    id: Id,
+) {
+    return db.prepare(`
+    SELECT id
+    FROM artists
+    WHERE id = ?
+    `).get() ? true : false
+}
 
 function buildSearchArtistsQueryParams(
     query: string,
@@ -1439,6 +1457,42 @@ export function getArtist(
     return new Promise<Artist | null>((resolve, reject) => {
         try {
             resolve(getArtistSync(id, getViews, getBaseArtist))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+export function insertArtist(
+    artist: Artist
+): Promise<Artist> {
+    return new Promise((resolve, reject) => {
+        try {
+            resolve(insertArtistSync(artist))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+export function updateArtist(
+    artist: Partial<Artist> & Pick<Artist, 'id'>
+): Promise<Artist> {
+    return new Promise((resolve, reject) => {
+        try {
+            resolve(updateArtistSync(artist))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+export function deleteArtist(
+    id: Id
+): Promise<void> {
+    return new Promise((resolve, reject) => {
+        try {
+            resolve(deleteArtistSync(id))
         } catch (error) {
             reject(error)
         }
@@ -1572,6 +1626,37 @@ function getSongViewsSync(
     )
 }
 
+function insertSongViewsSync(
+    songId: Id,
+    views: Views
+): Views {
+    const timestamp = getMostRecentViewsTimestampSync(views.timestamp)
+    if (!timestamp) return views
+
+    // iterate breakdown
+    const breakdowns = views.breakdown
+    for (const rawSourceType in breakdowns) {
+        const sourceType = Number(rawSourceType) as SourceType
+        const breakdown = breakdowns[sourceType]
+        if (breakdown) {
+            for (const views of breakdown) {
+                db.prepare(`
+                INSERT OR REPLACE INTO views_breakdowns (song_id, timestamp, views, video_id, view_type)
+                VALUES (?, ?, ?, ?, ?)
+                `).run(
+                    songId,
+                    timestamp,
+                    views.views,
+                    views.id,
+                    sourceType
+                )
+            }
+        }
+    }
+
+    return views
+}
+
 function buildSongPlacement(
     allTime: number,
     releaseYear: number
@@ -1688,45 +1773,204 @@ function getSongSync(
     )
 }
 
-function createSongSync(
-    song: Song
+function insertSongNamesSync(
+    songId: Id,
+    names: Names
 ) {
-    const id = song.id
-
-    // create song data
-    db.prepare(`
-    INSERT INTO songs (id, publish_date, addition_date, song_type, thumbnail, maxres_thumbnail, thumbnail_type, average_color, dark_color, light_color, fandom_url, last_updated, dormant)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
-        id,
-        song.publishDate,
-        song.additionDate,
-        song.type,
-        song.thumbnail,
-        song.maxresThumbnail,
-        song.thumbnailType,
-        song.averageColor,
-        song.darkColor,
-        song.lightColor,
-        song.fandomUrl,
-        song.lastUpdated,
-        song.isDormant
-    )
-
-    // create names
-    for (const nameType in song.names) {
+    for (const nameType in names) {
         const type = Number.parseInt(nameType) as NameType
-        const name = song.names[type]
+        const name = names[type]
 
         if (name) db.prepare(`
-        INSERT INTO song_names (song_id, name, name_type)
-        VALUES (?, ?, ?)
-        `).run(id, name, type);
+            INSERT INTO songs_names (song_id, name, name_type)
+            VALUES (?, ?, ?)
+            `).run(songId, name, type);
+    }
+}
+
+function insertSongArtistsSync(
+    songId: Id,
+    categories: SongArtistsCategories
+) {
+    for (const rawCategory in categories) {
+        const category = Number(rawCategory) as ArtistCategory
+
+        for (const id of categories[category]) {
+            db.prepare(`
+                INSERT INTO songs_artists (song_id, artist_id, artist_category)
+                VALUES (?, ?, ?)
+                `).run(
+                songId,
+                id,
+                category
+            )
+        }
+    }
+}
+
+function insertSongVideoIds(
+    songId: Id,
+    videoIds: SongVideoIds
+) {
+    for (const rawSourceType in videoIds) {
+        const sourceType = Number(rawSourceType) as SourceType
+        const ids = videoIds[sourceType]
+        for (const videoId of ids || []) {
+            db.prepare(`
+            INSERT INTO songs_video_ids (song_id, video_id, video_type)
+            VALUES (?, ?, ?)
+            `).run(
+                songId,
+                videoId,
+                sourceType
+            )
+        }
+    }
+}
+
+function insertSongSync(
+    song: Song
+): Song {
+    const songId = song.id
+
+    db.transaction(() => {
+
+        // create song data
+        db.prepare(`
+        INSERT INTO songs (id, publish_date, addition_date, song_type, thumbnail, maxres_thumbnail, thumbnail_type, average_color, dark_color, light_color, fandom_url, last_updated, dormant)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(
+            songId,
+            song.publishDate,
+            song.additionDate,
+            song.type,
+            song.thumbnail,
+            song.maxresThumbnail,
+            song.thumbnailType,
+            song.averageColor,
+            song.darkColor,
+            song.lightColor,
+            song.fandomUrl,
+            song.lastUpdated,
+            song.isDormant
+        )
+
+        // create names
+        insertSongNamesSync(songId, song.names)
+
+        // create song artists if they don't exist
+        for (const artist of song.artists) {
+            // insert the artist if it doesn't exist
+            if (!artistExistsSync(artist.id)) insertArtistSync(artist)
+        }
+
+        // add songs artists connections
+        insertSongArtistsSync(songId, song.artistsCategories)
+
+        // add video ids
+        insertSongVideoIds(songId, song.videoIds)
+
+        // insert views
+        if (song.views) insertSongViewsSync(song.id, song.views)
+
+    })
+
+    return song
+}
+
+function updateSongSync(
+    song: Partial<Song> & Pick<Song, 'id'>
+): Song {
+    const songId = song.id
+
+    const fields: Record<string, string> = {
+        publishDate: 'publish_date',
+        additionDate: 'addition_date',
+        type: 'song_type',
+        thumbnail: 'thumbnail',
+        maxresThumbnail: 'maxres_thumbnail',
+        thumbnailType: 'thumbnail_type',
+        averageColor: 'average_color',
+        darkColor: 'dark_color',
+        lightColor: 'light_color',
+        fandomUrl: 'fandom_url',
+        lastUpdated: 'last_updated',
+        isDormant: 'dormant'
     }
 
-    // create song artists
+    const sets: string[] = []
+    const values: any[] = []
+    for (const key in song) {
+        const value = song[key as keyof typeof song]
+        const field = fields[key]
+        if (field && value !== undefined) {
+            sets.push(`${field} = ?`)
+            switch(typeof(value)) {
+                case 'boolean':
+                    values.push(value ? 1 : 0)
+                default:
+                    values.push(value)
+            }
+        }
+    }
 
+    db.transaction(() => {
+        if (sets.length > 0) db.prepare(`
+            UPDATE songs
+            SET ${sets.join(', ')}
+            WHERE id = ?
+            `).run([...values, songId])
+        
+        // update names
+        const names = song.names
+        if (names) {
+            // delete old
+            db.prepare(`
+            DELETE FROM songs_names
+            WHERE song_id = ?
+            `).run(songId)
 
+            // insert new
+            insertSongNamesSync(songId, names)
+        }
+
+        // update artists
+        const categories = song.artistsCategories
+        if (categories) {
+            // delete old
+            db.prepare(`
+            DELETE FROM songs_artists
+            WHERE song_id = ?
+            `).run(songId)
+
+            // insert new
+            insertSongArtistsSync(songId, categories)
+        }
+
+        // update video ids
+        const videoIds = song.videoIds
+        if (videoIds) {
+            // delete old
+            db.prepare(`
+            DELETE FROM songs_video_ids
+            WHERE song_id = ?
+            `).run(songId)
+
+            // insert new
+            insertSongVideoIds(songId, videoIds)
+        }
+    })
+
+    return getSongSync(songId) as Song
+}
+
+function deleteSongSync(
+    id: Id
+) {
+    db.prepare(`
+    DELTE FROM songs
+    WHERE id = ?
+    `).run(id)
 }
 
 export function getSongPlacement(
@@ -1763,6 +2007,19 @@ export function getSongViews(
     })
 }
 
+export function insertSongViews(
+    id: Id,
+    views: Views
+): Promise<Views> {
+    return new Promise((resolve, reject) => {
+        try {
+            resolve(insertSongViewsSync(id, views))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
 export function getSong(
     id: Id,
     getViews: boolean = true
@@ -1782,6 +2039,42 @@ export function getAllSongIds(): Promise<{ id: Id }[]> {
             resolve(db.prepare(`
             SELECT id
             FROM songs`).all() as { id: Id }[])
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+export function insertSong(
+    song: Song
+): Promise<Song> {
+    return new Promise((resolve, reject) => {
+        try {
+            resolve(insertSongSync(song))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+export function updateSong(
+    song: Partial<Song> & Pick<Song, 'id'>
+): Promise<Song> {
+    return new Promise((resolve, reject) => {
+        try {
+            resolve(updateSongSync(song))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+export function deleteSong(
+    id: Id
+): Promise<void> {
+    return new Promise((resolve, reject) => {
+        try {
+            resolve(deleteSongSync(id))
         } catch (error) {
             reject(error)
         }
