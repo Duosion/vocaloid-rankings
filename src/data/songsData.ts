@@ -1,16 +1,14 @@
 import { getMostVibrantColor } from "@/lib/material/material";
+import Niconico from "@/lib/platforms/Niconico";
+import bilibili from "@/lib/platforms/bilibili";
 import { generateTimestamp } from "@/lib/utils";
+import { getVocaDBRecentSongs } from "@/lib/vocadb";
 import { Hct, MaterialDynamicColors, SchemeVibrant, argbFromHex, argbFromRgb, hexFromArgb, rgbaFromArgb } from "@material/material-color-utilities";
 import type { Statement } from "better-sqlite3";
 import { getPaletteFromURL } from "color-thief-node";
 import getDatabase, { Databases } from ".";
-import { Artist, ArtistCategory, ArtistPlacement, ArtistRankingsFilterParams, ArtistRankingsFilterResult, ArtistRankingsFilterResultItem, ArtistThumbnailType, ArtistThumbnails, ArtistType, FilterInclusionMode, HistoricalViews, HistoricalViewsResult, Id, NameType, Names, PlacementChange, RawArtistData, RawArtistName, RawArtistRankingResult, RawArtistThumbnail, RawSongArtist, RawSongData, RawSongName, RawSongRankingsResult, RawSongVideoId, RawViewBreakdown, Song, SongArtistsCategories, SongPlacement, SongRankingsFilterParams, SongRankingsFilterResult, SongRankingsFilterResultItem, SongType, SongVideoIds, SourceType, SqlRankingsFilterInVariables, SqlRankingsFilterParams, SqlRankingsFilterStatements, SqlSearchArtistsFilterParams, VideoViews, Views, ViewsBreakdown } from "./types";
-import { Platform } from "@/lib/platforms/types";
+import { Artist, ArtistCategory, ArtistPlacement, ArtistRankingsFilterParams, ArtistRankingsFilterResult, ArtistRankingsFilterResultItem, ArtistThumbnailType, ArtistThumbnails, ArtistType, FilterInclusionMode, HistoricalViews, HistoricalViewsResult, Id, NameType, Names, PlacementChange, RawArtistData, RawArtistName, RawArtistRankingResult, RawArtistThumbnail, RawSongArtist, RawSongData, RawSongName, RawSongRankingsResult, RawSongVideoId, RawViewBreakdown, Song, SongArtistsCategories, SongPlacement, SongRankingsFilterParams, SongRankingsFilterResult, SongRankingsFilterResultItem, SongType, SongVideoIds, SourceType, SqlRankingsFilterInVariables, SqlRankingsFilterParams, SqlRankingsFilterStatements, SqlSearchArtistsFilterParams, Views, ViewsBreakdown } from "./types";
 import YouTube from "@/lib/platforms/YouTube";
-import Niconico from "@/lib/platforms/Niconico";
-import bilibili from "@/lib/platforms/bilibili";
-import { time } from "console";
-import { getVocaDBRecentSongs } from "@/lib/vocadb";
 
 // import database
 const db = getDatabase(Databases.SONGS_DATA)
@@ -1907,7 +1905,6 @@ function updateSongSync(
         darkColor: 'dark_color',
         lightColor: 'light_color',
         fandomUrl: 'fandom_url',
-        lastUpdated: 'last_updated',
         isDormant: 'dormant'
     }
 
@@ -1921,13 +1918,19 @@ function updateSongSync(
             switch (typeof (value)) {
                 case 'boolean':
                     values.push(value ? 1 : 0)
+                    break;
                 default:
                     values.push(value)
             }
         }
     }
 
+    // add last updated
+    sets.push('last_updated = ?')
+    values.push(new Date().toISOString())
+
     db.transaction(() => {
+        console.log(sets, values)
         if (sets.length > 0) db.prepare(`
             UPDATE songs
             SET ${sets.join(', ')}
@@ -2153,7 +2156,7 @@ export async function getSongMostRecentViews(
         if (!song) return null;
 
         const platforms: { [key in SourceType]: (videoId: string) => Promise<number | null> } = {
-            [SourceType.YOUTUBE]: async () => 0,
+            [SourceType.YOUTUBE]: YouTube.getViews,
             [SourceType.NICONICO]: Niconico.getViews,
             [SourceType.BILIBILI]: bilibili.getViews
         };
@@ -2190,10 +2193,20 @@ export async function getSongMostRecentViews(
 
 let isRefreshing = false;
 
+interface RefreshingSong {
+    id: Id,
+    dormant: boolean,
+    publishTime: number,
+    additionTime: number
+}
+
 export async function refreshAllSongsViews(
     maxRetries: number = 5,
     retryDelay: number = 1000,
-    maxConcurrent: number = 15
+    maxConcurrent: number = 15,
+    minDormantPublishAge: number = 365 * 24 * 60 * 60 * 1000, // in milliseconds, the minimum amount of ms since song publish before it can become dormant
+    minDormantAdditionAge: number = 3 * 24 * 60 * 60 * 1000, // in milliseconds, the minimum amount of ms since song addition before it can become dormant
+    minDormantViews: number = 1500 // the minimum number of daily views a song can have before it can become dormant
 ): Promise<void> {
     if (isRefreshing) throw new Error('All songs views are already being refreshed.');
 
@@ -2202,37 +2215,60 @@ export async function refreshAllSongsViews(
     try {
         console.log(`Updating all songs' views...`);
 
+        const timeNow = new Date().getTime()
         const timestamp = generateTimestamp();
+        const previousTimestamp = getMostRecentViewsTimestampSync(timestamp)
         if (timestampExistsSync(timestamp)) throw new Error(`Songs views were already refreshed for timestamp "${timestamp}"`);
 
-        const songIds = db.prepare(`SELECT id FROM songs`).all() as { id: Id }[];
+        // get all non-dormant songs' ids
+        const songIds = db.prepare(`SELECT id, publish_date, addition_date, dormant FROM songs`).all() as RawSongData[];
 
         const refreshingPromises: Promise<void>[] = [];
 
         const throttledExecutions = async () => {
-            for (const { id } of songIds) {
+            for (const rawSong of songIds) {
                 if (refreshingPromises.length >= maxConcurrent) {
                     await Promise.all(refreshingPromises);
                     refreshingPromises.length = 0; // Empty the array without creating a new reference.
                 }
                 refreshingPromises.push(
-                    retractAttempt(id, timestamp, 0)
+                    retractAttempt({
+                        id: rawSong.id,
+                        dormant: rawSong.dormant == 1 ? true : false,
+                        publishTime: new Date(rawSong.publish_date).getTime(),
+                        additionTime: new Date(rawSong.addition_date).getTime()
+                    }, timestamp, 0)
                 );
             }
             await Promise.all(refreshingPromises);
         };
 
-        const retractAttempt = async (id: Id, timestamp: string, depth: number): Promise<void> => {
+        const retractAttempt = async (song: RefreshingSong, timestamp: string, depth: number): Promise<void> => {
             try {
-                const views = await getSongMostRecentViews(id, timestamp);
+                const previousViews = getSongViewsSync(song.id, previousTimestamp)
+                const views = song.dormant ? previousViews : await getSongMostRecentViews(song.id, timestamp);
                 if (!views) throw new Error('Most recent views was null.');
-                insertSongViewsSync(id, views);
-                console.log(`Refreshed views for (${id})`);
+                insertSongViewsSync(song.id, views);
+                console.log(`Refreshed views for (${song.id})`);
+
+                // make song dormant if necessary
+                if (!song.dormant && previousViews 
+                    && (minDormantViews >= (Number(previousViews.total) - Number(views.total)))
+                    && ((timeNow - song.publishTime) >= minDormantPublishAge)
+                    && ((timeNow - song.additionTime) >= minDormantAdditionAge)
+                ) {
+                    console.log(`Made (${song.id}) dormant.`)
+                    updateSongSync({
+                        id: song.id,
+                        isDormant: true
+                    })
+                }
+
             } catch (error) {
-                console.log(`Error when refreshing song with id (${id}). Error: ${error}`);
+                console.log(`Error when refreshing song with id (${song.id}). Error: ${error}`);
                 if (maxRetries > depth) {
                     await new Promise(resolve => setTimeout(resolve, retryDelay));
-                    await retractAttempt(id, timestamp, depth + 1);
+                    await retractAttempt(song, timestamp, depth + 1);
                 }
             }
         };

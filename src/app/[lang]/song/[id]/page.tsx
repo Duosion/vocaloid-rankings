@@ -5,7 +5,7 @@ import { DateFormatter } from "@/components/formatters/date-formatter"
 import { EntityName } from "@/components/formatters/entity-name"
 import { NumberFormatter } from "@/components/formatters/number-formatter"
 import Image from '@/components/image'
-import { getSong, getSongHistoricalViews } from "@/data/songsData"
+import { getSong, getSongHistoricalViews, getSongMostRecentViews, insertSongViews, updateSong } from "@/data/songsData"
 import { ArtistCategory, ArtistThumbnailType, Id, NameType, SourceType } from "@/data/types"
 import { getCustomThemeStylesheet } from "@/lib/material/material"
 import { SourceTypesDisplayData } from "@/lib/sourceType"
@@ -39,6 +39,22 @@ export default async function SongPage(
     const songId = Number(params.id)
     const song = !isNaN(songId) ? await getSong(songId) : null
     if (!song) return notFound()
+
+    if (song.isDormant) {
+
+        // update song views
+        const views = await getSongMostRecentViews(song.id)
+        if (views) {
+            await insertSongViews(song.id, views)
+        } 
+
+        // set song to not be dormant
+        await updateSong({
+            id: song.id,
+            isDormant: false
+        })
+        song.isDormant = false
+    }
 
     // get authenticated user
     /*const requestCookies = cookies()
@@ -288,7 +304,7 @@ export default async function SongPage(
                         </EntitySection>
 
                         {/* Daily Views */}
-                        {song.isDormant ? undefined : <EntitySection title={langDict.song_daily_views}>
+                        <EntitySection title={langDict.song_daily_views}>
                             <div className="bg-surface-container rounded-2xl p-5 flex justify-between md:gap-4 gap-1 overflow-x-auto overflow-y-clip">
                                 {historicalViewsResult.views.map(historicalViews => {
                                     const views = historicalViews.views as number
@@ -299,7 +315,7 @@ export default async function SongPage(
                                     </section>
                                 })}
                             </div>
-                        </EntitySection>}
+                        </EntitySection>
                     </div>
 
                     {mostViewedSources[SourceType.YOUTUBE] ? <div className="grid gap-5 lg:grid-cols-2 grid-cols-1">

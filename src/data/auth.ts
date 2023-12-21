@@ -292,6 +292,7 @@ function updateSessionSync(
                 switch (typeof (value)) {
                     case 'boolean':
                         values.push(value ? 1 : 0)
+                        break;
                     default:
                         values.push(value)
                 }
