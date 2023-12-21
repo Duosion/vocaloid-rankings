@@ -25,6 +25,9 @@ const vocaDBSongApiParams = "?fields=Artists,Names,PVs&lang=Default"
 const vocaDBArtistsApiUrl = vocaDBApiUrl + "artists/"
 const vocaDBArtistsApiParams = "?fields=Names,MainPicture,BaseVoicebank"
 
+// matchers
+const vocaDBSongURLMatcher = /vocadb\.net\/S\/(\d+)$/
+
 // tables
 const blacklistedSongTypes: { [key: string]: boolean } = {
     ["Instrumental"]: true,
@@ -327,7 +330,7 @@ const parseVocaDBSongAsync = (
 }
 
 export const getVocaDBArtist = (
-    artistId: Id
+    artistId: Id | string
 ): Promise<Artist> => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -345,7 +348,7 @@ export const getVocaDBArtist = (
 }
 
 export const getVocaDBSong = (
-    songId: Id
+    songId: Id | string
 ): Promise<Song> => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -430,3 +433,17 @@ export const getVocaDBRecentSongs = (
         }
     })
 }
+
+export function parseVocaDBSongId(
+    identifier: string
+): Id | null {
+    // try to match URL
+    const matches = identifier.match(vocaDBSongURLMatcher)
+    if (matches) return Number.parseInt(matches[1])
+
+    // try to match number
+    const parsedId = Number.parseInt(identifier)
+    if (!isNaN(parsedId)) return parsedId
+
+    return null
+}  

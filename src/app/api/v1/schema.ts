@@ -1,5 +1,6 @@
-import { filterArtistRankings, filterSongRankings, getArtist, getArtistPlacement, getArtistViews, getSong, getSongPlacement, getSongViews, searchArtists } from '@/data/songsData'
+import { filterArtistRankings, filterSongRankings, getArtist, getArtistPlacement, getArtistViews, getSong, getSongPlacement, getSongViews, insertSong, searchArtists, songExists } from '@/data/songsData'
 import { Artist, ArtistCategory, ArtistRankingsFilterParams, ArtistThumbnailType, ArtistThumbnails, FilterDirection, FilterInclusionMode, FilterOrder, NameType, Names, Song, SongArtistsCategories, SongRankingsFilterParams, SongVideoIds, SourceType, ViewsBreakdown } from '@/data/types'
+import { getVocaDBSong, parseVocaDBSongId } from '@/lib/vocadb'
 import {
     GraphQLEnumType,
     GraphQLInterfaceType,
@@ -235,6 +236,12 @@ import {
  *     maxEntries: Int
  *     startAt: Int
  *   ): [Artist]
+ * }
+ * 
+ * type Mutation {
+ *   insertVocaDBSong(
+ *     id: String!
+ *   ): Song
  * }
  * 
  * ```
@@ -1658,7 +1665,47 @@ const queryType = new GraphQLObjectType({
     }
 })
 
+/**
+ * type Mutation {
+ *   insertVocaDBSong(
+ *     identifier: String!
+ *   ): Song
+ * }
+ */
+const mutationType = new GraphQLObjectType({
+    name: 'Mutation',
+    fields: {
+        insertVocaDBSong: {
+            type: songType,
+            args: {
+                id: {
+                    type: new GraphQLNonNull(GraphQLString),
+                    description: 'The URL, or ID of the VocaDB song to insert into the database.'
+                }
+            },
+            resolve: async (
+                _source,
+                {
+                    id
+                }: {
+                    id: string
+                }
+            ) => {
+                const songId = parseVocaDBSongId(id)
+                if (!songId) throw new Error('Invalid song ID provided.')
+
+                // check if the song already exists
+                if (await songExists(songId)) throw new Error('Provided song ID is already exists in the database.')
+
+                // get the song from the voca DB api
+                return await insertSong(await getVocaDBSong(songId))
+            }
+        }
+    }
+})
+
 export const Schema: GraphQLSchema = new GraphQLSchema({
     query: queryType,
+    mutation: mutationType,
     types: [songType, artistType, songRankingsFilterResultType]
 })

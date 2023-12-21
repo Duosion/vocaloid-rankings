@@ -1263,7 +1263,6 @@ function insertArtistSync(
 ): Artist {
     const id = artist.id
 
-    console.log('insert', artist)
     // insert artist
     db.prepare(`
     INSERT INTO artists (id, artist_type, publish_date, addition_date, base_artist_id, average_color, dark_color, light_color)
@@ -1995,6 +1994,18 @@ function songExistsSync(
     FROM songs
     WHERE id = ?
     `).get(id) ? true : false
+}
+
+export function songExists(
+    id: Id
+): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+        try {
+            resolve(songExistsSync(id))
+        } catch (error) {
+            reject(error)
+        }
+    })
 }
 
 export function getSongPlacement(
