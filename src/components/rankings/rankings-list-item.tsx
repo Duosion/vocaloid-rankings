@@ -75,7 +75,7 @@ export function RankingListItem(
                     }}
                 >
                     <b className="ml-3 text-on-surface h-10 w-fit min-w-[40px] box-border flex items-center justify-center text-2xl font-extrabold">{placement}</b>
-                    <Link href={href} className="sm:block hidden rounded-xl border border-outline-variant box-border">
+                    <Link href={href} className="block rounded-xl border border-outline-variant box-border">
                         <EntityThumbnail
                             src={icon}
                             alt={iconAlt}
@@ -85,12 +85,12 @@ export function RankingListItem(
                             fillColor={color}
                         />
                     </Link>
-                    <section className="flex flex-col gap flex-1 text-inherit">
-                        <h3 className="text-on-surface overflow-clip text-ellipsis hover:text-inherit"><Link href={href} className="font-semibold transition-colors text-inherit text-xl" title={iconAlt}>{titleContent}</Link></h3>
+                    <section className="flex flex-col gap flex-1 text-inherit overflow-hidden">
+                        <Link href={href} className="text-on-surface overflow-clip text-ellipsis hover:text-inherit font-semibold transition-colors max-h-[2lh] line-clamp-2 sm:text-xl text-lg" title={iconAlt}>{titleContent}</Link>
                         {supportingContent}
                     </section>
                     <section className="flex flex-col gap items-end mr-4">
-                        <h3 className="text-on-surface text-xl font-semibold">{trailingTitleContent}</h3>
+                        <h3 className="text-on-surface sm:text-xl text-lg font-semibold">{trailingTitleContent}</h3>
                         <span className="text-on-surface-variant text-md">{trailingSupporting}</span>
                     </section>
                 </li>
