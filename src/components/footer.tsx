@@ -14,7 +14,6 @@ export default async function Footer(
         <footer>
             <Divider className="max-w-screen-2xl"/>
             <ul className="w-full min-h-24 h-fit box-border p-7 flex justify-center items-center gap-7 flex-wrap">
-                <FooterLink text={langDict.home_about} href='/about' />
                 <FooterLink text={langDict.add_song} href='/song/add' />
                 <FooterLink text={langDict.footer_source_code} href='https://github.com/Duosion/vocaloid-rankings' />
                 <FooterLink text={langDict.footer_community} href='https://discord.gg/By7z2kKVjx' />

@@ -26,7 +26,7 @@ const vocaDBArtistsApiUrl = vocaDBApiUrl + "artists/"
 const vocaDBArtistsApiParams = "?fields=Names,MainPicture,BaseVoicebank"
 
 // matchers
-const vocaDBSongURLMatcher = /vocadb\.net\/S\/(\d+)$/
+const vocaDBSongURLMatcher = /vocadb\.net\/S\/(\d+)/
 
 // tables
 const blacklistedSongTypes: { [key: string]: boolean } = {
