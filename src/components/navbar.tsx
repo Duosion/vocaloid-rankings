@@ -8,6 +8,7 @@ import { useLocale } from './providers/language-dictionary-provider'
 import { SearchBar } from "./search-bar"
 import { ModalDrawer } from './transitions/modal-drawer'
 import { usePathname } from 'next/navigation'
+import { Divider } from './material/divider'
 
 export default function Navbar(
     {
@@ -19,7 +20,7 @@ export default function Navbar(
     const [drawerOpen, setDrawerOpen] = useState(false)
     const langDict = useLocale()
     const pathName = usePathname()
-    
+
     const closeDrawer = () => setDrawerOpen(false)
 
     const navLinks: { icon: string, href: string, text: string }[] = [
@@ -49,12 +50,12 @@ export default function Navbar(
         <header className="z-50 w-full h-15 px-7 py-2 box-border sticky top-0 backdrop-blur backdrop-saturate-200 before:w-full before:h-full before:absolute bg-[linear-gradient(var(--md-sys-color-background),transparent)] before:bg-background before:opacity-80 before:z-40 before:top-0 before:left-0">
             {/* nav drawer */}
             <ModalDrawer visible={drawerOpen} onClose={closeDrawer} className='lg:hidden'>
-                <ul className='flex w-full gap-5'>
+                {/* <ul className='flex w-full gap-5'> */}
                     {/* search bar */}
-                    <SearchBar key={'nav-drawer-search'} className='flex-1' placeholder={langDict.search_hint} />
+                    {/* <SearchBar key={'nav-drawer-search'} className='flex-1' placeholder={langDict.search_hint} /> */}
                     {/* settings button */}
-                    <IconButton key='nav-drawer-settings' icon='settings' href={`/${lang}/settings`} onClick={closeDrawer} />
-                </ul>
+                    {/* <IconButton key='nav-drawer-settings' icon='settings' href={`/${lang}/settings`} onClick={closeDrawer} /> */}
+                {/* </ul> */}
                 <ul className='flex flex-col w-full'>
                     {
                         navLinks.map(linkData => <NavDrawerLink
@@ -66,6 +67,14 @@ export default function Navbar(
                             onClick={closeDrawer}
                         />)
                     }
+                    <NavDrawerLink
+                        key='settings'
+                        icon='settings'
+                        href={`/${lang}/settings`}
+                        text={langDict.settings}
+                        active={pathName === `/${lang}/settings`}
+                        onClick={closeDrawer}
+                    />
                 </ul>
             </ModalDrawer>
 
@@ -99,7 +108,7 @@ export default function Navbar(
 
                 </ul>
                 {/* search bar */}
-                <SearchBar className='min-w-[360px] max-w-[420px] lg:flex hidden' placeholder={langDict.search_hint} />
+                {/* <SearchBar className='min-w-[360px] max-w-[420px] lg:flex hidden' placeholder={langDict.search_hint} /> */}
 
                 {/* settings button */}
                 <IconButton icon='settings' className='sm:flex hidden' href={`/${lang}/settings`} />
