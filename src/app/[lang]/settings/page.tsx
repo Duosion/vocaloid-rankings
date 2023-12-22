@@ -1,54 +1,89 @@
 'use client'
-import { NameType } from '@/data/types'
-import { useEffect, useState } from 'react'
-import { useTheme } from 'next-themes'
-import { LanguageDictionary, Locale, getDictionary } from '@/localization'
-import { useSettings } from '../../../components/providers/settings-provider'
-import { NameTypeLocaleTokens } from '@/localization/DictionaryTokenMaps'
-import { RankingsViewMode } from '../rankings/types'
-import { Theme } from './types'
+import { Locale, getDictionary } from "@/localization"
+import { useLocale } from "@/components/providers/language-dictionary-provider"
+import { useSettings } from "@/components/providers/settings-provider"
+import { rawSettingsDefault } from "."
+import { SelectFilterElement } from "@/components/filter/select-filter"
+import { useEffect, useState } from "react"
+import { NameType } from "@/data/types"
 
-export default function SettingsPage(
-  {
-    params
-  }: {
-    params: {
-      lang: Locale
+export default function AddSongPage() {
+
+    const [mounted, setMounted] = useState(false)
+
+    // import language dictionary
+    const langDict = useLocale()
+
+    // get settings
+    const { settings, setTitleLanguage, setRankingsViewMode, setTheme } = useSettings()
+
+    useEffect(() => {
+        setMounted(true)
+    }, [])
+
+    if (!mounted || !langDict) {
+        return null
     }
-  }
-) {
-  const [mounted, setMounted] = useState(false)
-  const { settings, setTitleLanguage, setRankingsViewMode, setTheme } = useSettings()
-  const [langDict, setLangDict] = useState({} as LanguageDictionary)
 
-  useEffect(() => {
-    setMounted(true)
-    getDictionary(params.lang).then(dict => setLangDict(dict))
-  }, [])
+    return (
+        <section className="flex flex-col gap-5 w-full min-h-screen max-w-4xl">
+            <h1 className="font-bold md:text-5xl md:text-left text-4xl text-center w-full mb-5">{langDict.settings}</h1>
 
-  if (!mounted || !langDict) {
-    return null
-  }
+            {/* Theme */}
+            <SelectFilterElement
+                name={langDict['settings_theme']}
+                value={settings.theme}
+                defaultValue={rawSettingsDefault.theme}
+                options={[
+                    langDict['settings_theme_system'],
+                    langDict['settings_theme_light'],
+                    langDict['settings_theme_dark']
+                ]}
+                onValueChanged={(newValue) => {
+                    setTheme(newValue)
+                }}
+            />
+            
+            {/* Title Language */}
+            <SelectFilterElement
+                name={langDict['settings_title_language']}
+                value={Math.max(0, settings.titleLanguage - 1)}
+                defaultValue={Math.max(0, rawSettingsDefault.titleLanguage - 1)}
+                options={[
+                    langDict['settings_title_language_original'],
+                    langDict['settings_title_language_english'],
+                    langDict['settings_title_language_romaji']
+                ]}
+                onValueChanged={(newValue) => {
+                    switch(newValue) {
+                        case 0:
+                            setTitleLanguage(NameType.ORIGINAL)
+                            break;
+                        case 1:
+                            setTitleLanguage(NameType.ENGLISH);
+                            break;
+                        case 2:
+                            setTitleLanguage(NameType.ROMAJI);
+                            break;
+                    }
+                }}
+            />
 
-  return (
-    <div className=' gap-3 flex flex-col'>
-      <div className='text-xl'>Theme: {settings.theme}</div>
-      <select value={settings.theme} onChange={e => setTheme(Number.parseInt(e.target.value))}>
-        <option value={Theme.SYSTEM}>System</option>
-        <option value={Theme.DARK}>Dark</option>
-        <option value={Theme.LIGHT}>Light</option>
-      </select>
-      <div className='text-xl'>Title language: {langDict[NameTypeLocaleTokens[settings.titleLanguage]]}</div>
-      <select value={settings.titleLanguage} onChange={ e => setTitleLanguage((Number.parseInt(e.target.value))) }>
-        <option value={NameType.ORIGINAL}>Native</option>
-        <option value={NameType.ENGLISH}>English</option>
-        <option value={NameType.ROMAJI}>Romaji</option>
-      </select>
-      <div className='text-xl'>Rankings View Mode: {settings.rankingsViewMode}</div>
-      <select value={settings.rankingsViewMode} onChange={ e => setRankingsViewMode((Number.parseInt(e.target.value))) }>
-        <option value={RankingsViewMode.LIST}>List</option>
-        <option value={RankingsViewMode.GRID}>Grid</option>
-      </select>
-    </div>
-  )
+            {/* Rankings View Mode */}
+            <SelectFilterElement
+                name={langDict['settings_rankings_view_mode']}
+                value={settings.rankingsViewMode}
+                defaultValue={rawSettingsDefault.rankingsViewMode}
+                options={[
+                    langDict['settings_rankings_view_mode_list'],
+                    langDict['settings_rankings_view_mode_grid'],
+                ]}
+                onValueChanged={(newValue) => {
+                    setRankingsViewMode(newValue)
+                }}
+            />
+
+        </section>
+    )
+
 }
