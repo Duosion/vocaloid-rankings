@@ -1646,6 +1646,12 @@ function insertSongViewsSync(
 ): Views {
     const timestamp = views.timestamp || getMostRecentViewsTimestampSync() || generateTimestamp()
 
+    // delete existing
+    db.prepare(`
+    DELETE FROM views_breakdowns
+    WHERE song_id = ? AND timestamp = ?
+    `).run(songId, timestamp)
+
     // iterate breakdown
     const breakdowns = views.breakdown
     for (const rawSourceType in breakdowns) {

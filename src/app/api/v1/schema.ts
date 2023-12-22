@@ -1,4 +1,4 @@
-import { filterArtistRankings, filterSongRankings, getArtist, getArtistPlacement, getArtistViews, getSong, getSongPlacement, getSongViews, insertSong, searchArtists, songExists } from '@/data/songsData'
+import { filterArtistRankings, filterSongRankings, getArtist, getArtistPlacement, getArtistViews, getSong, getSongPlacement, getSongViews, insertSong, insertSongViews, searchArtists, songExists, updateSong } from '@/data/songsData'
 import { Artist, ArtistCategory, ArtistRankingsFilterParams, ArtistThumbnailType, ArtistThumbnails, FilterDirection, FilterInclusionMode, FilterOrder, NameType, Names, Song, SongArtistsCategories, SongRankingsFilterParams, SongVideoIds, SourceType, ViewsBreakdown } from '@/data/types'
 import { getVocaDBSong, parseVocaDBSongId } from '@/lib/vocadb'
 import {
@@ -242,6 +242,10 @@ import {
  *   insertVocaDBSong(
  *     id: String!
  *   ): Song
+ * 
+ *   refreshSongFromVocaDB(
+ *     songId: String!
+ *   )
  * }
  * 
  * ```
@@ -1670,6 +1674,10 @@ const queryType = new GraphQLObjectType({
  *   insertVocaDBSong(
  *     identifier: String!
  *   ): Song
+ * 
+ *   refreshSongFromVocaDB(
+ *     songId: number!
+ *   )
  * }
  */
 const mutationType = new GraphQLObjectType({
@@ -1677,6 +1685,7 @@ const mutationType = new GraphQLObjectType({
     fields: {
         insertVocaDBSong: {
             type: songType,
+            description: "Inserts a new song into the database from a VocaDB song's URL or ID.",
             args: {
                 id: {
                     type: new GraphQLNonNull(GraphQLString),
@@ -1700,6 +1709,37 @@ const mutationType = new GraphQLObjectType({
                 // get the song from the voca DB api
                 return await insertSong(await getVocaDBSong(songId))
             }
+        },
+        refreshSongFromVocaDB: {
+            type: songType,
+            description: "Refreshes a song's data with its data from VocaDB.",
+            args: {
+                id: {
+                    type: new GraphQLNonNull(GraphQLInt)
+                }
+            },
+            resolve: (
+                _source,
+                {
+                    id
+                }: {
+                    id: number
+                }
+            ) => getVocaDBSong(id)
+                .then(async song => {
+                    const existing = await getSong(id)
+
+                    // update view data
+                    if (existing) {
+                        if (song.views) await insertSongViews(id, song.views);
+                        song.additionDate = existing.additionDate
+                        return updateSong(song)
+                    } else {
+                        return insertSong(song)
+                    }
+
+                })
+                .catch(error => { throw new Error(error) })
         }
     }
 })
