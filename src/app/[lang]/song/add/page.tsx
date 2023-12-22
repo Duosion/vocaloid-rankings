@@ -1,6 +1,23 @@
 import { Locale, getDictionary } from "@/localization"
 import { AddSongForm } from "./add-song-form"
 import { Divider } from "@/components/material/divider"
+import { Metadata } from "next"
+
+export async function generateMetadata(
+    {
+        params
+    }: {
+        params: {
+            lang: Locale
+        }
+    }
+): Promise<Metadata> {
+    const langDict = await getDictionary(params.lang)
+
+    return {
+        title: langDict.add_song,
+    }
+}
 
 export default async function AddSongPage(
     {
