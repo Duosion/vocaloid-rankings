@@ -134,7 +134,7 @@ export function ModalDrawer(
                     {/* modal */}
                     <div
                         ref={modalRef}
-                        className="transition-all max-w-[70%] w-[360px] px-5 py-5 max-h-screen h-full overflow-y-auto box-border bg-surface-container-lowest z-50 flex flex-col gap-5"
+                        className="transition-all max-w-[85%] w-[360px] px-5 py-5 max-h-screen h-full overflow-y-auto box-border bg-surface-container-lowest z-50 flex flex-col gap-5"
                         style={{
                             transitionDuration: `${duration}ms`,
                             ...modalStyles[side],
