@@ -7,7 +7,8 @@ import { RawSettings, SettingsProxy, Theme } from "./types";
 export const rawSettingsDefault: RawSettings = {
     titleLanguage: NameType.ENGLISH,
     rankingsViewMode: RankingsViewMode.GRID,
-    theme: Theme.SYSTEM
+    theme: Theme.SYSTEM,
+    googleAnalytics: true
 }
 
 export class Settings implements SettingsProxy {
@@ -69,5 +70,15 @@ export class Settings implements SettingsProxy {
     // theme
     get theme() {
         return this.settings.theme
+    }
+
+    // google analytics
+    get googleAnalytics() {
+        return this.settings.googleAnalytics
+    }
+
+    set googleAnalytics(enabled: boolean) {
+        this.settings.googleAnalytics = enabled
+        this.saveSettings()
     }
 }

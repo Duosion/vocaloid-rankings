@@ -6,6 +6,7 @@ import { rawSettingsDefault } from "."
 import { SelectFilterElement } from "@/components/filter/select-filter"
 import { useEffect, useState } from "react"
 import { NameType } from "@/data/types"
+import { decodeBoolean, encodeBoolean } from "../rankings/utils"
 
 export default function AddSongPage() {
 
@@ -15,13 +16,13 @@ export default function AddSongPage() {
     const langDict = useLocale()
 
     // get settings
-    const { settings, setTitleLanguage, setRankingsViewMode, setTheme } = useSettings()
+    const { settings, setTitleLanguage, setRankingsViewMode, setTheme, setGoogleAnalytics } = useSettings()
 
     useEffect(() => {
         setMounted(true)
     }, [])
 
-    if (!mounted || !langDict) {
+    if (!mounted) {
         return null
     }
 
@@ -80,6 +81,20 @@ export default function AddSongPage() {
                 ]}
                 onValueChanged={(newValue) => {
                     setRankingsViewMode(newValue)
+                }}
+            />
+
+            {/* Google Analytics */}
+            <SelectFilterElement
+                name={langDict['settings_google_analytics']}
+                value={encodeBoolean(settings.googleAnalytics)}
+                defaultValue={encodeBoolean(settings.googleAnalytics)}
+                options={[
+                    langDict['settings_google_analytics_disabled'],
+                    langDict['settings_google_analytics_enabled']
+                ]}
+                onValueChanged={(newValue) => {
+                    setGoogleAnalytics(decodeBoolean(newValue))
                 }}
             />
 

@@ -16,6 +16,9 @@ import { cookies } from "next/dist/client/components/headers"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { Settings } from "../../settings"
+import { FilledButton } from "@/components/material/filled-button"
+import { RefreshSongButton } from "./refresh-song-button"
+import { Divider } from "@/components/material/divider"
 
 // interfaces
 interface ViewsBreakdown {
@@ -46,7 +49,7 @@ export default async function SongPage(
         const views = await getSongMostRecentViews(song.id)
         if (views) {
             await insertSongViews(song.id, views)
-        } 
+        }
 
         // set song to not be dormant
         await updateSong({
@@ -56,21 +59,6 @@ export default async function SongPage(
         song.isDormant = false
     }
 
-    // get authenticated user
-    /*const requestCookies = cookies()
-
-    let user = await getUserFromUsername('duosii')
-    if (!user) {
-        user = await signup('duosii', 'passw0rd', UserAccessLevel.ADMIN)
-    }
-    const authenticatedUser = await getAuthenticatedUser(requestCookies)
-    if (!authenticatedUser) {
-        // login
-        await login(requestCookies, user, 'passw0rd')
-    }
-
-    console.log(await getAuthenticatedUser(requestCookies))*/
-
     // get settings
     const settings = new Settings(cookies())
 
@@ -78,6 +66,9 @@ export default async function SongPage(
     const songTotalViews = Number(song.views?.total) || 0
     const settingTitleLanguage = settings.titleLanguage
     const songNames = song.names
+
+    // song refreshing variables
+    const songRefreshedToday = (24 * 60 * 60 * 1000) > (new Date().getTime() - new Date(song.lastUpdated).getTime())
 
     // import language dictionary
     const lang = params.lang
@@ -262,6 +253,10 @@ export default async function SongPage(
                         {nameElements}
                     </ul>
                     <ul className="flex-col gap-5 md:flex hidden">
+                        {songRefreshedToday ? undefined : <RefreshSongButton
+                            text={langDict.song_refresh}
+                            songId={songId}
+                        />}
                         {videoLinks}
                         {vocadbLink}
                     </ul>
@@ -328,7 +323,12 @@ export default async function SongPage(
                         </EntitySection>
                     </div> : null}
 
-                    <div className="md:hidden">
+                    <div className="md:hidden flex flex-col gap-5">
+                        <Divider/>
+                        {songRefreshedToday ? undefined : <RefreshSongButton
+                            text={langDict.song_refresh}
+                            songId={songId}
+                        />}
                         <EntitySection title={langDict.song_listen}>
                             <ul className="flex-col gap-5 flex">
                                 {videoLinks}

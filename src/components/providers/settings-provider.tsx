@@ -12,6 +12,7 @@ const defaultSettingsContext: UseSettingsProps = {
     setTitleLanguage: () => { },
     setRankingsViewMode: () => { },
     setTheme: () => {},
+    setGoogleAnalytics: () => {},
     settings: rawSettingsDefault
 }
 
@@ -83,12 +84,23 @@ const SettingsElement: React.FC<SettingsProviderProps> = ({
         [saveSettings, settings, setTheme]
     )
 
+    const setGoogleAnalytics = useCallback(
+        (enabled: boolean) => {
+            saveSettings({
+                ...settings,
+                googleAnalytics: enabled
+            })
+        },
+        [saveSettings, settings]
+    )
+
     const providerValue = useMemo(() => ({
         settings,
         setTitleLanguage,
         setRankingsViewMode,
-        setTheme: setThemeSetting
-    }), [settings, setTitleLanguage, setRankingsViewMode, setThemeSetting])
+        setTheme: setThemeSetting,
+        setGoogleAnalytics: setGoogleAnalytics
+    }), [settings, setTitleLanguage, setRankingsViewMode, setThemeSetting, setGoogleAnalytics])
 
     return (
         <settingsContext.Provider

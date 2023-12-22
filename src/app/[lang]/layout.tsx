@@ -6,10 +6,11 @@ import localFont from "next/font/local"
 import { Providers } from '@/components/providers/providers'
 import { Locale, getDictionary } from '@/localization/'
 import Footer from '@/components/footer'
+import { GoogleAnalytics } from '@/components/scripts/gtag'
 
 const inter = Inter({
   subsets: ['latin'],
-  variable: '--font-inter' 
+  variable: '--font-inter'
 })
 const notoSansJP = Noto_Sans_JP({
   subsets: ['latin'],
@@ -44,7 +45,9 @@ export default async function RootLayout({
     <html lang={locale} className={`${inter.variable} ${notoSansJP.variable} ${materialSymbols.variable}`}>
       <body className='bg-background'>
         <Providers dictionary={langDict}>
-          <Navbar lang={locale}/>
+          {process.env.NODE_ENV == 'production' ? <GoogleAnalytics tag={process.env.GOOGLE_ANALYTICS_TAG || ''} /> : undefined}
+          <GoogleAnalytics tag={process.env.GOOGLE_ANALYTICS_TAG || ''} />
+          <Navbar lang={locale} />
           <main className='max-w-screen-2xl min-h-screen m-auto flex flex-col justify-start items-center px-5 py-6'>
             {children}
           </main>

@@ -10,7 +10,8 @@ export enum Theme {
 export interface RawSettings {
     titleLanguage: NameType
     rankingsViewMode: RankingsViewMode
-    theme: Theme
+    theme: Theme,
+    googleAnalytics: boolean
 }
 
 export interface SettingsProxy {
@@ -18,12 +19,15 @@ export interface SettingsProxy {
 
     get rankingsViewMode(): RankingsViewMode
 
+    get googleAnalytics(): boolean
+
     get theme(): Theme
 
     set titleLanguage(newTitleLanguage: NameType)
 
     set rankingsViewMode(newRankingsViewMode: RankingsViewMode)
 
+    set googleAnalytics(enabled: boolean)
 }
 
 export interface UseSettingsProps {
@@ -32,6 +36,7 @@ export interface UseSettingsProps {
     setTitleLanguage: (newTitleLanguage: NameType) => void
     setRankingsViewMode: (newViewMode: RankingsViewMode) => void
     setTheme: (newTheme: Theme) => void
+    setGoogleAnalytics: (enabled: boolean) => void
 }
 
 export interface SettingsProviderProps {

@@ -1725,19 +1725,19 @@ const mutationType = new GraphQLObjectType({
                 }: {
                     id: number
                 }
-            ) => getVocaDBSong(id)
+            ) => getSong(id)
                 .then(async song => {
-                    const existing = await getSong(id)
+                    if (!song) throw new Error(`Song with ID ${id} does not exist.`)
+                    // ensure that the song hasn't been refreshed yet
+                    if ((24 * 60 * 60 * 1000) > (new Date().getTime() - new Date(song.lastUpdated).getTime())) throw new Error('Songs can only be refreshed once a day.')
 
-                    // update view data
-                    if (existing) {
-                        if (song.views) await insertSongViews(id, song.views);
-                        song.additionDate = existing.additionDate
-                        return updateSong(song)
-                    } else {
-                        return insertSong(song)
-                    }
+                    // get the refreshed song from voca DB
+                    const vocaDbSong = (await getVocaDBSong(id)) as Partial<Song> & Pick<Song, "id">
 
+                    if (vocaDbSong.views) await insertSongViews(id, vocaDbSong.views);
+                    // keep the old addition date
+                    vocaDbSong.additionDate = undefined
+                    return updateSong(vocaDbSong)
                 })
                 .catch(error => { throw new Error(error) })
         }
