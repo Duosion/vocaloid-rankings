@@ -1,8 +1,7 @@
-import { Database } from "better-sqlite3"
-import sqlite3 from 'better-sqlite3'
-import initSongsData from "./initializers/songsData"
+import sqlite3, { Database } from 'better-sqlite3'
+import { existsSync, mkdirSync } from "fs"
 import initAuthDatabase from "./initializers/auth"
-import { copyFileSync, existsSync, mkdirSync, readdirSync, rmSync } from "fs"
+import initSongsData from "./initializers/songsData"
 
 const rootDirectory = process.cwd()
 const dataDirectory = rootDirectory + "/src/data/database/"
@@ -39,25 +38,6 @@ const databaseMetadata = {
         pragma: Pragma.DEFAULT,
         init: initAuthDatabase,
         extensions: []
-    }
-}
-
-// copy files from .toClone to data directory
-{
-    const copyDirectory = rootDirectory + "/src/data/toClone/"
-    if (existsSync(copyDirectory)) {
-        // delete database file
-        /*console.log("Remove old data directory.")
-        fs.rmSync(dataDirectory, { recursive: true, force: true })
-        console.log("Make new data directory.")
-        fs.mkdirSync(dataDirectory)*/
-        // copy files to data
-        readdirSync(copyDirectory).forEach(file => {
-            //fs.rmSync(dataDirectory + file)
-            copyFileSync(copyDirectory + file, dataDirectory + file)
-            rmSync(copyDirectory + file)
-            console.log("copied",file)
-        })
     }
 }
 

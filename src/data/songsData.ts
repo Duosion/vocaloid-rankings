@@ -2252,7 +2252,7 @@ export async function refreshAllSongsViews(
                 console.log(`Refreshed views for (${song.id})`);
 
                 // make song dormant if necessary
-                if (!song.dormant && previousViews 
+                if (!song.dormant && previousViews
                     && (minDormantViews >= (Number(views.total) - Number(previousViews.total)))
                     && ((timeNow - song.publishTime) >= minDormantPublishAge)
                     && ((timeNow - song.additionTime) >= minDormantAdditionAge)
@@ -2277,6 +2277,15 @@ export async function refreshAllSongsViews(
 
         db.prepare(`INSERT INTO views_metadata (timestamp, updated) VALUES (?, ?)`).run(timestamp, new Date().toISOString());
         console.log(`All songs' views updated.`);
+
+        // get recent songs
+        await getVocaDBRecentSongs()
+            .then(songs => {
+                for (const song of songs) {
+                    if (!songExistsSync) insertSongSync(song)
+                }
+            })
+            .catch(error => console.log(`Error when getting recent VocaDB songs: ${error}`))
     } catch (error) {
         throw error;
     } finally {
@@ -2287,14 +2296,6 @@ export async function refreshAllSongsViews(
 if (process.env.NODE_ENV === 'production') {
     // refresh views
     refreshAllSongsViews().catch(error => console.log(`Error when refreshing every songs' views: ${error}`))
-    // get recent songs
-    getVocaDBRecentSongs()
-        .then(songs => {
-            for (const song of songs) {
-                if (!songExistsSync) insertSongSync(song)
-            }
-        })
-        .catch(error => console.log(`Error when getting recent VocaDB songs: ${error}`))
 }
 
 // update all songs' colors
