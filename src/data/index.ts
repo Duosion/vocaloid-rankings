@@ -44,7 +44,7 @@ const databaseMetadata = {
 
 // copy files from .toClone to data directory
 {
-    const copyDirectory = "./.toClone/"
+    const copyDirectory = rootDirectory + "/src/data/toClone/"
     if (existsSync(copyDirectory)) {
         // delete database file
         /*console.log("Remove old data directory.")
