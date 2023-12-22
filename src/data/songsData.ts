@@ -2248,6 +2248,7 @@ export async function refreshAllSongsViews(
                 const previousViews = getSongViewsSync(song.id, previousTimestamp)
                 const views = song.dormant ? previousViews : await getSongMostRecentViews(song.id, timestamp);
                 if (!views) throw new Error('Most recent views was null.');
+                if (previousViews ? (Number(previousViews.total) / 2) >= views.total : false) throw new Error('Fetched views were less than half the previous views')
                 insertSongViewsSync(song.id, views);
                 console.log(`Refreshed views for (${song.id})`);
 
