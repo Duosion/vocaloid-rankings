@@ -8,16 +8,19 @@ View a live version of the website at [https://vocaloid-rankings.fly.dev](https:
 
 ## Installation
 1. Clone the repository
-```
+```bash
 git clone https://github.com/Duosion/vocaloid-rankings.git
 ```
+
 2. Rename `.env.local.template` to `.env.local` and fill in the following fields:
 * **YOUTUBE_API_KEY**
   - A google cloud API key with access to the [YouTube data API](https://developers.google.com/youtube/v3/getting-started).
+
 3. Install dependencies
 ```bash
 npm install
 ```
+
 4. Run the server
 ```bash
 npm run dev
