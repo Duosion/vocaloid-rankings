@@ -5,26 +5,49 @@ import { DateFormatter } from "@/components/formatters/date-formatter"
 import { EntityName } from "@/components/formatters/entity-name"
 import { NumberFormatter } from "@/components/formatters/number-formatter"
 import Image from '@/components/image'
-import { getSong, getSongHistoricalViews, getSongMostRecentViews, insertSongViews, updateSong } from "@/data/songsData"
+import { Divider } from "@/components/material/divider"
+import { getSong, getSongHistoricalViews, getSongMostRecentViews, getSongNames, insertSongViews, updateSong } from "@/data/songsData"
 import { ArtistCategory, ArtistThumbnailType, Id, NameType, SourceType } from "@/data/types"
 import { getCustomThemeStylesheet } from "@/lib/material/material"
 import { SourceTypesDisplayData } from "@/lib/sourceType"
 import { Locale, getDictionary, getEntityName } from "@/localization"
 import { ArtistTypeLocaleTokens, NameTypeLocaleTokens, SongTypeLocaleTokens, SourceTypeLocaleTokens } from "@/localization/DictionaryTokenMaps"
 import { Hct, SchemeVibrant, argbFromHex } from "@material/material-color-utilities"
+import { Metadata } from "next"
 import { cookies } from "next/dist/client/components/headers"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { Settings } from "../../settings"
-import { FilledButton } from "@/components/material/filled-button"
 import { RefreshSongButton } from "./refresh-song-button"
-import { Divider } from "@/components/material/divider"
 
 // interfaces
 interface ViewsBreakdown {
     id: string,
     views: number,
     source: SourceType
+}
+
+export async function generateMetadata(
+    {
+        params
+    }: {
+        params: {
+            id: string,
+            lang: Locale
+        }
+    }
+): Promise<Metadata> {
+    // get settings
+    const settings = new Settings(cookies())
+    const settingTitleLanguage = settings.titleLanguage
+
+    // get names
+    const songId = Number(params.id)
+    const names = isNaN(songId) ? null : await getSongNames(songId)
+
+    return {
+        title: names ? getEntityName(names, settingTitleLanguage) : null,
+    }
 }
 
 export default async function SongPage(

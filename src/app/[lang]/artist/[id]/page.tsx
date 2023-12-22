@@ -5,7 +5,8 @@ import { EntityName } from "@/components/formatters/entity-name"
 import { NumberFormatter } from "@/components/formatters/number-formatter"
 import Image from '@/components/image'
 import { Divider } from "@/components/material/divider"
-import { filterSongRankings, getArtist, getArtistHistoricalViews } from "@/data/songsData"
+import { RankingsItemTrailingMode } from "@/components/rankings/rankings-item-trailing"
+import { filterSongRankings, getArtist, getArtistHistoricalViews, getArtistNames } from "@/data/songsData"
 import { ArtistCategory, ArtistThumbnailType, FilterOrder, NameType, SongRankingsFilterParams, SourceType } from "@/data/types"
 import { getCustomThemeStylesheet } from "@/lib/material/material"
 import { SourceTypesDisplayData } from "@/lib/sourceType"
@@ -13,6 +14,7 @@ import { mapArtistTypeToCategory } from "@/lib/utils"
 import { Locale, getDictionary, getEntityName } from "@/localization"
 import { ArtistTypeLocaleTokens, NameTypeLocaleTokens, SourceTypeLocaleTokens } from "@/localization/DictionaryTokenMaps"
 import { Hct, SchemeVibrant, argbFromHex } from "@material/material-color-utilities"
+import { Metadata } from "next"
 import { cookies } from "next/dist/client/components/headers"
 import Link from "next/link"
 import { notFound } from "next/navigation"
@@ -20,13 +22,35 @@ import { Settings } from "../../settings"
 import { ArtistSongs } from "./artist-songs"
 import { CoArtists } from "./co-artists"
 import { RelatedArtists } from "./related-artists"
-import { RankingsItemTrailingMode } from "@/components/rankings/rankings-item-trailing"
 
 // interfaces
 interface ViewsBreakdown {
     id: string,
     views: number,
     source: SourceType
+}
+
+export async function generateMetadata(
+    {
+        params
+    }: {
+        params: {
+            id: string,
+            lang: Locale
+        }
+    }
+): Promise<Metadata> {
+    // get settings
+    const settings = new Settings(cookies())
+    const settingTitleLanguage = settings.titleLanguage
+
+    // get names
+    const songId = Number(params.id)
+    const names = isNaN(songId) ? null : await getArtistNames(songId)
+
+    return {
+        title: names ? getEntityName(names, settingTitleLanguage) : null,
+    }
 }
 
 export default async function ArtistPage(

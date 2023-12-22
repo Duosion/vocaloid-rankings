@@ -1226,6 +1226,17 @@ function getArtistSync(
     )
 }
 
+function getArtistNamesSync(
+    id: Id
+): Names {
+    const artistNames = db.prepare(`
+    SELECT name, name_type
+    FROM artists_names
+    WHERE artist_id = ?`).all(id) as RawArtistName[]
+
+    return buildNames(artistNames)
+}
+
 function insertArtistNamesSync(
     id: Id,
     names: Names
@@ -1477,6 +1488,18 @@ export function getArtist(
     })
 }
 
+export function getArtistNames(
+    id: Id
+): Promise<Names> {
+    return new Promise((resolve, reject) => {
+        try {
+            resolve(getArtistNamesSync(id))            
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
 export function insertArtist(
     artist: Artist
 ): Promise<Artist> {
@@ -1558,6 +1581,19 @@ export function searchArtists(
     })
 }
 
+function buildNames(
+    rawNames: RawSongName[] | RawArtistName[]
+): Names {
+    // process names
+    const names: Names = {
+        [NameType.ORIGINAL]: ''
+    }
+    for (const nameData of rawNames) {
+        names[nameData.name_type as NameType] = nameData.name
+    }
+    return names
+}
+
 // Song
 function buildSong(
     songData: RawSongData,
@@ -1569,13 +1605,6 @@ function buildSong(
     songPlacement: SongPlacement | null
 ): Song {
     const songId = songData.id
-    // process names
-    const names: Names = {
-        [NameType.ORIGINAL]: ''
-    }
-    songNames.forEach(nameData => {
-        names[nameData.name_type as NameType] = nameData.name
-    })
 
     // process video ids
     const videoIds: SongVideoIds = {}
@@ -1608,7 +1637,7 @@ function buildSong(
         lightColor: songData.light_color,
         artistsCategories: songArtistsCategories,
         artists: songArtists,
-        names: names,
+        names: buildNames(songNames),
         videoIds: videoIds,
         thumbnailType: thumbType,
         views: songViews,
@@ -1790,6 +1819,18 @@ function getSongSync(
         songViews,
         songPlacement
     )
+}
+
+function getSongNamesSync(
+    songId: Id
+): Names {
+    // get names
+    const songNames = db.prepare(`
+    SELECT name, name_type 
+    FROM songs_names
+    WHERE song_id = ?`).all(songId) as RawSongName[]
+
+    return buildNames(songNames)
 }
 
 function insertSongNamesSync(
@@ -2070,6 +2111,18 @@ export function getSong(
     return new Promise<Song | null>((resolve, reject) => {
         try {
             resolve(getSongSync(id, getViews))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+export function getSongNames(
+    id: Id
+): Promise<Names> {
+    return new Promise((resolve, reject) => {
+        try {
+            resolve(getSongNamesSync(id))
         } catch (error) {
             reject(error)
         }
