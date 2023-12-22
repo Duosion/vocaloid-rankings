@@ -1930,7 +1930,6 @@ function updateSongSync(
     values.push(new Date().toISOString())
 
     db.transaction(() => {
-        console.log(sets, values)
         if (sets.length > 0) db.prepare(`
             UPDATE songs
             SET ${sets.join(', ')}
@@ -2248,13 +2247,13 @@ export async function refreshAllSongsViews(
                 const previousViews = getSongViewsSync(song.id, previousTimestamp)
                 const views = song.dormant ? previousViews : await getSongMostRecentViews(song.id, timestamp);
                 if (!views) throw new Error('Most recent views was null.');
-                if (previousViews ? (Number(previousViews.total) / 2) >= views.total : false) throw new Error('Fetched views were less than half the previous views')
+                if (previousViews && !song.dormant ? ((Number(previousViews.total) * 0.25) >= views.total) && (maxRetries > depth) : false) throw new Error('Fetched views were less than 25% the previous views')
                 insertSongViewsSync(song.id, views);
                 console.log(`Refreshed views for (${song.id})`);
 
                 // make song dormant if necessary
                 if (!song.dormant && previousViews 
-                    && (minDormantViews >= (Number(previousViews.total) - Number(views.total)))
+                    && (minDormantViews >= (Number(views.total) - Number(previousViews.total)))
                     && ((timeNow - song.publishTime) >= minDormantPublishAge)
                     && ((timeNow - song.additionTime) >= minDormantAdditionAge)
                 ) {
