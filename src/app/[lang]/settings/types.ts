@@ -7,6 +7,13 @@ export enum Theme {
     DARK
 }
 
+export interface InitialSettings {
+    titleLanguage: number
+    rankingsViewMode: number
+    theme: number
+    googleAnalytics: boolean
+}
+
 export interface RawSettings {
     titleLanguage: NameType
     rankingsViewMode: RankingsViewMode

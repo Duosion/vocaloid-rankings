@@ -7,6 +7,7 @@ import { cookies } from "next/dist/client/components/headers"
 import { Settings } from "../../settings"
 import { ArtistRankingsFilters, ArtistRankingsFiltersValues, FilterType } from "../types"
 import { ArtistRankingsList } from "../artist-rankings-list"
+import { Metadata } from "next"
 
 const filters: ArtistRankingsFilters = {
     search: {
@@ -255,6 +256,22 @@ const filters: ArtistRankingsFilters = {
         type: FilterType.INPUT,
         placeholder: 'filter_views_any',
         defaultValue: ''
+    }
+}
+
+export async function generateMetadata(
+    {
+        params
+    }: {
+        params: {
+            lang: Locale
+        }
+    }
+): Promise<Metadata> {
+    const langDict = await getDictionary(params.lang)
+
+    return {
+        title: langDict.producer_rankings_page_title,
     }
 }
 

@@ -6,6 +6,7 @@ import { cookies } from "next/dist/client/components/headers"
 import { Settings } from "../../settings"
 import { TrendingRankingsList } from "../trending-rankings-list"
 import { ArtistRankingsFiltersValues, FilterType, TrendingFilters } from "../types"
+import { Metadata } from "next"
 
 const filters: TrendingFilters = {
     timePeriod: {
@@ -53,6 +54,22 @@ const filters: TrendingFilters = {
         type: FilterType.INPUT,
         placeholder: 'filter_views_any',
         defaultValue: ''
+    }
+}
+
+export async function generateMetadata(
+    {
+        params
+    }: {
+        params: {
+            lang: Locale
+        }
+    }
+): Promise<Metadata> {
+    const langDict = await getDictionary(params.lang)
+
+    return {
+        title: langDict.trending_page_title,
     }
 }
 
