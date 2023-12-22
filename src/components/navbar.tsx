@@ -1,14 +1,14 @@
 'use client'
-import Image from '@/components/image'
 import Link from "next/link"
+import Image from "next/image"
+import { usePathname } from 'next/navigation'
 import { MouseEventHandler, useState } from 'react'
 import { Icon } from './material/icon'
 import { IconButton } from "./material/icon-button"
 import { useLocale } from './providers/language-dictionary-provider'
-import { SearchBar } from "./search-bar"
 import { ModalDrawer } from './transitions/modal-drawer'
-import { usePathname } from 'next/navigation'
-import { Divider } from './material/divider'
+import icon from '../../public/icon.svg'
+import { Logo } from "./logo"
 
 export default function Navbar(
     {
@@ -85,12 +85,7 @@ export default function Navbar(
 
                     {/* favicon */}
                     <Link href={`/${lang}`}>
-                        <Image
-                            src='/github-mark-white.png'
-                            alt='favicon'
-                            height={32}
-                            width={32}
-                        />
+                        <Logo/>
                     </Link>
 
                     {/* nav links */}
