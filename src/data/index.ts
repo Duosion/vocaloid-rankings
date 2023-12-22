@@ -4,7 +4,7 @@ import initAuthDatabase from "./initializers/auth"
 import initSongsData from "./initializers/songsData"
 
 const rootDirectory = process.cwd()
-const dataDirectory = rootDirectory + "/src/data/database"
+const dataDirectory = rootDirectory + "/src/data/database/"
 if (!existsSync(dataDirectory)) {
     try {
         mkdirSync(dataDirectory)

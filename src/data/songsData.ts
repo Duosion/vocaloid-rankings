@@ -2220,7 +2220,9 @@ export async function refreshAllSongsViews(
         if (timestampExistsSync(timestamp)) throw new Error(`Songs views were already refreshed for timestamp "${timestamp}"`);
 
         // get all non-dormant songs' ids
+        console.log('hello!')
         const songIds = db.prepare(`SELECT id, publish_date, addition_date, dormant FROM songs`).all() as RawSongData[];
+        console.log('world!')
 
         const refreshingPromises: Promise<void>[] = [];
 
