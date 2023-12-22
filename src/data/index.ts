@@ -4,9 +4,14 @@ import initAuthDatabase from "./initializers/auth"
 import initSongsData from "./initializers/songsData"
 
 const rootDirectory = process.cwd()
-const dataDirectory = rootDirectory + "/src/data/database/"
+const dataDirectory = rootDirectory + "/src/data/database"
 if (!existsSync(dataDirectory)) {
-    mkdirSync(dataDirectory)
+    try {
+        mkdirSync(dataDirectory)
+    } catch (error) {
+        console.log(error)
+    }
+    
 }
 
 const loadedDatabases: {
