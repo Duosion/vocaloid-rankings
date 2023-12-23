@@ -2358,7 +2358,7 @@ export async function refreshAllSongsViews(
     }
 }
 
-if (process.env.NODE_ENV !== 'production') {
+if (process.env.NODE_ENV === 'production') {
     // refresh views
     refreshAllSongsViews().catch(error => console.log(`Error when refreshing every songs' views: ${error}`))
 }
