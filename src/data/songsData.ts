@@ -2275,8 +2275,8 @@ export async function refreshAllSongsViews(
 
         const timeNow = new Date().getTime()
         const timestamp = generateTimestamp();
-        //if (timestampExistsSync(timestamp)) throw new Error(`Songs views were already refreshed for timestamp "${timestamp}"`);
-        db.prepare(`DELETE FROM views_metadata WHERE timestamp = ?`).run(timestamp)
+        if (timestampExistsSync(timestamp)) throw new Error(`Songs views were already refreshed for timestamp "${timestamp}"`);
+        //db.prepare(`DELETE FROM views_metadata WHERE timestamp = ?`).run(timestamp)
 
         // get all non-dormant songs' ids
         const songIds = db.prepare(`SELECT id, publish_date, addition_date, dormant FROM songs`).all() as RawSongData[];
@@ -2297,7 +2297,6 @@ export async function refreshAllSongsViews(
                         additionTime: new Date(rawSong.addition_date).getTime()
                     }, timestamp, 0)
                 );
-                break
             }
             await Promise.all(refreshingPromises);
         };
