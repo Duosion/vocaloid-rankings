@@ -1493,7 +1493,7 @@ export function getArtistNames(
 ): Promise<Names> {
     return new Promise((resolve, reject) => {
         try {
-            resolve(getArtistNamesSync(id))            
+            resolve(getArtistNamesSync(id))
         } catch (error) {
             reject(error)
         }
@@ -2210,7 +2210,7 @@ export async function getSongMostRecentViews(
     timestamp?: string
 ): Promise<Views | null> {
     try {
-        const song = getSongSync(id);
+        const song = getSongSync(id, false);
         if (!song) return null;
 
         const platforms: { [key in SourceType]: (videoId: string) => Promise<number | null> } = {
@@ -2275,13 +2275,11 @@ export async function refreshAllSongsViews(
 
         const timeNow = new Date().getTime()
         const timestamp = generateTimestamp();
-        const previousTimestamp = getMostRecentViewsTimestampSync(timestamp)
-        if (timestampExistsSync(timestamp)) throw new Error(`Songs views were already refreshed for timestamp "${timestamp}"`);
+        //if (timestampExistsSync(timestamp)) throw new Error(`Songs views were already refreshed for timestamp "${timestamp}"`);
+        db.prepare(`DELETE FROM views_metadata WHERE timestamp = ?`).run(timestamp)
 
         // get all non-dormant songs' ids
-        console.log('hello!')
         const songIds = db.prepare(`SELECT id, publish_date, addition_date, dormant FROM songs`).all() as RawSongData[];
-        console.log('world!')
 
         const refreshingPromises: Promise<void>[] = [];
 
@@ -2299,32 +2297,38 @@ export async function refreshAllSongsViews(
                         additionTime: new Date(rawSong.addition_date).getTime()
                     }, timestamp, 0)
                 );
+                break
             }
             await Promise.all(refreshingPromises);
         };
 
         const retractAttempt = async (song: RefreshingSong, timestamp: string, depth: number): Promise<void> => {
             try {
-                const previousViews = getSongViewsSync(song.id, previousTimestamp)
-                const views = song.dormant ? previousViews : await getSongMostRecentViews(song.id, timestamp);
-                if (!views) throw new Error('Most recent views was null.');
-                if (previousViews && !song.dormant ? ((Number(previousViews.total) * 0.25) >= views.total) && (maxRetries > depth) : false) throw new Error('Fetched views were less than 25% the previous views')
-                insertSongViewsSync(song.id, views);
-                console.log(`Refreshed views for (${song.id})`);
+                const previousViews = getSongViewsSync(song.id)
+                if (!song.dormant) {
+                    const views = await getSongMostRecentViews(song.id, timestamp);
+                    if (!views) throw new Error('Most recent views was null.');
+                    if (previousViews ? ((Number(previousViews.total) * 0.25) >= views.total) && (maxRetries > depth) : false) throw new Error('Fetched views were less than 25% the previous views')
 
-                // make song dormant if necessary
-                if (!song.dormant && previousViews
-                    && (minDormantViews >= (Number(views.total) - Number(previousViews.total)))
-                    && ((timeNow - song.publishTime) >= minDormantPublishAge)
-                    && ((timeNow - song.additionTime) >= minDormantAdditionAge)
-                ) {
-                    console.log(`Made (${song.id}) dormant.`)
-                    updateSongSync({
-                        id: song.id,
-                        isDormant: true
-                    })
+                    insertSongViewsSync(song.id, views);
+                    console.log(`Refreshed views for (${song.id})`);
+
+                    // make song dormant if necessary
+                    if (previousViews
+                        && (minDormantViews >= (Number(views.total) - Number(previousViews.total)))
+                        && ((timeNow - song.publishTime) >= minDormantPublishAge)
+                        && ((timeNow - song.additionTime) >= minDormantAdditionAge)
+                    ) {
+                        console.log(`Made (${song.id}) dormant.`)
+                        updateSongSync({
+                            id: song.id,
+                            isDormant: true
+                        })
+                    }
+                } else if (previousViews) {
+                    previousViews.timestamp = timestamp
+                    insertSongViewsSync(song.id, previousViews)
                 }
-
             } catch (error) {
                 console.log(`Error when refreshing song with id (${song.id}). Error: ${error}`);
                 if (maxRetries > depth) {
@@ -2354,7 +2358,7 @@ export async function refreshAllSongsViews(
     }
 }
 
-if (process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV !== 'production') {
     // refresh views
     refreshAllSongsViews().catch(error => console.log(`Error when refreshing every songs' views: ${error}`))
 }

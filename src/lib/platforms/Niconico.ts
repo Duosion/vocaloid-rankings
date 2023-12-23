@@ -5,23 +5,25 @@ const nicoNicoVideoDomain = "https://www.nicovideo.jp/watch/"
 
 class NiconicoPlatform implements Platform {
 
-    getViews(
+    async getViews(
         videoId: VideoId
     ): Promise<number | null> {
-        return fetch(nicoNicoVideoDomain + videoId)
-            .then(response => response.text())
-            .then(text => {
-                const parsedHTML = parseHTML(text)
-                // parse data-api-data
-                const dataElement = parsedHTML.document.getElementById("js-initial-watch-data")
-                if (!dataElement) { return null }
+        const result = await fetch(nicoNicoVideoDomain + videoId, {
+            method: 'GET',
+        })
+        if (!result) return null
 
-                const videoData = JSON.parse(dataElement.getAttribute("data-api-data") || '[]')?.video
+        const text = await result.text()
 
-                const rawViews = videoData?.count?.view
-                return rawViews == undefined ? null : Number.parseInt(rawViews)
-            })
-            .catch(_ => { return null })
+        const parsedHTML = parseHTML(text)
+        // parse data-api-data
+        const dataElement = parsedHTML.document.getElementById("js-initial-watch-data")
+        if (!dataElement) { return null }
+
+        const videoData = JSON.parse(dataElement.getAttribute("data-api-data") || '[]')?.video
+
+        const rawViews = videoData?.count?.view
+        return rawViews == undefined ? null : Number.parseInt(rawViews)
     }
 
     getThumbnails(
