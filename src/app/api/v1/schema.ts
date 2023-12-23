@@ -1,4 +1,4 @@
-import { filterArtistRankings, filterSongRankings, getArtist, getArtistPlacement, getArtistViews, getSong, getSongPlacement, getSongViews, insertSong, insertSongViews, searchArtists, songExists, updateSong } from '@/data/songsData'
+import { filterArtistRankings, filterSongRankings, getArtist, getArtistPlacement, getArtistViews, getMostRecentViewsTimestamp, getSong, getSongPlacement, getSongViews, insertSong, insertSongViews, refreshAllSongsViews, searchArtists, songExists, updateSong } from '@/data/songsData'
 import { Artist, ArtistCategory, ArtistRankingsFilterParams, ArtistThumbnailType, ArtistThumbnails, FilterDirection, FilterInclusionMode, FilterOrder, NameType, Names, Song, SongArtistsCategories, SongRankingsFilterParams, SongVideoIds, SourceType, ViewsBreakdown } from '@/data/types'
 import { getVocaDBSong, parseVocaDBSongId } from '@/lib/vocadb'
 import {
@@ -246,6 +246,8 @@ import {
  *   refreshSongFromVocaDB(
  *     songId: String!
  *   )
+ * 
+ *   refreshAllSongsViews()
  * }
  * 
  * ```
@@ -1678,6 +1680,8 @@ const queryType = new GraphQLObjectType({
  *   refreshSongFromVocaDB(
  *     songId: number!
  *   )
+ * 
+ *   refreshAllSongsViews(): String!
  * }
  */
 const mutationType = new GraphQLObjectType({
@@ -1740,6 +1744,15 @@ const mutationType = new GraphQLObjectType({
                     return updateSong(vocaDbSong)
                 })
                 .catch(error => { throw new Error(error) })
+        },
+        refreshAllSongsViews: {
+            type: GraphQLString,
+            resolve: (
+                _source
+            ) => {
+                refreshAllSongsViews()
+                return getMostRecentViewsTimestamp()
+            }
         }
     }
 })
