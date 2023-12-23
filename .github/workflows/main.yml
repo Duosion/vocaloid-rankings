@@ -1,0 +1,20 @@
+name: Refresh All Song Views
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # At midnight UTC
+
+jobs:
+  refreshViews:
+    runs-on: ubuntu-latest # The type of runner that the job will run on
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v3 # Checks out your repository under $GITHUB_WORKSPACE
+      
+    - name: Make GraphQL Mutation
+      run: |
+        curl -X POST \
+        -H "Content-Type: application/json" \
+        --data '{ "query": "mutation { refreshAllSongsViews }" }' \
+        https://vocaloid-rankings.fly.dev/api/v1
