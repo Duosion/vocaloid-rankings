@@ -19,7 +19,7 @@ export interface VocaDBArtist {
     baseVoicebank?: VocaDBArtist;
     createDate: string;
     id: number;
-    mainPicture: VocaDBArtistThumbnails
+    mainPicture?: VocaDBArtistThumbnails
     name: string;
     names: VocaDBArtistName[];
     releaseDate: string;

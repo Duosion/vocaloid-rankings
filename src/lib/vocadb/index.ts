@@ -12,6 +12,7 @@ const msInDay = 24 * 60 * 60 * 1000 // one day in ms
 
 // vocaDB api strings
 const vocaDBApiUrl = "https://vocadb.net/api/";
+const missingThumbnail = 'https://vocadb.net/Content/unknown.png'
 // entries api
 const vocaDBRecentSongsApiUrl = vocaDBApiUrl + "songs?sort=AdditionDate&onlyWithPVs=true&status=Finished&fields=Names,PVs,Artists"
 const vocaDBRecentSongsViewsThreshold = 10000 // how many views a recent song must have to be entered into this database
@@ -126,8 +127,15 @@ const parseVocaDBArtistDataAsync = (
             })
 
             // process thumbnails
-            const mainPicture = artistData.mainPicture
-            const normalThumbnail = mainPicture.urlThumb || mainPicture.urlOriginal
+            const mainPicture = artistData?.mainPicture
+            const normalThumbnail = mainPicture?.urlThumb || mainPicture?.urlOriginal || missingThumbnail
+
+            const thumbnails = {
+                [ArtistThumbnailType.ORIGINAL]: mainPicture?.urlOriginal || missingThumbnail,
+                [ArtistThumbnailType.MEDIUM]: normalThumbnail,
+                [ArtistThumbnailType.SMALL]: mainPicture?.urlSmallThumb || missingThumbnail,
+                [ArtistThumbnailType.TINY]: mainPicture?.urlTinyThumb || missingThumbnail
+            } as ArtistThumbnails
 
             const mostVibrantColor = await getImageMostVibrantColor(normalThumbnail)
             const mostVibrantColorArgb = argbFromRgb(mostVibrantColor[0], mostVibrantColor[1], mostVibrantColor[2])
@@ -141,12 +149,7 @@ const parseVocaDBArtistDataAsync = (
                 type: artistTypeMap[artistData.artistType],
                 publishDate: artistData.releaseDate || artistData.createDate,
                 additionDate: new Date().toISOString(),
-                thumbnails: {
-                    [ArtistThumbnailType.ORIGINAL]: mainPicture.urlOriginal,
-                    [ArtistThumbnailType.MEDIUM]: normalThumbnail,
-                    [ArtistThumbnailType.SMALL]: mainPicture.urlSmallThumb,
-                    [ArtistThumbnailType.TINY]: mainPicture.urlTinyThumb
-                } as ArtistThumbnails,
+                thumbnails,
                 baseArtistId: baseArtist?.id,
                 averageColor: hexFromArgb(mostVibrantColorArgb),
                 lightColor: hexFromArgb(MaterialDynamicColors.primary.getArgb(new SchemeVibrant(Hct.fromInt(mostVibrantColorArgb), false, 0.3))),
