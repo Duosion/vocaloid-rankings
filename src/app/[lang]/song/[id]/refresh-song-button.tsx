@@ -1,6 +1,7 @@
 'use client'
 import { Divider } from "@/components/material/divider"
 import { FilledButton } from "@/components/material/filled-button"
+import { useLocale } from "@/components/providers/language-dictionary-provider"
 import { APIError, GraphQLResponseError, useManualQuery } from "graphql-hooks"
 import { useRouter } from "next/navigation"
 
@@ -21,7 +22,7 @@ export function RefreshSongButton(
         songId: number
     }
 ) {
-
+    const langDict = useLocale()
     const router = useRouter()
 
     const [refreshSong, { loading, error }] = useManualQuery(REFRESH_SONG_QUERY, {
@@ -39,7 +40,7 @@ export function RefreshSongButton(
     return (
         <>
             <FilledButton
-                text='Refresh Song Data'
+                text={langDict.song_refresh}
                 icon='refresh'
                 onClick={handleRefresh}
                 disabled={loading}
