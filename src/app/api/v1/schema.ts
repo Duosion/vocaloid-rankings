@@ -1772,7 +1772,7 @@ const mutationType = new GraphQLObjectType({
 
                             if (existingBreakdown) for (const views of existingBreakdown) {
                                 viewsMap[views.id] = views.views
-                            }
+                            };
 
                             // build breakdown
                             const breakdown: VideoViews[] = []
@@ -1793,9 +1793,8 @@ const mutationType = new GraphQLObjectType({
                         })
                     }
 
-                    if (newViews)
-                        // keep the old addition date
-                        vocaDbSong.additionDate = undefined
+                    // keep the old addition date
+                    vocaDbSong.additionDate = undefined
                     vocaDbSong.lastRefreshed = dateNow
                     return updateSong(vocaDbSong)
                 })
