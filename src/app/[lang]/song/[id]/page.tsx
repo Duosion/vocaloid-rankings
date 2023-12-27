@@ -91,7 +91,7 @@ export default async function SongPage(
     const songNames = song.names
 
     // song refreshing variables
-    const songRefreshedToday = (24 * 60 * 60 * 1000) > (new Date().getTime() - new Date(song.lastUpdated).getTime())
+    const songRefreshedToday = song.lastRefreshed && (24 * 60 * 60 * 1000) > (new Date().getTime() - new Date(song.lastRefreshed).getTime())
 
     // import language dictionary
     const lang = params.lang
