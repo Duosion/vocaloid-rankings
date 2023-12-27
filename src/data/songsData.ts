@@ -2284,8 +2284,6 @@ export async function refreshAllSongsViews(
     try {
         console.log(`Updating all songs' views...`);
 
-        db.prepare(`ALTER TABLE songs ADD COLUMN last_refreshed TEXT`).run()
-
         const timeNow = new Date().getTime()
         const timestamp = generateTimestamp();
         if (timestampExistsSync(timestamp)) throw new Error(`Songs views were already refreshed for timestamp "${timestamp}"`);
