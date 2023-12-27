@@ -1,5 +1,5 @@
 import { filterArtistRankings, filterSongRankings, getArtist, getArtistPlacement, getArtistViews, getMostRecentViewsTimestamp, getSong, getSongPlacement, getSongViews, insertSong, insertSongViews, refreshAllSongsViews, searchArtists, songExists, updateSong } from '@/data/songsData'
-import { Artist, ArtistCategory, ArtistRankingsFilterParams, ArtistThumbnailType, ArtistThumbnails, FilterDirection, FilterInclusionMode, FilterOrder, NameType, Names, Song, SongArtistsCategories, SongRankingsFilterParams, SongVideoIds, SourceType, ViewsBreakdown } from '@/data/types'
+import { Artist, ArtistCategory, ArtistRankingsFilterParams, ArtistThumbnailType, ArtistThumbnails, FilterDirection, FilterInclusionMode, FilterOrder, NameType, Names, Song, SongArtistsCategories, SongRankingsFilterParams, SongVideoIds, SourceType, VideoViews, ViewsBreakdown } from '@/data/types'
 import { getVocaDBSong, parseVocaDBSongId } from '@/lib/vocadb'
 import {
     GraphQLEnumType,
@@ -1752,9 +1752,50 @@ const mutationType = new GraphQLObjectType({
                     // get the refreshed song from voca DB
                     const vocaDbSong = (await getVocaDBSong(id)) as Partial<Song> & Pick<Song, "id">
 
-                    if (vocaDbSong.views) await insertSongViews(id, vocaDbSong.views);
-                    // keep the old addition date
-                    vocaDbSong.additionDate = undefined
+                    // merge views
+                    const newViews = vocaDbSong.views
+                    const existingViews = song.views
+                    if (newViews) {
+                        let totalViews = 0
+                        const breakdowns: ViewsBreakdown = {}
+
+                        for (const rawSourceType in newViews.breakdown) {
+                            const sourceType = Number.parseInt(rawSourceType) as SourceType
+                            const newBreakdown = newViews.breakdown[sourceType]
+                            const existingBreakdown = existingViews?.breakdown[sourceType]
+
+                            const viewsMap: { [key: string]: number | bigint } = {}
+
+                            if (newBreakdown) for (const views of newBreakdown) {
+                                viewsMap[views.id] = views.views
+                            };
+
+                            if (existingBreakdown) for (const views of existingBreakdown) {
+                                viewsMap[views.id] = views.views
+                            }
+
+                            // build breakdown
+                            const breakdown: VideoViews[] = []
+                            for (const videoId in viewsMap) {
+                                breakdown.push({
+                                    id: videoId,
+                                    views: viewsMap[videoId]
+                                })
+                            }
+
+                            breakdowns[sourceType] = breakdown
+                        }
+
+                        await insertSongViews(id, {
+                            total: totalViews,
+                            breakdown: breakdowns,
+                            timestamp: newViews.timestamp
+                        })
+                    }
+
+                    if (newViews)
+                        // keep the old addition date
+                        vocaDbSong.additionDate = undefined
                     vocaDbSong.lastRefreshed = dateNow
                     return updateSong(vocaDbSong)
                 })
