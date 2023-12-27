@@ -298,7 +298,7 @@ const parseVocaDBSongAsync = (
 
             if (0 >= totalViews) return reject('Provided song has no valid videos associated with it.')
 
-            const mostVibrantColor = await getImageMostVibrantColor(thumbnail)
+            const mostVibrantColor = await getImageMostVibrantColor(maxResThumbnail)
             const mostVibrantColorArgb = argbFromRgb(mostVibrantColor[0], mostVibrantColor[1], mostVibrantColor[2])
 
             const dateNow = new Date()

@@ -2007,6 +2007,11 @@ function updateSongSync(
             insertSongNamesSync(songId, names)
         }
 
+        // insert artists that don't exist
+        if (song.artists) for (const artist of song.artists) {
+            if (!artistExistsSync(artist.id)) insertArtistSync(artist)
+        };
+
         // update artists
         const categories = song.artistsCategories
         if (categories) {
@@ -2379,9 +2384,8 @@ const convertDatabase = async (
 ) => {
     const convertSongAverageColor = async (song: RawSongData) => {
         try {
-            const averageColor = rgbaFromArgb(argbFromHex(song.average_color))
             const palette = await getPaletteFromURL(song.maxres_thumbnail)
-            const mostVibrantColorRgb = getMostVibrantColor(palette, [averageColor.r, averageColor.b, averageColor.g])
+            const mostVibrantColorRgb = getMostVibrantColor(palette)
             const mostVibrantColorArgb = argbFromRgb(mostVibrantColorRgb[0], mostVibrantColorRgb[1], mostVibrantColorRgb[2])
 
             // get dark color & light color
@@ -2402,9 +2406,8 @@ const convertDatabase = async (
 
     const convertArtistAverageColor = async (artist: { id: number, average_color: string, url: string }) => {
         try {
-            const averageColor = rgbaFromArgb(argbFromHex(artist.average_color))
             const palette = await getPaletteFromURL(artist.url)
-            const mostVibrantColorRgb = getMostVibrantColor(palette, [averageColor.r, averageColor.b, averageColor.g])
+            const mostVibrantColorRgb = getMostVibrantColor(palette)
             const mostVibrantColorArgb = argbFromRgb(mostVibrantColorRgb[0], mostVibrantColorRgb[1], mostVibrantColorRgb[2])
 
             // get dark color & light color

@@ -18,37 +18,48 @@ export const getCustomThemeStylesheet = (
     return lines
 }
 
-// Function to calculate the Euclidean distance between two colors
-const colorDistance = (
-    color1: Palette,
-    color2: Palette
-) => {
-    return Math.sqrt(
-        Math.pow(color1[0] - color2[0], 2) +
-        Math.pow(color1[1] - color2[1], 2) +
-        Math.pow(color1[2] - color2[2], 2)
-    );
+function rgbToHsv([r, g, b]: Palette): Palette {
+    r /= 255;
+    g /= 255;
+    b /= 255;
+
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    const v = max;
+    const d = max - min;
+    const s = max === 0 ? 0 : d / max;
+    let h = 0;
+
+    if (max !== min) {
+        switch (max) {
+            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+            case g: h = (b - r) / d + 2; break;
+            case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+    }
+
+    return [h, s, v];
 }
 
-// gets the most vibrant color from a list of rgb colors.
 export const getMostVibrantColor = (
-    colors: Palette[],
-    averageColor?: Palette
+    colors: Palette[]
 ): Palette => {
-    let maxVibrancy = -1;
-    let vibrantColor;
+    let mostVibrantColor: Palette = [0, 0, 0];
+    let maxSaturation = 0;
+    let maxValue = 0;
 
     for (const color of colors) {
-        const vibrancy = Math.max(...color) - Math.min(...color);
-        // if averageColor was provided, take it into account. Otherwise, just use the vibrancy as a score.
-        const score = averageColor == undefined ? vibrancy : (vibrancy + (765 - colorDistance(color, averageColor)))
-        if (score > maxVibrancy) {
-            maxVibrancy = score;
-            vibrantColor = color;
+        const [h, s, v] = rgbToHsv(color);
+
+        // Check if the current color has higher saturation and value than the current most vibrant color
+        if (s > maxSaturation || (s === maxSaturation && v > maxValue)) {
+            maxSaturation = s;
+            maxValue = v;
+            mostVibrantColor = color;
         }
     }
 
-    return vibrantColor || colors[0];
+    return mostVibrantColor;
 }
 
 export const getImageMostVibrantColor = (
