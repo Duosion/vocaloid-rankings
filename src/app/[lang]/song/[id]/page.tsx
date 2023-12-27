@@ -267,10 +267,10 @@ export default async function SongPage(
                 <aside className="flex flex-col gap-5">
                     <ul className="bg-surface-container rounded-2xl p-5 box-border flex md:flex-col flex-row gap-5 overflow-x-auto overflow-y-clip md:overflow-x-clip">
                         <StatRow title={langDict.filter_publish_date}>
-                            <DateFormatter date={new Date(song.publishDate)} />
+                            <DateFormatter date={song.publishDate} />
                         </StatRow>
                         <StatRow title={langDict.filter_order_by_addition}>
-                            <DateFormatter date={new Date(song.additionDate)} />
+                            <DateFormatter date={song.additionDate} />
                         </StatRow>
                         <StatRow title={langDict.filter_song_type} text={langDict[SongTypeLocaleTokens[song.type]]} />
                         {nameElements}

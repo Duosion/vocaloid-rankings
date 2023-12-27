@@ -131,6 +131,7 @@ import {
  *   thumbnailType: SourceType
  *   lastUpdated: String
  *   isDormant: Boolean
+ *   lastRefreshed: String
  * }
  * 
  * type SongRankingsFilterResultItem {
@@ -802,11 +803,13 @@ const artistType: GraphQLObjectType = new GraphQLObjectType({
         },
         publishDate: {
             type: GraphQLString,
-            description: 'When the artist was first published (for songs) or released (for voicebanks/artists).'
+            description: 'When the artist was first published (for songs) or released (for voicebanks/artists).',
+            resolve: (artist: Artist) => artist.publishDate.toISOString()
         },
         additionDate: {
             type: GraphQLString,
-            description: 'When the artist was added to the database.'
+            description: 'When the artist was added to the database.',
+            resolve: (artist: Artist) => artist.additionDate.toISOString()
         },
         names: {
             type: entityNamesType,
@@ -869,6 +872,7 @@ const artistType: GraphQLObjectType = new GraphQLObjectType({
  *   thumbnailType: SourceType
  *   lastUpdated: String
  *   isDormant: Boolean
+ *   lastRefreshed: String
  * }
  */
 const songType: GraphQLObjectType = new GraphQLObjectType({
@@ -881,11 +885,13 @@ const songType: GraphQLObjectType = new GraphQLObjectType({
         },
         publishDate: {
             type: GraphQLString,
-            description: 'When the artist was first published (for songs) or released (for voicebanks/artists).'
+            description: 'When the artist was first published (for songs) or released (for voicebanks/artists).',
+            resolve: (song: Song) => song.publishDate.toISOString()
         },
         additionDate: {
             type: GraphQLString,
-            description: 'When the artist was added to the database.'
+            description: 'When the artist was added to the database.',
+            resolve: (song: Song) => song.additionDate.toISOString()
         },
         type: {
             type: songTypeEnum,
@@ -943,11 +949,17 @@ const songType: GraphQLObjectType = new GraphQLObjectType({
         },
         lastUpdated: {
             type: GraphQLString,
-            description: 'A timestamp that describes when this song was last updated.'
+            description: 'A timestamp that describes when this song was last updated.',
+            resolve: (song: Song) => song.lastUpdated.toISOString()
         },
         isDormant: {
             type: GraphQLBoolean,
             description: 'Whether this song is dormant or not.'
+        },
+        lastRefreshed: {
+            type: GraphQLString,
+            description: "A timestamp that shows when this song's data was last refresh",
+            resolve: (song: Song) => song.lastRefreshed ? song.lastRefreshed.toISOString() : null
         }
     },
     interfaces: [entityInterface]

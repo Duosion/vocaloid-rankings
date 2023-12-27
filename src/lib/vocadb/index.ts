@@ -147,8 +147,8 @@ const parseVocaDBArtistDataAsync = (
             resolve({
                 id: artistData.id,
                 type: artistTypeMap[artistData.artistType],
-                publishDate: artistData.releaseDate || artistData.createDate,
-                additionDate: new Date().toISOString(),
+                publishDate: new Date(artistData.releaseDate || artistData.createDate),
+                additionDate: new Date(),
                 thumbnails,
                 baseArtistId: baseArtist?.id,
                 averageColor: hexFromArgb(mostVibrantColorArgb),
@@ -301,12 +301,12 @@ const parseVocaDBSongAsync = (
             const mostVibrantColor = await getImageMostVibrantColor(thumbnail)
             const mostVibrantColorArgb = argbFromRgb(mostVibrantColor[0], mostVibrantColor[1], mostVibrantColor[2])
 
-            const isoDate = new Date().toISOString()
+            const dateNow = new Date()
 
             resolve({
                 id: vocaDBSong.id,
-                publishDate: vocaDBSong.publishDate,
-                additionDate: isoDate,
+                publishDate: new Date(vocaDBSong.publishDate),
+                additionDate: dateNow,
                 averageColor: hexFromArgb(mostVibrantColorArgb),
                 lightColor: hexFromArgb(MaterialDynamicColors.primary.getArgb(new SchemeVibrant(Hct.fromInt(mostVibrantColorArgb), false, 0.3))),
                 darkColor: hexFromArgb(MaterialDynamicColors.primary.getArgb(new SchemeVibrant(Hct.fromInt(mostVibrantColorArgb), true, 0.3))),
@@ -322,8 +322,9 @@ const parseVocaDBSongAsync = (
                 artists: artists,
                 videoIds: videoIds,
                 thumbnailType: thumbnailType,
-                lastUpdated: isoDate,
+                lastUpdated: dateNow,
                 isDormant: false,
+                lastRefreshed: null
             })
 
         } catch (error) {

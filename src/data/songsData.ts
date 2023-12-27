@@ -1120,8 +1120,8 @@ function buildArtist(
     return {
         id: artistData.id,
         type: type,
-        publishDate: artistData.publish_date,
-        additionDate: artistData.addition_date,
+        publishDate: new Date(artistData.publish_date),
+        additionDate: new Date(artistData.addition_date),
         names: names,
         thumbnails: thumbnails,
         averageColor: artistData.average_color,
@@ -1279,8 +1279,8 @@ function insertArtistSync(
     `).run(
         id,
         artist.type,
-        artist.publishDate,
-        artist.additionDate,
+        artist.publishDate.toISOString(),
+        artist.additionDate.toISOString(),
         artist.baseArtistId,
         artist.averageColor,
         artist.darkColor,
@@ -1318,7 +1318,11 @@ function updateArtistSync(
         const mapped = fieldMap[key]
         if (mapped && value !== undefined) {
             sets.push(`${mapped} = ?`)
-            values.push(value)
+            if (value instanceof Date) {
+                values.push(value.toISOString())
+            } else {
+                values.push(value)
+            }
         }
     }
 
@@ -1627,8 +1631,8 @@ function buildSong(
     // build song
     return {
         id: songId,
-        publishDate: songData.publish_date,
-        additionDate: songData.addition_date,
+        publishDate: new Date(songData.publish_date),
+        additionDate: new Date(songData.addition_date),
         type: songData.song_type as SongType,
         thumbnail: thumb,
         maxresThumbnail: maxresThumb,
@@ -1642,7 +1646,8 @@ function buildSong(
         thumbnailType: thumbType,
         views: songViews,
         placement: songPlacement,
-        lastUpdated: songData.last_updated,
+        lastUpdated: new Date(songData.last_updated),
+        lastRefreshed: songData.last_refreshed ? new Date(songData.last_refreshed) : null,
         isDormant: songData.dormant == 1 ? true : false,
         fandomUrl: songData.fandom_url
     }
@@ -1762,7 +1767,7 @@ function getSongSync(
 ): Song | null {
 
     const songData = db.prepare(`
-        SELECT id, publish_date, addition_date, song_type, thumbnail, maxres_thumbnail, thumbnail_type, average_color, dark_color, light_color, fandom_url, last_updated, dormant
+        SELECT id, publish_date, addition_date, song_type, thumbnail, maxres_thumbnail, thumbnail_type, average_color, dark_color, light_color, fandom_url, last_updated, dormant, last_refreshed
         FROM songs
         WHERE id = ?`).get(songId) as RawSongData
 
@@ -1896,12 +1901,12 @@ function insertSongSync(
     db.transaction(() => {
         // create song data
         db.prepare(`
-        INSERT INTO songs (id, publish_date, addition_date, song_type, thumbnail, maxres_thumbnail, thumbnail_type, average_color, dark_color, light_color, fandom_url, last_updated, dormant)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO songs (id, publish_date, addition_date, song_type, thumbnail, maxres_thumbnail, thumbnail_type, average_color, dark_color, light_color, fandom_url, last_updated, dormant, last_refreshed)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `).run(
             songId,
-            song.publishDate,
-            song.additionDate,
+            song.publishDate.toISOString(),
+            song.additionDate.toISOString(),
             song.type,
             song.thumbnail,
             song.maxresThumbnail,
@@ -1910,8 +1915,9 @@ function insertSongSync(
             song.darkColor,
             song.lightColor,
             song.fandomUrl,
-            song.lastUpdated,
-            song.isDormant ? 1 : 0
+            song.lastUpdated.toISOString(),
+            song.isDormant ? 1 : 0,
+            song.lastRefreshed ? song.lastRefreshed.toISOString() : null
         )
 
         // create names
@@ -1952,7 +1958,8 @@ function updateSongSync(
         darkColor: 'dark_color',
         lightColor: 'light_color',
         fandomUrl: 'fandom_url',
-        isDormant: 'dormant'
+        isDormant: 'dormant',
+        lastRefreshed: 'last_refreshed'
     }
 
     const sets: string[] = []
@@ -1962,12 +1969,16 @@ function updateSongSync(
         const field = fields[key]
         if (field && value !== undefined) {
             sets.push(`${field} = ?`)
-            switch (typeof (value)) {
-                case 'boolean':
-                    values.push(value ? 1 : 0)
-                    break;
-                default:
-                    values.push(value)
+            if (value instanceof Date) {
+                values.push(value.toISOString())
+            } else {
+                switch (typeof (value)) {
+                    case 'boolean':
+                        values.push(value ? 1 : 0)
+                        break;
+                    default:
+                        values.push(value)
+                }
             }
         }
     }

@@ -128,8 +128,8 @@ export interface ArtistPlacement {
 
 export interface Entity {
     id: Id,
-    publishDate: string
-    additionDate: string
+    publishDate: Date
+    additionDate: Date
     averageColor: string
     darkColor: string
     lightColor: string
@@ -146,7 +146,8 @@ export interface Song extends Entity {
     videoIds: SongVideoIds
     placement?: SongPlacement | null
     thumbnailType: SourceType
-    lastUpdated: string
+    lastUpdated: Date
+    lastRefreshed: Date | null,
     isDormant: boolean
     fandomUrl?: string
 }
@@ -371,6 +372,7 @@ export interface RawSongData {
     dark_color: string
     light_color: string
     last_updated: string
+    last_refreshed?: string
     dormant: number
     fandom_url?: string
 }

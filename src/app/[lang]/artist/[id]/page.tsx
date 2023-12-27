@@ -211,10 +211,10 @@ export default async function ArtistPage(
                 <aside className="flex flex-col gap-5">
                     <ul className="bg-surface-container rounded-2xl p-5 box-border flex md:flex-col flex-row gap-5 overflow-x-auto overflow-y-clip md:overflow-x-clip">
                         <StatRow title={langDict.artist_publish_date}>
-                            <DateFormatter date={new Date(artist.publishDate)} />
+                            <DateFormatter date={artist.publishDate} />
                         </StatRow>
                         <StatRow title={langDict.filter_order_by_addition}>
-                            <DateFormatter date={new Date(artist.additionDate)} />
+                            <DateFormatter date={artist.additionDate} />
                         </StatRow>
                         <StatRow title={langDict.filter_artist_type} text={langDict[ArtistTypeLocaleTokens[artistType]]} />
                         <StatRow title={langDict.artist_featured_in}>

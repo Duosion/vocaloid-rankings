@@ -22,8 +22,8 @@ export function RankingsItemTrailing(
     }: {
         mode: RankingsItemTrailingMode | FilterOrder,
         value: number,
-        publishDate?: string,
-        additionDate?: string,
+        publishDate?: string | Date,
+        additionDate?: string | Date,
         compact?: boolean
     }
 ) {
@@ -32,9 +32,9 @@ export function RankingsItemTrailing(
         case RankingsItemTrailingMode.SONG_COUNT:
             return <NumberFormatter number={value} compact={compact}/>;
         case RankingsItemTrailingMode.PUBLISH_DATE:
-            return publishDate ? <DateFormatter date={new Date(publishDate)} compact={compact}/> : undefined;
+            return publishDate ? <DateFormatter date={publishDate instanceof Date ? publishDate : new Date(publishDate)} compact={compact}/> : undefined;
         case RankingsItemTrailingMode.ADDITION_DATE:
-            return additionDate ? <DateFormatter date={new Date(additionDate)} compact={compact}/> : undefined;
+            return additionDate ? <DateFormatter date={additionDate instanceof Date ? additionDate : new Date(additionDate)} compact={compact}/> : undefined;
         case RankingsItemTrailingMode.YEARS_SINCE_PUBLISH:
             return publishDate ? <YearsSinceFormatter date={new Date(publishDate)}/> : undefined;
         default:

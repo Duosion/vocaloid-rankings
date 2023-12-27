@@ -18,7 +18,10 @@ export default function init(
         average_color TEXT NOT NULL,
         dark_color TEXT NOT NULL,
         light_color TEXT NOT NULL,
-        fandom_url TEXT)`).run()
+        fandom_url TEXT,
+        last_updated TEXT NOT NULL,
+        last_refreshed TEXT,
+        dormant: INTEGER NOT NULL)`).run()
 
     // create songs artists table
     database.prepare(`CREATE TABLE IF NOT EXISTS songs_artists (
