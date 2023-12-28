@@ -43,7 +43,8 @@ export default async function AddSongPage(
                 titleLanguage: settings.titleLanguage,
                 rankingsViewMode: settings.rankingsViewMode,
                 theme: settings.rankingsViewMode,
-                googleAnalytics: settings.googleAnalytics
+                googleAnalytics: settings.googleAnalytics,
+                language: settings.language
             }}/>
         </section>
     )

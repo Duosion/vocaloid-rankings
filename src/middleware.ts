@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 import Negotiator from 'negotiator'
 import { match as matchLocale } from '@formatjs/intl-localematcher'
 import { locales } from "@/localization";
+import { Settings } from "./app/[lang]/settings";
+import { cookies } from "next/dist/client/components/headers";
 
 const deafultLocale = 'en'
 
@@ -10,7 +12,7 @@ const getLocale = (request: NextRequest): string => {
     const headers: Record<string, string> = {}
     request.headers.forEach((value, key) => (headers[key] = value))
 
-    let languages = new Negotiator({headers: headers}).languages(
+    const languages = new Negotiator({headers: headers}).languages(
         locales
     )
 
@@ -27,9 +29,11 @@ export function middleware(
     )
 
     if (pathNameIsMissingLocale) {
+        const settings = new Settings(cookies())
+
         return NextResponse.redirect(
             new URL(
-                `/${getLocale(request)}${pathname.startsWith('/') ? '' : '/'}${pathname}`,
+                `/${settings.language || getLocale(request)}${pathname.startsWith('/') ? '' : '/'}${pathname}`,
                 request.url
             )
         )

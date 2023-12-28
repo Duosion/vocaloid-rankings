@@ -7,6 +7,13 @@ import { useEffect, useState } from "react"
 import { rawSettingsDefault } from "."
 import { decodeBoolean, encodeBoolean } from "../rankings/utils"
 import { InitialSettings } from "./types"
+import { useRouter } from "next/navigation"
+
+const languageValueMap: { [key: string]: number} = {
+    'en': 1,
+    'es': 2,
+    'ja': 3
+}
 
 export function SettingsSelectors(
     {
@@ -17,9 +24,10 @@ export function SettingsSelectors(
 ) {
     // import language dictionary
     const langDict = useLocale()
+    const router = useRouter()
 
     // get settings
-    const { settings, setTitleLanguage, setRankingsViewMode, setTheme, setGoogleAnalytics } = useSettings()
+    const { settings, setTitleLanguage, setRankingsViewMode, setTheme, setGoogleAnalytics, setLanguage } = useSettings()
 
     // wait for mount
     const [mounted, setMounted] = useState(false)
@@ -43,6 +51,40 @@ export function SettingsSelectors(
                 ]}
                 onValueChanged={(newValue) => {
                     setTheme(newValue)
+                }}
+            />
+
+            {/* Language */}
+            <SelectFilterElement
+                name={langDict['settings_language']}
+                value={currentSettings.language == null ? 0 : languageValueMap[currentSettings.language] }
+                defaultValue={rawSettingsDefault.language == null ? 0 : languageValueMap[rawSettingsDefault.language] }
+                options={[
+                    langDict['language_system'],
+                    langDict['language_english'],
+                    langDict['language_spanish'],
+                    langDict['language_japanese']
+                ]}
+                onValueChanged={(newValue) => {
+                    switch (newValue) {
+                        case 0:
+                            setLanguage(null)
+                            router.push(`/settings`)
+                            break;
+                        case 1:
+                            setLanguage('en')
+                            router.push(`/en/settings`)
+                            break;
+                        case 2:
+                            setLanguage('es')
+                            router.push(`/es/settings`)
+                            break;
+                        case 3:
+                            setLanguage('ja')
+                            router.push(`/ja/settings`)
+                            break;
+                    }
+                    
                 }}
             />
 
@@ -98,6 +140,7 @@ export function SettingsSelectors(
                     setGoogleAnalytics(decodeBoolean(newValue))
                 }}
             />
+
         </>
     )
 }

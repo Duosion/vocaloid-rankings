@@ -1,5 +1,6 @@
 import { NameType } from "@/data/types";
 import { RankingsViewMode } from "../rankings/types";
+import { Locale } from "@/localization";
 
 export enum Theme {
     SYSTEM,
@@ -12,13 +13,15 @@ export interface InitialSettings {
     rankingsViewMode: number
     theme: number
     googleAnalytics: boolean
+    language: string | null
 }
 
 export interface RawSettings {
     titleLanguage: NameType
     rankingsViewMode: RankingsViewMode
     theme: Theme,
-    googleAnalytics: boolean
+    googleAnalytics: boolean,
+    language: Locale | null
 }
 
 export interface SettingsProxy {
@@ -30,11 +33,15 @@ export interface SettingsProxy {
 
     get theme(): Theme
 
+    get language(): Locale | null
+
     set titleLanguage(newTitleLanguage: NameType)
 
     set rankingsViewMode(newRankingsViewMode: RankingsViewMode)
 
     set googleAnalytics(enabled: boolean)
+
+    set language(newLanguage: Locale | null)
 }
 
 export interface UseSettingsProps {
@@ -44,6 +51,7 @@ export interface UseSettingsProps {
     setRankingsViewMode: (newViewMode: RankingsViewMode) => void
     setTheme: (newTheme: Theme) => void
     setGoogleAnalytics: (enabled: boolean) => void
+    setLanguage: (newLanguage: Locale | null) => void
 }
 
 export interface SettingsProviderProps {

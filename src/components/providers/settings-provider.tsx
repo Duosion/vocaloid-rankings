@@ -6,6 +6,7 @@ import { RankingsViewMode } from "../../app/[lang]/rankings/types";
 import { RawSettings, SettingsProviderProps, Theme, UseSettingsProps } from "../../app/[lang]/settings/types";
 import { rawSettingsDefault } from "@/app/[lang]/settings";
 import { useTheme } from "next-themes";
+import { Locale } from "@/localization";
 
 const settingsContext = createContext<UseSettingsProps | undefined>(undefined)
 const defaultSettingsContext: UseSettingsProps = {
@@ -13,6 +14,7 @@ const defaultSettingsContext: UseSettingsProps = {
     setRankingsViewMode: () => { },
     setTheme: () => {},
     setGoogleAnalytics: () => {},
+    setLanguage: () => {},
     settings: rawSettingsDefault
 }
 
@@ -94,13 +96,24 @@ const SettingsElement: React.FC<SettingsProviderProps> = ({
         [saveSettings, settings]
     )
 
+    const setLanguage = useCallback(
+        (newLanguage: Locale | null) => {
+            saveSettings({
+                ...settings,
+                language: newLanguage
+            })
+        },
+        [saveSettings, settings]
+    )
+
     const providerValue = useMemo(() => ({
         settings,
         setTitleLanguage,
         setRankingsViewMode,
         setTheme: setThemeSetting,
-        setGoogleAnalytics: setGoogleAnalytics
-    }), [settings, setTitleLanguage, setRankingsViewMode, setThemeSetting, setGoogleAnalytics])
+        setGoogleAnalytics: setGoogleAnalytics,
+        setLanguage: setLanguage
+    }), [settings, setTitleLanguage, setRankingsViewMode, setThemeSetting, setGoogleAnalytics, setLanguage])
 
     return (
         <settingsContext.Provider

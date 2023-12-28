@@ -3,12 +3,14 @@ import { RequestCookies } from "next/dist/compiled/@edge-runtime/cookies";
 import { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
 import { RankingsViewMode } from "../rankings/types";
 import { RawSettings, SettingsProxy, Theme } from "./types";
+import { Locale } from "@/localization";
 
 export const rawSettingsDefault: RawSettings = {
     titleLanguage: NameType.ENGLISH,
     rankingsViewMode: RankingsViewMode.GRID,
     theme: Theme.SYSTEM,
-    googleAnalytics: true
+    googleAnalytics: true,
+    language: null
 }
 
 export class Settings implements SettingsProxy {
@@ -81,4 +83,15 @@ export class Settings implements SettingsProxy {
         this.settings.googleAnalytics = enabled
         this.saveSettings()
     }
+
+    // locale
+    get language(): Locale | null {
+        return this.settings.language
+    }
+
+    set language(newLanguage: Locale) {
+        this.settings.language = newLanguage
+        this.saveSettings()
+    }
+
 }
