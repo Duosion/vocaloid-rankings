@@ -36,18 +36,24 @@ export async function generateMetadata(
             lang: Locale
         }
     }
-): Promise<Metadata> {
+): Promise<Metadata | null> {
     // get settings
     const settings = new Settings(cookies())
     const settingTitleLanguage = settings.titleLanguage
 
     // get names
     const songId = Number(params.id)
-    const names = isNaN(songId) ? null : await getSongNames(songId)
+    const song = isNaN(songId) ? null :await getSong(songId)
 
-    return {
-        title: names ? getEntityName(names, settingTitleLanguage) : null,
-    }
+    return song ? {
+        title: getEntityName(song.names, settingTitleLanguage),
+        description: `A song with ${song.views?.total} views on Vocaloid Rankings.`,
+        openGraph: {
+            images: [
+                song.thumbnail
+            ]
+        }
+    } : null
 }
 
 export default async function SongPage(
