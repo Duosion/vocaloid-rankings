@@ -1,3 +1,4 @@
+import { defaultFetchHeaders } from ".";
 import { Platform, VideoId, VideoThumbnails } from "./types";
 
 class YouTubePlatform implements Platform {
@@ -5,7 +6,7 @@ class YouTubePlatform implements Platform {
     getViews(
         videoId: VideoId
     ): Promise<number | null> {
-        return fetch(`https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${videoId}&key=${process.env.YOUTUBE_API_KEY}`)
+        return fetch(`https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${videoId}&key=${process.env.YOUTUBE_API_KEY}`, { headers: defaultFetchHeaders })
             .then(response => response.json())
             .then(body => {
                 const items = body['items']
@@ -21,7 +22,7 @@ class YouTubePlatform implements Platform {
         const defaultThumb = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`
         const maxResThumb = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
 
-        return fetch(maxResThumb)
+        return fetch(maxResThumb, { headers: defaultFetchHeaders })
             .then(res => {
                 return {
                     default: defaultThumb,
