@@ -1,3 +1,4 @@
+import { defaultFetchHeaders } from ".";
 import { Platform, VideoId, VideoThumbnails } from "./types";
 
 const bilibiliVideoDataEndpoint = "https://api.bilibili.com/x/web-interface/view?aid="
@@ -11,7 +12,7 @@ class bilibiliPlatform implements Platform {
         const aidMatches = videoId.match(bilibiliAidRegExp)
         const trimmedAid = aidMatches ? aidMatches[1] : videoId
 
-        return fetch(bilibiliVideoDataEndpoint + trimmedAid)
+        return fetch(bilibiliVideoDataEndpoint + trimmedAid, { headers: defaultFetchHeaders })
             .then(response => response.json())
             .then(body => {
                 if (!body || body['code'] != 0) return null
@@ -26,7 +27,7 @@ class bilibiliPlatform implements Platform {
         const aidMatches = videoId.match(bilibiliAidRegExp)
         const trimmedAid = aidMatches ? aidMatches[1] : videoId
 
-        return fetch(bilibiliVideoDataEndpoint + trimmedAid)
+        return fetch(bilibiliVideoDataEndpoint + trimmedAid, { headers: defaultFetchHeaders })
             .then(response => response.json())
             .then(body => {
                 if (!body || body['code'] != 0) return null

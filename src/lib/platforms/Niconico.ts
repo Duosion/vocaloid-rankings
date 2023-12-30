@@ -1,51 +1,43 @@
-import { parseHTML } from "linkedom";
 import { Platform, VideoId, VideoThumbnails } from "./types";
+import { defaultFetchHeaders } from ".";
 
-const nicoNicoVideoDomain = "https://www.nicovideo.jp/watch/"
+const nicoNicoAPIDomain = "https://nvapi.nicovideo.jp/v1/"
+const headers = {
+    ...defaultFetchHeaders,
+    'x-Frontend-Id': '6',
+    'x-Frontend-version': '0'
+}
 
 class NiconicoPlatform implements Platform {
 
+    // https://niconicolibs.github.io/api/nvapi/#tag/Video
     async getViews(
         videoId: VideoId
     ): Promise<number | null> {
-        const result = await fetch(nicoNicoVideoDomain + videoId, {
-            method: 'GET',
+        return fetch(`${nicoNicoAPIDomain}videos?watchIds=${videoId}`, {
+            headers: headers
+        }).then(res => res.json())
+        .then(videoData => {
+            return videoData['data']['items'][0]['video']['count']['view']
         })
-        if (!result) return null
-
-        const text = await result.text()
-
-        const parsedHTML = parseHTML(text)
-        // parse data-api-data
-        const dataElement = parsedHTML.document.getElementById("js-initial-watch-data")
-        if (!dataElement) { return null }
-
-        const videoData = JSON.parse(dataElement.getAttribute("data-api-data") || '[]')?.video
-
-        const rawViews = videoData?.count?.view
-        return rawViews == undefined ? null : Number.parseInt(rawViews)
+        .catch(_ => { return null })
     }
 
     getThumbnails(
         videoId: VideoId
     ): Promise<VideoThumbnails | null> {
-        return fetch(nicoNicoVideoDomain + videoId)
-            .then(response => response.text())
-            .then(text => {
-                const parsedHTML = parseHTML(text)
-                // parse data-api-data
-                const dataElement = parsedHTML.document.getElementById("js-initial-watch-data")
-                if (!dataElement) { return null }
-
-                const videoData = JSON.parse(dataElement.getAttribute("data-api-data") || '[]')?.video
-
-                const thumbnail = videoData?.thumbnail?.url
-                return thumbnail == undefined ? null : {
-                    default: thumbnail,
-                    quality: thumbnail
-                }
-            })
-            .catch(_ => { return null })
+        return fetch(`${nicoNicoAPIDomain}videos?watchIds=${videoId}`, {
+            headers: headers
+        }).then(res => res.json())
+        .then(videoData => {
+            const thumbnails = videoData['data']['items'][0]['video']['thumbnail']
+            const defaultThumbnail = thumbnails['listingUrl']
+            return {
+                default: defaultThumbnail,
+                quality: thumbnails['largeUrl'] || defaultThumbnail
+            }
+        })
+        .catch(_ => { return null })
     }
 
 }

@@ -6,6 +6,7 @@ import { getArtist, getSongMostRecentViews } from "@/data/songsData";
 import YouTube from "../platforms/YouTube";
 import Niconico from "../platforms/Niconico";
 import bilibili from "../platforms/bilibili";
+import { defaultFetchHeaders } from "../platforms";
 
 // numbers
 const msInDay = 24 * 60 * 60 * 1000 // one day in ms
@@ -99,7 +100,7 @@ const getRecentSongs = (
     return new Promise(async (resolve, reject) => {
         try {
             resolve(
-                fetch(`${vocaDBRecentSongsApiUrl}&start=${offset}&maxResults=${maxResults}`)
+                fetch(`${vocaDBRecentSongsApiUrl}&start=${offset}&maxResults=${maxResults}`, { headers: defaultFetchHeaders })
                     .then(response => response.json())
                     .then(json => { return json['items'] })
                     .catch(error => { reject(error) }))
@@ -339,7 +340,7 @@ export const getVocaDBArtist = (
     return new Promise(async (resolve, reject) => {
         try {
             // fetch the data from the vocaDB API
-            const serverResponse = await fetch(`${vocaDBArtistsApiUrl}${artistId}${vocaDBArtistsApiParams}`)
+            const serverResponse = await fetch(`${vocaDBArtistsApiUrl}${artistId}${vocaDBArtistsApiParams}`, { headers: defaultFetchHeaders })
                 .then(response => response.json())
                 .catch(error => { reject(error); return })
             if (!serverResponse) { reject("No server response."); return; }
@@ -357,7 +358,7 @@ export const getVocaDBSong = (
     return new Promise(async (resolve, reject) => {
         try {
             // fetch the data from the vocaDB API
-            const serverResponse = await fetch(`${vocaDBSongApiUrl}${songId}${vocaDBSongApiParams}`)
+            const serverResponse = await fetch(`${vocaDBSongApiUrl}${songId}${vocaDBSongApiParams}`, { headers: defaultFetchHeaders })
                 .then(response => response.json())
                 .catch(error => { reject(error); return })
             if (!serverResponse) { reject("No server response."); return; }
