@@ -150,9 +150,3 @@ export function getAuthenticatedUser(
         }
     })
 }
-
-// getUserFromUsername('admin').then(user => {
-//     if (!user) {
-//         return signup('admin', 'WVdipE0JhpY7&026vz^%^31WXhsXbpfTn$Ny$ttXv2R80@ZyjR', UserAccessLevel.ADMIN).then(user => console.log(user))
-//     }
-// })

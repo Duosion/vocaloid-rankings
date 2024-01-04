@@ -2199,7 +2199,6 @@ export function deleteSongUser(
 ): Promise<boolean> {
     return new Promise((resolve, reject) => {
         try {
-            console.log(user, user?.accessLevel)
             if (user && user.accessLevel >= UserAccessLevel.MODERATOR) {
                 deleteSongSync(id)
                 return resolve(true)

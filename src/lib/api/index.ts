@@ -21,7 +21,7 @@ export const graphClient = new GraphQLClient({
     headers: headers
 })
 
-sessionToken = null
+sessionToken = undefined
 
 // queries
 export const GET_SONG_RANKINGS = `
