@@ -7,7 +7,7 @@ import { NumberFormatter } from "@/components/formatters/number-formatter"
 import Image from '@/components/image'
 import { Divider } from "@/components/material/divider"
 import { getSong, getSongHistoricalViews, getSongMostRecentViews, getSongNames, insertSongViews, updateSong } from "@/data/songsData"
-import { ArtistCategory, ArtistThumbnailType, Id, NameType, SourceType } from "@/data/types"
+import { ArtistCategory, ArtistThumbnailType, Id, NameType, SourceType, UserAccessLevel } from "@/data/types"
 import { getCustomThemeStylesheet } from "@/lib/material/material"
 import { SourceTypesDisplayData } from "@/lib/sourceType"
 import { Locale, getDictionary, getEntityName } from "@/localization"
@@ -19,6 +19,8 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { Settings } from "../../settings"
 import { RefreshSongButton } from "./refresh-song-button"
+import { DeleteSongButton } from "./delete-song-button copy"
+import { getAuthenticatedUser } from "@/lib/auth"
 
 // interfaces
 interface ViewsBreakdown {
@@ -83,7 +85,9 @@ export default async function SongPage(
     }
 
     // get settings
-    const settings = new Settings(cookies())
+    const requestCookies = cookies()
+    const settings = new Settings(requestCookies)
+    const authUser = await getAuthenticatedUser(requestCookies)
 
     // general variables
     const songTotalViews = Number(song.views?.total) || 0
@@ -276,10 +280,19 @@ export default async function SongPage(
                         {nameElements}
                     </ul>
                     <ul className="flex-col gap-5 md:flex hidden">
-                        {songRefreshedToday ? undefined : <RefreshSongButton
-                            text={langDict.song_refresh}
-                            songId={songId}
-                        />}
+                        {authUser && authUser.accessLevel >= UserAccessLevel.MODERATOR ? <>
+                            <DeleteSongButton
+                                text={langDict.login}
+                                songId={songId}
+                            />
+                        </> : undefined}
+                        {songRefreshedToday ? undefined : <>
+                            <RefreshSongButton
+                                text={langDict.song_refresh}
+                                songId={songId}
+                            />
+                            <Divider />
+                        </>}
                         {videoLinks}
                         {vocadbLink}
                     </ul>
@@ -347,11 +360,20 @@ export default async function SongPage(
                     </div> : null}
 
                     <div className="md:hidden flex flex-col gap-5">
-                        <Divider/>
-                        {songRefreshedToday ? undefined : <RefreshSongButton
-                            text={langDict.song_refresh}
-                            songId={songId}
-                        />}
+                        <Divider />
+                        {authUser && authUser.accessLevel >= UserAccessLevel.MODERATOR ? <>
+                            <DeleteSongButton
+                                text={langDict.login}
+                                songId={songId}
+                            />
+                        </> : undefined}
+                        {songRefreshedToday ? undefined : <>
+                            <RefreshSongButton
+                                text={langDict.song_refresh}
+                                songId={songId}
+                            />
+                            <Divider />
+                        </>}
                         <EntitySection title={langDict.song_listen}>
                             <ul className="flex-col gap-5 flex">
                                 {videoLinks}

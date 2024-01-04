@@ -1,4 +1,4 @@
-import { filterArtistRankings, filterSongRankings, getArtist, getArtistPlacement, getArtistViews, getMostRecentViewsTimestamp, getSong, getSongPlacement, getSongViews, insertSong, insertSongViews, refreshAllSongsViews, searchArtists, songExists, updateSong } from '@/data/songsData'
+import { deleteSongUser, filterArtistRankings, filterSongRankings, getArtist, getArtistPlacement, getArtistViews, getMostRecentViewsTimestamp, getSong, getSongPlacement, getSongViews, insertSong, insertSongViews, refreshAllSongsViews, searchArtists, songExists, updateSong } from '@/data/songsData'
 import { Artist, ArtistCategory, ArtistRankingsFilterParams, ArtistThumbnailType, ArtistThumbnails, FilterDirection, FilterInclusionMode, FilterOrder, NameType, Names, Song, SongArtistsCategories, SongRankingsFilterParams, SongVideoIds, SourceType, VideoViews, ViewsBreakdown } from '@/data/types'
 import { getVocaDBSong, parseVocaDBSongId } from '@/lib/vocadb'
 import {
@@ -14,6 +14,7 @@ import {
     Kind,
     GraphQLBoolean
 } from 'graphql'
+import { GraphQLContext } from './types'
 
 /**
  * SCHEMA OVERVIEW
@@ -247,6 +248,10 @@ import {
  *   refreshSongFromVocaDB(
  *     songId: String!
  *   )
+ * 
+ *   deleteSong(
+ *     id: String!
+ *   ): String
  * 
  *   refreshAllSongsViews()
  * }
@@ -1808,6 +1813,26 @@ const mutationType = new GraphQLObjectType({
                 refreshAllSongsViews()
                 return getMostRecentViewsTimestamp()
             }
+        },
+        deleteSong: {
+            type: GraphQLString,
+            description: "Deletes a song from the database. Requires authentication.",
+            args: {
+                id: {
+                    type: new GraphQLNonNull(GraphQLInt)
+                }
+            },
+            resolve: (
+                _source,
+                {
+                    id
+                }: {
+                    id: number
+                },
+                context: GraphQLContext
+            ) => deleteSongUser(context.user, id)
+                .then(success => success ? id : null)
+                .catch(error => { throw new Error(error) })
         }
     }
 })

@@ -7,7 +7,7 @@ import { Hct, MaterialDynamicColors, SchemeVibrant, argbFromHex, argbFromRgb, he
 import type { Statement } from "better-sqlite3";
 import { getPaletteFromURL } from "color-thief-node";
 import getDatabase, { Databases } from ".";
-import { Artist, ArtistCategory, ArtistPlacement, ArtistRankingsFilterParams, ArtistRankingsFilterResult, ArtistRankingsFilterResultItem, ArtistThumbnailType, ArtistThumbnails, ArtistType, FilterInclusionMode, HistoricalViews, HistoricalViewsResult, Id, NameType, Names, PlacementChange, RawArtistData, RawArtistName, RawArtistRankingResult, RawArtistThumbnail, RawSongArtist, RawSongData, RawSongName, RawSongRankingsResult, RawSongVideoId, RawViewBreakdown, Song, SongArtistsCategories, SongPlacement, SongRankingsFilterParams, SongRankingsFilterResult, SongRankingsFilterResultItem, SongType, SongVideoIds, SourceType, SqlRankingsFilterInVariables, SqlRankingsFilterParams, SqlRankingsFilterStatements, SqlSearchArtistsFilterParams, Views, ViewsBreakdown } from "./types";
+import { Artist, ArtistCategory, ArtistPlacement, ArtistRankingsFilterParams, ArtistRankingsFilterResult, ArtistRankingsFilterResultItem, ArtistThumbnailType, ArtistThumbnails, ArtistType, FilterInclusionMode, HistoricalViews, HistoricalViewsResult, Id, NameType, Names, PlacementChange, RawArtistData, RawArtistName, RawArtistRankingResult, RawArtistThumbnail, RawSongArtist, RawSongData, RawSongName, RawSongRankingsResult, RawSongVideoId, RawViewBreakdown, Song, SongArtistsCategories, SongPlacement, SongRankingsFilterParams, SongRankingsFilterResult, SongRankingsFilterResultItem, SongType, SongVideoIds, SourceType, SqlRankingsFilterInVariables, SqlRankingsFilterParams, SqlRankingsFilterStatements, SqlSearchArtistsFilterParams, User, UserAccessLevel, Views, ViewsBreakdown } from "./types";
 import YouTube from "@/lib/platforms/YouTube";
 
 // import database
@@ -2046,7 +2046,7 @@ function deleteSongSync(
     id: Id
 ) {
     db.prepare(`
-    DELTE FROM songs
+    DELETE FROM songs
     WHERE id = ?
     `).run(id)
 }
@@ -2187,6 +2187,24 @@ export function deleteSong(
     return new Promise((resolve, reject) => {
         try {
             resolve(deleteSongSync(id))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+export function deleteSongUser(
+    user: User | null,
+    id: Id,
+): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+        try {
+            console.log(user, user?.accessLevel)
+            if (user && user.accessLevel >= UserAccessLevel.MODERATOR) {
+                deleteSongSync(id)
+                return resolve(true)
+            }
+            return resolve(false)
         } catch (error) {
             reject(error)
         }

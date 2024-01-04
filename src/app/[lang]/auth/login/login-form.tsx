@@ -3,10 +3,12 @@ import { LoginActionResponse, loginAction } from "@/app/actions/login"
 import { FilledButton } from "@/components/material/filled-button"
 import { useLocale } from "@/components/providers/language-dictionary-provider"
 import { LanguageDictionaryKey } from "@/localization"
+import { ClientContext } from "graphql-hooks"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useContext, useState } from "react"
 
 export function LoginForm() {
+    const graphClient = useContext(ClientContext)
     const langDict = useLocale()
     const router = useRouter()
 
@@ -22,7 +24,10 @@ export function LoginForm() {
                 const result: LoginActionResponse = await loginAction(formData)
                 setLoading(false)
 
-                if (result.success) return router.back()
+                if (result.success) {
+                    graphClient?.setHeader('Authorization', `Bearer ${result.session}`)
+                    return router.back()
+                } 
 
                 const error = result.error
                 setError(error ? langDict[error as LanguageDictionaryKey] || error : null)

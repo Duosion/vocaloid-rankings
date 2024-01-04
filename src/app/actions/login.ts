@@ -7,7 +7,8 @@ import { cookies } from "next/dist/client/components/headers"
 
 export interface LoginActionResponse {
     error?: LanguageDictionaryKey | string,
-    success: boolean
+    success: boolean,
+    session?: string
 }
 
 export async function loginAction(
@@ -19,10 +20,11 @@ export async function loginAction(
         const user = username ? await getUserFromUsername(username as string) : null
         if (!user || !password) throw new Error('login_invalid_credentials')
 
-        await login(cookies(), user, password as string, formData.get('stayLoggedIn') as boolean | null || false)
+        const session = await login(cookies(), user, password as string, formData.get('stayLoggedIn') as boolean | null || false)
 
         return {
-            success: true
+            success: true,
+            session: session.token
         }
         
     } catch (error: any) {

@@ -3,15 +3,15 @@ import { FilledButton } from "@/components/material/filled-button"
 import { APIError, GraphQLResponseError, useManualQuery } from "graphql-hooks"
 import { useRouter } from "next/navigation"
 
-const REFRESH_SONG_QUERY = `
-mutation refreshSong(
+const DELETE_SONG_QUERY = `
+mutation deleteSong(
     $id: Int!
 ) {
-    refreshSongFromVocaDB(id: $id) { id }
+    deleteSong(id: $id)
 }
 `
 
-export function RefreshSongButton(
+export function DeleteSongButton(
     {
         text,
         songId
@@ -22,15 +22,13 @@ export function RefreshSongButton(
 ) {
     const router = useRouter()
 
-    
-
-    const [refreshSong, { loading, error }] = useManualQuery(REFRESH_SONG_QUERY, {
-        variables: { id: songId }
+    const [refreshSong, { loading, error }] = useManualQuery(DELETE_SONG_QUERY, {
+        variables: { id: songId },
     })
 
     const handleRefresh = () => refreshSong()
         .then(_ => {
-            router.refresh()
+            router.back()
         })
         .catch(error => { })
 
@@ -40,7 +38,7 @@ export function RefreshSongButton(
         <>
             <FilledButton
                 text={text}
-                icon='refresh'
+                icon='delete'
                 onClick={handleRefresh}
                 disabled={loading}
             />
