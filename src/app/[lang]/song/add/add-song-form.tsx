@@ -40,6 +40,7 @@ export function AddSongForm() {
                 placeholder='https://vocadb.net/S/414140'
                 pattern='https://vocadb.net/S/.*'
                 className="w-full py-2 px-4 rounded-full text-on-surface flex text-base font-normal bg-surface-container-low"
+                required
             />
 
             {error ? <h4 className="pl-4 text-base text-error">{error}</h4> : undefined}

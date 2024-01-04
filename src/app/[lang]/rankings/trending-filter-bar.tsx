@@ -12,7 +12,9 @@ import { Expander } from "@/components/transitions/expander"
 import { ModalDrawer, ModalDrawerSide } from "@/components/transitions/modal-drawer"
 import { generateTimestamp } from "@/lib/utils"
 import { useRef, useState } from "react"
-import { Filter, FilterType, InputFilter, RankingsViewMode, SelectFilter, TrendingFilterBarValues, TrendingFilters } from "./types"
+import { Filter, FilterType, InputFilter, MultiFilter, RankingsViewMode, SelectFilter, TrendingFilterBarValues, TrendingFilters } from "./types"
+import { ToggleGroupFilterElement } from "@/components/filter/toggle-group-filter"
+import { MultiSelectFilterElement } from "@/components/filter/multi-select-filter"
 
 export function TrendingActiveFilterBar(
     {
@@ -38,10 +40,8 @@ export function TrendingActiveFilterBar(
     // functions
     const closeDrawer = () => setDrawerOpen(false)
 
-    // timeouts
-    const searchTimeout = useRef<NodeJS.Timeout>()
-    const minViewsTimeout = useRef<NodeJS.Timeout>()
-    const maxViewsTimeout = useRef<NodeJS.Timeout>()
+    // options
+    const sourceTypesOptions = filters.includeSourceTypes.values.map(value => langDict[value.name])
 
     // timestamps
     const currentTimestampIso = generateTimestamp(currentTimestamp)
@@ -79,6 +79,22 @@ export function TrendingActiveFilterBar(
                     }
                     break
                 }
+                case FilterType.MULTI: {
+                    const options = (filter as MultiFilter<number>).values
+                    const parsedValue = value as number[]
+                    if (parsedValue.length > 0) {
+                        parsedValue.forEach(val => {
+                            if (!isNaN(val)) {
+                                activeFilters.push(<ActiveFilter name={`${langDict[filter.name]}: ${langDict[options[val].name]}`} onClick={() => {
+                                    parsedValue.splice(parsedValue.indexOf(val), 1)
+                                    filterValues[key as keyof typeof filterValues] = [...parsedValue] as any
+                                    setFilterValues(filterValues)
+                                }} />)
+                            }
+                        })
+                    }
+                    break
+                }
             }
         }
     }
@@ -92,6 +108,13 @@ export function TrendingActiveFilterBar(
                 <h3 className="text-3xl flex-1">{langDict.rankings_filter}</h3>
                 <IconButton icon='close' onClick={closeDrawer} />
             </header>
+
+            {/* Source Type */}
+            <ToggleGroupFilterElement name={langDict['filter_view_type']} included={filterValues.includeSourceTypes || []} excluded={filterValues.excludeSourceTypes || []} options={sourceTypesOptions} onValueChanged={(newIncluded, newExcluded) => {
+                filterValues.includeSourceTypes = [...newIncluded]
+                filterValues.excludeSourceTypes = [...newExcluded]
+                setFilterValues(filterValues)
+            }} />
 
             {/* Time Period */}
             <SelectFilterElement
@@ -190,6 +213,18 @@ export function TrendingActiveFilterBar(
             <Divider className="mb-5" />
             <div className="h-fit w-full gap-x-10 gap-y-8 grid xl:grid-cols-5 lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 grid-cols-1 mb-5">
 
+                {/* Source Type */}
+                <MultiSelectFilterElement
+                    name={langDict['filter_view_type']}
+                    placeholder={langDict['filter_year_any']}
+                    included={filterValues.includeSourceTypes || []}
+                    excluded={filterValues.excludeSourceTypes || []}
+                    options={sourceTypesOptions} onValueChanged={(newIncluded, newExcluded) => {
+                        filterValues.includeSourceTypes = [...newIncluded]
+                        filterValues.excludeSourceTypes = [...newExcluded]
+                        setFilterValues(filterValues)
+                    }}
+                />
 
                 {/* Time Period */}
                 <SelectFilterElement

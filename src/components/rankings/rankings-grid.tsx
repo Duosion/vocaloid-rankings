@@ -1,6 +1,6 @@
 export function RankingsGrid (
     {
-        columnsClassName = 'xl:grid-cols-7 lg:grid-cols-6 md:grid-cols-5 sm:grid-cols-3 grid-cols-2',
+        columnsClassName = 'xl:grid-cols-8 lg:grid-cols-6 md:grid-cols-5 sm:grid-cols-3 grid-cols-2',
         children
     }: {
         columnsClassName?: string,

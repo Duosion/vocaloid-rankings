@@ -11,17 +11,14 @@ import { SelectFilterElement } from "@/components/filter/select-filter"
 import { SwitchFilterElement } from "@/components/filter/switch-filter"
 import { ToggleGroupFilterElement } from "@/components/filter/toggle-group-filter"
 import { Divider } from "@/components/material/divider"
-import { FilledButton } from "@/components/material/filled-button"
-import { FloatingActionButton } from "@/components/material/floating-action-button"
 import { IconButton } from "@/components/material/icon-button"
-import { VerticalDivider } from "@/components/material/vertical-divider"
 import { useLocale } from "@/components/providers/language-dictionary-provider"
 import { Expander } from "@/components/transitions/expander"
 import { ModalDrawer, ModalDrawerSide } from "@/components/transitions/modal-drawer"
 import { generateTimestamp, timeoutDebounce } from "@/lib/utils"
 import { useRef, useState } from "react"
-import { CheckboxFilter, EntityNames, Filter, FilterType, InputFilter, MultiFilter, RankingsFilters, RankingsViewMode, SelectFilter, SongRankingsFilterBarValues } from "./types"
 import { RankingsActionBar } from "./rankings-action-bar"
+import { CheckboxFilter, EntityNames, Filter, FilterType, InputFilter, MultiFilter, RankingsFilters, RankingsViewMode, SelectFilter, SongRankingsFilterBarValues } from "./types"
 
 export function SongRankingsFilterBar(
     {
