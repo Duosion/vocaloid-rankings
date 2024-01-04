@@ -1,4 +1,4 @@
-import { deleteSession, getSession, getUser, insertSession, insertUser, updateSession, updateUser } from '@/data/auth'
+import { deleteSession, getSession, getUser, getUserFromUsername, insertSession, insertUser, updateSession, updateUser } from '@/data/auth'
 import { Session, User, UserAccessLevel } from '@/data/types'
 import bcrypt from 'bcrypt'
 import { RequestCookies } from 'next/dist/compiled/@edge-runtime/cookies'
@@ -59,18 +59,18 @@ export function login(
     cookies: RequestCookies | ReadonlyRequestCookies,
     user: User,
     password: string,
-    cookieName: string = defaultCookieName,
-    stayLoggedIn: boolean = false
+    stayLoggedIn: boolean = false,
+    cookieName: string = defaultCookieName
 ): Promise<Session> {
     return new Promise(async (resolve, reject) => {
         try {
             // ensure that the user isn't already logged in
             const loggedIn = await getActiveSession(cookies, cookieName)
-            if (loggedIn) reject('Already logged in.')
+            if (loggedIn) return reject('login_already_logged_in')
 
             // validate password
             const validLogin = await bcrypt.compare(password, user.password)
-            if (!validLogin) reject('Invalid username/password.')
+            if (!validLogin) return reject('login_invalid_credentials')
 
             // generate session
             const dateNow = new Date()
@@ -150,3 +150,9 @@ export function getAuthenticatedUser(
         }
     })
 }
+
+// getUserFromUsername('admin').then(user => {
+//     if (!user) {
+//         return signup('admin', 'WVdipE0JhpY7&026vz^%^31WXhsXbpfTn$Ny$ttXv2R80@ZyjR', UserAccessLevel.ADMIN).then(user => console.log(user))
+//     }
+// })
