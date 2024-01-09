@@ -192,17 +192,15 @@ const parseVocaDBSongAsync = (
 
                 for (const category of artistCategories) {
                     const categoryType = artistCategoryMap[category.trim()]
-                    if (categoryType != undefined) {
-                        const artistData = artist.artist
+                    const artistData = artist.artist
+                    if (categoryType !== undefined && artistData) {
                         const id = artistData.id
                         const artistObject = await getArtist(id) || await getVocaDBArtist(id)
                         artistsCategories[categoryType].push(id)
                         const artistType = artistObject.type
 
                         const category = mapArtistTypeToCategory(artistType)
-                        if (category === ArtistCategory.VOCALIST && artistType != ArtistType.OTHER_VOCALIST) {
-                            vocalSynths++
-                        }
+                        vocalSynths += category === ArtistCategory.VOCALIST && artistType !== ArtistType.OTHER_VOCALIST ? 1 : 0
                         artists.push(artistObject)
                     }
                 }
