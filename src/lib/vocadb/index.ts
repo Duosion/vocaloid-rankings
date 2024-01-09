@@ -7,6 +7,7 @@ import YouTube from "../platforms/YouTube";
 import Niconico from "../platforms/Niconico";
 import bilibili from "../platforms/bilibili";
 import { defaultFetchHeaders } from "../platforms";
+import { mapArtistTypeToCategory } from "../utils";
 
 // numbers
 const msInDay = 24 * 60 * 60 * 1000 // one day in ms
@@ -196,7 +197,10 @@ const parseVocaDBSongAsync = (
                         const id = artistData.id
                         const artistObject = await getArtist(id) || await getVocaDBArtist(id)
                         artistsCategories[categoryType].push(id)
-                        if (categoryType === ArtistCategory.VOCALIST && artistObject.type != ArtistType.OTHER_VOCALIST) {
+                        const artistType = artistObject.type
+
+                        const category = mapArtistTypeToCategory(artistType)
+                        if (category === ArtistCategory.VOCALIST && artistType != ArtistType.OTHER_VOCALIST) {
                             vocalSynths++
                         }
                         artists.push(artistObject)
@@ -205,7 +209,7 @@ const parseVocaDBSongAsync = (
             }
 
             if (0 >= vocalSynths) {
-                return reject('All songs on this website must have at least one vocal synthesizer as a singer.')
+                return reject('The provided song must have at least one vocal synthesizer as a singer.')
             }
 
             // get names
