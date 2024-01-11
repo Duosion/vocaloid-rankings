@@ -88,7 +88,7 @@ export function login(
 
             // add cookie
             cookies.set(cookieName, session.token, {
-                expires: session.expires.getTime(),
+                expires: new Date('2037/12/31'),
                 sameSite: true
             })
 

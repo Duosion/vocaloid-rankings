@@ -127,6 +127,7 @@
     "song_video": "Video",
     "song_listen": "Listen",
     "song_refresh": "Refresh Song Data",
+    "song_delete": "Delete Song",
     "artist_top_songs": "Most Viewed Songs",
     "artist_recent_songs": "Recent Songs",
     "artist_view_all": "View All",
