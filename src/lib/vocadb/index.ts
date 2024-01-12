@@ -71,6 +71,12 @@ const songTypeMap: { [key: string]: SongType } = {
     'Remix': SongType.REMIX
 }
 
+// A blacklist of non-vocal-synth singers.
+const vocalSynthBlacklist: { [key in ArtistType]?: boolean } = {
+    [ArtistType.PROJECT_SEKAI]: true,
+    [ArtistType.OTHER_VOCALIST]: true
+}
+
 const sourcePollers: { [key: string]: VocaDBSourcePoller } = {
     ["Youtube"]: {
         dataName: "YouTube",
@@ -200,7 +206,7 @@ const parseVocaDBSongAsync = (
                         const artistType = artistObject.type
 
                         const category = mapArtistTypeToCategory(artistType)
-                        vocalSynths += category === ArtistCategory.VOCALIST && artistType !== ArtistType.OTHER_VOCALIST ? 1 : 0
+                        vocalSynths += category === ArtistCategory.VOCALIST && !vocalSynthBlacklist[artistType] ? 1 : 0
                         artists.push(artistObject)
                     }
                 }
