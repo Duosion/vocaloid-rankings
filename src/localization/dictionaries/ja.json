@@ -127,6 +127,7 @@
     "song_video": "ビデオ",
     "song_listen": "聴く",
     "song_refresh": "曲データを更新する",
+    "song_delete": "曲の削除",
     "artist_top_songs": "最も視聴された曲",
     "artist_recent_songs": "最新の曲",
     "artist_view_all": "すべて見る",

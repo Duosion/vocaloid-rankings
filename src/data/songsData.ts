@@ -279,7 +279,7 @@ function filterSongRankingsRawSync(
                                 END)${filterOffsetIncludeSourceTypesStatement}${filterOffsetExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterIncludeArtistsStatement}${filterExcludeArtistsStatement}${filterIncludeSongsStatement}${filterExcludeSongsStatement}
                         GROUP BY offset_breakdowns.song_id
                         ) END)
-                END) * (1 / MAX(julianday('now') - julianday(songs.publish_date), 1))
+                END) /  MAX(MIN(julianday('now') - julianday(songs.publish_date), 730), 1)
                 ELSE SUM(DISTINCT views_breakdowns.views) - CASE WHEN :timePeriodOffset IS NULL
                     THEN 0
                     ELSE ifnull((

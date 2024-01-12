@@ -282,7 +282,7 @@ export default async function SongPage(
                     <ul className="flex-col gap-5 md:flex hidden">
                         {authUser && authUser.accessLevel >= UserAccessLevel.MODERATOR ? <>
                             <DeleteSongButton
-                                text={langDict.login}
+                                text={langDict.song_delete}
                                 songId={songId}
                             />
                         </> : undefined}
@@ -363,7 +363,7 @@ export default async function SongPage(
                         <Divider />
                         {authUser && authUser.accessLevel >= UserAccessLevel.MODERATOR ? <>
                             <DeleteSongButton
-                                text={langDict.login}
+                                text={langDict.song_delete}
                                 songId={songId}
                             />
                         </> : undefined}
