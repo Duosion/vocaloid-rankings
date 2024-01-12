@@ -9,10 +9,11 @@ import { decodeBoolean, encodeBoolean } from "../rankings/utils"
 import { InitialSettings } from "./types"
 import { useRouter } from "next/navigation"
 
-const languageValueMap: { [key: string]: number} = {
+const languageValueMap: { [key: string]: number } = {
     'en': 1,
-    'es': 2,
-    'ja': 3
+    'fr': 2,
+    'es': 3,
+    'ja': 4
 }
 
 export function SettingsSelectors(
@@ -57,11 +58,12 @@ export function SettingsSelectors(
             {/* Language */}
             <SelectFilterElement
                 name={langDict['settings_language']}
-                value={currentSettings.language == null ? 0 : languageValueMap[currentSettings.language] }
-                defaultValue={rawSettingsDefault.language == null ? 0 : languageValueMap[rawSettingsDefault.language] }
+                value={currentSettings.language == null ? 0 : languageValueMap[currentSettings.language]}
+                defaultValue={rawSettingsDefault.language == null ? 0 : languageValueMap[rawSettingsDefault.language]}
                 options={[
                     langDict['language_system'],
                     langDict['language_english'],
+                    langDict['language_french'],
                     langDict['language_spanish'],
                     langDict['language_japanese']
                 ]}
@@ -76,15 +78,19 @@ export function SettingsSelectors(
                             router.push(`/en/settings`)
                             break;
                         case 2:
+                            setLanguage('fr')
+                            router.push(`/fr/settings`)
+                            break;
+                        case 3:
                             setLanguage('es')
                             router.push(`/es/settings`)
                             break;
-                        case 3:
+                        case 4:
                             setLanguage('ja')
                             router.push(`/ja/settings`)
                             break;
                     }
-                    
+
                 }}
             />
 

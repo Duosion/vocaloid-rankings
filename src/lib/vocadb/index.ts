@@ -72,7 +72,7 @@ const songTypeMap: { [key: string]: SongType } = {
 }
 
 // A blacklist of non-vocal-synth singers.
-const vocalSynthBlacklist: { [key in ArtistType]?: boolean } = {
+const vocalSynthSingerBlacklist: { [key in ArtistType]?: boolean } = {
     [ArtistType.PROJECT_SEKAI]: true,
     [ArtistType.OTHER_VOCALIST]: true
 }
@@ -206,7 +206,7 @@ const parseVocaDBSongAsync = (
                         const artistType = artistObject.type
 
                         const category = mapArtistTypeToCategory(artistType)
-                        vocalSynths += category === ArtistCategory.VOCALIST && !vocalSynthBlacklist[artistType] ? 1 : 0
+                        vocalSynths += category === ArtistCategory.VOCALIST && !vocalSynthSingerBlacklist[artistType] ? 1 : 0
                         artists.push(artistObject)
                     }
                 }
