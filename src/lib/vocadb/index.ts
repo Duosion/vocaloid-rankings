@@ -72,7 +72,7 @@ const songTypeMap: { [key: string]: SongType } = {
 }
 
 // A blacklist of non-vocal-synth singers.
-const vocalSynthBlacklist: { [key in ArtistType]?: boolean } = {
+const vocalSynthSingerBlacklist: { [key in ArtistType]?: boolean } = {
     [ArtistType.PROJECT_SEKAI]: true,
     [ArtistType.OTHER_VOCALIST]: true
 }
