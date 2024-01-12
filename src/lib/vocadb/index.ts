@@ -206,7 +206,7 @@ const parseVocaDBSongAsync = (
                         const artistType = artistObject.type
 
                         const category = mapArtistTypeToCategory(artistType)
-                        vocalSynths += category === ArtistCategory.VOCALIST && !vocalSynthBlacklist[artistType] ? 1 : 0
+                        vocalSynths += category === ArtistCategory.VOCALIST && !vocalSynthSingerBlacklist[artistType] ? 1 : 0
                         artists.push(artistObject)
                     }
                 }

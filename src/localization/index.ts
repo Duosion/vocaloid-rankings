@@ -5,7 +5,8 @@ import { NameType, Names } from '@/data/types'
 const dictionaries = {
     en: () => import('./dictionaries/en.json').then(module => module.default),
     ja: () => import('./dictionaries/ja.json').then(module => module.default),
-    es: () => import('./dictionaries/es.json').then(module => module.default)
+    es: () => import('./dictionaries/es.json').then(module => module.default),
+    fr: () => import('./dictionaries/fr.json').then(module => module.default)
 }
 
 // name map for getEntityName
