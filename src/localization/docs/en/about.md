@@ -1,7 +1,7 @@
 ---
 
 ## View Data
-View counts are refreshed for all **non-dormant** songs tracked by this website on a daily basis.
+View counts are refreshed for all **non-dormant** songs tracked by this website every day at midnight UTC.
 
 **Vocaloid Rankings** currently counts views for songs from three platforms; [YouTube](https://www.youtube.com), [Niconico](https://www.nicovideo.jp/), and [bilibili](https://www.bilibili.tv). All song view counts are acquired by the offical APIs provided by these platforms.
 
