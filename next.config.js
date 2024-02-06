@@ -26,6 +26,12 @@ const nextConfig = {
       config.externals.push({
         sharp: "commonjs sharp"
       });
+      config.module.rules.push(
+        {
+          test: /\.md$/,
+          type: 'asset/source',
+        }
+      )
   
       return config;
     },

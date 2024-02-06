@@ -10,6 +10,28 @@ module.exports = {
       'sans': ['var(--font-inter)', 'var(--font-noto-sans-jp)'],
     },
     extend: {
+      typography: theme => ({
+        material: {
+          css: {
+            '--tw-prose-body': theme('colors.on-surface'),
+            '--tw-prose-headings': theme('colors.on-background'),
+            '--tw-prose-lead': theme('colors.on-surface'),
+            '--tw-prose-links': theme('colors.primary'),
+            '--tw-prose-bold': theme('colors.on-surface'),
+            '--tw-prose-counters': theme('colors.on-surface'),
+            '--tw-prose-bullets': theme('colors.outline'),
+            '--tw-prose-hr': theme('colors.outline-variant'),
+            '--tw-prose-quotes': theme('colors.on-surface'),
+            '--tw-prose-quote-borders': theme('colors.outline-variant'),
+            '--tw-prose-captions': theme('colors.on-surface'),
+            '--tw-prose-code': theme('colors.on-surface'),
+            '--tw-prose-pre-code': theme('colors.outline-variant'),
+            '--tw-prose-pre-bg': theme('colors.on-surface'),
+            '--tw-prose-th-borders': theme('colors.outline-variant'),
+            '--tw-prose-td-borders': theme('colors.outline-variant'),
+          }
+        }
+      }),
       gridTemplateColumns: {
         'sidebar': '220px auto'
       },
@@ -57,5 +79,7 @@ module.exports = {
       }
     },
   },
-  plugins: [],
+  plugins: [
+    require('@tailwindcss/typography')
+  ],
 }
