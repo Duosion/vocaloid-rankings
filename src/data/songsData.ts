@@ -2255,7 +2255,8 @@ async function getPlatformViews(
     try {
         return await viewPlatformProviders[platform](videoId) || 0
     } catch (error) {
-        return maxRetries > depth ? getPlatformViews(videoId, platform, maxRetries, retryDelay, depth) : 0
+        await new Promise(resolve => setTimeout(resolve, retryDelay));
+        return maxRetries > depth ? getPlatformViews(videoId, platform, maxRetries, retryDelay, depth + 1) : 0
     }
 }
 
