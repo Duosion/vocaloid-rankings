@@ -9,8 +9,11 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@emotion/react": "^11.11.3",
+    "@emotion/styled": "^11.11.0",
     "@formatjs/intl-localematcher": "^0.5.2",
     "@material/material-color-utilities": "^0.2.7",
+    "@mui/x-charts": "^6.19.4",
     "autoprefixer": "10.4.14",
     "bcrypt": "^5.1.1",
     "better-sqlite3": "^9.4.1",
