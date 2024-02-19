@@ -1,3 +1,5 @@
+import { Locale } from "@/localization"
+
 export enum NameType {
     ORIGINAL,
     JAPANESE,
@@ -68,6 +70,11 @@ export enum FilterDirection {
 export enum FilterInclusionMode {
     AND,
     OR
+}
+
+export enum ListLocalizationType {
+    NAME,
+    DESCRIPTION
 }
 
 export type Names = {
@@ -471,4 +478,36 @@ export interface RawSession {
     expires: string
     user_id: string,
     stay_logged_in: number
+}
+
+// lists
+export interface RawList {
+    id: number,
+    created: string,
+    last_updated: string,
+    image?: string
+}
+
+export interface RawListLocalization {
+    locale: string,
+    list_id: number,
+    value: string,
+    type: number
+}
+
+export interface RawListSong {
+    song_id: number,
+    list_id: number
+}
+
+export type ListLocalizations = { [key in Locale]?: string }
+
+export interface List {
+    id: Id,
+    created: Date,
+    lastUpdated: Date,
+    songIds: Id[],
+    names: ListLocalizations,
+    descriptions: ListLocalizations,
+    image?: string | null
 }

@@ -1,14 +1,12 @@
-import { getMostVibrantColor } from "@/lib/material/material";
 import Niconico from "@/lib/platforms/Niconico";
+import YouTube from "@/lib/platforms/YouTube";
 import bilibili from "@/lib/platforms/bilibili";
 import { generateTimestamp } from "@/lib/utils";
 import { getVocaDBRecentSongs } from "@/lib/vocadb";
-import { Hct, MaterialDynamicColors, SchemeVibrant, argbFromHex, argbFromRgb, hexFromArgb, rgbaFromArgb } from "@material/material-color-utilities";
+import { Locale } from "@/localization";
 import type { Statement } from "better-sqlite3";
-import { getPaletteFromURL } from "color-thief-node";
 import getDatabase, { Databases } from ".";
-import { Artist, ArtistCategory, ArtistPlacement, ArtistRankingsFilterParams, ArtistRankingsFilterResult, ArtistRankingsFilterResultItem, ArtistThumbnailType, ArtistThumbnails, ArtistType, FilterInclusionMode, HistoricalViews, HistoricalViewsResult, Id, NameType, Names, PlacementChange, RawArtistData, RawArtistName, RawArtistRankingResult, RawArtistThumbnail, RawSongArtist, RawSongData, RawSongName, RawSongRankingsResult, RawSongVideoId, RawViewBreakdown, Song, SongArtistsCategories, SongPlacement, SongRankingsFilterParams, SongRankingsFilterResult, SongRankingsFilterResultItem, SongType, SongVideoIds, SourceType, SqlRankingsFilterInVariables, SqlRankingsFilterParams, SqlRankingsFilterStatements, SqlSearchArtistsFilterParams, User, UserAccessLevel, Views, ViewsBreakdown } from "./types";
-import YouTube from "@/lib/platforms/YouTube";
+import { Artist, ArtistCategory, ArtistPlacement, ArtistRankingsFilterParams, ArtistRankingsFilterResult, ArtistRankingsFilterResultItem, ArtistThumbnailType, ArtistThumbnails, ArtistType, FilterInclusionMode, HistoricalViews, HistoricalViewsResult, Id, List, ListLocalizationType, ListLocalizations, NameType, Names, PlacementChange, RawArtistData, RawArtistName, RawArtistRankingResult, RawArtistThumbnail, RawList, RawListLocalization, RawListSong, RawSongArtist, RawSongData, RawSongName, RawSongRankingsResult, RawSongVideoId, RawViewBreakdown, Song, SongArtistsCategories, SongPlacement, SongRankingsFilterParams, SongRankingsFilterResult, SongRankingsFilterResultItem, SongType, SongVideoIds, SourceType, SqlRankingsFilterInVariables, SqlRankingsFilterParams, SqlRankingsFilterStatements, SqlSearchArtistsFilterParams, User, UserAccessLevel, Views, ViewsBreakdown } from "./types";
 
 // import database
 const db = getDatabase(Databases.SONGS_DATA)
@@ -2237,6 +2235,260 @@ export function getSongHistoricalViews(
     })
 }
 
+// lists
+
+function buildList(
+    rawList: RawList,
+    rawLocalizations: RawListLocalization[],
+    rawSongs: RawListSong[]
+): List {
+    // build names and descriptions
+    const localizations: ListLocalizations[]  = [
+        {}, // ListLocalizationType.NAME
+        {}, // ListLocalizationType.DESCRIPTION
+    ]
+
+    for (const localization of rawLocalizations) {
+        const bucket = localizations[localization.type]
+        if (bucket) {
+            bucket[localization.locale as Locale] = localization.value
+        }
+    }
+
+    // build songs
+    const songIds: Id[] = rawSongs.map(rawSong => rawSong.song_id)
+
+    return {
+        id: rawList.id,
+        created: new Date(rawList.created),
+        lastUpdated: new Date(rawList.last_updated),
+        songIds: songIds,
+        names: localizations[ListLocalizationType.NAME],
+        descriptions: localizations[ListLocalizationType.DESCRIPTION],
+        image: rawList.image
+    }
+}
+
+function getListSync(
+    id: Id
+): List | null {
+
+    const rawListData = db.prepare(`
+    SELECT id, created, last_updated, image
+    FROM lists
+    WHERE id = ?`).get(id) as RawList | null
+
+    if (!rawListData) return null
+
+    // get the localizations
+    const rawListLocalizations = db.prepare(`
+    SELECT locale, list_id, value, type
+    FROM lists_localizations
+    WHERE list_id = ?`).all(id) as RawListLocalization[]
+
+    // get the songs that are in the list
+    const rawListSongs = db.prepare(`
+    SELECT song_id, list_id
+    FROM lists_songs
+    WHERE list_id = ?
+    `).all(id) as RawListSong[]
+
+    return buildList(rawListData, rawListLocalizations, rawListSongs)
+}
+
+export function getList(
+    id: Id
+): Promise<List | null> {
+    return new Promise((resolve, reject) => {
+        try {
+            resolve(getListSync(id))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+function insertListLocalizationsSync(
+    id: Id,
+    type: ListLocalizationType,
+    localizations: ListLocalizations
+): void {
+    for (const [locale, value] of Object.entries(localizations)) {
+        db.prepare(`
+        INSERT INTO lists_localizations (locale, list_id, value, type)
+        VALUES (?, ?, ?, ?)`).run(
+            locale,
+            id,
+            value,
+            type
+        )
+    }
+}
+
+function insertListSongsSync(
+    listId: Id,
+    songIds: Id[]
+): void {
+    for (const songId of songIds) {
+        db.prepare(`
+        INSERT INTO lists_songs (song_id, list_id)
+        VALUES (?, ?)`).run(
+            songId,
+            listId
+        )
+    }
+}
+
+function insertListSync(
+    list: Omit<List, 'id'>
+): List {
+
+    let listId: Id = -1
+
+    db.transaction(() => {
+
+        // insert into the lists table
+        const runResult = db.prepare(`
+        INSERT INTO lists (created, last_updated, image)
+        VALUES (?, ?, ?)
+        `).run(
+            list.created.toISOString(),
+            list.lastUpdated.toISOString(),
+            list.image
+        )
+
+        listId = runResult.lastInsertRowid
+
+        // insert localizations
+        insertListLocalizationsSync(listId, ListLocalizationType.NAME, list.names) // names
+        insertListLocalizationsSync(listId, ListLocalizationType.DESCRIPTION, list.descriptions) // descriptions
+
+        // insert songs
+        insertListSongsSync(listId, list.songIds)
+
+    })()
+
+    // return the complete list
+    const finalList = list as List
+    finalList.id = listId
+    return finalList
+}
+
+export function insertList(
+    list: Omit<List, 'id'>
+): Promise<List> {
+    return new Promise<List>((resolve, reject) => {
+        try {
+            resolve(insertListSync(list))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+function updateListSync(
+    list: Partial<List> & Pick<List, 'id'>
+): List {
+    const id = list.id
+
+    const fieldMap: Record<string, string> = {
+        id: 'id',
+        created: 'created',
+        lastUpdated: 'last_updated',
+        image: 'image'
+    }
+
+    const sets: string[] = []
+    const values: any[] = []
+    for (const key in list) {
+        const value = list[key as keyof typeof list]
+        const mapped = fieldMap[key]
+        if (mapped && value !== undefined) {
+            sets.push(`${mapped} = ?`)
+            if (value instanceof Date) {
+                values.push(value.toISOString())
+            } else {
+                values.push(value)
+            }
+        }
+    }
+
+    // update list
+    db.transaction(() => {
+
+        if (sets.length > 0) db.prepare(`
+        UPDATE lists
+        SET ${sets.join(', ')}
+        WHERE id = ?
+        `).run([...values, id]);
+
+        // update localizations
+        const names = list.names
+        if (names) {
+            db.prepare(`
+            DELETE FROM lists_localizations
+            WHERE list_id = ? AND type = ?`).run(id, ListLocalizationType.NAME)
+
+            insertListLocalizationsSync(id, ListLocalizationType.NAME, names)
+        }
+        const descriptions = list.names
+        if (descriptions) {
+            db.prepare(`
+            DELETE FROM lists_localizations
+            WHERE list_id = ? AND type = ?`).run(id, ListLocalizationType.DESCRIPTION)
+
+            insertListLocalizationsSync(id, ListLocalizationType.DESCRIPTION, descriptions)
+        }
+
+        // update song ids
+        const songIds = list.songIds
+        if (songIds) {
+            db.prepare(`
+            DELETE FROM lists_songs
+            WHERE list_id = ?`).run(id)
+
+            insertListSongsSync(id, songIds)
+        }
+
+    })()
+
+    // return the updated artist object
+    return getListSync(id) as List
+}
+
+function updateList(
+    list: Partial<List> & Pick<List, 'id'>
+): Promise<List> {
+    return new Promise<List>((resolve, reject) => {
+        try {
+            resolve(updateListSync(list))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+function deleteListSync(
+    id: Id
+): void {
+    db.prepare(`
+    DELETE FROM lists
+    WHERE id = ?`).run(id)
+}
+
+function deleteList(
+    id: Id
+): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+        try {
+            resolve(deleteListSync(id))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+
 // View Manipulation
 
 const viewPlatformProviders: { [key in SourceType]: (videoId: string) => Promise<number | null> } = {
@@ -2439,3 +2691,15 @@ if (process.env.NODE_ENV === 'production') {
     // refresh views
     refreshAllSongsViews().catch(error => console.log(`Error when refreshing every songs' views: ${error}`))
 }
+
+// insertList({
+//     created: new Date(),
+//     lastUpdated: new Date(),
+//     names: {
+//         'en': 'Project Voltages'
+//     },
+//     descriptions: {
+//         'en': "A description of what project voltage is."
+//     },
+//     songIds: [586830, 586628, 579184, 584100]
+// })
