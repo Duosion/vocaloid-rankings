@@ -199,6 +199,7 @@ import { GraphQLContext } from './types'
  *     minViews: Long
  *     maxViews: Long
  *     search: String
+ *     list: Int
  *   ): SongRankingsFilterResult
  * 
  *   artistRankings(
@@ -1285,6 +1286,10 @@ const queryType = new GraphQLObjectType({
                 search: {
                     type: GraphQLString,
                     description: 'Only includes songs who have names that match the search query.'
+                },
+                list: {
+                    type: GraphQLInt,
+                    description: 'The ID of the list to include songs from.'
                 }
             },
             resolve: (
@@ -1317,7 +1322,8 @@ const queryType = new GraphQLObjectType({
                     startAt,
                     minViews,
                     maxViews,
-                    search
+                    search,
+                    list
                 }: {
                     timestamp?: string
                     timePeriodOffset?: number
@@ -1347,6 +1353,7 @@ const queryType = new GraphQLObjectType({
                     minViews?: number
                     maxViews?: number
                     search?: string
+                    list?: number
                 }
             ) => {
                 // build params
@@ -1379,6 +1386,7 @@ const queryType = new GraphQLObjectType({
                 filterParams.minViews = minViews
                 filterParams.maxViews = maxViews
                 filterParams.search = search != undefined ? `%${search.trim()}%` : undefined
+                filterParams.list = list
                 return filterSongRankings(filterParams)
             }
         },

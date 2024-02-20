@@ -196,6 +196,7 @@ export class SongRankingsFilterParams {
     minViews?: number
     maxViews?: number
     search?: string
+    list?: number
 }
 
 export class ArtistRankingsFilterParams {

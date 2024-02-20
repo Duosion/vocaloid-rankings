@@ -8,7 +8,7 @@ import { RankingsList } from "./rankings-list"
 import { FilterType, RankingsFilters, SongRankingsFiltersValues } from "./types"
 import { Metadata } from "next"
 
-const filters: RankingsFilters = {
+export const songRankingsFilters: RankingsFilters = {
     search: {
         name: 'search_hint',
         key: 'search',
@@ -329,7 +329,7 @@ export default async function RankingsPage(
             <h1 className="font-bold md:text-5xl md:text-left text-4xl text-center w-full mb-5">{langDict.rankings_page_title}</h1>
             <RankingsList
                 href=''
-                filters={filters}
+                filters={songRankingsFilters}
                 filterValues={searchParams}
                 currentTimestamp={mostRecentTimestamp}
                 viewMode={viewMode}

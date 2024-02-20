@@ -146,7 +146,8 @@ function getSongRankingsFilterQueryParams(
         startAt: filterParams.startAt,
         minViews: filterParams.minViews,
         maxViews: filterParams.maxViews,
-        search: filterParams.search?.toLowerCase()
+        search: filterParams.search?.toLowerCase(),
+        list: filterParams.list
     }
 
     const buildInStatement = (values: Id[], prefix = '') => {
@@ -234,6 +235,7 @@ function filterSongRankingsRawSync(
                             AND (offset_breakdowns.song_id = views_breakdowns.song_id)
                             AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
                             AND (songs_names.name LIKE :search OR :search IS NULL)
+                            AND (:list IS NULL OR songs.id IN (SELECT lists_songs.song_id FROM lists_songs WHERe lists_songs.list_id = :list))
                             AND (offset_breakdowns.views = CASE WHEN :singleVideo IS NULL
                                 THEN offset_breakdowns.views
                                 ELSE
@@ -261,6 +263,7 @@ function filterSongRankingsRawSync(
                             AND (offset_breakdowns.song_id = views_breakdowns.song_id)
                             AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
                             AND (songs_names.name LIKE :search OR :search IS NULL)
+                            AND (:list IS NULL OR songs.id IN (SELECT lists_songs.song_id FROM lists_songs WHERe lists_songs.list_id = :list))
                             AND (offset_breakdowns.views = CASE WHEN :singleVideo IS NULL
                                 THEN offset_breakdowns.views
                                 ELSE
@@ -294,6 +297,7 @@ function filterSongRankingsRawSync(
                             AND (offset_breakdowns.song_id = views_breakdowns.song_id)
                             AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
                             AND (songs_names.name LIKE :search OR :search IS NULL)
+                            AND (:list IS NULL OR songs.id IN (SELECT lists_songs.song_id FROM lists_songs WHERe lists_songs.list_id = :list))
                             AND (offset_breakdowns.views = CASE WHEN :singleVideo IS NULL
                                 THEN offset_breakdowns.views
                                 ELSE
@@ -321,6 +325,7 @@ function filterSongRankingsRawSync(
                             AND (offset_breakdowns.song_id = views_breakdowns.song_id)
                             AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
                             AND (songs_names.name LIKE :search OR :search IS NULL)
+                            AND (:list IS NULL OR songs.id IN (SELECT lists_songs.song_id FROM lists_songs WHERe lists_songs.list_id = :list))
                             AND (offset_breakdowns.views = CASE WHEN :singleVideo IS NULL
                                 THEN offset_breakdowns.views
                                 ELSE
@@ -351,6 +356,7 @@ function filterSongRankingsRawSync(
                 END)
             AND (songs.publish_date LIKE :publishDate OR :publishDate IS NULL)
             AND (lower(songs_names.name) LIKE :search OR :search IS NULL)
+            AND (:list IS NULL OR songs.id IN (SELECT lists_songs.song_id FROM lists_songs WHERE lists_songs.list_id = :list))
             AND (views_breakdowns.views = CASE WHEN :singleVideo IS NULL
                 THEN views_breakdowns.views
                 ELSE
@@ -544,7 +550,7 @@ function getArtistRankingsFilterQueryParams(
         maxViews: filterParams.maxViews,
         search: filterParams.search?.toLowerCase(),
         includeCoArtistsOf: filterParams.includeCoArtistsOf ? 1 : null,
-        parentArtistId: filterParams.parentArtistId || null
+        parentArtistId: filterParams.parentArtistId || null,
     }
 
     const buildInStatement = (values: Id[], prefix = '') => {
@@ -2696,10 +2702,11 @@ if (process.env.NODE_ENV === 'production') {
 //     created: new Date(),
 //     lastUpdated: new Date(),
 //     names: {
-//         'en': 'Project Voltages'
+//         'en': 'Project VOLTAGE'
 //     },
 //     descriptions: {
-//         'en': "A description of what project voltage is."
+//         'en': `A collaboration between Pokémon and Hatsune Miku that asks the question “What if Hatsune Miku was a ___-type Pokémon trainer?” \nStarting September 29th, 2023, 18 new songs by 18 different Vocaloid producers, in reference to there being 18 different types of Pokémon, will be sequentially released. Each song will feature samples from the Pokémon series, with background music and sound effects from the franchise incorporated into the new tracks. \nBetween September 4th to 28th, 2023, one new illustration was revealed every day on social media, illustrated by 6 different artists.`
 //     },
-//     songIds: [586830, 586628, 579184, 584100]
+//     songIds: [586830, 586628, 579184, 584100, 534385, 536349, 538028, 532518, 563199, 557560, 566239, 581632, 560308, 578840],
+//     image: 'https://archives.bulbagarden.net/media/upload/thumb/6/6a/Project_VOLTAGE_18_Types_Song_Artwork.png/522px-Project_VOLTAGE_18_Types_Song_Artwork.png'
 // })

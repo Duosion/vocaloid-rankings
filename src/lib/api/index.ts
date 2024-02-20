@@ -54,6 +54,7 @@ query SongRankings(
     $minViews: Long
     $maxViews: Long
     $search: String
+    $list: Int
 ) {
     songRankings(
         timestamp: $timestamp
@@ -84,6 +85,7 @@ query SongRankings(
         minViews: $minViews
         maxViews: $maxViews
         search: $search
+        list: $list
     ) {
         totalCount
         timestamp

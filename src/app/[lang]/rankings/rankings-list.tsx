@@ -96,7 +96,8 @@ export function RankingsList(
         excludeArtistsMode: filterValues.excludeArtistsMode,
         includeSimilarArtists: decodeBoolean(Number(filterValues.includeSimilarArtists)),
         direction: filterValues.direction,
-        startAt: filterValues.startAt
+        startAt: filterValues.startAt,
+        list: filterValues.list
     } as SongRankingsFilterBarValues)
 
     // entity names state
@@ -144,19 +145,18 @@ export function RankingsList(
             excludeArtistTypesMode: filterBarValues.excludeArtistTypesMode == undefined ? undefined : FilterInclusionMode[filterBarValues.excludeArtistTypesMode],
             publishDate: publishDate,
             orderBy: filterBarValues.orderBy == undefined ? undefined : FilterOrder[filterBarValues.orderBy],
-            //direction: undefined,
             includeArtists: filterBarValues.includeArtists && filterBarValues.includeArtists.length > 0 ? [...filterBarValues.includeArtists] : undefined, // unpack artists into new table so that the reference is different
             excludeArtists: filterBarValues.excludeArtists && filterBarValues.excludeArtists.length > 0 ? [...filterBarValues.excludeArtists] : undefined,
             includeArtistsMode: filterBarValues.includeArtistsMode == undefined ? undefined : FilterInclusionMode[filterBarValues.includeArtistsMode],
             excludeArtistsMode: filterBarValues.excludeArtistsMode == undefined ? undefined : FilterInclusionMode[filterBarValues.excludeArtistsMode],
             includeSimilarArtists: filterBarValues.includeSimilarArtists,
-            //songs: undefined,
             singleVideo: filterBarValues.singleVideo,
             minViews: filterBarValues.minViews ? Number(filterBarValues.minViews) : undefined,
             maxViews: filterBarValues.maxViews ? Number(filterBarValues.maxViews) : undefined,
             search: filterBarValues.search == '' ? undefined : filterBarValues.search,
             direction: filterBarValues.direction === undefined ? undefined : FilterDirection[filterBarValues.direction],
-            startAt: Number(filterBarValues.startAt)
+            startAt: Number(filterBarValues.startAt),
+            list: filterBarValues.list
         }
     }
 

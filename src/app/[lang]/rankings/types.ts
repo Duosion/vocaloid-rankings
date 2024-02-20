@@ -196,6 +196,7 @@ export interface SongRankingsFiltersValues {
     includeSimilarArtists?: number
     direction?: number
     startAt?: string
+    list?: number
 }
 
 export interface SongRankingsFilterBarValues {
@@ -225,6 +226,7 @@ export interface SongRankingsFilterBarValues {
     includeSimilarArtists?: boolean
     direction?: number
     startAt?: string
+    list?: number
 }
 
 // artists rankings filters
