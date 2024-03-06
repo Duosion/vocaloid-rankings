@@ -273,7 +273,7 @@ export function RankingsList(
                                 return rankingsViewMode == RankingsViewMode.LIST ? (
                                     <RankingListItem
                                         key={song.id.toString()}
-                                        href={`song/${song.id}`}
+                                        href={`/song/${song.id}`}
                                         titleContent={<EntityName names={names} preferred={settingTitleLanguage} />}
                                         placement={ranking.placement}
                                         icon={song.thumbnail}
@@ -286,7 +286,7 @@ export function RankingsList(
                                 ) : (
                                     <TransitioningRankingsGridItem
                                         key={song.id.toString()}
-                                        href={`song/${song.id}`}
+                                        href={`/song/${song.id}`}
                                         titleContent={<EntityName names={names} preferred={settingTitleLanguage} />}
                                         placement={ranking.placement}
                                         icon={song.thumbnail}

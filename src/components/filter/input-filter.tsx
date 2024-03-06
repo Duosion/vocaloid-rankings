@@ -12,6 +12,7 @@ export function InputFilterElement(
         icon,
         elevation = Elevation.LOW,
         className = '',
+        type = 'search',
         onValueChanged
     }: {
 
@@ -22,6 +23,7 @@ export function InputFilterElement(
         icon?: string
         elevation?: Elevation
         className?: string
+        type?: string
         onValueChanged?: (newValue: string) => void
     }
 ) {
@@ -40,7 +42,7 @@ export function InputFilterElement(
             >
                 {icon && <Icon icon={icon} />}
                 <input
-                    type='search'
+                    type={type}
                     placeholder={placeholder}
                     onClick={e => e.preventDefault()}
                     onChange={event => setValue(event.currentTarget.value)}

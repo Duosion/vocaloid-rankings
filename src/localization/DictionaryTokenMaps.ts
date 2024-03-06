@@ -1,5 +1,5 @@
 import { ArtistType, NameType, SongType, SourceType } from "@/data/types";
-import type { LanguageDictionaryKey } from ".";
+import type { LanguageDictionaryKey, Locale } from ".";
 
 export const NameTypeLocaleTokens: {[key in NameType]: LanguageDictionaryKey} = {
     [NameType.ORIGINAL]: 'name_type_original',
@@ -35,4 +35,11 @@ export const SourceTypeLocaleTokens: {[key in SourceType]: LanguageDictionaryKey
     [SourceType.YOUTUBE]: 'youtube',
     [SourceType.NICONICO]: 'niconico',
     [SourceType.BILIBILI]: 'bilibili'
+}
+
+export const LangLocaleTokens: {[key in Locale]: LanguageDictionaryKey} = {
+    ['en']: 'language_english',
+    ['ja']: 'language_japanese',
+    ['es']: 'language_spanish',
+    ['fr']: 'language_french'
 }

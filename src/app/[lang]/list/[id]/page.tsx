@@ -8,6 +8,7 @@ import { RankingsList } from "../../rankings/rankings-list"
 import { songRankingsFilters } from "../../rankings/page"
 import { SongRankingsFiltersValues } from "../../rankings/types"
 import { Divider } from "@/components/material/divider"
+import Image from "@/components/image"
 
 export default async function ListPage(
     {
@@ -21,6 +22,8 @@ export default async function ListPage(
         searchParams: SongRankingsFiltersValues
     }
 ) {
+
+    // CHANGE COLOR BASED ON IMAGE AVERAGE COLOR?
 
     // convert the id parameter into a number; get song data
     const listId = Number(params.id)
@@ -46,11 +49,11 @@ export default async function ListPage(
         <section className="flex flex-col gap-5 w-full min-h-screen">
             <section className="flex gap-5">
                 <figure>
-                    <img src={list.image || ''} className='aspect-square h-full w-48 rounded-3xl object-cover' />
+                    <Image src={list.image || ''} className='aspect-square h-full w-48 rounded-3xl object-cover' alt={list.names[lang] || ''} />
                 </figure>
                 <div className="flex flex-col gap-3 justify-end mb-3">
                     <h1 className="font-bold md:text-5xl md:text-left text-4xl text-center w-full">{list.names[lang]}</h1>
-                    <h3 className="font-semibold text-primary md:text-left text-xl text-center w-full">{list.songIds.length} Songs</h3>
+                    <h3 className="font-semibold text-primary md:text-left text-xl text-center w-full">{langDict.list_song_count.replace(':count', list.songIds.length.toString())}</h3>
                     <p className="text-on-surface-variant text-xl text-left w-full whitespace-break-spaces">{list.descriptions[lang]}</p>
                 </div>
             </section>
