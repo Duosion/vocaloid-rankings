@@ -1,6 +1,6 @@
 'use client'
-const dateFormatter = new Intl.DateTimeFormat()
-const shortenedDateFormatter = new Intl.DateTimeFormat(undefined, {
+export const dateFormatter = new Intl.DateTimeFormat()
+export const shortenedDateFormatter = new Intl.DateTimeFormat(undefined, {
     month: 'numeric',
     day: '2-digit',
 })

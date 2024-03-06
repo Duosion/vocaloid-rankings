@@ -1,6 +1,6 @@
 'use client'
-const numberFormatter = new Intl.NumberFormat()
-const shortenedNumberFormatter = new Intl.NumberFormat(undefined, {
+export const numberFormatter = new Intl.NumberFormat()
+export const shortenedNumberFormatter = new Intl.NumberFormat(undefined, {
     notation: 'compact'
 })
 

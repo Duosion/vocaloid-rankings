@@ -9,8 +9,11 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@emotion/react": "^11.11.3",
+    "@emotion/styled": "^11.11.0",
     "@formatjs/intl-localematcher": "^0.5.2",
     "@material/material-color-utilities": "^0.2.7",
+    "@mui/x-charts": "^6.19.4",
     "autoprefixer": "10.4.14",
     "bcrypt": "^5.1.1",
     "better-sqlite3": "^9.4.1",
@@ -42,6 +45,7 @@
     "@types/color-thief-node": "1.0.2",
     "@types/markdown-it": "^13.0.7",
     "@types/negotiator": "^0.6.1",
+    "@types/next": "^9.0.0",
     "@types/node": "20.4.1",
     "@types/react": "18.2.14",
     "@types/react-dom": "18.2.6",
