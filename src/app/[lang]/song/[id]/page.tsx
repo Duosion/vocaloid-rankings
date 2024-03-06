@@ -21,6 +21,7 @@ import { Settings } from "../../settings"
 import { RefreshSongButton } from "./refresh-song-button"
 import { DeleteSongButton } from "./delete-song-button copy"
 import { getAuthenticatedUser } from "@/lib/auth"
+import { SongViewsChart } from "./views-chart"
 
 // interfaces
 interface ViewsBreakdown {
@@ -208,7 +209,7 @@ export default async function SongPage(
     })
 
     // get historical views data
-    const historicalViewsResult = (await getSongHistoricalViews(songId))
+    const historicalViewsResult = (await getSongHistoricalViews(songId, 7))
     const largestHistoricalViews = Number(historicalViewsResult.largest)
     historicalViewsResult.views.reverse() // reverse the array to get the views in the order of (oldest date -> newest date) instead of the opposite.
 
@@ -337,6 +338,10 @@ export default async function SongPage(
                         {/* Daily Views */}
                         <EntitySection title={langDict.song_daily_views}>
                             <div className="bg-surface-container rounded-2xl p-5 flex justify-between md:gap-4 gap-1 overflow-x-auto overflow-y-clip">
+                                {/* <SongViewsChart
+                                    historicalViewsResult={historicalViewsResult}
+                                /> */}
+                                
                                 {historicalViewsResult.views.map(historicalViews => {
                                     const views = historicalViews.views as number
                                     return <section key={historicalViews.timestamp} className="flex flex-col h-[142px] justify-end items-center">
