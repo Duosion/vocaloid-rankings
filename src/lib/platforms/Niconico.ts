@@ -66,7 +66,6 @@ class NiconicoPlatform implements Platform {
             headers: headers
         }).then(res => res.json())
         .then(videoData => {
-            throw new Error()
             return videoData['data']['items'][0]['video']['count']['view']
         })
         .catch(_ => { return getViewsFallback(videoId) })
