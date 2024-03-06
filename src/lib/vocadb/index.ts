@@ -6,6 +6,8 @@ import { getArtist, getSongMostRecentViews } from "@/data/songsData";
 import YouTube from "../platforms/YouTube";
 import Niconico from "../platforms/Niconico";
 import bilibili from "../platforms/bilibili";
+import { defaultFetchHeaders } from "../platforms";
+import { mapArtistTypeToCategory } from "../utils";
 
 // numbers
 const msInDay = 24 * 60 * 60 * 1000 // one day in ms
@@ -69,6 +71,12 @@ const songTypeMap: { [key: string]: SongType } = {
     'Remix': SongType.REMIX
 }
 
+// A blacklist of non-vocal-synth singers.
+const vocalSynthSingerBlacklist: { [key in ArtistType]?: boolean } = {
+    [ArtistType.PROJECT_SEKAI]: true,
+    [ArtistType.OTHER_VOCALIST]: true
+}
+
 const sourcePollers: { [key: string]: VocaDBSourcePoller } = {
     ["Youtube"]: {
         dataName: "YouTube",
@@ -99,7 +107,7 @@ const getRecentSongs = (
     return new Promise(async (resolve, reject) => {
         try {
             resolve(
-                fetch(`${vocaDBRecentSongsApiUrl}&start=${offset}&maxResults=${maxResults}`)
+                fetch(`${vocaDBRecentSongsApiUrl}&start=${offset}&maxResults=${maxResults}`, { headers: defaultFetchHeaders })
                     .then(response => response.json())
                     .then(json => { return json['items'] })
                     .catch(error => { reject(error) }))
@@ -190,21 +198,22 @@ const parseVocaDBSongAsync = (
 
                 for (const category of artistCategories) {
                     const categoryType = artistCategoryMap[category.trim()]
-                    if (categoryType != undefined) {
-                        const artistData = artist.artist
+                    const artistData = artist.artist
+                    if (categoryType !== undefined && artistData) {
                         const id = artistData.id
                         const artistObject = await getArtist(id) || await getVocaDBArtist(id)
                         artistsCategories[categoryType].push(id)
-                        if (categoryType === ArtistCategory.VOCALIST && artistObject.type != ArtistType.OTHER_VOCALIST) {
-                            vocalSynths++
-                        }
+                        const artistType = artistObject.type
+
+                        const category = mapArtistTypeToCategory(artistType)
+                        vocalSynths += category === ArtistCategory.VOCALIST && !vocalSynthSingerBlacklist[artistType] ? 1 : 0
                         artists.push(artistObject)
                     }
                 }
             }
 
             if (0 >= vocalSynths) {
-                return reject('All songs on this website must have at least one vocal synthesizer as a singer.')
+                return reject('The provided song must have at least one vocal synthesizer as a singer.')
             }
 
             // get names
@@ -339,7 +348,7 @@ export const getVocaDBArtist = (
     return new Promise(async (resolve, reject) => {
         try {
             // fetch the data from the vocaDB API
-            const serverResponse = await fetch(`${vocaDBArtistsApiUrl}${artistId}${vocaDBArtistsApiParams}`)
+            const serverResponse = await fetch(`${vocaDBArtistsApiUrl}${artistId}${vocaDBArtistsApiParams}`, { headers: defaultFetchHeaders })
                 .then(response => response.json())
                 .catch(error => { reject(error); return })
             if (!serverResponse) { reject("No server response."); return; }
@@ -357,7 +366,7 @@ export const getVocaDBSong = (
     return new Promise(async (resolve, reject) => {
         try {
             // fetch the data from the vocaDB API
-            const serverResponse = await fetch(`${vocaDBSongApiUrl}${songId}${vocaDBSongApiParams}`)
+            const serverResponse = await fetch(`${vocaDBSongApiUrl}${songId}${vocaDBSongApiParams}`, { headers: defaultFetchHeaders })
                 .then(response => response.json())
                 .catch(error => { reject(error); return })
             if (!serverResponse) { reject("No server response."); return; }

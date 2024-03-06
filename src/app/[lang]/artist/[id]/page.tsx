@@ -314,6 +314,11 @@ export default async function ArtistPage(
                             href={artistTopSongsRankingsResultsCount > artistTopSongsRankingsFilterParams.maxEntries ? `../rankings?includeArtists=${artistId}&orderBy=${FilterOrder.PUBLISH_DATE}` : undefined}
                         />
                     </> : undefined}
+
+                    <ul className="md:hidden flex flex-col gap-5">
+                        <Divider />
+                        {vocadbLink}
+                    </ul>
                 </div>
             </div>
         </article>

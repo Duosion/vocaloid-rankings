@@ -1,5 +1,5 @@
 import { getMostRecentViewsTimestamp } from "@/data/songsData"
-import { FilterDirection } from "@/data/types"
+import { FilterDirection, SourceType } from "@/data/types"
 import { generateTimestamp } from "@/lib/utils"
 import { Locale, getDictionary } from "@/localization"
 import { cookies } from "next/dist/client/components/headers"
@@ -54,7 +54,29 @@ const filters: TrendingFilters = {
         type: FilterType.INPUT,
         placeholder: 'filter_views_any',
         defaultValue: ''
-    }
+    },
+    includeSourceTypes: {
+        name: 'filter_view_type',
+        key: 'includeSourceTypes',
+        displayActive: true,
+        type: FilterType.MULTI,
+        values: [
+            { name: "youtube", value: SourceType.YOUTUBE },
+            { name: 'niconico', value: SourceType.NICONICO },
+            { name: 'bilibili', value: SourceType.BILIBILI },
+        ]
+    },
+    excludeSourceTypes: {
+        name: 'filter_view_type_exclude',
+        key: 'excludeSourceTypes',
+        displayActive: true,
+        type: FilterType.MULTI,
+        values: [
+            { name: "youtube", value: SourceType.YOUTUBE },
+            { name: 'niconico', value: SourceType.NICONICO },
+            { name: 'bilibili', value: SourceType.BILIBILI },
+        ]
+    },
 }
 
 export async function generateMetadata(

@@ -2,14 +2,26 @@ import { ArtistType, NameType, Names, PlacementChange, SongType, SourceType } fr
 import { GraphQLClient } from "graphql-hooks";
 import MemCacheFunction from "graphql-hooks-memcache";
 import { ApiNames } from "./types";
+import { getCookie } from "cookies-next";
 
 const apiEndpoint = '/api/v1'
 
 // general-purpose functions
+let sessionToken = getCookie('session')
+
+const headers: { [key: string]: string } = { }
+
+if (sessionToken) {
+    headers['Authorization'] = `Bearer ${sessionToken.toString()}`
+}
+
 export const graphClient = new GraphQLClient({
     url: apiEndpoint,
-    cache: MemCacheFunction()
+    cache: MemCacheFunction(),
+    headers: headers
 })
+
+sessionToken = undefined
 
 // queries
 export const GET_SONG_RANKINGS = `
@@ -253,7 +265,7 @@ export function mapSourceType(
 export function mapArtistType(
     apiValue: string
 ): ArtistType {
-    switch(apiValue) {
+    switch (apiValue) {
         case 'VOCALOID': return ArtistType.VOCALOID;
         case 'CEVIO': return ArtistType.CEVIO;
         case 'SYNTHESIZER_V': return ArtistType.SYNTHESIZER_V;

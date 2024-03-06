@@ -47,7 +47,7 @@ export default async function RootLayout({
         <Providers dictionary={langDict}>
           {process.env.NODE_ENV == 'production' ? <GoogleAnalytics tag={process.env.GOOGLE_ANALYTICS_TAG || ''} /> : undefined}
           <Navbar lang={locale} />
-          <main className='max-w-screen-2xl min-h-screen m-auto flex flex-col justify-start items-center px-5 py-6'>
+          <main className='max-w-[1920px] min-h-screen m-auto flex flex-col justify-start items-center px-5 py-6'>
             {children}
           </main>
           <Footer lang={locale} />

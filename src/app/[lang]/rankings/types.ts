@@ -322,6 +322,8 @@ export interface TrendingFilters {
     timestamp: TimestampFilter
     direction: SelectFilter<FilterDirection>
     startAt: InputFilter
+    includeSourceTypes: MultiFilter<SourceType>
+    excludeSourceTypes: MultiFilter<SourceType>
 }
 
 export interface TrendingFiltersValues {
@@ -330,6 +332,8 @@ export interface TrendingFiltersValues {
     timestamp?: string
     direction?: number
     startAt?: string
+    includeSourceTypes?: string
+    excludeSourceTypes?: string
 }
 
 export interface TrendingFilterBarValues {
@@ -338,6 +342,8 @@ export interface TrendingFilterBarValues {
     timestamp?: Date
     direction?: number
     startAt?: string
+    includeSourceTypes?: number[]
+    excludeSourceTypes?: number[]
 }
 
 // describes a list of entity names with their ids mapped to a Names types

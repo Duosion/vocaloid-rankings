@@ -7,7 +7,7 @@ import { Hct, MaterialDynamicColors, SchemeVibrant, argbFromHex, argbFromRgb, he
 import type { Statement } from "better-sqlite3";
 import { getPaletteFromURL } from "color-thief-node";
 import getDatabase, { Databases } from ".";
-import { Artist, ArtistCategory, ArtistPlacement, ArtistRankingsFilterParams, ArtistRankingsFilterResult, ArtistRankingsFilterResultItem, ArtistThumbnailType, ArtistThumbnails, ArtistType, FilterInclusionMode, HistoricalViews, HistoricalViewsResult, Id, NameType, Names, PlacementChange, RawArtistData, RawArtistName, RawArtistRankingResult, RawArtistThumbnail, RawSongArtist, RawSongData, RawSongName, RawSongRankingsResult, RawSongVideoId, RawViewBreakdown, Song, SongArtistsCategories, SongPlacement, SongRankingsFilterParams, SongRankingsFilterResult, SongRankingsFilterResultItem, SongType, SongVideoIds, SourceType, SqlRankingsFilterInVariables, SqlRankingsFilterParams, SqlRankingsFilterStatements, SqlSearchArtistsFilterParams, Views, ViewsBreakdown } from "./types";
+import { Artist, ArtistCategory, ArtistPlacement, ArtistRankingsFilterParams, ArtistRankingsFilterResult, ArtistRankingsFilterResultItem, ArtistThumbnailType, ArtistThumbnails, ArtistType, FilterInclusionMode, HistoricalViews, HistoricalViewsResult, Id, NameType, Names, PlacementChange, RawArtistData, RawArtistName, RawArtistRankingResult, RawArtistThumbnail, RawSongArtist, RawSongData, RawSongName, RawSongRankingsResult, RawSongVideoId, RawViewBreakdown, Song, SongArtistsCategories, SongPlacement, SongRankingsFilterParams, SongRankingsFilterResult, SongRankingsFilterResultItem, SongType, SongVideoIds, SourceType, SqlRankingsFilterInVariables, SqlRankingsFilterParams, SqlRankingsFilterStatements, SqlSearchArtistsFilterParams, User, UserAccessLevel, Views, ViewsBreakdown } from "./types";
 import YouTube from "@/lib/platforms/YouTube";
 
 // import database
@@ -279,7 +279,7 @@ function filterSongRankingsRawSync(
                                 END)${filterOffsetIncludeSourceTypesStatement}${filterOffsetExcludeSourceTypesStatement}${filterIncludeSongTypesStatement}${filterExcludeSongTypesStatement}${filterIncludeArtistTypesStatement}${filterExcludeArtistTypesStatement}${filterIncludeArtistsStatement}${filterExcludeArtistsStatement}${filterIncludeSongsStatement}${filterExcludeSongsStatement}
                         GROUP BY offset_breakdowns.song_id
                         ) END)
-                END) * (1 / MAX(julianday('now') - julianday(songs.publish_date), 1))
+                END) /  MAX(MIN(julianday('now') - julianday(songs.publish_date), 730), 1)
                 ELSE SUM(DISTINCT views_breakdowns.views) - CASE WHEN :timePeriodOffset IS NULL
                     THEN 0
                     ELSE ifnull((
@@ -2046,7 +2046,7 @@ function deleteSongSync(
     id: Id
 ) {
     db.prepare(`
-    DELTE FROM songs
+    DELETE FROM songs
     WHERE id = ?
     `).run(id)
 }
@@ -2193,6 +2193,23 @@ export function deleteSong(
     })
 }
 
+export function deleteSongUser(
+    user: User | null,
+    id: Id,
+): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+        try {
+            if (user && user.accessLevel >= UserAccessLevel.MODERATOR) {
+                deleteSongSync(id)
+                return resolve(true)
+            }
+            return resolve(false)
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
 export function getSongHistoricalViews(
     id: Id,
     range = 7,
@@ -2221,6 +2238,28 @@ export function getSongHistoricalViews(
 }
 
 // View Manipulation
+
+const viewPlatformProviders: { [key in SourceType]: (videoId: string) => Promise<number | null> } = {
+    [SourceType.YOUTUBE]: YouTube.getViews,
+    [SourceType.NICONICO]: Niconico.getViews,
+    [SourceType.BILIBILI]: bilibili.getViews
+};
+
+async function getPlatformViews(
+    videoId: string,
+    platform: SourceType,
+    maxRetries: number = 5,
+    retryDelay: number = 1000,
+    depth: number = 0
+): Promise<number> {
+    try {
+        return await viewPlatformProviders[platform](videoId) || 0
+    } catch (error) {
+        await new Promise(resolve => setTimeout(resolve, retryDelay));
+        return maxRetries > depth ? getPlatformViews(videoId, platform, maxRetries, retryDelay, depth + 1) : 0
+    }
+}
+
 export async function getSongMostRecentViews(
     id: Id,
     timestamp?: string
@@ -2228,12 +2267,6 @@ export async function getSongMostRecentViews(
     try {
         const song = getSongSync(id, false);
         if (!song) return null;
-
-        const platforms: { [key in SourceType]: (videoId: string) => Promise<number | null> } = {
-            [SourceType.YOUTUBE]: YouTube.getViews,
-            [SourceType.NICONICO]: Niconico.getViews,
-            [SourceType.BILIBILI]: bilibili.getViews
-        };
 
         let totalViews = 0;
         const breakdown: ViewsBreakdown = {};
@@ -2243,11 +2276,10 @@ export async function getSongMostRecentViews(
 
             if (sourceVideoIds) {
                 const bucket = [];
-                const getViews = platforms[sourceType];
-
+                
                 for (const videoId of sourceVideoIds) {
-                    const views = await getViews(videoId) || 0;
-                    bucket.push({ id: videoId, views });
+                    const views = await getPlatformViews(videoId, sourceType)
+                    bucket.push({ id: videoId, views: views });
                     totalViews += views;
                 }
 
@@ -2292,7 +2324,6 @@ export async function refreshAllSongsViews(
         const timeNow = new Date().getTime()
         const timestamp = generateTimestamp();
         if (timestampExistsSync(timestamp)) throw new Error(`Songs views were already refreshed for timestamp "${timestamp}"`);
-        //db.prepare(`DELETE FROM views_metadata WHERE timestamp = ?`).run(timestamp)
 
         // get all non-dormant songs' ids
         const songIds = db.prepare(`SELECT id, publish_date, addition_date, dormant FROM songs`).all() as RawSongData[];
@@ -2323,13 +2354,44 @@ export async function refreshAllSongsViews(
                 if (!song.dormant) {
                     const views = await getSongMostRecentViews(song.id, timestamp);
                     if (!views) throw new Error('Most recent views was null.');
-                    if (previousViews ? ((Number(previousViews.total) * 0.25) >= views.total) && (maxRetries > depth) : false) throw new Error('Fetched views were less than 25% the previous views')
+
+                    // if the newest views fall below a certain threshold, return their view counts to their previous state
+                    let viewsReverted = false
+                    if (previousViews) {
+                        const breakdown = views.breakdown
+                        const previousBreakdown = previousViews.breakdown
+                        let newTotal = 0
+                        for (const rawSourceType in previousViews.breakdown) {
+                            const sourceType = Number(rawSourceType) as SourceType
+
+                            const bucket = breakdown[sourceType] || []
+                            const previousBucket = previousBreakdown[sourceType]
+                            const previousMap = previousBucket ? previousBucket.reduce((acc: Record<string, number | bigint>, views) => {
+                                acc[views.id] = views.views
+                                return acc;
+                            }, {}) : null
+
+                            if (previousMap) {
+                                bucket.forEach(views => {
+                                    const previousViews = previousMap[views.id]
+                                    // if 25% previousViews is greater than the most recent views, revert to the previous view count.
+                                    if (previousViews && ((Number(previousViews) * 0.25) >= views.views)) {
+                                        viewsReverted = true
+                                        views.views = previousViews
+                                    }
+                                    newTotal += Number(views.views)
+                                })
+                            }
+                        }
+                        views.total = newTotal || views.total
+                    }
 
                     insertSongViewsSync(song.id, views);
                     console.log(`Refreshed views for (${song.id})`);
 
                     // make song dormant if necessary
                     if (previousViews
+                        && (!viewsReverted)
                         && (minDormantViews >= (Number(views.total) - Number(previousViews.total)))
                         && ((timeNow - song.publishTime) >= minDormantPublishAge)
                         && ((timeNow - song.additionTime) >= minDormantAdditionAge)
@@ -2377,119 +2439,3 @@ if (process.env.NODE_ENV === 'production') {
     // refresh views
     refreshAllSongsViews().catch(error => console.log(`Error when refreshing every songs' views: ${error}`))
 }
-
-// update all songs' colors
-const convertDatabase = async (
-    maximumConcurrent: number = 20
-) => {
-    const convertSongAverageColor = async (song: RawSongData) => {
-        try {
-            const palette = await getPaletteFromURL(song.maxres_thumbnail)
-            const mostVibrantColorRgb = getMostVibrantColor(palette)
-            const mostVibrantColorArgb = argbFromRgb(mostVibrantColorRgb[0], mostVibrantColorRgb[1], mostVibrantColorRgb[2])
-
-            // get dark color & light color
-            const lightColor = hexFromArgb(MaterialDynamicColors.primary.getArgb(new SchemeVibrant(Hct.fromInt(mostVibrantColorArgb), false, 0.3)))
-            const darkColor = hexFromArgb(MaterialDynamicColors.primary.getArgb(new SchemeVibrant(Hct.fromInt(mostVibrantColorArgb), true, 0.3)))
-
-            // update database
-            db.prepare(`
-            UPDATE songs
-            SET average_color = ?, dark_color = ?, light_color = ?
-            WHERE id = ?
-            `).run(hexFromArgb(mostVibrantColorArgb), darkColor, lightColor, song.id)
-        } catch (error) {
-            console.log(`Error when updating song ${song.id}: Error: ${error}`)
-        }
-        return true
-    }
-
-    const convertArtistAverageColor = async (artist: { id: number, average_color: string, url: string }) => {
-        try {
-            const palette = await getPaletteFromURL(artist.url)
-            const mostVibrantColorRgb = getMostVibrantColor(palette)
-            const mostVibrantColorArgb = argbFromRgb(mostVibrantColorRgb[0], mostVibrantColorRgb[1], mostVibrantColorRgb[2])
-
-            // get dark color & light color
-            const lightColor = hexFromArgb(MaterialDynamicColors.primary.getArgb(new SchemeVibrant(Hct.fromInt(mostVibrantColorArgb), false, 0.3)))
-            const darkColor = hexFromArgb(MaterialDynamicColors.primary.getArgb(new SchemeVibrant(Hct.fromInt(mostVibrantColorArgb), true, 0.3)))
-
-            // update database
-            db.prepare(`
-            UPDATE artists
-            SET average_color = ?, dark_color = ?, light_color = ?
-            WHERE id = ?
-            `).run(hexFromArgb(mostVibrantColorArgb), darkColor, lightColor, artist.id)
-        } catch (error) {
-            console.log(`Error when updating artist ${artist.id}: Error: ${error}`)
-        }
-        return true
-    }
-
-    // compute new song average colors
-    {
-        const songs = db.prepare(`
-        SELECT *
-        FROM songs
-        `).all() as RawSongData[]
-
-        let promises = []
-        let n = 0
-        for (const song of songs) {
-
-            if (promises.length > maximumConcurrent) {
-                await Promise.allSettled(promises)
-                promises = []
-                console.log(`Songs [${n++}/${songs.length}]`)
-            } else {
-                promises.push(convertSongAverageColor(song))
-                n++
-            }
-        }
-    }
-
-    // compute artists average colors
-    {
-        const artists = db.prepare(`
-        SELECT id, average_color, artists_thumbnails.url
-        FROM artists
-        INNER JOIN artists_thumbnails ON artists_thumbnails.artist_id = artists.id
-        WHERE artists_thumbnails.thumbnail_type = 2
-        `).all() as { id: number, average_color: string, url: string }[]
-
-        let promises = []
-        let n = 0
-        for (const artist of artists) {
-
-            if (promises.length > maximumConcurrent) {
-                await Promise.allSettled(promises)
-                promises = []
-                console.log(`Artists [${n++}/${artists.length}]`)
-            } else {
-                promises.push(convertArtistAverageColor(artist))
-                n++
-            }
-        }
-
-        if (promises.length > 0) {
-            await Promise.allSettled(promises)
-        }
-
-        console.log('Databases converted.')
-
-    }
-}
-
-/*
-Convert PJ Sekai artists to their proper artist types
-
-UPDATE artists
-SET artist_type = 12
-WHERE id IN (83653, 83863, 83862, 83864, 86693, 86697, 86696, 86695, 84506, 84508, 83062, 84507, 84509, 83924, 83927, 83925, 83926, 84783, 84785, 84784);
-
-// Remove unused views_totals table
-DROP TABLE views_totals;
-
-*/
-
-//convertDatabase()

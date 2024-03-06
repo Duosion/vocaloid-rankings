@@ -184,7 +184,7 @@ export function insertUser(
 function insertSessionSync(
     session: Omit<Session, 'token'>
 ): Session {
-    const token = randomBytes(18).toString('base64')
+    const token = randomBytes(36).toString('base64')
 
     const expires = session.expires
     const userId = session.userId

@@ -10,7 +10,7 @@ import { RankingListItem } from "@/components/rankings/rankings-list-item"
 import { RankingsPageSelector } from "@/components/rankings/rankings-page-selector"
 import { RankingsSkeleton } from "@/components/rankings/rankings-skeleton"
 import { TransitioningRankingsGridItem } from "@/components/rankings/transitioning-rankings-grid-item"
-import { FilterDirection, FilterOrder } from "@/data/types"
+import { FilterDirection, FilterOrder, SourceType } from "@/data/types"
 import { GET_SONG_RANKINGS, buildEntityNames } from "@/lib/api"
 import { ApiSongRankingsFilterResult } from "@/lib/api/types"
 import { getEntityName } from "@/localization"
@@ -21,7 +21,7 @@ import { TransitionGroup } from "react-transition-group"
 import { useSettings } from "../../../components/providers/settings-provider"
 import { TrendingActiveFilterBar } from "./trending-filter-bar"
 import { ArtistRankingsFilterBarValues, EntityNames, FilterType, InputFilter, RankingsViewMode, TrendingFilterBarValues, TrendingFilters, TrendingFiltersValues } from "./types"
-import { encodeBoolean, encodeMultiFilter, getRankingsItemTrailingSupportingText, parseParamSelectFilterValue } from "./utils"
+import { decodeMultiFilter, encodeBoolean, encodeMultiFilter, getRankingsItemTrailingSupportingText, parseParamSelectFilterValue } from "./utils"
 import { SongArtistsLabel } from "@/components/formatters/song-artists-label"
 
 export function TrendingRankingsList(
@@ -57,14 +57,16 @@ export function TrendingRankingsList(
         from: filterValues.from ? new Date(filterValues.from) : undefined,
         timestamp: filterValues.timestamp ? new Date(filterValues.timestamp) : undefined,
         direction: filterValues.direction,
-        startAt: filterValues.startAt
+        startAt: filterValues.startAt,
+        includeSourceTypes: decodeMultiFilter(filterValues.includeSourceTypes),
+        excludeSourceTypes: decodeMultiFilter(filterValues.excludeSourceTypes),
     } as ArtistRankingsFilterBarValues)
-
-    // entity names state
-    const [entityNames, setEntityNames] = useState({} as EntityNames)
 
     // returns a table of query variables for querying GraphQL with.
     const getQueryVariables = () => {
+        // build & set query variables
+        const includeSourceTypes = filterBarValues.includeSourceTypes?.map(type => SourceType[filters.includeSourceTypes.values[type].value || 0])
+        const excludeSourceTypes = filterBarValues.excludeSourceTypes?.map(type => SourceType[filters.excludeSourceTypes.values[type].value || 0])
 
         // get custom time period offset
         const to = filterBarValues.timestamp || currentTimestampDate
@@ -83,7 +85,9 @@ export function TrendingRankingsList(
             timePeriodOffset: customTimePeriodOffset !== undefined ? customTimePeriodOffset : parseParamSelectFilterValue(filterBarValues.timePeriod, filters.timePeriod.values, filters.timePeriod.defaultValue),
             direction: filterBarValues.direction === undefined ? undefined : FilterDirection[filterBarValues.direction],
             startAt: Number(filterBarValues.startAt),
-            orderBy: FilterOrder[FilterOrder.POPULARITY]
+            orderBy: FilterOrder[FilterOrder.POPULARITY],
+            includeSourceTypes: includeSourceTypes && includeSourceTypes.length > 0 ? includeSourceTypes : undefined,
+            excludeSourceTypes: excludeSourceTypes && excludeSourceTypes.length > 0 ? excludeSourceTypes : undefined,
         }
     }
 
