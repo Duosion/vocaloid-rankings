@@ -45,6 +45,7 @@
     "@types/color-thief-node": "1.0.2",
     "@types/markdown-it": "^13.0.7",
     "@types/negotiator": "^0.6.1",
+    "@types/next": "^9.0.0",
     "@types/node": "20.4.1",
     "@types/react": "18.2.14",
     "@types/react-dom": "18.2.6",
