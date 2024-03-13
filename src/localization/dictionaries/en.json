@@ -172,7 +172,7 @@
     "list_descriptions_required": "At least one list description is required.",
     "list_songs_title": "Songs",
     "list_songs_search": "Song Name",
-    "list_songs_limit": ":current/:max",
+    "list_edit": "Edit List",
     "list_songs_empty": "This list has no songs yet.",
     "footer_source_code": "Source",
     "footer_community": "Community",
