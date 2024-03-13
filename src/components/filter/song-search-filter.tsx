@@ -1,28 +1,31 @@
-import { EntityNames, Filter } from "@/app/[lang]/rankings/types"
+import { EntityNames } from "@/app/[lang]/rankings/types"
 import { useSettings } from "@/components/providers/settings-provider"
+import { FilterInclusionMode, Id } from "@/data/types"
 import { buildEntityNames, graphClient } from "@/lib/api"
-import { ApiArtist } from "@/lib/api/types"
+import { ApiSong } from "@/lib/api/types"
 import { timeoutDebounce } from "@/lib/utils"
 import { getEntityName } from "@/localization"
-import { Result, APIError, GraphQLResponseError } from "graphql-hooks"
+import { APIError, GraphQLResponseError, Result } from "graphql-hooks"
 import { useEffect, useRef, useState } from "react"
+import { Elevation, ImageDisplayMode, elevationToClass } from ".."
+import { useLocale } from "../providers/language-dictionary-provider"
 import { FadeInOut } from "../transitions/fade-in-out"
 import { FilterElement } from "./filter"
-import { Elevation, elevationToClass } from ".."
-import { FilterInclusionMode } from "@/data/types"
-import { useLocale } from "../providers/language-dictionary-provider"
+import EntityThumbnail from "../entity-thumbnail"
 
-const ARTISTS_SEARCH = `
-query ArtistSearch(
+const SONGS_SEARCH = `
+query SongsSearch(
     $query: String!
-    $excludeArtists: [Int]
+    $excludeSongs: [Int]
 ) {
-    searchArtists(
+    searchSongs(
         query: $query
         maxEntries: 5
-        excludeArtists: $excludeArtists
+        excludeSongs: $excludeSongs
     ) {
         id
+        thumbnail
+        averageColor
         names {
             original
             japanese
@@ -33,14 +36,12 @@ query ArtistSearch(
 }
 `
 
-export function ArtistSearchFilter(
+export function SongSearchFilter(
     {
         name,
         value,
         placeholder,
         entityNames,
-        defaultInclusionMode,
-        inclusionMode,
         elevation = Elevation.LOW,
         modalElevation = Elevation.NORMAL,
         onValueChanged,
@@ -48,24 +49,18 @@ export function ArtistSearchFilter(
         onInclusionModeChanged,
     }: {
         name: string
-        value: number[]
+        value: Id[]
         placeholder: string
         entityNames: EntityNames
-        defaultInclusionMode?: number
-        inclusionMode?: number
         elevation?: Elevation
         modalElevation?: Elevation
-        onValueChanged?: (newValue: number[]) => void
+        onValueChanged?: (newValue: Id[]) => void
         onEntityNamesChanged?: (newValue: EntityNames) => void
         onInclusionModeChanged?: (newValue?: FilterInclusionMode) => void
     }
 ) {
     // get langDict
     const langDict = useLocale()
-
-    // replace inclusion mode if NaN
-    inclusionMode = inclusionMode == undefined || isNaN(inclusionMode) ? defaultInclusionMode : inclusionMode
-    const inclusionModeIsAnd = inclusionMode == FilterInclusionMode.AND
 
     // react states
     const [modalOpen, setModalOpen] = useState(false)
@@ -81,7 +76,7 @@ export function ArtistSearchFilter(
     const [apiError, setApiError] = useState(null as APIError<GraphQLResponseError> | null)
     const [apiData, setApiData] = useState(null as any)
 
-    const searchResult = apiData?.searchArtists as ApiArtist[]
+    const searchResult = apiData?.searchSongs as ApiSong[]
 
     // settings
     const { settings } = useSettings()
@@ -89,22 +84,15 @@ export function ArtistSearchFilter(
     // import settings
     const settingTitleLanguage = settings.titleLanguage
 
-    function addArtist(newArtistId: number) {
-        value.push(newArtistId)
+    function addSong(newSongId: Id) {
+        value.push(newSongId)
         if (onValueChanged) {
             onValueChanged(value)
         }
     }
 
-    // function removeArtist(id: number) {
-    //     value.splice(value.indexOf(id), 1)
-    //     if (onValueChanged) {
-    //         onValueChanged(value)
-    //     }
-    // }
-
     const onInputChanged = (input: string) => {
-        setSearchQuery(input.toLowerCase())
+        setSearchQuery(input)
         if (!modalOpen) {
             setModalOpen(true)
         }
@@ -113,10 +101,10 @@ export function ArtistSearchFilter(
             setApiError(null)
 
             graphClient.request({
-                query: ARTISTS_SEARCH,
+                query: SONGS_SEARCH,
                 variables: {
                     query: input,
-                    excludeArtists: value
+                    excludeSongs: value
                 }
             }).then((result: Result<any, any>) => {
                 const error = result.error
@@ -125,7 +113,7 @@ export function ArtistSearchFilter(
                 }
                 setApiData(result.data)
             })
-                .catch(error => { })
+                .catch(_ => { })
                 .finally(() => setLoading(false))
         })
     }
@@ -149,17 +137,6 @@ export function ArtistSearchFilter(
         <FilterElement
             key={name}
             name={name}
-            nameTrailing={
-                inclusionMode == undefined ? undefined
-                    : <button
-                        className={`rounded-full text-base px-4${inclusionModeIsAnd ? ' outline outline-1 border-outline-variant text-on-surface-variant' : ' outline outline-1 border-primary bg-primary text-on-primary'}`}
-                        onClick={() => {
-                            if (onInclusionModeChanged) onInclusionModeChanged(inclusionModeIsAnd ? FilterInclusionMode.OR : FilterInclusionMode.AND)
-                        }}
-                    >
-                        {inclusionModeIsAnd ? langDict['filter_inclusion_mode_and'] : langDict['filter_inclusion_mode_or']}
-                    </button>
-            }
         >
             <div className='py-2 px-4 rounded-full text-on-surface flex text-base font-normal'
                 style={{ backgroundColor: `var(--md-sys-color-${elevationToClass[elevation]})` }}
@@ -193,15 +170,23 @@ export function ArtistSearchFilter(
                                             key={id}
                                             onClick={(e) => {
                                                 e.preventDefault()
-                                                addArtist(id)
+                                                addSong(id)
                                                 // add name to names
                                                 entityNames[id] = name
                                                 if (onEntityNamesChanged) onEntityNamesChanged(entityNames);
                                                 // close modal
                                                 setModalOpen(false)
                                             }}
-                                            className="w-full font-normal h-auto overflow-clip text-ellipsis p-2 rounded-full relative transition-colors hover:bg-surface-container-highest"
+                                            className="w-full font-normal flex gap-3 items-center h-auto text-left overflow-clip text-ellipsis p-2 rounded-full relative transition-colors hover:bg-surface-container-highest"
                                         >
+                                            <EntityThumbnail
+                                                    src={result.thumbnail}
+                                                    alt={name}
+                                                    width={25}
+                                                    height={25}
+                                                    imageDisplayMode={ImageDisplayMode.SONG}
+                                                    fillColor={result.averageColor}
+                                                />
                                             {name}
                                         </button>
                                     )
@@ -211,16 +196,6 @@ export function ArtistSearchFilter(
                     </ul>
                 </div>
             </FadeInOut>
-
-            {/* Selected values */}
-            {/* <ul className="flex gap-3 mt-3 font-normal">
-                {value.map(id => {
-                    const name = entityNames[id]
-                    return name ? (
-                        <ActiveFilter key={id} name={name} icon='close' onClick={() => removeArtist(id)} />
-                    ) : undefined
-                })}
-            </ul> */}
         </FilterElement>
     )
 }

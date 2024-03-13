@@ -6,7 +6,7 @@ import { getVocaDBRecentSongs } from "@/lib/vocadb";
 import { Locale } from "@/localization";
 import type { Statement } from "better-sqlite3";
 import getDatabase, { Databases } from ".";
-import { Artist, ArtistCategory, ArtistPlacement, ArtistRankingsFilterParams, ArtistRankingsFilterResult, ArtistRankingsFilterResultItem, ArtistThumbnailType, ArtistThumbnails, ArtistType, FilterInclusionMode, HistoricalViews, HistoricalViewsResult, Id, List, ListLocalizationType, ListLocalizations, NameType, Names, PlacementChange, RawArtistData, RawArtistName, RawArtistRankingResult, RawArtistThumbnail, RawList, RawListLocalization, RawListSong, RawSongArtist, RawSongData, RawSongName, RawSongRankingsResult, RawSongVideoId, RawViewBreakdown, Song, SongArtistsCategories, SongPlacement, SongRankingsFilterParams, SongRankingsFilterResult, SongRankingsFilterResultItem, SongType, SongVideoIds, SourceType, SqlRankingsFilterInVariables, SqlRankingsFilterParams, SqlRankingsFilterStatements, SqlSearchArtistsFilterParams, User, UserAccessLevel, Views, ViewsBreakdown } from "./types";
+import { Artist, ArtistCategory, ArtistPlacement, ArtistRankingsFilterParams, ArtistRankingsFilterResult, ArtistRankingsFilterResultItem, ArtistThumbnailType, ArtistThumbnails, ArtistType, FilterInclusionMode, HistoricalViews, HistoricalViewsResult, Id, List, ListLocalizationType, ListLocalizations, NameType, Names, PlacementChange, RawArtistData, RawArtistName, RawArtistRankingResult, RawArtistThumbnail, RawList, RawListLocalization, RawListSong, RawSongArtist, RawSongData, RawSongName, RawSongRankingsResult, RawSongVideoId, RawViewBreakdown, Song, SongArtistsCategories, SongPlacement, SongRankingsFilterParams, SongRankingsFilterResult, SongRankingsFilterResultItem, SongType, SongVideoIds, SourceType, SqlRankingsFilterInVariables, SqlRankingsFilterParams, SqlRankingsFilterStatements, SqlSearchArtistsFilterParams, SqlSearchSongsFilterParams, User, UserAccessLevel, Views, ViewsBreakdown } from "./types";
 
 // import database
 const db = getDatabase(Databases.SONGS_DATA)
@@ -1091,7 +1091,7 @@ function getHistoricalViewsSync(
     }
 }
 
-// Artists
+// Artists =================================================================================================================
 function buildArtist(
     artistData: RawArtistData,
     artistNames: RawArtistName[],
@@ -1392,7 +1392,7 @@ function buildSearchArtistsQueryParams(
 ): SqlSearchArtistsFilterParams {
 
     const queryParams: { [key: string]: any } = {
-        query: `%${query}%`,
+        query: `%${query.toLowerCase()}%`,
         maxEntries: maxEntries,
         startAt: startAt,
     }
@@ -1430,7 +1430,7 @@ function searchArtistsSync(
         SELECT DISTINCT id
         FROM artists
         INNER JOIN artists_names ON artists_names.artist_id = id
-        WHERE (artists_names.name LIKE :query)${excludeArtistsStatement}
+        WHERE (lower(artists_names.name) LIKE :query)${excludeArtistsStatement}
         LIMIT :maxEntries
         OFFSET :startAt
     `).all(params.params) as { id: number }[]
@@ -1602,7 +1602,7 @@ function buildNames(
     return names
 }
 
-// Song
+// Song ==========================================================================================================================================
 function buildSong(
     songData: RawSongData,
     songNames: RawSongName[],
@@ -2065,6 +2065,84 @@ function songExistsSync(
     `).get(id) ? true : false
 }
 
+function buildSearchSongsQueryParams(
+    query: string,
+    maxEntries: number = 50,
+    startAt: number = 0,
+    excludeSongs?: Id[],
+): SqlSearchSongsFilterParams {
+
+    const queryParams: { [key: string]: any } = {
+        query: `%${query.toLowerCase()}%`,
+        maxEntries: maxEntries,
+        startAt: startAt,
+    }
+
+    const buildInStatement = (values: Id[], prefix = '') => {
+        const stringBuilder = []
+        let n = 0
+        for (const value of values) {
+            const key = `${prefix}${n}`
+            stringBuilder.push(`:${key}`)
+            queryParams[key] = value
+            n++
+        }
+        return stringBuilder.join(',')
+    }
+
+    return {
+        excludeSongs: excludeSongs ? buildInStatement(excludeSongs, 'excludeSongs') : '',
+        params: queryParams
+    }
+}
+
+function searchSongsSync(
+    query: string,
+    maxEntries: number = 50,
+    startAt: number = 0,
+    excludeSongs?: Id[],
+): Song[] {
+    const params = buildSearchSongsQueryParams(query, maxEntries, startAt, excludeSongs)
+
+    const excludeSongsValues = params.excludeSongs
+    const excludeExcludeStatement = excludeSongsValues ? ` AND (songs.id NOT IN (${excludeSongsValues}))` : ''
+
+    const results = db.prepare(`
+        SELECT DISTINCT id
+        FROM songs
+        INNER JOIN songs_names ON songs_names.song_id = id
+        WHERE (lower(songs_names.name) LIKE :query)${excludeExcludeStatement}
+        LIMIT :maxEntries
+        OFFSET :startAt
+    `).all(params.params) as { id: number }[]
+
+    // get artists from the ids
+    const songs: Song[] = []
+
+    for (const result of results) {
+        const artist = getSongSync(result.id, false)
+        if (artist) songs.push(artist)
+    }
+
+    // return the artists
+    return songs
+}
+
+export function serachSongs(
+    query: string,
+    maxEntries?: number,
+    startAt?: number,
+    excludeSongs?: Id[],
+): Promise<Song[]> {
+    return new Promise((resolve, reject) => {
+        try {
+            resolve(searchSongsSync(query, maxEntries, startAt, excludeSongs))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
 export function songExists(
     id: Id
 ): Promise<boolean> {
@@ -2462,7 +2540,7 @@ function updateListSync(
     return getListSync(id) as List
 }
 
-function updateList(
+export function updateList(
     list: Partial<List> & Pick<List, 'id'>
 ): Promise<List> {
     return new Promise<List>((resolve, reject) => {
@@ -2482,7 +2560,7 @@ function deleteListSync(
     WHERE id = ?`).run(id)
 }
 
-function deleteList(
+export function deleteList(
     id: Id
 ): Promise<void> {
     return new Promise<void>((resolve, reject) => {

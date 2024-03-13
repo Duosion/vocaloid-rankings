@@ -368,6 +368,11 @@ export interface SqlSearchArtistsFilterParams {
     params: { [key: string]: any }
 }
 
+export interface SqlSearchSongsFilterParams {
+    excludeSongs: string,
+    params: { [key: string]: any }
+}
+
 export interface RawSongData {
     id: Id
     publish_date: string

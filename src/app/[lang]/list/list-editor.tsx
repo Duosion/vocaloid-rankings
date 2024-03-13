@@ -1,16 +1,20 @@
 'use client'
+import { InsertListActionResponse, insertListAction } from "@/app/actions/insertList";
 import { InputFilterElement } from "@/components/filter/input-filter";
+import { SongSearchFilter } from "@/components/filter/song-search-filter";
 import Image from "@/components/image";
 import { Divider } from "@/components/material/divider";
 import { FilledButton } from "@/components/material/filled-button";
 import { Icon } from "@/components/material/icon";
+import { IconButton } from "@/components/material/icon-button";
 import { useLocale } from "@/components/providers/language-dictionary-provider";
 import { Id, List, ListLocalizations } from "@/data/types";
-import { Locale } from "@/localization";
+import { LanguageDictionaryKey, Locale } from "@/localization";
 import { LangLocaleTokens } from "@/localization/DictionaryTokenMaps";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-interface ListValues {
+export interface ListValues {
     id: Id | null;
     songIds: Id[];
     names: ListLocalizations;
@@ -25,6 +29,8 @@ export function ListEditor(
         list?: List
     }
 ) {
+    
+    // states
     const [listValues, setListValues] = useState({
         id: list?.id || null,
         songIds: list?.songIds || [] as Id[],
@@ -32,9 +38,16 @@ export function ListEditor(
         descriptions: list?.names || {} as ListLocalizations,
         image: list?.image || null
     } as ListValues)
+    const [formSubmitting, setFormSubmitting] = useState(false)
+    const [error, setError] = useState(null as string | null)
 
+    // language dictionary
     const langDict = useLocale()
 
+    // router
+    const router = useRouter()
+
+    // functions
     const saveListValues = (
         newValues: ListValues
     ) => {
@@ -81,7 +94,22 @@ export function ListEditor(
     }
 
     return (
-        <article className="flex flex-col gap-5 w-full min-h-screen">
+        <form className="flex flex-col gap-5 w-full min-h-screen"
+            action={async () => {
+                if (formSubmitting) return
+                setFormSubmitting(true)
+                const result: InsertListActionResponse = await insertListAction(listValues)
+
+
+                const error = result.error
+                setError(error ? langDict[error as LanguageDictionaryKey] || error : null)
+                setFormSubmitting(false)
+
+                const id = result.listId
+                if (id) router.push(`./${id}`)
+
+            }}
+        >
             <section className="w-full flex gap-5 items-end">
                 <h1 className="font-bold md:text-5xl md:text-left text-4xl flex-1">{langDict.list_create_title}</h1>
                 <FilledButton text={langDict.list_save} />
@@ -134,9 +162,53 @@ export function ListEditor(
             {/* songs */}
             <section className="flex gap-5 items-end ">
                 <h2 className="font-semibold text-3xl flex-1 h-fit">{langDict.list_songs_title}</h2>
+                {/* Search */}
+                <SongSearchFilter
+                    name={''}
+                    value={listValues.songIds}
+                    placeholder={langDict.list_songs_search}
+                    entityNames={[]}
+                    onValueChanged={newValue => {
+                        listValues.songIds = newValue
+                        saveListValues(listValues)
+                    }}
+                    onEntityNamesChanged={() => { }}
+                />
             </section>
-        </article>
-
+            {/* song items */}
+            <section className="flex flex-col gap-5">
+                {0 >= listValues.songIds.length ? <h2 className="font-semibold text-3xl text-center w-full my-5">{langDict.list_songs_empty}</h2>
+                    : listValues.songIds.map(id => <SongListItem
+                        key={id.toString()}
+                        id={id}
+                        onDelete={() => {
+                            listValues.songIds.splice(listValues.songIds.indexOf(id), 1)
+                            saveListValues(listValues)
+                        }}
+                    />
+                    )
+                }
+            </section>
+        </form>
     )
+}
+
+function SongListItem(
+    {
+        id,
+        onDelete
+    }: {
+        id: Id,
+        onDelete: () => void
+    }
+) {
+
+    return <li key={id.toString()} className="flex gap-5 px-5 py-3 w-full bg-surface-container-low items-center rounded-2xl">
+        <h4 className="text-xl flex-1">{id.toString()}</h4>
+        <IconButton
+            icon='close'
+            onClick={onDelete}
+        />
+    </li>
 
 }

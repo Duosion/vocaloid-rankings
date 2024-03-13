@@ -1,4 +1,4 @@
-import { deleteSongUser, filterArtistRankings, filterSongRankings, getArtist, getArtistPlacement, getArtistViews, getMostRecentViewsTimestamp, getSong, getSongPlacement, getSongViews, insertSong, insertSongViews, refreshAllSongsViews, searchArtists, songExists, updateSong } from '@/data/songsData'
+import { deleteSongUser, filterArtistRankings, filterSongRankings, getArtist, getArtistPlacement, getArtistViews, getMostRecentViewsTimestamp, getSong, getSongPlacement, getSongViews, insertSong, insertSongViews, refreshAllSongsViews, searchArtists, serachSongs, songExists, updateSong } from '@/data/songsData'
 import { Artist, ArtistCategory, ArtistRankingsFilterParams, ArtistThumbnailType, ArtistThumbnails, FilterDirection, FilterInclusionMode, FilterOrder, NameType, Names, Song, SongArtistsCategories, SongRankingsFilterParams, SongVideoIds, SourceType, VideoViews, ViewsBreakdown } from '@/data/types'
 import { getVocaDBSong, parseVocaDBSongId } from '@/lib/vocadb'
 import {
@@ -239,6 +239,13 @@ import { GraphQLContext } from './types'
  *     maxEntries: Int
  *     startAt: Int
  *   ): [Artist]
+ * 
+ *   searchSongs(
+ *     query: String!
+ *     excludeSongs: [Int]
+ *     maxEntries: Int
+ *     startAt: Int
+ *   ): [Song]
  * }
  * 
  * type Mutation {
@@ -1167,6 +1174,13 @@ const artistRankingsFilterResultType = new GraphQLObjectType({
 *     maxEntries: Int
 *     startAt: Int
 *   ): [Artist]
+* 
+*   searchSongs(
+*     query: String!
+*     excludeSongs: [Int]
+*     maxEntries: Int
+*     startAt: Int
+*   ): [Song]
 * }
 */
 const queryType = new GraphQLObjectType({
@@ -1653,7 +1667,7 @@ const queryType = new GraphQLObjectType({
                 { ids }: { ids: number[] }
             ) => ids.map(id => getArtist(id, false, false))
         },
-        searchArtist: {
+        searchArtists: {
             type: new GraphQLList(artistType),
             args: {
                 query: {
@@ -1691,6 +1705,46 @@ const queryType = new GraphQLObjectType({
                 Math.min(maxEntries || 50, 50),
                 Math.abs(startAt || 0),
                 excludeArtists
+            )
+        },
+        searchSongs: {
+            type: new GraphQLList(songType),
+            args: {
+                query: {
+                    type: new GraphQLNonNull(GraphQLString),
+                    description: 'The name of the song to search for.'
+                },
+                maxEntries: {
+                    type: GraphQLInt,
+                    description: 'The maximum number of results to return. The maximum value is 50.'
+                },
+                startAt: {
+                    type: GraphQLInt,
+                    description: 'The placement to start getting results at.'
+                },
+                excludeSongs: {
+                    type: new GraphQLList(GraphQLInt),
+                    description: 'A list of song IDs to exclude from the search results.'
+                },
+            },
+            resolve: async (
+                _source,
+                {
+                    query,
+                    maxEntries,
+                    startAt,
+                    excludeSongs
+                }: {
+                    query: string
+                    maxEntries: number | undefined
+                    startAt: number | undefined
+                    excludeSongs: number[]
+                }
+            ) => serachSongs(
+                query.trim(),
+                Math.min(maxEntries || 50, 50),
+                Math.abs(startAt || 0),
+                excludeSongs
             )
         }
     }
